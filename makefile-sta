@@ -1,0 +1,12 @@
+PROG = mads
+CC = gcc 
+CFLAGS = -Wall
+LDLIBS = -lgsl -lm -lgslcblas -Llevmar-2.4 -llevmar -llapack -lblas
+OBJS = mads.o mads_io.o mads_mem.o opt_lm_mon.o opt_lm_gsl.o lu.o opt_lm_ch.o anasol_contamination.o io.o pesting/pesting.o lhs/lhs.o pso/pso-tribes-lm-orig.o
+$(PROG): $(OBJS)
+
+clean:
+	rm -f $(PROG1) $(OBJS1) $(PROG2) $(OBJS2)
+
+tar:
+	tar -cvzf mads.tgz *.c *.h makefile */*.c */*.h */*akefile* .hg

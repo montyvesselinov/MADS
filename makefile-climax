@@ -1,0 +1,16 @@
+PROG = mads
+CC = gcc 
+ifeq ($(HOST),climax.lanl.gov)
+        CLIMAX = -I/home/monty/local/include/ -L/home/monty/local/lib
+endif
+CFLAGS = -Wall $(CLIMAX)
+LDLIBS = -lgsl -lm -lgslcblas -Llevmar-2.4 -llevmar -llapack -lblas $(CLIMAX)
+LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas $(CLIMAX)
+OBJS = mads.o mads_io.o mads_mem.o opt_lm_mon.o opt_lm_gsl.o lu.o opt_lm_ch.o anasol_contamination.o io.o pesting/pesting.o lhs/lhs.o pso/pso-tribes-lm.o
+$(PROG): $(OBJS)
+
+clean:
+	rm -f $(PROG) $(OBJS)
+
+tar:
+	tar -cvzf mads.tgz *.c *.h makefile */*.c */*.h */*akefile* .hg
