@@ -1249,7 +1249,7 @@ int main( int argn, char *argv[] )
 				c = od.obs_current[i];
 				err = od.obs_target[i] - c;
 				phi += ( err * err ) * od.obs_weight[i];
-				if( c < od.obs_min[i] || c > od.obs_max[i] ) { status_all = 0; status = 0; }
+				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { status_all = 0; status = 0; }
 				else status = 1;
 				if( od.nObs < 50 || ( i < 20 || i > od.nObs - 20 ) ) printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], status, od.obs_min[i], od.obs_max[i] );
 				if( od.nObs > 50 && i == 21 ) printf( "...\n" );
@@ -1266,7 +1266,7 @@ int main( int argn, char *argv[] )
 					err = wd.obs_target[i][j] - c;
 					if( cd.problem_type != CALIBRATE ) phi += ( err * err ) * wd.obs_weight[i][j];
 					else phi += ( err * err );
-					if( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) { status_all = 0; status = 0; }
+					if( ( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { status_all = 0; status = 0; }
 					else status = 1;
 					if( cd.problem_type != CALIBRATE )
 						printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], status, wd.obs_min[i][j], wd.obs_max[i][j] );
