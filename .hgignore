@@ -1,7 +1,20 @@
 syntax: glob
-._*
-*.in
-*results*
+mads
+*.mads
+*.eigen*
+*.covar*
+*.correl*
+*.residu*
+*.jacob*
+*.*results*
+*.phi
+*.igrnd*
+*.ppsd*
+*.igdp*
+*.mcrnd*
+*debug*
+*.s_point
+*.s_well
 *.vtk
 *.btc
 *.dat
@@ -12,6 +25,7 @@ syntax: glob
 *.pdf
 *.txt
 *.doc
+*.docx
 *.wells
 *.swp
 *.pars
@@ -26,3 +40,5 @@ syntax: glob
 *.a
 *.so
 *.orig
+*.zip
+._*

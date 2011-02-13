@@ -190,7 +190,7 @@ int pssa( struct opt_data *op )
 	int kdsize; // size of kdset
 	int old_pos = 0, new_pos = 0; // number of particles visiting old and new positions each iteration
 	//double expl_rate, old_expl_rate = 1; // rate of new to old positions
-	int mflag; // indicates if particles are actually moving 
+	int mflag; // indicates if particles are actually moving
 	op->cd->compute_phi = 1;
 	if(( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
@@ -239,7 +239,7 @@ int pssa( struct opt_data *op )
 	n_exec_max = 1; // Numbers of runs
 	eval_max = op->cd->maxeval; // Max number of evaluations for each run
 	// Read in previous results
-	if( op->cd->infile[0] != 0 ) 
+	if( op->cd->infile[0] != 0 )
 	{
 		read_in( kd, D, eps,  finv, &f_ind, op->cd->infile );
 		f_ind_old = f_ind;
@@ -357,7 +357,7 @@ loop:
 			if( LINKS[m] [s] == 1 && P[m].f < P[g].f ) g = m;
 		}
 		// ... compute the new velocity, and move
-		mflag=0;
+		mflag = 0;
 		for( d = 0; d < D; d++ )
 		{
 			V[s].v[d] = w * V[s].v[d] + alea( 0, c ) * ( P[s].x[d] - X[s].x[d] );
@@ -430,13 +430,13 @@ loop:
 	// If particles are not exploring new locations enough, modify w and c
 //	if( old_pos > 0 ) expl_rate = new_pos / ( double ) old_pos;
 //	else { expl_rate = old_expl_rate = 10000; }
-/*	if( w > 0.001 && c < 3 && c > 0.001 )
-	{
-		if( expl_rate < 0.1 ) {w *= 1.001; c *= 1.001;}
-		else if( expl_rate > 30 ) {w *= 0.999; c *= 0.999; }
-		else if( expl_rate < old_expl_rate ) {w *= 1.00001; c *= 1.00001;}
-		else if( expl_rate > old_expl_rate ) {w *= 0.99999; c *= 0.99999;}
-	}*/
+	/*	if( w > 0.001 && c < 3 && c > 0.001 )
+		{
+			if( expl_rate < 0.1 ) {w *= 1.001; c *= 1.001;}
+			else if( expl_rate > 30 ) {w *= 0.999; c *= 0.999; }
+			else if( expl_rate < old_expl_rate ) {w *= 1.00001; c *= 1.00001;}
+			else if( expl_rate > old_expl_rate ) {w *= 0.99999; c *= 0.99999;}
+		}*/
 	// Reset best location if expl_rate is too low
 	if( 2 * old_pos > new_pos )
 	{
@@ -446,14 +446,14 @@ loop:
 			if( P[s].f < P[best].f ) best = s;
 		init_links = 0;
 	}
-	if( op->cd->pdebug > 1 ) printf( "evals: %d n_found: %d old_pos: %d new_pos: %d\n", nb_eval, f_ind, old_pos, new_pos);
+	if( op->cd->pdebug > 1 ) printf( "evals: %d n_found: %d old_pos: %d new_pos: %d\n", nb_eval, f_ind, old_pos, new_pos );
 	// Check if finished
 	if( nb_eval < eval_max && energy > 0 ) goto loop;
 	if( error > eps ) n_failure = n_failure + 1;
 	// Result display
 	if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
-	if( op->cd->infile[0] != 0 ) 
-	{ 
+	if( op->cd->infile[0] != 0 )
+	{
 		printf( "\n%d solutions from %s\n", f_ind_old, op->cd->infile );
 		printf( "%d new solutions\n", f_ind - f_ind_old );
 	}

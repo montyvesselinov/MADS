@@ -6,7 +6,8 @@
 
 /* Functions here */
 int func_extrn( double *x, void *data, double *f );
-int func_extrn_w( double *x, void *data );
+int func_extrn_write( int ieval, double *x, void *data );
+int func_extrn_read( int ieval, void *data, double *f );
 int func_extrn_r( double *x, void *data, double *f );
 int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
@@ -28,16 +29,27 @@ double int_point_source( double tau, void *params );
 double int_rectangle_source( double tau, void *params );
 double int_rectangle_source_vz( double tau, void *params );
 double int_box_source( double tau, void *params );
+int create_mprun_dir( char *dir );
+int delete_mprun_dir( char *dir );
+int mprun( int nJob, void *data );
 
 int func_extrn( double *x, void *data, double *f )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000];
 	double c, t, err, phi = 0.0;
-	int i, k, status, status_all = 1, bad_data;
+	int i, k, status, status_all = 1, bad_data = 0;
+	if( p->cd->num_proc > 1 ) // Parallel execution of a serial job to archive all the intermediate results
+	{
+		func_extrn_write( p->cd->eval + 1, x, data );
+		mprun( 1, data ); // 1 = number of parallel job
+		bad_data = func_extrn_read( p->cd->eval, data, f ); // p->cd->eval was already incremented in mprun
+		if( bad_data ) exit( -1 );
+		return GSL_SUCCESS; // DONE
+	}
 	p->cd->eval++;
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) printf( "Current parameter estimates:\n" );
+	if( p->cd->fdebug >= 3 ) printf( "Model parameters:\n" );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
@@ -69,25 +81,22 @@ int func_extrn( double *x, void *data, double *f )
 			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc = SSR; break;
 		}
 	}
-	if( p->cd->fdebug >= 2 )
-		printf( "\nCurrent predictions:\n" );
 	for( i = 0; i < p->ed->ntpl; i++ )
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug ) == -1 )
 			exit( -1 );
 	strcpy( buf, "rm -f " );
 	for( i = 0; i < p->ed->nins; i++ )
 		strcat( buf, p->ed->fn_obs[i] );
+	strcat( buf, " >& /dev/null" );
 	if( p->cd->tpldebug || p->cd->insdebug ) printf( "\nDelete the expected output files before execution (\'%s\')\n", buf );
 	system( buf );
 	if( p->cd->tpldebug || p->cd->insdebug ) printf( "Execute external model \'%s\' ... ", p->ed->cmdline );
 	system( p->ed->cmdline );
 	if( p->cd->tpldebug || p->cd->insdebug ) printf( "done!\n" );
-	for( i = 0; i < p->od->nObs; i++ )
-		p->od->res[i] = -1;
+	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	for( i = 0; i < p->ed->nins; i++ )
 		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug ) == -1 )
 			exit( -1 );
-	bad_data = 0;
 	for( i = 0; i < p->od->nObs; i++ )
 	{
 		if( p->od->res[i] < 0 )
@@ -103,6 +112,7 @@ int func_extrn( double *x, void *data, double *f )
 		}
 	}
 	if( bad_data ) exit( -1 );
+	if( p->cd->fdebug >= 2 ) printf( "\nModel predictions:\n" );
 	for( i = 0; i < p->od->nObs; i++ )
 	{
 		c = p->od->obs_current[i];
@@ -152,14 +162,13 @@ int func_extrn( double *x, void *data, double *f )
 	return GSL_SUCCESS;
 }
 
-int func_extrn_w( double *x, void *data ) // Create a series of input file for parallel execution
+int func_extrn_write( int ieval, double *x, void *data ) // Create a series of input files for parallel execution
 {
 	struct opt_data *p = ( struct opt_data * )data;
-	char buf[1000];
+	char buf[1000], dir[500];
 	int i, k;
-	p->cd->eval++;
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) printf( "Current parameter estimates:\n" );
+	if( p->cd->fdebug >= 3 ) printf( "Model parameters (model run = %d):\n", ieval );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
@@ -191,28 +200,59 @@ int func_extrn_w( double *x, void *data ) // Create a series of input file for p
 			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc = SSR; break;
 		}
 	}
-	if( p->cd->fdebug >= 2 )
-		printf( "\nCurrent predictions:\n" );
-	for( i = 0; i < p->ed->ntpl; i++ )
+	sprintf( dir, "%s_%s_%08d", p->cd->mydir, p->root, ieval ); // Name of directory for parallel runs
+	create_mprun_dir( dir ); // Create directory for parallel runs
+	for( i = 0; i < p->ed->ntpl; i++ ) // Create input files
 	{
-		sprintf( buf, "%s_%d", p->ed->fn_out[i], p->cd->njob );
+		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
 			exit( -1 );
 	}
+	sprintf( buf, "zip -u %s-restart.zip ", p->root ); // Archive input files
+	for( i = 0; i < p->ed->ntpl; i++ )
+		sprintf( &buf[( int ) strlen( buf )], "../%s/%s", dir, p->ed->fn_out[i] );
+	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
+	system( buf );
+	if( p->cd->pardebug > 3 ) printf( "Input files for parallel run #%d are archived!\n", ieval );
+	sprintf( buf, "cd ../%s; rm -f ", dir ); // Delete expected output files
+	for( i = 0; i < p->ed->nins; i++ )
+		strcat( buf, p->ed->fn_obs[i] );
+	strcat( buf, " >& /dev/null" );
+	if( p->cd->pardebug > 3 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
+	system( buf );
 	return GSL_SUCCESS;
 }
 
-int func_extrn_r( double *x, void *data, double *f ) // Read a series of output files after parallel execution
+int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of external runs in serial (for testing only)
 {
 	struct opt_data *p = ( struct opt_data * )data;
-	char buf[1000];
+	char buf[1000], dir[500];
+	p->cd->eval++;
+	sprintf( dir, "%s_%s_%08d", p->cd->mydir, p->root, ieval ); // Name of directory for parallel runs
+	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "\nWorking directory: ../%s\n", dir );
+	if( p->cd->pardebug > 1 )
+	{
+		sprintf( buf, "cd ../%s; ls -altr ", dir ); // Check directory content
+		system( buf );
+	}
+	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "Execute external model \'%s\' ... ", p->ed->cmdline );
+	sprintf( buf, "cd ../%s; %s", dir, p->ed->cmdline );
+	system( buf );
+	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "done!\n" );
+	return GSL_SUCCESS;
+}
+
+int func_extrn_read( int ieval, void *data, double *f ) // Read a series of output files after parallel execution
+{
+	struct opt_data *p = ( struct opt_data * )data;
+	char buf[1000], dir[500];
 	double c, t, err, phi = 0.0;
 	int i, status, status_all = 1, bad_data;
-	for( i = 0; i < p->od->nObs; i++ )
-		p->od->res[i] = -1;
+	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
+	sprintf( dir, "%s_%s_%08d", p->cd->mydir, p->root, ieval );
 	for( i = 0; i < p->ed->nins; i++ )
 	{
-		sprintf( buf, "%s_%d", p->ed->fn_out[i], p->cd->njob );
+		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
 		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
 			exit( -1 );
 	}
@@ -231,7 +271,15 @@ int func_extrn_r( double *x, void *data, double *f ) // Read a series of output 
 			p->od->obs_current[i] /= p->od->res[i];
 		}
 	}
-	if( bad_data ) exit( -1 );
+	if( bad_data ) return( bad_data );
+	sprintf( buf, "zip -u %s-restart.zip ", p->root ); // Archive output files
+	for( i = 0; i < p->ed->nins; i++ )
+		sprintf( &buf[strlen( buf )], "../%s/%s", dir, p->ed->fn_obs[i] );
+	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
+	system( buf );
+	if( p->cd->pardebug > 3 ) printf( "Results from parallel run #%d are archived!\n", ieval );
+	delete_mprun_dir( dir ); // Delete directory for parallel runs
+	if( p->cd->fdebug >= 2 ) printf( "\nModel predictions (model run = %d):\n", ieval );
 	for( i = 0; i < p->od->nObs; i++ )
 	{
 		c = p->od->obs_current[i];
@@ -288,7 +336,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	struct opt_data *p = ( struct opt_data * )data;
 	p->cd->eval++;
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) printf( "Current parameter estimates:\n" );
+	if( p->cd->fdebug >= 3 ) printf( "Model parameters:\n" );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
@@ -327,8 +375,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	else
 	{
-		if( p->cd->fdebug >= 2 )
-			printf( "\nCurrent predictions:\n" );
+		if( p->cd->fdebug >= 2 ) printf( "\nModel predictions:\n" );
 		for( k = 0; k < p->od->nObs; k++ )
 		{
 			if( p->cd->oderiv != -1 ) { k = p->cd->oderiv; }
@@ -402,6 +449,87 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	return GSL_SUCCESS;
 }
 
+void func_levmar( double *x, double *f, int m, int n, void *data ) /* forward run for LevMar */
+{
+	func( x, data, f );
+}
+
+void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data ) /* forward run for LevMar */
+{
+	struct opt_data *p = ( struct opt_data * )data;
+	double *jacobian;
+	int i, j, k;
+	if(( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nObs ) ) == NULL )
+		{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	func_dx( x, f, data, jacobian );
+	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
+		for( i = 0; i < p->od->nObs; i++, k++ )
+			jac[i *p->pd->nOptParam + j] = jacobian[k];
+	free( jacobian );
+}
+
+int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
+{
+	struct opt_data *p = ( struct opt_data * )data;
+	double *f_xpdx;
+	double x_old, dx;
+	int i, j, k, compute_center = 0, bad_data = 0, ieval;
+	ieval = p->cd->eval;
+	if(( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
+		{ printf( "Not enough memory!\n" ); return( 1 ); }
+	if( p->cd->num_proc > 1 && p->cd->solution_type == EXTERNAL ) // Parallel execution of external runs
+	{
+		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
+		{
+			compute_center = 1;
+			if(( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
+				{ printf( "Not enough memory!\n" ); return( 1 ); }
+			func_extrn_write( ++ieval, x, data );
+		}
+		for( k = j = 0; j < p->pd->nOptParam; j++ )
+		{
+			x_old = x[j];
+			if( p->cd->sintrans == 0 ) dx = p->pd->var_dx[j];
+			else dx = p->cd->sindx;
+			x[j] += dx;
+			func_extrn_write( ++ieval, x, data );
+			x[j] = x_old;
+		}
+		mprun( p->pd->nOptParam + compute_center, data );
+		ieval -= ( p->pd->nOptParam + compute_center );
+		if( compute_center ) func_extrn_read( ++ieval, data, f_x );
+		for( k = j = 0; j < p->pd->nOptParam; j++ )
+		{
+			bad_data = func_extrn_read( ++ieval, data, f_xpdx );
+			if( bad_data ) exit( -1 );
+			for( i = 0; i < p->od->nObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
+		}
+	}
+	else
+	{
+		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
+		{
+			compute_center = 1;
+			if(( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
+				{ printf( "Not enough memory!\n" ); return( 1 ); }
+			func( x, data, f_x );
+		}
+		for( k = j = 0; j < p->pd->nOptParam; j++ )
+		{
+			x_old = x[j];
+			if( p->cd->sintrans == 0 ) dx = p->pd->var_dx[j];
+			else dx = p->cd->sindx;
+			x[j] += dx;
+			func( x, data, f_xpdx );
+			x[j] = x_old;
+			for( i = 0; i < p->od->nObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
+		}
+	}
+	if( compute_center ) free( f_x );
+	free( f_xpdx );
+	return GSL_SUCCESS;
+}
+
 double func_solver1( double x, double y, double z, double t, void *data )
 {
 	double c;
@@ -449,54 +577,4 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 			c2 = box_source( x, y, z2, t, ( void * ) p );
 	}
 	return(( c1 + c2 ) / 2 );
-}
-
-void func_levmar( double *x, double *f, int m, int n, void *data ) /* forward run for LevMar */
-{
-	func( x, data, f );
-}
-
-void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data ) /* forward run for LevMar */
-{
-	struct opt_data *p = ( struct opt_data * )data;
-	double *jacobian;
-	int i, j, k;
-	if(( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nObs ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); exit( 1 ); }
-	func_dx( x, f, data, jacobian );
-	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
-		for( i = 0; i < p->od->nObs; i++, k++ )
-			jac[i * p->pd->nOptParam + j] = jacobian[k];
-	free( jacobian );
-}
-
-int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
-{
-	struct opt_data *p = ( struct opt_data * )data;
-	double *f_xpdx;
-	double x_old, dx;
-	int i, j, k, compute_center = 0;
-
-	if(( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( f_x == NULL ) // Model predictions for x are not provided; need to compute
-	{
-		compute_center = 1;
-		if(( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); return( 1 ); }
-		func( x, data, f_x );
-	}
-	for( k = j = 0; j < p->pd->nOptParam; j++ )
-	{
-		x_old = x[j];
-		if( p->cd->sintrans == 0 ) dx = p->pd->var_dx[j];
-		else dx = p->cd->sindx;
-		x[j] += dx;
-		func( x, data, f_xpdx );
-		x[j] = x_old;
-		for( i = 0; i < p->od->nObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
-	}
-	if(compute_center) free(f_x);
-	free(f_xpdx);
-	return GSL_SUCCESS;
 }

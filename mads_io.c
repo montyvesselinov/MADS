@@ -54,6 +54,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->odebug = 0;
 	cd->insdebug = 0;
 	cd->tpldebug = 0;
+	cd->pardebug = 0;
 	cd->sintrans = 1;
 	cd->plogtrans = -1;
 	cd->ologtrans = -1;
@@ -119,6 +120,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "odebug" ) ) { w = 1; sscanf( word, "odebug=%d", &cd->odebug ); if( cd->odebug == 0 ) cd->odebug = 1; }
 		if( strcasestr( word, "insdebug" ) ) { w = 1; sscanf( word, "insdebug=%d", &cd->insdebug ); if( cd->insdebug == 0 ) cd->insdebug = 1; }
 		if( strcasestr( word, "tpldebug" ) ) { w = 1; sscanf( word, "tpldebug=%d", &cd->tpldebug ); if( cd->tpldebug == 0 ) cd->tpldebug = 1; }
+		if( strcasestr( word, "pardebug" ) ) { w = 1; sscanf( word, "pardebug=%d", &cd->pardebug ); if( cd->pardebug == 0 ) cd->pardebug = 1; }
 		if( strcasecmp( word, "ssr" ) == 0 ) { w = 1; cd->objfunc = SSR; }
 		if( strcasecmp( word, "ssd0" ) == 0 ) { w = 1; cd->objfunc = SSD0; }
 		if( strcasecmp( word, "ssda" ) == 0 ) { w = 1; cd->objfunc = SSDA; }
@@ -292,7 +294,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 		else
 		{
 			printf( "\nWARNING: Input file is not needed because this is a test problem!\n" );
-		//	return( 1 );
+			//	return( 1 );
 		}
 	}
 	printf( "\nModel: " );
@@ -686,6 +688,9 @@ int save_problem( char *filename, struct calc_data *cd, struct param_data *pd, s
 	if( cd->pdebug > 0 ) fprintf( outfile, " pdebug=%d", cd->pdebug );
 	if( cd->mdebug > 0 ) fprintf( outfile, " mdebug=%d", cd->mdebug );
 	if( cd->odebug > 0 ) fprintf( outfile, " odebug=%d", cd->odebug );
+	if( cd->insdebug > 0 ) fprintf( outfile, " insdebug=%d", cd->insdebug );
+	if( cd->tpldebug > 0 ) fprintf( outfile, " tpldebug=%d", cd->tpldebug );
+	if( cd->pardebug > 0 ) fprintf( outfile, " pardebug=%d", cd->pardebug );
 	if( cd->test >= 0 ) fprintf( outfile, " test=%d", cd->test );
 	if( cd->dim > 2 ) fprintf( outfile, " dim=%d", cd->dim );
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );

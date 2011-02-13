@@ -486,6 +486,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
 	}
+	sprintf( buf, "rm %s", fn_out ); system( buf );
 	if(( out = fopen( fn_out, "w" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to write data!\n", fn_out );

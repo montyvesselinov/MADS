@@ -39,7 +39,8 @@ struct calc_data
 	char *opt_method;
 	char *smp_method;
 	char *paran_method;
-	char **paral_dirs;
+	char *mydir;
+	int *paral_job;
 	char **paral_hosts;
 	char *infile; //! old results file from pssa to be read in to initialize kdtree
 	double phi_cutoff;
@@ -59,6 +60,7 @@ struct calc_data
 	int oderiv;
 	int tpldebug;
 	int insdebug;
+	int pardebug;
 	int objfunc;
 	int check_success;
 	int compute_phi;
@@ -154,6 +156,7 @@ struct opt_data
 	int success;
 	int s;
 	char *root;
+	char *datetime;
 	FILE *f_ofe;
 	struct param_data *pd;
 	struct obs_data *od;

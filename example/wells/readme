@@ -1,0 +1,7 @@
+Examples:
+
+mads s01 // serial analysis
+mads s01 np=2 // parallel analysis
+
+Code WELLS is needed
+It can be obtained at http://www.ees.lanl.gov/staff/monty/index.html?wells

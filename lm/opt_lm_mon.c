@@ -280,7 +280,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 				x_old = x[j];
 				dx = REL * MAX( fabs( x_old) , DAX );
 				x[j] += dx;
-//				printf( "Parameter %d: %g %g %g %g\n", j, x[j], ax, dx, rel );
+			//				printf( "Parameter %d: %g %g %g %g\n", j, x[j], ax, dx, rel );
 				if( debug >= 4 ) printf( "Parameter %d: Upgradient\n", j + 1 );
 				func( x, func_data, f_xpdx ); ieval++;
 				x[j] = x_old;
@@ -353,7 +353,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 				scale[j] = sqrt( jacTjac[k] );
 				dnorm += jacTjac[k] * jacTjac[k];
 			}
-			dnorm = (double) 1.0 / sqrt( dnorm );
+			dnorm = ( double ) 1.0 / sqrt( dnorm );
 			for( j = 0; j < nParam; j++ )
 				scale[j] *= dnorm * grad_norm;
 		}

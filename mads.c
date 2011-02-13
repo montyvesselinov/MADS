@@ -30,6 +30,10 @@ void DeTransform( double *v, void *data, double *vt );
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
 void ave_sorted( double data[], int n, double *ave, double *ep );
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op );
+void print_results( struct opt_data *op );
+void save_results( char *filename, struct opt_data *op, struct grid_data *gd );
+char *timestamp();
+char *datestamp();
 
 /* Functions elsewhere */
 int pssa( struct opt_data *op );
@@ -40,8 +44,6 @@ int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
 int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct extrn_data *ed );
 int save_problem( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
-void print_results( struct opt_data *op );
-void save_results( char *filename, struct opt_data *op, struct grid_data *gd );
 int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
 int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
@@ -84,6 +86,11 @@ void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void 
 int func_dx( double *x, double *f_x, void *data, double *jacobian );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
+int func_extrn_write( int ieval, double *x, void *data );
+int func_extrn_exec_serial( int ieval, void *data );
+int func_extrn_read( int ieval, void *data, double *f );
+int delete_mprun_outputs( int nDir, void *data );
+int mprun( int nJob, void *data );
 
 int main( int argn, char *argv[] )
 {
@@ -97,12 +104,15 @@ int main( int argn, char *argv[] )
 	struct grid_data gd;
 	struct opt_data op;
 	struct gsens_data gs;
-	char filename[80], root[80], extension[80], buf[255], *dot;
+	char filename[80], root[80], extension[80], buf[255], *dot, *cwd;
 	int ( *f )( struct opt_data * op );
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist;
 	FILE *in, *out, *out2;
 	time_t t1, t2, dt;
+	pid_t pid;
+	struct tm *ptr_ts;
 	t1 = time( NULL );
+	op.datetime = datestamp();
 	op.pd = &pd;
 	op.od = &od;
 	op.wd = &wd;
@@ -215,6 +225,7 @@ int main( int argn, char *argv[] )
 		printf( "   odebug=[0-1]       - Objective function progress [default odebug=0]\n" );
 		printf( "   tpldebug=[0-1]     - Debug the writing of external files [default tpldebug=0]\n" );
 		printf( "   insdebug=[0-1]     - Debug the reading of external files [default insdebug=0]\n" );
+		printf( "   pardebug=[0-1]     - Debug parallel execution [default pardebug=0]\n" );
 		printf( "\nExamples:\n" );
 		printf( "   mads a01 test=3 opt=pso igrnd real=1 (no input files are needed for execution)\n" );
 		printf( "   mads example/s01 ldebug (example/s01.mads is located in directory example)\n" );
@@ -224,7 +235,7 @@ int main( int argn, char *argv[] )
 		printf( "   mads example/s01 opt=pso seed=1549170842 eigen success igrnd real=1 (example/s01.mads is located in directory example)\n" );
 		exit( 1 );
 	}
-	if( cd.debug ) printf( "Argument: %s\n", argv[1] );
+	if( cd.debug ) printf( "Argument[1]: %s\n", argv[1] );
 	strcpy( root, argv[1] );
 	dot = strrchr( root, '.' );
 	if( dot != NULL && dot[1] != '/' )
@@ -273,6 +284,7 @@ int main( int argn, char *argv[] )
 		else func = func_intrn;
 	}
 	// Check for parallel environment
+	cd.paral_hosts = NULL;
 	hostlist = NULL;
 	if(( nodelist = getenv( "NODELIST" ) ) != NULL )
 	{
@@ -295,13 +307,11 @@ int main( int argn, char *argv[] )
 	}
 	if( hostlist != NULL )
 	{
-		if( cd.debug == 0 ) printf( "\nParallel environment is detected\n" );
-		if(( host = getenv( "HOSTNAME" ) ) == NULL )
-			host = getenv( "HOST" );
+		if( cd.debug == 0 ) printf( "\nParallel environment is detected.\n" );
+		if(( host = getenv( "HOSTNAME" ) ) == NULL ) host = getenv( "HOST" );
 		printf( "Host: %s\n", host );
 		k = strlen( hostlist );
-		i = 0;
-		count = 0;
+		i = count = 0;
 		printf( "Nodes:" );
 		while( i <= k )
 		{
@@ -331,24 +341,28 @@ int main( int argn, char *argv[] )
 	else if( cd.num_proc > 1 )
 	{
 		printf( "\nLocal parallel execution is requested using %d processors (np=%d)\n", cd.num_proc, cd.num_proc );
-		system( "\\rm -f num_proc; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc" );
+		system( "\\rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc" );
 		in = fopen( "num_proc", "r" );
 		fscanf( in, "%d", &k );
 		fclose( in );
-		system( "\\rm -f num_proc" );
+		system( "\\rm -f num_proc >& /dev/null" );
 		printf( "Number of local processors available for parallel execution: %i\n", k );
 		if( k > cd.num_proc ) printf( "WARNING: Number of requested processors exceeds the available resources!\n" );
 	}
-	if( cd.num_proc > 1 )
-		printf( "Parent ID [%d]\n", getpid() );
-	if(( orig_params = ( double * ) malloc( pd.nParam * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory for orig_params!\n" ); exit( 1 ); }
+	if( cd.num_proc > 1 ) // Parallel job
+	{
+		pid = getpid();
+		if( cd.debug ) printf( "Parent ID [%d]\n", pid );
+		cwd = getenv( "PWD" ); dot = strrchr( cwd, '/' );
+		cd.mydir = &dot[1];
+		if( cd.debug ) printf( "Working directory: %s (%s)\n", cwd, cd.mydir );
+	}
+	if(( orig_params = ( double * ) malloc( pd.nParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory for orig_params!\n" ); exit( 1 ); }
 	if( cd.solution_type == EXTERNAL ) // Check the files for external execution
 	{
 		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the instruction and template files for errors ...\n" );
 		bad_data = 0;
-		for( i = 0; i < pd.nParam; i++ )
-			orig_params[i] = ( double ) - 1;
+		for( i = 0; i < pd.nParam; i++ ) orig_params[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ )
 			if( check_par_tpl( pd.nParam, pd.var_id, orig_params, ed.fn_tpl[i], cd.tpldebug ) == -1 )
 				bad_data = 1;
@@ -365,8 +379,7 @@ int main( int argn, char *argv[] )
 				bad_data = 1;
 			}
 		}
-		for( i = 0; i < od.nObs; i++ )
-			od.obs_current[i] = ( double ) - 1;
+		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
 			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 )
 				bad_data = 1;
@@ -382,22 +395,14 @@ int main( int argn, char *argv[] )
 		}
 		if( bad_data ) exit( -1 );
 	}
-	if( cd.num_proc > 1 ) // Parallel job
-	{
-		if( cd.solution_type == EXTERNAL )
-		{
-			cd.paral_dirs = char_matrix( cd.num_proc, 1000 );
-			create_mprun_dirs( cd.num_proc, cd.paral_dirs );
-		}
-	}
+	printf( "\nExecution date & time stamp: %s\n", op.datetime );
 //
 // ------------------------ IGRND
 //
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
 	{
 		if(( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); exit( 1 ); }
-		printf( "\nSEQUENTIAL CALIBRATION using random initial guesses for model parameters (realizations = %d):\n", cd.nreal );
+			printf( "\nSEQUENTIAL CALIBRATION using random initial guesses for model parameters (realizations = %d):\n", cd.nreal );
 		if( pd.nFlgParam != 0 ) { printf( "Only flagged parameters are randomized\n" ); npar = pd.nFlgParam; }
 		else if( pd.nOptParam != 0 ) { printf( "No flagged parameters; all optimizable parameters are randomized\n" ); npar = pd.nOptParam; }
 		else { printf( "No flagged or optimizable parameters; all parameters are randomized\n" ); npar = pd.nParam; }
@@ -426,10 +431,10 @@ int main( int argn, char *argv[] )
 			orig_params[i] = pd.var[i]; // Save original initial values for all parameters
 		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) f = optimize_lm;
 		else f = optimize_pso;
-		t2 = time( NULL );
-		sprintf( buf, "( mv -f %s.igrnd.zip %s.igrnd.zip_%ld; zip -m %s.igrnd.zip %s.igrnd_[0-9]*.* ) >& /dev/null", root, root, t2, root, root ); system( buf );
+		sprintf( buf, "( mv -f %s.igrnd.zip %s.igrnd_%s.zips; zip -m %s.igrnd.zip %s.igrnd_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root );
+		system( buf );
 		sprintf( filename, "%s.igrnd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%ld", filename, filename, t2 ); system( buf ); }
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.igrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
 		out = Fwrite( filename );
 		sprintf( filename, "%s.igrnd_opt=%s_eval=%d_real=%d", root, cd.opt_method, cd.maxeval, cd.nreal );
 		out2 = Fwrite( filename );
@@ -512,7 +517,7 @@ int main( int argn, char *argv[] )
 		if( cd.nreal > 1 )
 		{
 			if( status_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", cd.nreal );
-			else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; ratio %g)\n", status_global, cd.nreal, ( double ) status_global / cd.nreal );
+			else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", status_global, cd.nreal, ( double ) status_global / cd.nreal );
 		}
 		fprintf( out2, "min %g\n", phi_min );
 		fprintf( out2, "status %d\n", status_global );
@@ -521,6 +526,7 @@ int main( int argn, char *argv[] )
 		fprintf( out, "Number of evaluations = %d\n", eval_total );
 		fclose( out ); fclose( out2 );
 		printf( "Results are saved in %s.igrnd_results and %s.igrnd_opt=%s_eval=%d_real=%d\n", root, root, cd.opt_method, cd.maxeval, cd.nreal );
+		printf( "Repeat the run producing the best results ...\n" );
 		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
 		Transform( opt_params, &op, opt_params );
 		cd.compute_phi = 1;
@@ -543,10 +549,10 @@ int main( int argn, char *argv[] )
 		for( i = 0; i < pd.nParam; i++ ) orig_params[i] = pd.var[i]; // Save original initial values for all parameters
 		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) f = optimize_lm;
 		else f = optimize_pso;
-		t2 = time( NULL );
-		sprintf( buf, "( mv -f %s.igdp.zip %s.igdp.zip_%ld; zip -m %s.igdp.zip %s.igdp_[0-9]*.* ) >& /dev/null", root, root, t2, root, root ); system( buf );
+		sprintf( buf, "( mv -f %s.igdp.zip %s.igdp_%s.zip; zip -m %s.igdp.zip %s.igdp_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root );
+		system( buf );
 		sprintf( filename, "%s.igpd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%ld", filename, filename, t2 ); system( buf ); }
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.igpd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
 		out = Fwrite( filename );
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 )
@@ -612,11 +618,36 @@ int main( int argn, char *argv[] )
 			if( i == pd.nParam ) break;
 		}
 		while( 1 );
+		fclose( out );
+		op.s = 0;
 		cd.eval = eval_total; // provide the correct number of total evaluations
 		printf( "Total number of evaluations = %d\n", eval_total );
-		op.s = 0;
-		fclose( out );
+		op.phi = phi_min;
+		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i];
+		printf( "Minimum objective function: %g\n", phi_min );
+		printf( "Total number of evaluations = %d\n", eval_total );
+		fprintf( out, "Minimum objective function: %g\n", phi_min );
+		if( cd.nreal > 1 )
+		{
+			if( status_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", cd.nreal );
+			else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", status_global, cd.nreal, ( double ) status_global / cd.nreal );
+		}
+		fprintf( out2, "min %g\n", phi_min );
+		fprintf( out2, "status %d\n", status_global );
+		fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d\n", status_global );
+		fprintf( out2, "eval %d\n", eval_total );
+		fprintf( out, "Number of evaluations = %d\n", eval_total );
+		fclose( out ); fclose( out2 );
 		printf( "Results are saved in %s.igpd_results\n", root );
+		printf( "Repeat the run producing the best results ...\n" );
+		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
+		Transform( opt_params, &op, opt_params );
+		cd.compute_phi = 1;
+		func( opt_params, &op, od.res );
+		cd.compute_phi = 0;
+		if( cd.debug ) cd.fdebug = debug_level;
+		free( opt_params );
+		save_results( "", &op, &gd );
 	}
 //
 // ------------------------ PPSD
@@ -631,10 +662,9 @@ int main( int argn, char *argv[] )
 		for( i = 0; i < pd.nParam; i++ ) orig_params[i] = pd.var[i]; // Save original initial values for all parameters
 		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) f = optimize_lm;
 		else f = optimize_pso;
-		t2 = time( NULL );
-		sprintf( buf, "( mv -f %s.ppsd.zip %s.ppsd.zip_%ld; zip -m %s.ppsd.zip %s.ppsd_[0-9]*.* ) >& /dev/null", root, root, t2, root, root ); system( buf );
+		sprintf( buf, "( mv -f %s.ppsd.zip %s.ppsd_%s.zip; zip -m %s.ppsd.zip %s.ppsd_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root ); system( buf );
 		sprintf( filename, "%s.ppsd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%ld", filename, filename, t2 ); system( buf ); }
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.ppsd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
 		out = Fwrite( filename );
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 ) cd.var[i] = pd.var_min[i];
@@ -791,6 +821,7 @@ int main( int argn, char *argv[] )
 			predict = 0; // There are no observations that are not calibration targets
 			fclose( out ); // Do not close out if there model predictions that are not calibration targets
 		}
+		save_results( "", &op, &gd );
 	}
 //
 // ------------------------ MONTECARLO
@@ -822,72 +853,136 @@ int main( int argn, char *argv[] )
 			fclose( out );
 			printf( "Random sampling set saved in %s.mcrnd_set\n", root );
 		}
-		t2 = time( NULL );
-		sprintf( buf, "( mv -f %s.mcrnd.zip %s.mcrnd.zip_%ld; zip -m %s.mcrnd.zip %s.mcrnd_[0-9]*.* ) >& /dev/null", root, root, t2, root, root ); system( buf );
+		sprintf( buf, "( mv -f %s.mcrnd.zip %s.mcrnd_%s.zip; zip -m %s.mcrnd.zip %s.mcrnd_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root );
+		system( buf );
 		sprintf( filename, "%s.mcrnd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%ld", filename, filename, t2 ); system( buf ); }
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.mcrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
 		out = Fwrite( filename );
 		cd.compute_phi = 1;
 		status_global = 0;
 		phi_min = HUGE;
 		if( cd.ncase != 0 ) k = cd.ncase - 1;
 		else k = 0;
-		for( count = k; count < cd.nreal; count ++ )
+		if( cd.solution_type == EXTERNAL && cd.num_proc > 1 && k == 0 ) // Parallel job:
 		{
-			fprintf( out, "%d : ", count + 1 ); // counter
-			if( cd.mdebug ) printf( "\n" );
-			printf( "Random set #%d: ", count + 1 );
-			fflush( stdout );
-			for( i = 0; i < pd.nOptParam; i++ )
+			if( cd.debug ) printf( "Parallel execution of external jobs ...\n" );
+			sprintf( filename, "%s-restart.zip", root );
+			if( Ftest( filename ) == 0 )
 			{
-				k = pd.var_index[i];
-				opt_params[i] = pd.var[k] = var_lhs[i+count*npar] * pd.var_range[k] + pd.var_min[k];
+				if( cd.pardebug ) printf( "Previous restart file exist (%s)!\n", filename );
+				sprintf( buf, "mv %s %s-restart_%s.zip >& /dev/null", filename, root, op.datetime );
+				system( buf );
 			}
-			if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
-			Transform( opt_params, &op, opt_params );
-			func( opt_params, &op, od.res );
-			if( cd.mdebug ) cd.fdebug = debug_level;
-			if( cd.mdebug )
+			for( count = 0; count < cd.nreal; count ++ ) // Write all the files
 			{
-				printf( "\nRandom parameter values:\n" );
+				fprintf( out, "%d : ", count + 1 ); // counter
+				if( cd.mdebug ) printf( "\n" );
+				printf( "Random set #%d: ", count + 1 );
+				fflush( stdout );
 				for( i = 0; i < pd.nOptParam; i++ )
-					if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
-					else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
-			}
-			if( cd.mdebug )
-				printf( "\nPredicted calibration targets:\n" );
-			status_all = 1;
-			for( k = 0, i = 0; i < wd.nW; i++ )
-				for( j = 0; j < wd.nWellObs[i]; j++ )
 				{
-					if( wd.obs_weight[i][j] == 0 ) continue;
-					c = od.obs_current[k++];
-					err = c - wd.obs_target[i][j];
-					if( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) { status_all = 0; status = 0; }
-					else status = 1;
-					if( cd.mdebug )
-						printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], status, wd.obs_min[i][j], wd.obs_max[i][j] );
+					k = pd.var_index[i];
+					opt_params[i] = pd.var[k] = var_lhs[i+count*npar] * pd.var_range[k] + pd.var_min[k];
 				}
-			if( cd.mdebug )
+				if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
+				Transform( opt_params, &op, opt_params );
+				func_extrn_write( count + 1, opt_params, &op );
+				printf( "external model input file(s) generated ...\n" );
+				if( cd.mdebug ) cd.fdebug = debug_level;
+				if( cd.mdebug )
+				{
+					printf( "\nRandom parameter values:\n" );
+					for( i = 0; i < pd.nOptParam; i++ )
+						if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
+						else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
+				}
+			}
+			if( cd.pardebug > 4 )
 			{
-				printf( "Objective function: %g Success: %d\n", op.phi, status_all );
-				if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
-				else printf( "At least one of the predictions is outside calibration ranges!\n" );
+				for( count = 0; count < cd.nreal; count ++ ) // Perform all the runs in serial model (for testing)
+				{
+					printf( "Execute model #%d ... ", count + 1 );
+					fflush( stdout );
+					func_extrn_exec_serial( count + 1, &op );
+					printf( "done!\n" );
+				}
 			}
 			else
-				printf( "Objective function: %g Success = %d\n", op.phi, status_all );
-			if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
-			if( status_all ) status_global++;
-			for( i = 0; i < pd.nParam; i++ )
-				if( pd.var_opt[i] >= 1 )
+				mprun( cd.nreal, &op ); // Perform all the runs in parallel
+			for( count = 0; count < cd.nreal; count ++ ) // Read all the files
+			{
+				printf( "Model results #%d: ", count + 1 );
+				bad_data = 0;
+				bad_data = func_extrn_read( count + 1, &op, od.res );
+				if( bad_data ) exit( -1 );
+				if( cd.mdebug > 1 ) { printf( "\n" ); print_results( &op ); }
+				else if( cd.mdebug )
 				{
-					if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
-					else fprintf( out, " %.15g", pd.var[i] );
+					printf( "Objective function: %g Success: %d\n", op.phi, status_all );
+					if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
+					else printf( "At least one of the predictions is outside calibration ranges!\n" );
 				}
-			fprintf( out, " OF %g status %d\n", op.phi, status_all );
-			fflush( out );
-			if( status_all ) save_results( "mc", &op, &gd );
-			if( cd.ncase != 0 ) break;
+				else
+					printf( "Objective function: %g Success = %d\n", op.phi, status_all );
+				if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+				if( status_all ) status_global++;
+				for( i = 0; i < pd.nParam; i++ )
+					if( pd.var_opt[i] >= 1 )
+					{
+						if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
+						else fprintf( out, " %.15g", pd.var[i] );
+					}
+				fprintf( out, " OF %g status %d\n", op.phi, status_all );
+				fflush( out );
+				if( status_all ) save_results( "mc", &op, &gd );
+			}
+		}
+		else
+		{
+			for( count = k; count < cd.nreal; count ++ )
+			{
+				fprintf( out, "%d : ", count + 1 ); // counter
+				if( cd.mdebug ) printf( "\n" );
+				printf( "Random set #%d: ", count + 1 );
+				fflush( stdout );
+				for( i = 0; i < pd.nOptParam; i++ )
+				{
+					k = pd.var_index[i];
+					opt_params[i] = pd.var[k] = var_lhs[i+count*npar] * pd.var_range[k] + pd.var_min[k];
+				}
+				if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
+				Transform( opt_params, &op, opt_params );
+				func( opt_params, &op, od.res );
+				if( cd.mdebug ) cd.fdebug = debug_level;
+				if( cd.mdebug )
+				{
+					printf( "\nRandom parameter values:\n" );
+					for( i = 0; i < pd.nOptParam; i++ )
+						if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
+						else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
+				}
+				if( cd.mdebug > 1 ) { printf( "\nPredicted calibration targets:\n" ); print_results( &op ); }
+				else if( cd.mdebug )
+				{
+					printf( "Objective function: %g Success: %d\n", op.phi, status_all );
+					if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
+					else printf( "At least one of the predictions is outside calibration ranges!\n" );
+				}
+				else
+					printf( "Objective function: %g Success = %d\n", op.phi, status_all );
+				if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+				if( status_all ) status_global++;
+				for( i = 0; i < pd.nParam; i++ )
+					if( pd.var_opt[i] >= 1 )
+					{
+						if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
+						else fprintf( out, " %.15g", pd.var[i] );
+					}
+				fprintf( out, " OF %g status %d\n", op.phi, status_all );
+				fflush( out );
+				if( status_all ) save_results( "mc", &op, &gd );
+				if( cd.ncase != 0 ) break;
+			}
 		}
 		op.s = 0;
 		free( var_lhs );
@@ -897,7 +992,8 @@ int main( int argn, char *argv[] )
 		printf( "Results are saved in %s.mcrnd_results\n", root );
 		printf( "Minimum objective function: %g\n", phi_min );
 		if( status_global == 0 ) printf( "None of the Monte-Carlo runs produced predictions within calibration ranges!\n" );
-		else printf( "Number of Monte-Carlo runs producing predictions within calibration ranges = %d (out of %d; %g)\n", status_global, cd.nreal, ( double ) status_global / cd.nreal );
+		else printf( "Number of Monte-Carlo runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", status_global, cd.nreal, ( double ) status_global / cd.nreal );
+		printf( "Repeat the Monte-Carlo run producing the best results ...\n" );
 		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
 		Transform( opt_params, &op, opt_params );
 		func( opt_params, &op, od.res );
@@ -915,7 +1011,6 @@ int main( int argn, char *argv[] )
 //
 	if( cd.problem_type == ABAGUS ) // Particle swarm sensitivity analysis run
 	{
-
 		status = pssa( &op ); // Optimize
 	}
 //
@@ -1033,10 +1128,10 @@ int main( int argn, char *argv[] )
 			printf( "Random sampling sets a and b saved in %s.mcrnd_set_a and %s.mcrnd_set_b\n", root, root );
 		}
 		// Copy existing mcrnd.zip to new file if it exists
-		sprintf( buf, "( mv -f %s.gsmcrnd.zip %s.gsmcrnd.zip_%ld; zip -m %s.gsmcrnd.zip %s.gsmcrnd_set_* ) >& /dev/null", root, root, t2, root, root ); system( buf );
+		sprintf( buf, "( mv -f %s.gsmcrnd.zip %s.gsmcrnd_%s.zip; zip -m %s.gsmcrnd.zip %s.gsmcrnd_set_* ) >& /dev/null", root, root, op.datetime, root, root ); system( buf );
 		// If gsmcrnd_results file exists, copy to new file
 		sprintf( filename, "%s.gsmcrnd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%ld", filename, filename, t2 ); system( buf ); }
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.gsmcrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
 		out = Fwrite( filename );
 		// Accumulate phis into fhat and fhat2 for total output mean and variance
 		fhat = fhat2 = 0;
@@ -1343,14 +1438,11 @@ int main( int argn, char *argv[] )
 		else if( c < (( double ) 1 / 60 ) ) printf( "Functional evaluations per minute = %g\n", c * 60 );
 		else printf( "Functional evaluations per second = %g\n", c );
 	}
-	if( cd.num_proc > 1 ) // Parallel job
-	{
-		if( cd.solution_type == EXTERNAL )
-		{
-			delete_mprun_dirs( cd.num_proc, cd.paral_dirs );
-			free_matrix(( void ** ) cd.paral_dirs, cd.num_proc );
-		}
-	}
+	ptr_ts = gmtime( &t1 );
+	printf( "Execution  started  on %s", asctime( ptr_ts ) );
+	ptr_ts = gmtime( &t2 );
+	printf( "Execution completed on %s", asctime( ptr_ts ) );
+	printf( "Execution date & time stamp: %s\n", op.datetime );
 	exit( 1 );
 }
 
@@ -1637,11 +1729,11 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	op->cd->pderiv = op->cd->oderiv = -1;
 	if( compute_jacobian )
 	{
-/*		op->pd->var_current_gsl = gsl_vector_alloc( op->pd->nOptParam );
-		op->od->obs_current_gsl = gsl_vector_alloc(op->od->nObs);
-		func_gsl_deriv_dx( gsl_opt_params, op, gsl_jacobian ); // Using GSL function
-		gsl_vector_free( op->od->obs_current_gsl );
-		gsl_vector_free( op->pd->var_current_gsl ); */
+		/*		op->pd->var_current_gsl = gsl_vector_alloc( op->pd->nOptParam );
+				op->od->obs_current_gsl = gsl_vector_alloc(op->od->nObs);
+				func_gsl_deriv_dx( gsl_opt_params, op, gsl_jacobian ); // Using GSL function
+				gsl_vector_free( op->od->obs_current_gsl );
+				gsl_vector_free( op->pd->var_current_gsl ); */
 		func_gsl_dx( gsl_opt_params, op, gsl_jacobian ); // Compute Jacobian using forward difference
 		func_dx( opt_params, NULL, op, jacobian ); // Compute Jacobian using forward difference
 	}
@@ -1852,15 +1944,15 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 		if( debug ) printf( "Untransformed space:\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-				k = op->pd->var_index[i];
-				printf( "%-40s : ", op->pd->var_id[k] );
-				if( op->pd->var_log[k] == 0 ) printf( "%12g stddev %12g (%12g - %12g)", op->pd->var[k], stddev[i], x_d[i], x_u[i] );
-				else printf( "%12g stddev %12g (%12g - %12g)", pow( 10, op->pd->var[k] ), stddev[k], pow( 10, x_d[i] ), pow( 10, x_u[i] ) );
-				status = 0;
-				if( x_d[i] <= op->pd->var_min[k] ) { status = 1; x_d[i] = op->pd->var_min[k]; }
-				if( x_u[i] >= op->pd->var_max[k] ) { status = 1; x_u[i] = op->pd->var_max[k]; }
-				if( status ) printf( " Estimated ranges are constrained by prior uncertainty bounds\n" );
-				else printf( "\n" );
+			k = op->pd->var_index[i];
+			printf( "%-40s : ", op->pd->var_id[k] );
+			if( op->pd->var_log[k] == 0 ) printf( "%12g stddev %12g (%12g - %12g)", op->pd->var[k], stddev[i], x_d[i], x_u[i] );
+			else printf( "%12g stddev %12g (%12g - %12g)", pow( 10, op->pd->var[k] ), stddev[k], pow( 10, x_d[i] ), pow( 10, x_u[i] ) );
+			status = 0;
+			if( x_d[i] <= op->pd->var_min[k] ) { status = 1; x_d[i] = op->pd->var_min[k]; }
+			if( x_u[i] >= op->pd->var_max[k] ) { status = 1; x_u[i] = op->pd->var_max[k]; }
+			if( status ) printf( " Estimated ranges are constrained by prior uncertainty bounds\n" );
+			else printf( "\n" );
 		}
 	}
 	free( opt_params ); free( stddev ); free( x_u ); free( x_d ); free( jacobian );
@@ -1877,9 +1969,7 @@ int postpua( struct opt_data *op )
 	double *opt_params, of;
 	char buf[80], filename[80];
 	int i, n;
-
 	if( op->cd->infile[0] == 0 ) { printf( "\nInfile must be specified for postpua run\n" ); exit( 0 );}
-
 	fl = fopen( op->cd->infile, "r" );
 	if( fl == NULL ) { printf( "\nError opening %s\n", op->cd->infile ); exit( 0 ); }
 	sprintf( filename, "%s.pua", op->root );
@@ -1907,7 +1997,7 @@ int postpua( struct opt_data *op )
 	}
 	fclose( fl );
 	fclose( outfl );
-	printf( "Done\n" );	
+	printf( "Done\n" );
 	printf( "Results written to %s\n\n", filename );
 	return 1;
 }
@@ -2023,14 +2113,14 @@ void print_results( struct opt_data *op )
 	int i, j, k, status, status_all;
 	double c, err;
 	status_all = 1;
-	printf( "Optimized parameter values:\n" );
+	printf( "Model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
 		if( op->pd->var_log[k] == 0 ) printf( "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
 		else printf( "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
-	if( op->od->nObs > 0 ) printf( "\nOptimized calibration targets:\n" );
+	if( op->od->nObs > 0 ) printf( "\nCalibration targets:\n" );
 	if( op->cd->solution_type == EXTERNAL )
 		for( i = 0; i < op->od->nObs; i++ )
 		{
@@ -2124,6 +2214,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	else fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->eval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed );
+	fprintf( out, "Execution date & time stamp: %s\n", op->datetime );
 	fclose( out ); fclose( out2 );
 	if( gd->min_t > 0 )
 	{
@@ -2141,4 +2232,30 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		compute_grid( filename, op->cd, gd );
 		printf( "done.\n" );
 	}
+}
+
+char *timestamp()
+{
+	time_t raw_time;
+	struct tm *ptr_ts;
+	char *datetime;
+	datetime = malloc( 10 * sizeof( char ) );
+	time( &raw_time );
+	ptr_ts = localtime( &raw_time );
+//	printf( "%s\n", asctime( ptr_ts ) );
+	sprintf( datetime, "%02d:%02d:%02d", ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
+	return( datetime );
+}
+
+char *datestamp()
+{
+	time_t raw_time;
+	struct tm *ptr_ts;
+	char *datetime;
+	datetime = malloc( 16 * sizeof( char ) );
+	time( &raw_time );
+	ptr_ts = localtime( &raw_time );
+//	printf( "%s\n", asctime( ptr_ts ) );
+	sprintf( datetime, "%4d%02d%02d-%02d%02d%02d", ptr_ts->tm_year + 1900, ptr_ts->tm_mon + 1, ptr_ts->tm_mday, ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
+	return( datetime );
 }

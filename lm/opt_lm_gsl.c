@@ -176,7 +176,6 @@ int func_gsl_dx( const gsl_vector *x, void *data, gsl_matrix *jacobian ) /* Simp
 	gsl_vector *f_x, *f_xpdx, *x_c;
 	double x_old, dx;
 	int i, j;
-
 	x_c = gsl_vector_alloc( p->pd->nOptParam );
 	gsl_vector_memcpy( x_c, x );
 	f_xpdx = gsl_vector_alloc( p->od->nObs );

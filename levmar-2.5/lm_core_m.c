@@ -179,7 +179,7 @@ int LEVMAR_DER(
 	//linsolver = AX_EQ_B_CHOL; if( op->cd->ldebug ) printf( "Cholesky decomposition\n" );
 	//linsolver = AX_EQ_B_QR; if( op->cd->ldebug ) printf( "QR decomposition\n" );
 	//linsolver = (int (*)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m))AX_EQ_B_QRLS; if( op->cd->ldebug ) printf( "QRLS decomposition\n" );
-	linsolver=AX_EQ_B_SVD; if( op->cd->ldebug ) printf( "SVD decomposition\n" );
+	linsolver = AX_EQ_B_SVD; if( op->cd->ldebug ) printf( "SVD decomposition\n" );
 #else
 	/* use the LU included with levmar */
 	linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) printf( "LU decomposition\n" );
@@ -241,15 +241,15 @@ int LEVMAR_DER(
 			if( using_ffdif ) /* use forward differences */
 			{
 				jacf( p, hx, jac, m, n, adata );
-/*
-				printf( "\n" );
-				for( l = j = 0; j < op->od->nObs; j++ )
-				{
-					for( i = 0; i < op->pd->nOptParam; i++, l++ )
-						printf( " %g", jac[l] );
-					printf( "\n" );
-				}
-*/
+				/*
+								printf( "\n" );
+								for( l = j = 0; j < op->od->nObs; j++ )
+								{
+									for( i = 0; i < op->pd->nOptParam; i++, l++ )
+										printf( " %g", jac[l] );
+									printf( "\n" );
+								}
+				*/
 				++njap; nfev += m;
 			}
 			else  /* use central differences */
@@ -317,7 +317,7 @@ int LEVMAR_DER(
 				}
 				for( i = m; i-- > 0; ) /* copy to upper part */
 					for( j = i + 1; j < m; ++j )
-						jacTjac[i*m+j] = jacTjac[j*m+i];
+						jacTjac[i *m+j] = jacTjac[j*m+i];
 			}
 			else  // this is a large problem
 			{
@@ -371,9 +371,9 @@ int LEVMAR_DER(
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
 		for( i = 0; i < m; ++i )
-			jacTjac[i * m + i] += mu;  // Add lambda to the matrix diaganol
+			jacTjac[i *m + i] += mu;   // Add lambda to the matrix diaganol
 		/* solve augmented equations */
-		issolved=linsolver(jacTjac, jacTe, Dp, m); ++nlss;
+		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
 		if( issolved )
 		{
 			/* compute p's new estimate and ||Dp||^2 */
@@ -666,7 +666,7 @@ int LEVMAR_DIF(
 	//linsolver = AX_EQ_B_CHOL; if( op->cd->ldebug ) printf( "Cholesky decomposition\n" );
 	//linsolver = AX_EQ_B_QR; if( op->cd->ldebug ) printf( "QR decomposition\n" );
 	//linsolver = (int (*)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m))AX_EQ_B_QRLS; if( op->cd->ldebug ) printf( "QRLS decomposition\n" );
-	linsolver=AX_EQ_B_SVD; if( op->cd->ldebug ) printf( "SVD decomposition\n" );
+	linsolver = AX_EQ_B_SVD; if( op->cd->ldebug ) printf( "SVD decomposition\n" );
 #else
 	/* use the LU included with levmar */
 	linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) printf( "LU decomposition\n" );
@@ -737,12 +737,12 @@ int LEVMAR_DIF(
 				++njap; nfev += 2 * m;
 			}
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
-/*			for( l = j = 0; j < op->od->nObs; j++ )
-			{
-				for( i = 0; i < op->pd->nOptParam; i++, l++ )
-					printf( " %g", jac[l] );
-				printf( "\n" );
-			}*/
+			/*			for( l = j = 0; j < op->od->nObs; j++ )
+						{
+							for( i = 0; i < op->pd->nOptParam; i++, l++ )
+								printf( " %g", jac[l] );
+							printf( "\n" );
+						}*/
 			if( op->cd->ldebug )
 			{
 				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
@@ -801,7 +801,7 @@ int LEVMAR_DIF(
 				}
 				for( i = m; i-- > 0; ) /* copy to upper part */
 					for( j = i + 1; j < m; ++j )
-						jacTjac[i*m+j] = jacTjac[j*m+i];
+						jacTjac[i *m+j] = jacTjac[j*m+i];
 			}
 			else  // this is a large problem
 			{
@@ -857,7 +857,7 @@ int LEVMAR_DIF(
 		for( i = 0; i < m; ++i )
 			jacTjac[i *m + i] += mu;  // Add lambda to the matrix diaganol
 		/* solve augmented equations */
-		issolved=linsolver(jacTjac, jacTe, Dp, m); ++nlss;
+		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
 		if( issolved )
 		{
 			/* compute p's new estimate and ||Dp||^2 */
