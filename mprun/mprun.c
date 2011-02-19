@@ -31,12 +31,12 @@ int mprun( int nJob, void *data )
 	if( p->cd->num_proc <= 1 ) { printf( "ERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
 	else if( p->cd->paral_hosts == NULL ) { if( p->cd->pardebug ) printf( "WARNING: Local runs using %d processors! No parallel hosts!\n", p->cd->num_proc ); type = 0; }
 	else { if( p->cd->pardebug ) printf( "Parallel runs using %d hosts!\n", p->cd->num_proc ); type = 1; }
-	nProc = nHosts = p->cd->num_proc;
-	exec_name = p->ed->cmdline;
-	ieval = p->cd->eval;
-	kidhost = p->cd->paral_hosts;
-	debug = ( p->cd->pardebug > 3 ) ? 1 : 0;
-	act.sa_handler = handler;
+	nProc = nHosts = p->cd->num_proc; // Number of processors/hosts available initially
+	exec_name = p->ed->cmdline; // Executable / Execution command line
+	ieval = p->cd->eval; // Current number of model evaluations
+	kidhost = p->cd->paral_hosts; // List of processors/hosts
+	debug = ( p->cd->pardebug > 3 ) ? 1 : 0; // Debug level
+	act.sa_handler = handler; // POSIX process handler
 	sigemptyset( &act.sa_mask );
 	act.sa_flags = 0;
 	if( sigaction( SIGCHLD, &act, NULL ) < 0 )
@@ -44,11 +44,11 @@ int mprun( int nJob, void *data )
 		printf( "sigaction failed!!!\n" );
 		return 1;
 	}
-	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset(( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) );
-	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidstatus, ( int ) - 1, nProc * sizeof( int ) );
-	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidattempt, ( int ) - 1, nProc * sizeof( int ) );
-	kiddir = char_matrix( nProc, 95 );
-	rerundir = char_matrix( nProc, 95 );
+	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset(( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
+	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidstatus, ( int ) - 1, nProc * sizeof( int ) ); // Status of external jobs
+	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidattempt, ( int ) - 1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
+	kiddir = char_matrix( nProc, 95 ); // Directories for external jobs
+	rerundir = char_matrix( nProc, 95 ); // Rerun directories for external jobs
 	if( type == 0 )
 	{
 		kidhost = char_matrix( nProc, 95 );

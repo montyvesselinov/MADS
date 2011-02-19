@@ -12,6 +12,9 @@ mads
 *.ppsd*
 *.igdp*
 *.mcrnd*
+*.forward
+*.archive
+*.runs
 *debug*
 *.s_point
 *.s_well
@@ -42,3 +45,4 @@ mads
 *.orig
 *.zip
 ._*
+.DS*

@@ -133,248 +133,292 @@ int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struc
 	return( 0 );
 }
 
-int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_i, int debug )
+int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int debug )
 {
-	FILE *in_i;
-	char *sep = " \t\n";
-	char *sep_s = "!";
-	char *word_i, token[2], buf_i[1000], *p_i;
+	FILE *infile_inst;
+	char *separator = " \t\n";
+	char *token_obs = "!";
+	char *word_inst, token_search[2], buf_inst[1000], *pnt_inst;
 	int i, c, bad_data = 0;
-	if(( in_i = fopen( fn_in_i, "r" ) ) == NULL )
+	if(( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
 		return( -1 );
 	}
-	if( debug ) printf( "\nChecking instruction file \'%s\' ... \n", fn_in_i );
-	fgets( buf_i, 1000, in_i );
-	for( c = 0, word_i = strtok( buf_i, sep ); word_i; c++, word_i = strtok( NULL, sep ) )
+	if( debug ) printf( "\nChecking instruction file \'%s\'.\n", fn_in_i );
+	fgets( buf_inst, 1000, infile_inst );
+	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
 	{
 		if( c == 0 ) // first entry
 		{
-			white_trim( word_i );
-			if( strcasestr( word_i, "ins" ) )
+			white_trim( word_inst );
+			if( strcasestr( word_inst, "pif" ) )
 			{
 				if( debug ) printf( "PEST Instruction file\n" );
+			}
+			else if( strcasestr( word_inst, "ins" ) )
+			{
+				if( debug ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
 			}
 			else
 			{
 				if( debug ) printf( "MADS Instruction file\n" );
-				rewind( in_i );
-				token[0] = '@';
+				rewind( infile_inst );
+				token_search[0] = '@';
 				break;
 			}
 		}
-		if( c == 1 ) // second entry
+		else if( c == 1 ) // second entry; "search" token
 		{
-			white_trim( word_i );
-			token[0] = word_i[0];
-			if( strlen( word_i ) > 1 )
-				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_i, token );
-			if( token[0] == 0 ) token[0] = '@';
+			white_trim( word_inst );
+			token_search[0] = word_inst[0];
+			if( strlen( word_inst ) > 1 )
+				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+			if( token_search[0] == 0 ) token_search[0] = '@';
+		}
+		else if( c == 2 ) // third entry; "variable" token
+		{
+			white_trim( word_inst );
+			token_obs[0] = word_inst[0];
+			if( strlen( word_inst ) > 1 )
+				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+			if( token_obs[0] == 0 ) token_obs[0] = '!';
 			break;
 		}
 	}
-	token[1] = 0;
+	token_search[1] = 0;
 	if( debug )
 	{
-		printf( "Search separator: %s\n", token );
-		printf( "Parameter separator: %s\n", sep_s );
+		printf( "Search separator: %s\n", token_search );
+		printf( "Parameter separator: %s\n", token_obs );
 	}
-	while( !feof( in_i ) )
+	while( 1 )
 	{
-		fgets( buf_i, 1000, in_i );
-		white_trim( buf_i );
-		if( debug ) printf( "\nCurrent instruction line: %s\n", buf_i );
-		if( buf_i[0] == 'l' )
+		fgets( buf_inst, 1000, infile_inst );
+		if( feof( infile_inst ) ) break;
+		white_trim( buf_inst );
+		if( debug ) printf( "\nCurrent instruction line: %s\n", buf_inst );
+		pnt_inst = &buf_inst[0];
+		word_inst = strtok_r( buf_inst, separator, &pnt_inst );
+		if( buf_inst[0] == 'l' ) // skip lines in the "data" file
 		{
-			word_i = strtok_r( buf_i, sep, &p_i );
-			sscanf( &word_i[1], "%d", &c );
+			sscanf( &word_inst[1], "%d", &c );
+			word_inst = strtok_r( NULL, separator, &pnt_inst );
 			if( debug ) printf( "Skip %d lines\n", c );
 		}
-		else if( buf_i[0] == token[0] )
+		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 		{
-			word_i = strtok_r( buf_i, token, &p_i );
-			white_trim( word_i );
-			white_skip( &word_i );
-			if( debug ) printf( "Search for  keyword \'%s\' in the data file ...", word_i );
-		}
-		for( word_i = strtok_r( NULL, sep, &p_i ); word_i; word_i = strtok_r( NULL, sep, &p_i ) )
-		{
-			white_skip( &word_i );
-			white_trim( word_i );
-			if( debug ) printf( "Current template keyword %s : ", word_i );
-			if( strncmp( word_i, "!dum!", 5 ) == 0 )
+			white_skip( &word_inst ); white_trim( word_inst );
+			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst );
+			if( word_inst[0] == token_search[0] ) // search for keyword
 			{
-				if( debug ) printf( "Skip dummy data! \n" );
+				word_inst = strtok( word_inst, token_search );
+				white_skip( &word_inst ); white_trim( word_inst );
+				if( debug ) printf( "Search for keyword \'%s\' in the data file ...\n", word_inst );
 			}
-			else if( word_i[0] == 'w' )
+			else if( strncmp( word_inst, "!dum!", 5 ) == 0 ) // dummy variable
 			{
-				if( debug ) printf( "Skip white space! " );
+				if( debug ) printf( "Skip dummy data!\n" );
 			}
-			else if( word_i[0] == sep_s[0] )
+			else if( word_inst[0] == 'w' ) // white space
+			{
+				if( debug ) printf( "Skip white space!\n" );
+			}
+			else if( word_inst[0] == token_obs[0] ) // observation variable
 			{
 				c = 0;
-				if( strlen( word_i ) == 1 ) word_i = strtok_r( NULL, sep, &p_i );
-				else word_i = &word_i[1];
-				if( word_i[strlen( word_i )-1] == sep_s[0] ) word_i[strlen( word_i )-1] = 0;
-				else strtok_r( NULL, sep, &p_i );
-				if( debug ) printf( "Observation keyword \'%s\' ", word_i );
-				white_skip( &word_i );
-				white_trim( word_i );
+				if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
+				else word_inst = &word_inst[1];
+				if( word_inst[strlen( word_inst )-1] == token_obs[0] ) word_inst[strlen( word_inst )-1] = 0;
+				else strtok_r( NULL, separator, &pnt_inst );
+				if( debug ) printf( "Observation keyword \'%s\' ... ", word_inst );
+				white_skip( &word_inst );
+				white_trim( word_inst );
 				for( i = 0; i < nobs; i++ )
 				{
-					if( strcmp( word_i, obs_id[i] ) == 0 )
+					if( strcmp( word_inst, obs_id[i] ) == 0 )
 					{
-						if( debug ) printf( "will be applied to read observation \'%s\'", obs_id[i] );
-						if( obs[i] < 0 ) obs[i] = 1;
-						else obs[i] += 1;
+						if( check[i] < 0 ) { check[i] = 1; }
+						else { check[i] += 1; }
+						if( debug ) printf( "\'%s\' detected %g times\n", obs_id[i], check[i] );
 						break;
 					}
 				}
 				if( nobs == i )
 				{
-					printf( "\nERROR: Observation keyword \'%s\' in instruction file \'%s\' does not match any of observation variables!\n", word_i, fn_in_i );
+					printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
 					bad_data = 1;
 				}
 			}
-			if( debug ) printf( "\n" );
 		}
 	}
-	fclose( in_i );
+	fclose( infile_inst );
 	if( bad_data ) return( -1 );
 	else return( 0 );
 }
 
+
 int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i, char *fn_in_d, int debug )
 {
-	FILE *in_i, *in_d;
-	char *sep = " \t\n";
-	char *sep_s = "!";
-	char *word_i, *word_d, token[2], buf_d[1000], buf_i[1000], *p_i, *p_d;
+	FILE *infile_inst, *infile_data;
+	char *separator = " \t\n";
+	char *token_obs = "!";
+	char *word_inst, *word_data, token_search[2], buf_data[1000], buf_inst[1000], *pnt_inst, *pnt_data;
 	int i, c, bad_data = 0;
 	double v;
-	if(( in_i = fopen( fn_in_i, "r" ) ) == NULL )
+	if(( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
 		return( -1 );
 	}
-	if(( in_d = fopen( fn_in_d, "r" ) ) == NULL )
+	if(( infile_data = fopen( fn_in_d, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read the model-predicted observations!\n", fn_in_d );
 		return( -1 );
 	}
 	if( debug ) printf( "\nReading output file \'%s\' obtained from external model execution using instruction file \'%s\'.\n", fn_in_d, fn_in_i );
-	fgets( buf_i, 1000, in_i );
-	for( c = 0, word_i = strtok( buf_i, sep ); word_i; c++, word_i = strtok( NULL, sep ) )
+	fgets( buf_inst, 1000, infile_inst );
+	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
 	{
 		if( c == 0 ) // first entry
 		{
-			white_trim( word_i );
-			if( strcasestr( word_i, "ins" ) )
+			white_trim( word_inst );
+			if( strcasestr( word_inst, "pif" ) )
 			{
 				if( debug ) printf( "PEST Instruction file\n" );
+			}
+			else if( strcasestr( word_inst, "ins" ) )
+			{
+				if( debug ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
 			}
 			else
 			{
 				if( debug ) printf( "MADS Instruction file\n" );
-				rewind( in_i );
-				token[0] = '@';
+				rewind( infile_inst );
+				token_search[0] = '@';
 				break;
 			}
 		}
-		if( c == 1 ) // second entry
+		else if( c == 1 ) // second entry; "search" token
 		{
-			white_trim( word_i );
-			token[0] = word_i[0];
-			if( strlen( word_i ) > 1 )
-				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_i, token );
-			if( token[0] == 0 ) token[0] = '@';
+			white_trim( word_inst );
+			token_search[0] = word_inst[0];
+			if( strlen( word_inst ) > 1 )
+				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+			if( token_search[0] == 0 ) token_search[0] = '@';
+		}
+		else if( c == 2 ) // third entry; "variable" token
+		{
+			white_trim( word_inst );
+			token_obs[0] = word_inst[0];
+			if( strlen( word_inst ) > 1 )
+				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+			if( token_obs[0] == 0 ) token_obs[0] = '!';
 			break;
 		}
 	}
-	token[1] = 0;
+	token_search[1] = 0;
 	if( debug )
 	{
-		printf( "Search separator: %s\n", token );
-		printf( "Parameter separator: %s\n", sep_s );
+		printf( "Search separator: %s\n", token_search );
+		printf( "Parameter separator: %s\n", token_obs );
 	}
+	buf_data[0] = 0; word_data = pnt_data = NULL;
 	while( 1 )
 	{
-		fgets( buf_i, 1000, in_i );
-		if( feof( in_i ) ) break;
-		white_trim( buf_i );
-		if( debug ) printf( "\nCurrent instruction line: %s\n", buf_i );
-		if( buf_i[0] == 'l' )
+		fgets( buf_inst, 1000, infile_inst );
+		if( feof( infile_inst ) ) break;
+		white_trim( buf_inst );
+		if( debug ) printf( "\nCurrent instruction line: %s\n", buf_inst );
+		pnt_inst = &buf_inst[0];
+		word_inst = strtok_r( buf_inst, separator, &pnt_inst );
+		if( buf_inst[0] == 'l' ) // skip lines in the "data" file
 		{
-			word_i = strtok_r( buf_i, sep, &p_i );
-			sscanf( &word_i[1], "%d", &c );
+			sscanf( &word_inst[1], "%d", &c );
+			word_inst = strtok_r( NULL, separator, &pnt_inst );
 			if( debug ) printf( "Skip %d lines\n", c );
 			for( i = 0; i < c; i++ )
-				fgets( buf_d, 1000, in_d );
-			if( feof( in_d ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
-			white_trim( buf_d );
-			p_d = &buf_d[0];
-			word_d = strtok_r( p_d, sep, &p_d );
+				fgets( buf_data, 1000, infile_data );
+			if( feof( infile_data ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
+			white_trim( buf_data );
+			pnt_data = &buf_data[0];
+			word_data = NULL;
 		}
-		else if( buf_i[0] == token[0] )
+		if( pnt_data == NULL ) // if there was no "l" (skip line) command, read the next "data" line
 		{
-			word_i = strtok_r( buf_i, token, &p_i );
-			white_trim( word_i );
-			white_skip( &word_i );
-			if( debug ) printf( "Search for  keyword \'%s\' in the data file ...", word_i );
-			bad_data = 1;
-			while( !feof( in_d ) )
+			fgets( buf_data, 1000, infile_data );
+			white_trim( buf_data );
+			pnt_data = &buf_data[0];
+			word_data = NULL;
+		}
+		if( debug ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'", word_data, pnt_data );
+		if( debug ) { if( pnt_data == NULL ) printf( "\n" ); else { if( pnt_data[strlen( pnt_data )-2] != '\n' ) printf( "\n" ); } }
+		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
+		{
+			white_skip( &word_inst ); white_trim( word_inst );
+			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst );
+			if( word_inst[0] == token_search[0] ) // search for keyword
 			{
-				fgets( buf_d, 1000, in_d );
-				if( feof( in_d ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
-				if(( p_d = strstr( buf_d, word_i ) ) != NULL )
+				word_inst = strtok( word_inst, token_search );
+				white_skip( &word_inst ); white_trim( word_inst );
+				if( debug ) printf( "Search for keyword \'%s\' in the data file ...\n", word_inst );
+				bad_data = 1;
+				while( !feof( infile_data ) )
 				{
-					white_trim( buf_d );
-					if( debug ) printf( "\nMatching line found in the data file: %s\n", buf_d );
-					word_d = strtok_r( p_d, sep, &p_d );
-					bad_data = 0;
-					break;
+					if( ( pnt_data = strstr( pnt_data, word_inst ) ) != NULL )
+					{
+						if( debug ) printf( "Matching line found in the data file: \'%s\' Location \'%s\'\n", buf_data, pnt_data );
+						bad_data = 0;
+						break;
+					}
+					fgets( buf_data, 1000, infile_data );
+					if( feof( infile_data ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
+					white_trim( buf_data );
+					pnt_data = &buf_data[0];
+					word_data = NULL;
+				}
+				if( bad_data == 1 )
+				{
+					printf( "\nERROR: Search keyword \'%s\' cannot be found in the data file \'%s\'!\n", word_inst, fn_in_d );
+					return( -1 );
 				}
 			}
-			if( bad_data == 1 )
+			else if( strncmp( word_inst, "!dum!", 5 ) == 0 ) // dummy variable
 			{
-				printf( "\nERROR: Search keyword \'%s\' cannot be found in the data file \'%s\'!\n", word_i, fn_in_d );
-				return( -1 );
+				if( debug ) printf( "Skip dummy data!\n" );
+				word_data = strtok_r( NULL, separator, &pnt_data );
+				if( debug ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
 			}
-		}
-		if( debug ) printf( "Current location in model output file: \'%s\' %s\n", word_d, p_d );
-		for( word_i = strtok_r( NULL, sep, &p_i ); word_i; word_i = strtok_r( NULL, sep, &p_i ) )
-		{
-			white_skip( &word_i );
-			white_trim( word_i );
-			if( debug ) printf( "Template word %s : ", word_i );
-			if( strncmp( word_i, "!dum!", 5 ) == 0 )
+			else if( word_inst[0] == 'w' ) // white space
 			{
-				if( debug ) printf( "Skip dummy data! \n" );
-				word_d = strtok_r( NULL, sep, &p_d );
-				if( debug ) printf( "Current data location: \'%s\' %s\n", word_d, p_d );
+				if( debug ) printf( "Skip white space!\n" );
+				if( pnt_data[0] != ' ' )
+				{
+					if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
+					word_data = strtok_r( NULL, separator, &pnt_data );
+				}
+				else
+				{
+					word_data = strtok_r( NULL, separator, &pnt_data );
+				}
+				if( debug ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
 			}
-			else if( word_i[0] == 'w' )
-			{
-				if( debug ) printf( "Skip white space! " );
-				word_d = strtok_r( NULL, sep, &p_d );
-				if( debug ) printf( "Current data location: \'%s\' %s\n", word_d, p_d );
-			}
-			else if( word_i[0] == sep_s[0] )
+			else if( word_inst[0] == token_obs[0] ) // observation variable
 			{
 				c = 0;
-				if( strlen( word_i ) == 1 ) word_i = strtok_r( NULL, sep, &p_i );
-				else word_i = &word_i[1];
-				if( word_i[strlen( word_i )-1] == sep_s[0] ) word_i[strlen( word_i )-1] = 0;
-				else strtok_r( NULL, sep, &p_i );
-				if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_i, word_d );
-				white_skip( &word_i );
-				white_trim( word_i );
+				if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
+				if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
+				else word_inst = &word_inst[1];
+				if( word_inst[strlen( word_inst )-1] == token_obs[0] ) word_inst[strlen( word_inst )-1] = 0;
+				else strtok_r( NULL, separator, &pnt_inst );
+				if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
+				white_skip( &word_inst );
+				white_trim( word_inst );
 				for( i = 0; i < nobs; i++ )
 				{
-					if( strcmp( word_i, obs_id[i] ) == 0 )
+					if( strcmp( word_inst, obs_id[i] ) == 0 )
 					{
-						sscanf( word_d, "%lf", &v );
+						sscanf( word_data, "%lf", &v );
 						if( check[i] < 0 ) { obs[i] = v; check[i] = 1; }
 						else { obs[i] += v; check[i] += 1; }
 						if( debug ) printf( "\'%s\'=%g\n", obs_id[i], obs[i] );
@@ -383,13 +427,13 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				}
 				if( nobs == i )
 				{
-					printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_i );
+					printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
 					bad_data = 1;
 				}
 			}
 		}
 	}
-	fclose( in_d ); fclose( in_i );
+	fclose( infile_data ); fclose( infile_inst );
 	if( bad_data ) return( -1 );
 	else return( 0 );
 }
@@ -398,8 +442,8 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 {
 	FILE *in;
 	char *sep = " \t\n"; // White spaces
-	char *word, token[2], buf[1000], *p;
-	int i, l, c, bad_data = 0;
+	char *word, token[2], buf[1000];
+	int i, l, c, start, bad_data = 0;
 	if(( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
@@ -421,10 +465,10 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 				if( debug ) printf( "MADS Template file\n" );
 				rewind( in );
 				token[0] = '#';
-				break;
+				break; // quit the loop; done
 			}
 		}
-		if( c == 1 ) // second entry
+		if( c == 1 ) // second entry in the case of PEST Template file
 		{
 			white_trim( word );
 			if( strlen( word ) > 1 )
@@ -442,10 +486,11 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 		if( feof( in ) ) break; // fgets does not produce EOF after reading the last line ...
 		l = strlen( buf );
 		buf[l-1] = 0;
-		p = &buf[0];
-		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) )
+		if( buf[0] == token[0] ) start = 0; else start = 1;
+		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
 		{
-			if( buf[0] == token[0] || c % 2 == 1 )
+//			printf( "%d %s\n", c, word );
+			if( c % 2 == start )
 			{
 				if( debug ) printf( "Parameter keyword \'%s\' ", word );
 				l = strlen( word );
@@ -479,8 +524,8 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 {
 	FILE *in, *out;
 	char *sep = " \t\n";
-	char *word, token[2], number[80], buf[1000], *p;
-	int i, l, c, bad_data = 0;
+	char *word, token[2], number[80], buf[1000];
+	int i, l, c, start, bad_data = 0;
 	if(( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
@@ -508,10 +553,10 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 				if( debug ) printf( "MADS Template file\n" );
 				rewind( in );
 				token[0] = '#';
-				break;
+				break; // quit the loop; done
 			}
 		}
-		if( c == 1 ) // second entry
+		if( c == 1 ) // second entry in the case of PEST Template file
 		{
 			white_trim( word );
 			if( strlen( word ) > 1 )
@@ -528,11 +573,11 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		fgets( buf, 1000, in );
 		if( feof( in ) ) break; // fgets does not produce EOF after reading the last line ...
 		l = strlen( buf );
-		buf[l-1] = 0;
-		p = &buf[0];
-		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) )
+		buf[l-1] = 0; // remove 'new line' character
+		if( buf[0] == token[0] ) start = 0; else start = 1; // if first character is a token it will be not considered a separator
+		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
 		{
-			if( buf[0] == token[0] || c % 2 == 1 )
+			if( c % 2 == start )
 			{
 				if( debug ) printf( "Parameter keyword \'%s\' ", word );
 				l = strlen( word );

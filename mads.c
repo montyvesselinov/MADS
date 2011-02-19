@@ -188,7 +188,7 @@ int main( int argn, char *argv[] )
 		printf( "                        [default plog=-1; log transformation is explicitly defined for each parameter in the input file]\n" );
 		printf( "   olog=[-1,0,1]      - Log transformation of all the observations (simulated and measured) is enforced (1) or disabled (0)\n" );
 		printf( "                        [default olog=-1; log transformation is explicitly defined for each observation in the input file]\n" );
-		printf( "   oweight=[-1,0,1,2] - Weghts for all the residual observations are defined:\n" );
+		printf( "   oweight=[-1,0,1,2] - Weights for all the observation residuals are defined:\n" );
 		printf( "                        0 = zero weight, 1 = unit weight, 2 = weight reversely proportional to observation\n" );
 		printf( "                        [default oweight=-1; weights for each observation are explicitly defined in the input file]\n" );
 		printf( "\nparallelization (parallelization environment and available resources are internally detected by default):\n" );
@@ -1320,7 +1320,7 @@ int main( int argn, char *argv[] )
 			fprintf( out, "%s %g\n", pd.var_id[i], pd.var[i] );
 		printf( "\nModel predictions (forward run; no calibration):\n" );
 		fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
-		sprintf( filename, "%s.calib", root );
+		sprintf( filename, "%s.forward", root );
 		out2 = Fwrite( filename );
 	}
 //
