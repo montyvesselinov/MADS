@@ -1,6 +1,6 @@
 syntax: glob
 mads
-*.mads
+*-rerun.mads
 *.eigen*
 *.covar*
 *.correl*

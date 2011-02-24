@@ -266,7 +266,12 @@ int main( int argn, char *argv[] )
 	if( cd.debug && extension[0] != 0 ) printf( " Extension: %s\n", extension );
 	printf( "\n" );
 	sprintf( buf, "%s.running", op.root ); // Create a file named root.running to prevent simultaneous execution of multiple problems
-	if( Ftest( buf ) == 0 ) { printf( "File %s exists; potentially another MADS run is currently performed for problem \'%s\'!\nDelete %s to execute!\n", buf, op.root, buf ); /*exit( 1 );*/ }
+	if( Ftest( buf ) == 0 )
+	{
+		printf( "Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", buf, op.root );
+		printf( "If there is no other MADS run delete %s to execute!\n", buf );
+		exit( 1 );
+	}
 	sprintf( buf, "touch %s.running", op.root ); // Create a file named root.running to prevent simultaneous execution of multiple problems
 	system( buf );
 	/*
@@ -825,7 +830,7 @@ int main( int argn, char *argv[] )
 			system( buf );
 			exit( 0 );
 		}
-		sprintf( filename, "%s-restart.mads", root );
+		sprintf( filename, "%s-rerun.mads", root );
 		save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
 		sprintf( filename, "%s.results", root );
 		out = Fwrite( filename );
