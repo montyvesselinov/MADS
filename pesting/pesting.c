@@ -365,7 +365,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				bad_data = 1;
 				while( !feof( infile_data ) )
 				{
-					if( ( pnt_data = strstr( pnt_data, word_inst ) ) != NULL )
+					if(( pnt_data = strstr( pnt_data, word_inst ) ) != NULL )
 					{
 						if( debug ) printf( "Matching line found in the data file: \'%s\' Location \'%s\'\n", buf_data, pnt_data );
 						bad_data = 0;
@@ -531,7 +531,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
 	}
-	sprintf( buf, "rm %s", fn_out ); system( buf );
+	sprintf( buf, "rm %s >& /dev/null", fn_out ); system( buf );
 	if(( out = fopen( fn_out, "w" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to write data!\n", fn_out );

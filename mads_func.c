@@ -8,6 +8,7 @@
 int func_extrn( double *x, void *data, double *f );
 int func_extrn_write( int ieval, double *x, void *data );
 int func_extrn_read( int ieval, void *data, double *f );
+int func_extrn_check_read( int ieval, void *data );
 int func_extrn_r( double *x, void *data, double *f );
 int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
@@ -32,6 +33,9 @@ double int_box_source( double tau, void *params );
 int create_mprun_dir( char *dir );
 int delete_mprun_dir( char *dir );
 int mprun( int nJob, void *data );
+int Ftest( char *filename );
+time_t Fdatetime_t( char *filename, int debug );
+
 
 int func_extrn( double *x, void *data, double *f )
 {
@@ -42,7 +46,11 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->cd->num_proc > 1 ) // Parallel execution of a serial job to archive all the intermediate results
 	{
 		func_extrn_write( p->cd->eval + 1, x, data );
-		mprun( 1, data ); // 1 = number of parallel job
+		if( mprun( 1, data ) < 0 ) // Perform one (1) run in parallel
+		{
+			printf( "ERROR: there is a problem with the parallel execution!\n" );
+			exit( 1 );
+		}
 		bad_data = func_extrn_read( p->cd->eval, data, f ); // p->cd->eval was already incremented in mprun
 		if( bad_data ) exit( -1 );
 		return GSL_SUCCESS; // DONE
@@ -200,7 +208,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc = SSR; break;
 		}
 	}
-	sprintf( dir, "%s_%s_%08d", p->cd->mydir, p->root, ieval ); // Name of directory for parallel runs
+	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
 	create_mprun_dir( dir ); // Create directory for parallel runs
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create input files
 	{
@@ -208,18 +216,25 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
 			exit( -1 );
 	}
-	sprintf( buf, "zip -u %s-restart.zip ", p->root ); // Archive input files
+	sprintf( buf, "zip -u %s-restart-%s.zip ", p->root, p->cd->timedate_infile ); // Archive input files
 	for( i = 0; i < p->ed->ntpl; i++ )
 		sprintf( &buf[( int ) strlen( buf )], "../%s/%s", dir, p->ed->fn_out[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
 	system( buf );
 	if( p->cd->pardebug > 3 ) printf( "Input files for parallel run #%d are archived!\n", ieval );
-	sprintf( buf, "cd ../%s; rm -f ", dir ); // Delete expected output files
-	for( i = 0; i < p->ed->nins; i++ )
-		strcat( buf, p->ed->fn_obs[i] );
-	strcat( buf, " >& /dev/null" );
-	if( p->cd->pardebug > 3 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
-	system( buf );
+	if( p->cd->restart == 0 ) // Do not delete if restart is attempted
+	{
+		strcpy( buf, "rm -f " ); // Delete expected output files in the working directory; in this way links cannot be created
+		for( i = 0; i < p->ed->nins; i++ )
+			strcat( buf, p->ed->fn_obs[i] );
+		strcat( buf, " >& /dev/null" );
+		sprintf( buf, "cd ../%s; rm -f ", dir ); // Delete expected output files in the hosts directories
+		for( i = 0; i < p->ed->nins; i++ )
+			strcat( buf, p->ed->fn_obs[i] );
+		strcat( buf, " >& /dev/null" );
+		if( p->cd->pardebug > 3 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
+		system( buf );
+	}
 	return GSL_SUCCESS;
 }
 
@@ -228,7 +243,7 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
 	p->cd->eval++;
-	sprintf( dir, "%s_%s_%08d", p->cd->mydir, p->root, ieval ); // Name of directory for parallel runs
+	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "\nWorking directory: ../%s\n", dir );
 	if( p->cd->pardebug > 1 )
 	{
@@ -242,6 +257,44 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 	return GSL_SUCCESS;
 }
 
+int func_extrn_check_read( int ieval, void *data ) // Check a series of output files after parallel execution
+{
+	struct opt_data *p = ( struct opt_data * )data;
+	char buf[1000], dir[500];
+	int i, bad_data;
+	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
+	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
+	for( i = 0; i < p->ed->nins; i++ )
+	{
+		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
+		if( Ftest( buf ) == 1 ) { if( p->cd->pardebug ) printf( "File %s does not exist.", buf ); return( 0 ); }
+		else if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
+			return( 0 );
+	}
+	bad_data = 0;
+	for( i = 0; i < p->od->nObs; i++ )
+	{
+		if( p->od->res[i] < 0 )
+		{
+			if( p->cd->pardebug ) printf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
+			bad_data = 1;
+		}
+		else if( p->od->res[i] > 1.5 )
+		{
+			if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug || p->cd->pardebug )
+				printf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
+			p->od->obs_current[i] /= p->od->res[i];
+		}
+	}
+	if( bad_data ) return( 0 );
+	if(( p->cd->time_infile - Fdatetime_t( buf, 0 ) ) > 0 )
+	{
+		if( p->cd->pardebug ) printf( "File %s is older than the MADS input file.\n", buf );
+		if( p->cd->restart == -1 ) return( 1 ); else return( 0 );
+	}
+	return( 1 );
+}
+
 int func_extrn_read( int ieval, void *data, double *f ) // Read a series of output files after parallel execution
 {
 	struct opt_data *p = ( struct opt_data * )data;
@@ -249,7 +302,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	double c, t, err, phi = 0.0;
 	int i, status, status_all = 1, bad_data;
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
-	sprintf( dir, "%s_%s_%08d", p->cd->mydir, p->root, ieval );
+	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
@@ -272,7 +325,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 	}
 	if( bad_data ) return( bad_data );
-	sprintf( buf, "zip -u %s-restart.zip ", p->root ); // Archive output files
+	sprintf( buf, "zip -u %s-restart-%s.zip ", p->root, p->cd->timedate_infile ); // Archive output files
 	for( i = 0; i < p->ed->nins; i++ )
 		sprintf( &buf[strlen( buf )], "../%s/%s", dir, p->ed->fn_obs[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
@@ -495,7 +548,11 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			func_extrn_write( ++ieval, x, data );
 			x[j] = x_old;
 		}
-		mprun( p->pd->nOptParam + compute_center, data );
+		if( mprun( p->pd->nOptParam + compute_center, data ) < 0 ) // Perform all the runs in parallel
+		{
+			printf( "ERROR: there is a problem with the parallel execution!\n" );
+			exit( 1 );
+		}
 		ieval -= ( p->pd->nOptParam + compute_center );
 		if( compute_center ) func_extrn_read( ++ieval, data, f_x );
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
@@ -530,7 +587,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	return GSL_SUCCESS;
 }
 
-double func_solver1( double x, double y, double z, double t, void *data )
+double func_solver1( double x, double y, double z, double t, void *data ) // Compute for given (x, y, z, t)
 {
 	double c;
 	struct calc_data *p = ( struct calc_data * )data;
@@ -553,7 +610,7 @@ double func_solver1( double x, double y, double z, double t, void *data )
 	return( c );
 }
 
-double func_solver( double x, double y, double z1, double z2, double t, void *data )
+double func_solver( double x, double y, double z1, double z2, double t, void *data ) // Compute for (x, y, z1, t) and (x, y, z2, t) and average
 {
 	double c1, c2;
 	struct calc_data *p = ( struct calc_data * )data;

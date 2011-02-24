@@ -60,6 +60,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->ologtrans = -1;
 	cd->oweight = -1;
 	cd->num_proc = -1;
+	cd->restart = 1;
 	cd->nreal = 0;
 	cd->niter = 0;
 	cd->ntribe = -1;
@@ -112,6 +113,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "sindx=" ) ) { w = 1; sscanf( word, "sindx=%lf", &cd->sindx ); }
 		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); }
 		if( strcasestr( word, "np" ) ) { w = 1; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
+		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
 		if( strncasecmp( word, "debug", 5 ) == 0 ) { w = 1; if( sscanf( word, "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
 		if( strcasestr( word, "fdebug" ) ) { w = 1; sscanf( word, "fdebug=%d", &cd->fdebug ); if( cd->fdebug == 0 ) cd->fdebug = 1; }
 		if( strcasestr( word, "ldebug" ) ) { w = 1; sscanf( word, "ldebug=%d", &cd->ldebug ); if( cd->ldebug == 0 ) cd->ldebug = 1; }
@@ -130,7 +132,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type = POINT; }
 		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
 		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type = BOX; }
-		if( w == 0 ) printf( "\n-----------\nWARNING: Unknown keyword \"%s\"!!!!!!!!!!!!!!!!!!!!\n-----------\n", word );
+		if( w == 0 ) { printf( "\nERROR: Unknown keyword \"%s\"!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); exit( 0 ); }
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
@@ -236,16 +238,23 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		else if( strncasecmp( cd->paran_method, "random", 5 ) == 0 ) printf( "Pure random\n" );
 		else { printf( "WARNING: Unknown (rnd=%s); Optimal Latin Hyper Cube selected (if real <= 500 IDLHS; if real > 500 LHS)\n", cd->paran_method ); strcpy( cd->paran_method, "olhs" ); }
 	}
-	printf( "\nDebug level (general) = %d\n", cd->debug );
-	if( cd->debug ) printf( "Debug level for functional evaluations = %d\n", cd->fdebug );
+	printf( "\nDebug level (general): debug=%d\n", cd->debug );
+	if( cd->debug || cd->fdebug ) printf( "Debug level for functional evaluations: fdebug=%d\n", cd->fdebug );
 	if( cd->debug && cd->problem_type == CALIBRATE )
 	{
-		printf( "Debug level for Levenberg-Marquardt optimization progress = %d\n", cd->ldebug );
-		printf( "Debug level for Particle-Swarm optimization progress = %d\n", cd->pdebug );
-		printf( "Debug level for objective function progress = %d\n", cd->odebug );
+		printf( "Debug level for Levenberg-Marquardt optimization progress: ldebug= %d\n", cd->ldebug );
+		printf( "Debug level for Particle-Swarm optimization progress: pdebug= %d\n", cd->pdebug );
+		printf( "Debug level for objective function progress: odebug=%d\n", cd->odebug );
 	}
-	if( cd->debug && cd->problem_type != CREATE && cd->problem_type != EIGEN )
-		printf( "Debug level for random sets = %d\n", cd->mdebug );
+	if(( cd->debug || cd->mdebug ) && cd->problem_type != CREATE && cd->problem_type != EIGEN )
+		printf( "Debug level for random sets: mdebug=%d\n", cd->mdebug );
+	if(( cd->debug || cd->pardebug ) && cd->num_proc > 1 )
+		printf( "Debug level for parallel execution: pardebug=%d\n", cd->pardebug );
+	if(( cd->debug || cd->tpldebug || cd->insdebug ) && cd->solution_type == EXTERNAL )
+	{
+		printf( "Debug level for template file: tpldebug=%d\n", cd->tpldebug );
+		printf( "Debug level for instruction file: insdebug=%d\n", cd->insdebug );
+	}
 	return( 1 );
 }
 
@@ -960,4 +969,3 @@ void execvepath( char *path[], const char *base, char *const argv[], char *const
 		}
 	}
 }
-

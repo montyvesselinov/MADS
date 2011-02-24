@@ -1,5 +1,6 @@
 #include <gsl/gsl_vector.h>
 #include <stdio.h>
+#include <time.h>
 
 enum PROBLEM_TYPE {UNKNOWN = -2, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, POSTPUA };
 enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
@@ -33,6 +34,7 @@ struct calc_data
 	int test;
 	int dim;
 	int num_proc;
+	int restart;
 	int njob;
 	int ncase;
 	char *solution_id;
@@ -40,8 +42,10 @@ struct calc_data
 	char *smp_method;
 	char *paran_method;
 	char *mydir;
-	int *paral_job;
+	char *mydir_hosts;
 	char **paral_hosts;
+	time_t time_infile;
+	char *timedate_infile;
 	char *infile; //! old results file from pssa to be read in to initialize kdtree
 	double phi_cutoff;
 	double sindx;
@@ -51,6 +55,9 @@ struct calc_data
 	int pdebug;
 	int mdebug;
 	int odebug;
+	int tpldebug;
+	int insdebug;
+	int pardebug;
 	int leigen;
 	int sintrans;
 	int plogtrans;
@@ -58,9 +65,6 @@ struct calc_data
 	int oweight;
 	int pderiv;
 	int oderiv;
-	int tpldebug;
-	int insdebug;
-	int pardebug;
 	int objfunc;
 	int check_success;
 	int compute_phi;

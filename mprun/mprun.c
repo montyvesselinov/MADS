@@ -20,21 +20,44 @@ volatile pid_t *kidids;
 char **char_matrix( int maxCols, int maxRows );
 void free_matrix( void **matrix, int maxCols );
 char *timestamp();
+int func_extrn_check_read( int ieval, void *data );
 
 int mprun( int nJob, void *data )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	struct sigaction act;
-	int i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork, refresh, destroy, rerun, rJob, *kidattempt;
+	int i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
 	char *exec_name, **kidhost, **kiddir, **rerundir, dir[255], buf[255], *atime;
-	if( p->cd->num_proc <= 1 ) { printf( "ERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
-	else if( p->cd->paral_hosts == NULL ) { if( p->cd->pardebug ) printf( "WARNING: Local runs using %d processors! No parallel hosts!\n", p->cd->num_proc ); type = 0; }
+	if( p->cd->num_proc <= 1 ) { printf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
+	else if( p->cd->paral_hosts == NULL ) { if( p->cd->pardebug > 3 ) printf( "\nWARNING: Local runs using %d processors! No parallel hosts!\n", p->cd->num_proc ); type = 0; }
 	else { if( p->cd->pardebug ) printf( "Parallel runs using %d hosts!\n", p->cd->num_proc ); type = 1; }
 	nProc = nHosts = p->cd->num_proc; // Number of processors/hosts available initially
 	exec_name = p->ed->cmdline; // Executable / Execution command line
 	ieval = p->cd->eval; // Current number of model evaluations
 	kidhost = p->cd->paral_hosts; // List of processors/hosts
+	if( nJob > 1 ) printf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
+	if( p->cd->pardebug && nJob > 1 ) printf( "\n" );
+	skip_job = ( int * ) malloc( nJob * sizeof( int ) );
+	if( p->cd->restart ) // Check for already computed jobs (smart restart)
+	{
+		done = 0;
+		for( i = 0; i < nJob; i++ )
+		{
+			done += skip_job[i] = func_extrn_check_read( ieval + i + 1, p );
+			if( p->cd->pardebug > 1 )
+			{
+				if( skip_job[i] == 1 ) printf( "Job %d will be skipped!\n", ieval + i + 1 );
+				else printf( "Job %d will be executed!\n", ieval + i + 1 );
+			}
+		}
+		if( done == nJob ) // All the jobs will be skipped
+		{
+			p->cd->eval += nJob;
+			free( skip_job );
+			return( 1 );
+		}
+	}
 	debug = ( p->cd->pardebug > 3 ) ? 1 : 0; // Debug level
 	act.sa_handler = handler; // POSIX process handler
 	sigemptyset( &act.sa_mask );
@@ -42,7 +65,8 @@ int mprun( int nJob, void *data )
 	if( sigaction( SIGCHLD, &act, NULL ) < 0 )
 	{
 		printf( "sigaction failed!!!\n" );
-		return 1;
+		free( skip_job );
+		return( -1 );
 	}
 	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset(( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
 	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidstatus, ( int ) - 1, nProc * sizeof( int ) ); // Status of external jobs
@@ -54,8 +78,6 @@ int mprun( int nJob, void *data )
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
 	}
-	printf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
-	if( p->cd->pardebug ) printf( "\n" );
 	nFailed = 0; nKids = 0; cJob = 0; rJob = 0; wait = 0; done = 0;
 	while( 1 ) // Main loop
 	{
@@ -63,7 +85,10 @@ int mprun( int nJob, void *data )
 		if( rJob > nJob || nProc <= 0 )
 		{
 			printf( "None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
-			return( -9 );
+			free(( void * ) kidids ); free(( void * ) kidstatus ); free(( void * ) kidattempt );
+			free( skip_job );
+			free_matrix(( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix(( void ** ) kidhost, nProc );
+			return( -1 );
 		}
 		job_wait = 1;
 		if( rJob > 0 && nKids < ( nHosts - nFailed ) )
@@ -201,12 +226,21 @@ int mprun( int nJob, void *data )
 		{
 			cJob++;
 			if( p->cd->pardebug ) printf( "Job %d", cJob );
-			sprintf( dir, "../%s_%s_%08d", p->cd->mydir, p->root, ieval + cJob ); // Name of directory for parallel runs
-			strcpy( kiddir[child], dir );
-			if( cJob >= nJob ) done = 1;
+			if( skip_job[cJob - 1] == 1 )
+			{
+				if( p->cd->pardebug ) printf( " skipped!\n" );
+				if( cJob >= nJob ) done = 1;
+				continue;
+			}
+			else
+			{
+				sprintf( dir, "../%s_%08d", p->cd->mydir_hosts, ieval + cJob ); // Name of directory for parallel runs
+				strcpy( kiddir[child], dir );
+				if( cJob >= nJob ) done = 1;
+			}
 		}
 		if( p->cd->pardebug > 1 ) printf( " : %s in %s\n", exec_name, dir );
-		else if( p->cd->pardebug ) printf( " ...\n" );
+		else if( p->cd->pardebug ) { if( nJob > 1 ) printf( " ...\n" ); else printf( " ... " ); }
 		if( refork )
 		{
 			if( kidhost[child][0] == 0 ) continue;
@@ -242,6 +276,7 @@ int mprun( int nJob, void *data )
 	}
 	printf( "Done.\n" );
 	free(( void * ) kidids ); free(( void * ) kidstatus ); free(( void * ) kidattempt );
+	free( skip_job );
 	free_matrix(( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix(( void ** ) kidhost, nProc );
 	p->cd->eval += nJob;
 	return( 1 );

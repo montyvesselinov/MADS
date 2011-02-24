@@ -23,7 +23,7 @@ mads_io.o: mads_io.c mads.h
 mads_func.o: mads_func.c mads.h
 mads_mem.o: mads_mem.c
 mprun/mprun.o: mprun/mprun.c mads.h
-mprun/mprun_io.o: mprun/mprun_io.c
+mprun/mprun_io.o: mprun/mprun_io.c mads.h
 lm/opt_lm_mon.o: lm/opt_lm_mon.c mads.h
 lm/opt_lm_gsl.o: lm/opt_lm_gsl.c mads.h
 lm/opt_lm_ch.o: lm/opt_lm_gsl.c mads.h
