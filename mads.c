@@ -25,8 +25,6 @@
 int optimize_lm( struct opt_data *op );
 int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar );
 int optimize_pso( struct opt_data *op );
-void Transform( double *v, void *data, double *vt );
-void DeTransform( double *v, void *data, double *vt );
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
 void ave_sorted( double data[], int n, double *ave, double *ep );
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op );
@@ -92,6 +90,8 @@ double func_solver1( double x, double y, double z, double t, void *data );
 int func_extrn_write( int ieval, double *x, void *data );
 int func_extrn_exec_serial( int ieval, void *data );
 int func_extrn_read( int ieval, void *data, double *f );
+void Transform( double *v, void *data, double *vt );
+void DeTransform( double *v, void *data, double *vt );
 int delete_mprun_outputs( int nDir, void *data );
 int mprun( int nJob, void *data );
 char *dir_hosts( void *data );
@@ -136,9 +136,9 @@ int main( int argn, char *argv[] )
 		printf( "ERROR: argument(s) needed\n\n" );
 		printf( "USAGE: %s problem_name [options]                   OR\n", argv[0] );
 		printf( "       %s MADS_input_file [options]\n", argv[0] );
-		printf( "       %s PEST_input_file [options] (MADS is fully compatible to work with PEST control, template and instruction files\n\n", argv[0] );
+		printf( "       %s PEST_input_file [options] (MADS is fully compatible to work with PEST control, template and instruction files)\n\n", argv[0] );
 		printf( "problem_name:         root name of the solved problem; MADS_input_file named problem_name.mads is expected\n" );
-		printf( "MADS_input_file:      problem input file in MADS format (*.mads)\n" );
+		printf( "MADS_input_file:      problem input file in MADS format (typically *.mads)\n" );
 		printf( "PEST_input_file:      problem input file in PEST format (PEST control file; *.pst)\n\n" );
 		printf( "options (can be provided in any order):\n\n" );
 		printf( "problem type keywords:\n" );
@@ -265,8 +265,8 @@ int main( int argn, char *argv[] )
 	op.s = 0;
 	if( cd.debug && extension[0] != 0 ) printf( " Extension: %s\n", extension );
 	printf( "\n" );
-	sprintf( buf, "%s.running", op.root ); // Create a file named root.running to prevent simultaneous execution of multiple problems
-	if( Ftest( buf ) == 0 )
+	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
+	if( Ftest( buf ) == 0 ) // If file already exists quit ...
 	{
 		printf( "Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", buf, op.root );
 		printf( "If there is no other MADS run delete %s to execute!\n", buf );
@@ -812,8 +812,477 @@ int main( int argn, char *argv[] )
 		fclose( out );
 		printf( "Results are saved in %s.ppsd_results\n", root );
 	}
+	//
+	// ------------------------ MONTECARLO
+	//
+		if( cd.problem_type == MONTECARLO ) /* Monte Carlo analysis */
+		{
+			if(( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
+				{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+			npar = pd.nOptParam;
+			if(( var_lhs = ( double * ) malloc( npar * cd.nreal * sizeof( double ) ) ) == NULL )
+				{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+			printf( "\nMonte Carlo analysis using latin-hyper cube sampling:\n" );
+			if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
+			else if( cd.seed == 0 ) { printf( "New " ); cd.seed = get_seed(); }
+			else printf( "Current seed: %d\n", cd.seed );
+			printf( "Random sampling (variables %d; realizations %d) using ", npar, cd.nreal );
+			sampling( npar, cd.nreal, &cd.seed, var_lhs, &op );
+			printf( "done.\n" );
+			if( cd.mdebug )
+			{
+				sprintf( filename, "%s.mcrnd_set", root );
+				out = Fwrite( filename );
+				for( count = 0; count < cd.nreal; count ++ )
+				{
+					for( k = 0; k < npar; k++ )
+						fprintf( out, "%.15g ", var_lhs[k+count*npar] );
+					fprintf( out, "\n" );
+				}
+				fclose( out );
+				printf( "Random sampling set saved in %s.mcrnd_set\n", root );
+			}
+			sprintf( buf, "( mv -f %s.mcrnd.zip %s.mcrnd_%s.zip; zip -m %s.mcrnd.zip %s.mcrnd_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root );
+			system( buf );
+			sprintf( filename, "%s.mcrnd_results", root );
+			if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.mcrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
+			out = Fwrite( filename );
+			cd.compute_phi = 1;
+			status_global = 0;
+			phi_min = HUGE;
+			if( cd.ncase != 0 ) k = cd.ncase - 1;
+			else k = 0;
+			if( cd.solution_type == EXTERNAL && cd.num_proc > 1 && k == 0 ) // Parallel job:
+			{
+				if( cd.debug ) printf( "Parallel execution of external jobs ...\n" );
+				for( count = 0; count < cd.nreal; count ++ ) // Write all the files
+				{
+					fprintf( out, "%d : ", count + 1 ); // counter
+					if( cd.mdebug ) printf( "\n" );
+					printf( "Random set #%d: ", count + 1 );
+					fflush( stdout );
+					for( i = 0; i < pd.nOptParam; i++ )
+					{
+						k = pd.var_index[i];
+						opt_params[i] = pd.var[k] = var_lhs[i+count*npar] * pd.var_range[k] + pd.var_min[k];
+					}
+					if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
+					Transform( opt_params, &op, opt_params );
+					func_extrn_write( count + 1, opt_params, &op );
+					printf( "external model input file(s) generated ...\n" );
+					if( cd.mdebug ) cd.fdebug = debug_level;
+					if( cd.mdebug )
+					{
+						printf( "\nRandom parameter values:\n" );
+						for( i = 0; i < pd.nOptParam; i++ )
+							if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
+							else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
+					}
+				}
+				if( cd.pardebug > 4 )
+				{
+					for( count = 0; count < cd.nreal; count ++ ) // Perform all the runs in serial model (for testing)
+					{
+						printf( "Execute model #%d ... ", count + 1 );
+						fflush( stdout );
+						func_extrn_exec_serial( count + 1, &op );
+						printf( "done!\n" );
+					}
+				}
+				else if( mprun( cd.nreal, &op ) < 0 ) // Perform all the runs in parallel
+				{
+					printf( "ERROR: there is a problem with the parallel execution!\n" );
+					sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+					system( buf );
+				}
+				for( count = 0; count < cd.nreal; count ++ ) // Read all the files
+				{
+					printf( "Model results #%d: ", count + 1 );
+					bad_data = 0;
+					bad_data = func_extrn_read( count + 1, &op, od.res );
+					if( bad_data )
+					{
+						sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+						system( buf );
+						exit( -1 );
+					}
+					if( cd.mdebug > 1 ) { printf( "\n" ); print_results( &op ); }
+					else if( cd.mdebug )
+					{
+						printf( "Objective function: %g Success: %d\n", op.phi, status_all );
+						if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
+						else printf( "At least one of the predictions is outside calibration ranges!\n" );
+					}
+					else
+						printf( "Objective function: %g Success = %d\n", op.phi, status_all );
+					if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+					if( status_all ) status_global++;
+					for( i = 0; i < pd.nParam; i++ )
+						if( pd.var_opt[i] >= 1 )
+						{
+							if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
+							else fprintf( out, " %.15g", pd.var[i] );
+						}
+					fprintf( out, " OF %g status %d\n", op.phi, status_all );
+					fflush( out );
+					if( status_all ) save_results( "mc", &op, &gd );
+				}
+			}
+			else // Serial job
+			{
+				for( count = k; count < cd.nreal; count ++ )
+				{
+					fprintf( out, "%d : ", count + 1 ); // counter
+					if( cd.mdebug ) printf( "\n" );
+					printf( "Random set #%d: ", count + 1 );
+					fflush( stdout );
+					for( i = 0; i < pd.nOptParam; i++ )
+					{
+						k = pd.var_index[i];
+						opt_params[i] = pd.var[k] = var_lhs[i+count*npar] * pd.var_range[k] + pd.var_min[k];
+					}
+					if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
+					Transform( opt_params, &op, opt_params );
+					func( opt_params, &op, od.res );
+					if( cd.mdebug ) cd.fdebug = debug_level;
+					if( cd.mdebug )
+					{
+						printf( "\nRandom parameter values:\n" );
+						for( i = 0; i < pd.nOptParam; i++ )
+							if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
+							else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
+					}
+					if( cd.mdebug > 1 ) { printf( "\nPredicted calibration targets:\n" ); print_results( &op ); }
+					else if( cd.mdebug )
+					{
+						printf( "Objective function: %g Success: %d\n", op.phi, status_all );
+						if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
+						else printf( "At least one of the predictions is outside calibration ranges!\n" );
+					}
+					else
+						printf( "Objective function: %g Success = %d\n", op.phi, status_all );
+					if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+					if( status_all ) status_global++;
+					for( i = 0; i < pd.nParam; i++ )
+						if( pd.var_opt[i] >= 1 )
+						{
+							if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
+							else fprintf( out, " %.15g", pd.var[i] );
+						}
+					fprintf( out, " OF %g status %d\n", op.phi, status_all );
+					fflush( out );
+					if( status_all ) save_results( "mc", &op, &gd );
+					if( cd.ncase != 0 ) break;
+				}
+			}
+			op.s = 0;
+			free( var_lhs );
+			fclose( out );
+			op.phi = phi_min;
+			for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i];
+			printf( "Results are saved in %s.mcrnd_results\n", root );
+			printf( "Minimum objective function: %g\n", phi_min );
+			if( status_global == 0 ) printf( "None of the Monte-Carlo runs produced predictions within calibration ranges!\n" );
+			else printf( "Number of Monte-Carlo runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", status_global, cd.nreal, ( double ) status_global / cd.nreal );
+			printf( "Repeat the Monte-Carlo run producing the best results ...\n" );
+			if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
+			Transform( opt_params, &op, opt_params );
+			func( opt_params, &op, od.res );
+			if( cd.debug ) cd.fdebug = debug_level;
+			free( opt_params );
+			save_results( "", &op, &gd );
+			cd.compute_phi = 0;
+		}
+		//
+		// ------------------------ GLOBALSENS
+		//
+			if( cd.problem_type == GLOBALSENS ) // Global sensitivity analysis run
+			{
+				double fhat, fhat2, *phis_full, *phis_half;
+				int n_sub; //! number of samples for subsets a and b
+		//		gsl_qrng *q = gsl_qrng_alloc( gsl_qrng_sobol, pd.nOptParam );
+				n_sub = cd.nreal / 2;	// set to half of user specified reals
+				if(( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				// Temporary variable to store cd.nreal phis
+				if(( phis_full = ( double * ) malloc( cd.nreal * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				// Temporary variable to store m_sub phis
+				if(( phis_half = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				// Temporary variable to store random sample a
+				if(( var_a_lhs = ( double * ) malloc( pd.nOptParam * n_sub * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				// Sample a phis
+				if(( gs.f_a = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				// Sample b phis
+				if(( gs.f_b = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				// Temporary variable to store random sample b
+				if(( var_b_lhs = ( double * ) malloc( pd.nOptParam * n_sub * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				// matrices to store lhs samples
+				gs.var_a_lhs = double_matrix( n_sub, pd.nOptParam );
+				gs.var_b_lhs = double_matrix( n_sub, pd.nOptParam );
+				// Matrices to store phis with different combinations of parameters from samples a and b
+				if(( gs.fmat_a = double_matrix( pd.nOptParam, n_sub ) ) == NULL )
+					{ printf( "Error creating 3D matrix\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 0 ); }
+				if(( gs.fmat_b = double_matrix( pd.nOptParam, n_sub ) ) == NULL )
+					{ printf( "Error creating 3D matrix\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 0 ); }
+				// Vector of variances for individual component contribution
+				if(( gs.D_hat = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				// Vector of variances for total component contribution
+				if(( gs.D_hat_n = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
+					{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
+				printf( "\nGlobal sensitivity analysis using random sampling:\n" );
+				// Create samples
+				if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
+				else if( cd.seed == 0 ) { printf( "New " ); cd.seed = get_seed(); }
+				else printf( "Current seed: %d\n", cd.seed );
+				printf( "Random sampling set 1 (variables %d; realizations %d) using ", pd.nOptParam, cd.nreal );
+				sampling( pd.nOptParam, n_sub, &cd.seed, var_a_lhs, &op );
+				printf( "done.\n" );
+				printf( "Random sampling set 2 (variables %d; realizations %d) using ", pd.nOptParam, cd.nreal );
+				sampling( pd.nOptParam, n_sub, &cd.seed, var_b_lhs, &op );
+				printf( "done.\n" );
+				// Create samples using Sobol's quasi-random sequence
+				/*		for( count = 0; count < n_sub; count++ )
+						{
+							double v[ pd.nOptParam ];
+							gsl_qrng_get( q, v);
+							for( i = 0; i < pd.nOptParam; i++ )
+							{
+								k = pd.var_index[i];
+								gs.var_a_lhs[count][i] = v[i] * pd.var_range[k] + pd.var_min[k];
+							}
+						}
+
+						for( count = 0; count < n_sub; count++ )
+						{
+							double v[ pd.nOptParam ];
+							gsl_qrng_get( q, v);
+							for( i = 0; i < pd.nOptParam; i++ )
+							{
+								k = pd.var_index[i];
+								gs.var_b_lhs[count][i] = v[i] * pd.var_range[k] + pd.var_min[k];
+							}
+						}*/
+				// Copy temp lhs vectors to matrices
+				for( count = 0; count < n_sub; count++ )
+					for( i = 0; i < pd.nOptParam; i++ )
+					{
+						k = pd.var_index[i];
+						gs.var_a_lhs[count][i] = var_a_lhs[i+count*pd.nOptParam] * pd.var_range[k] + pd.var_min[k];
+						gs.var_b_lhs[count][i] = var_b_lhs[i+count*pd.nOptParam] * pd.var_range[k] + pd.var_min[k];
+					}
+				free( var_a_lhs );
+				free( var_b_lhs );
+				// Output samples to files
+				if( cd.mdebug )
+				{
+					sprintf( filename, "%s.gsmcrnd_set_a", root );
+					out = Fwrite( filename );
+					sprintf( filename, "%s.gsmcrnd_set_b", root );
+					out2 = Fwrite( filename );
+					for( count = 0; count < n_sub; count ++ )
+					{
+						for( k = 0; k < pd.nOptParam; k++ )
+						{
+							fprintf( out, "%.15g ", gs.var_a_lhs[count][k] );
+							fprintf( out2, "%.15g ", gs.var_b_lhs[count][k] );
+						}
+						fprintf( out, "\n" );
+						fprintf( out2, "\n" );
+					}
+					fclose( out );
+					fclose( out2 );
+					printf( "Random sampling sets a and b saved in %s.mcrnd_set_a and %s.mcrnd_set_b\n", root, root );
+				}
+				// Copy existing mcrnd.zip to new file if it exists
+				sprintf( buf, "( mv -f %s.gsmcrnd.zip %s.gsmcrnd_%s.zip; zip -m %s.gsmcrnd.zip %s.gsmcrnd_set_* ) >& /dev/null", root, root, op.datetime, root, root ); system( buf );
+				// If gsmcrnd_results file exists, copy to new file
+				sprintf( filename, "%s.gsmcrnd_results", root );
+				if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.gsmcrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
+				out = Fwrite( filename );
+				// Accumulate phis into fhat and fhat2 for total output mean and variance
+				fhat = fhat2 = 0;
+				cd.compute_phi = 1;
+				printf( "Computing phis to calculate total output mean and variance...\n" );
+				// Compute sample a phis
+				for( count = 0; count < n_sub; count ++ )
+				{
+					for( i = 0; i < pd.nOptParam; i++ )
+					{
+						k = pd.var_index[i];
+						opt_params[i] = pd.var[k] = gs.var_a_lhs[count][i];
+					}
+					Transform( opt_params, &op, opt_params );
+					func( opt_params, &op, od.res );
+					// Sum phi and phi^2
+					fhat += op.phi;
+					fhat2 += pow( op.phi, 2 );
+					// Save sample a phis
+					gs.f_a[count] = op.phi;
+					phis_full[count] = op.phi;
+					// save to results file
+					fprintf( out, "%d : ", count + 1 ); // counter
+					fprintf( out, "%g :", op.phi );
+					for( i = 0; i < pd.nParam; i++ )
+						if( pd.var_opt[i] >= 1 )
+							fprintf( out, " %.15g", pd.var[i] );
+					fprintf( out, "\n" );
+					fflush( out );
+				}
+				// Compute sample b phis
+				for( count = 0; count < n_sub; count ++ )
+				{
+					for( i = 0; i < pd.nOptParam; i++ )
+					{
+						k = pd.var_index[i];
+						opt_params[i] = pd.var[k] = gs.var_b_lhs[count][i];
+					}
+					Transform( opt_params, &op, opt_params );
+					func( opt_params, &op, od.res );
+					// Sum phi and phi^2
+					fhat += op.phi;
+					fhat2 += pow( op.phi, 2 );
+					// Save sample b phis
+					gs.f_b[count] = op.phi;
+					phis_full[ n_sub + count ] = op.phi;
+					// save to results file
+					fprintf( out, "%d : ", n_sub + count ); // counter
+					fprintf( out, "%g :", op.phi );
+					for( i = 0; i < pd.nParam; i++ )
+						if( pd.var_opt[i] >= 1 )
+							fprintf( out, " %.15g", pd.var[i] );
+					fprintf( out, "\n" );
+					fflush( out );
+				}
+				fclose( out );
+				printf( "Global Sensitivity MC results are saved in %s.gsmcrnd_results\n", root );
+				// Calculate total output mean and variance based on sample a
+				gs.f_hat_0 = fhat / ( 2 * n_sub );
+				gs.D_hat_t = fhat2 / ( 2 * n_sub ) - gs.f_hat_0;
+				printf( "Total output mean = %g\n", gs.f_hat_0 );
+				printf( "Total output variance = %g\n", gs.D_hat_t );
+				gs.f_hat_0 = gsl_stats_mean( phis_full, 1, cd.nreal );
+				gs.D_hat_t = gsl_stats_variance( phis_full, 1, cd.nreal );
+				printf( "Total output mean = %g\n", gs.f_hat_0 );
+				printf( "Total output variance = %g\n", gs.D_hat_t );
+				gs.f_hat_0 = gs.D_hat_t = 0.0;
+				ave_sorted( phis_full, cd.nreal, &gs.f_hat_0, &gs.ep );
+				printf( "Total output mean = %g abs 1st moment = %g\n", gs.f_hat_0, gs.ep );
+				var_sorted( phis_full, phis_full, cd.nreal, gs.f_hat_0, gs.ep, &gs.D_hat_t );
+				printf( "Total output variance = %g\n", gs.D_hat_t );
+				/*		// Subtract f_hat_0 from phis and recalculate total output variance
+						fhat2 = 0;
+						for( count = 0; count < n_sub; count++ )
+						{
+							gs.f_a[count] -= gs.f_hat_0;
+							gs.f_b[count] -= gs.f_hat_0;
+							phis_full[ count ] = gs.f_a[count];
+							phis_full[ n_sub + count ] = gs.f_b[count];
+							fhat2 += pow( gs.f_a[count], 2 );
+							fhat2 += pow( gs.f_b[count], 2 );
+						}
+						gs.D_hat_t = fhat2 / (2 * n_sub);
+						printf( "Total output variance = %g\n", gs.D_hat_t );
+						gs.D_hat_t = gsl_stats_variance( phis_full, 1, cd.nreal );
+						printf( "Total output variance = %g\n", gs.D_hat_t );
+				*/		free( phis_full );
+				// Collect matrix of phis for fmat_a
+				printf( "Computing phis for calculation of individual output variances:\n" );
+				fflush( stdout );
+				for( i = 0; i < pd.nOptParam; i++ )
+				{
+					printf( "Parameter %d...\n", i + 1 );
+					for( count = 0; count < n_sub; count ++ )
+					{
+						for( j = 0; j < pd.nOptParam; j++ )
+						{
+							k = pd.var_index[j];
+							if( i == j ) // then select from sample a
+								opt_params[j] = pd.var[k] = gs.var_a_lhs[count][j];
+							else // else select from sample b
+								opt_params[j] = pd.var[k] = gs.var_b_lhs[count][j];
+						}
+						Transform( opt_params, &op, opt_params );
+						func( opt_params, &op, od.res );
+						// Save phi to fmat_a
+						gs.fmat_a[i][count] = op.phi;
+					}
+				}
+				// Collect matrix of phis for fmat_b
+				printf( "Computing phis for calculation of individual plus interaction output variances:\n" );
+				for( i = 0; i < pd.nOptParam; i++ )
+				{
+					printf( "Parameter %d...\n", i + 1 );
+					for( count = 0; count < n_sub; count ++ )
+					{
+						for( j = 0; j < pd.nOptParam; j++ )
+						{
+							k = pd.var_index[j];
+							if( i == j ) // then select from sample b
+								opt_params[j] = pd.var[k] = gs.var_b_lhs[count][j];
+							else // else select from sample a
+								opt_params[j] = pd.var[k] = gs.var_a_lhs[count][j];
+						}
+						Transform( opt_params, &op, opt_params );
+						func( opt_params, &op, od.res );
+						// Save phi to fmat_b
+						gs.fmat_b[i][count] = op.phi;
+					}
+				}
+				printf( "done\n" );
+				// Calculate individual and interaction output variances
+				for( i = 0; i < pd.nOptParam; i++ )
+				{
+					fhat2 = 0;
+					for( j = 0; j < n_sub; j++ )
+					{
+						fhat2 += ( gs.f_a[j] * gs.fmat_a[i][j] );
+						phis_half[ j ] = ( gs.f_a[j] * gs.fmat_a[i][j] );
+					}
+					gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+					printf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+					gs.D_hat[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
+					printf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+					gs.D_hat[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_a[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
+					printf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+					var_sorted( gs.f_a, gs.fmat_a[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat[i] );
+					printf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+					//gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+					fhat2 = 0;
+					for( j = 0; j < n_sub; j++ )
+					{
+						fhat2 += ( gs.f_a[j] * gs.fmat_b[i][j] );
+						phis_half[ j ] = ( gs.f_a[j] * gs.fmat_b[i][j] );
+					}
+					gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+					printf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+					gs.D_hat_n[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
+					printf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+					gs.D_hat_n[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_b[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
+					printf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+					var_sorted( gs.f_a, gs.fmat_b[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat_n[i] );
+					printf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+					//gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+				}
+				// Print sensitivity indices
+				printf( "\nParameter sensitivity indices:\n" );
+				printf( "parameter individual interaction\n" );
+				for( i = 0; i < pd.nOptParam; i++ ) printf( "%d %g %g\n", i + 1, gs.D_hat[i] / gs.D_hat_t, 1 - ( gs.D_hat_n[i] / gs.D_hat_t ) );
+				printf( "\n" );
+				free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat ); free( gs.D_hat_n );
+				free_matrix(( void ** ) gs.var_a_lhs, n_sub );
+				free_matrix(( void ** ) gs.var_b_lhs, n_sub );
+				free_matrix(( void ** ) gs.fmat_a, pd.nOptParam );
+				free_matrix(( void ** ) gs.fmat_b, pd.nOptParam );
+			}
 //
-// ------------------------ SIMPLE
+// ------------------------ SIMPLE CALIBRATION
 //
 	if( cd.problem_type == CALIBRATE && cd.calib_type == SIMPLE ) /* Inverse analysis */
 	{
@@ -824,623 +1293,37 @@ int main( int argn, char *argv[] )
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = pd.var[i]; // Set all the initial values
 		status = f( &op ); // Optimize
 		if( status == 0 )
-		{
-			printf( "ERROR: Optimization did not start! Optimization method mismatch!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 0 );
-		}
+			{ printf( "ERROR: Optimization did not start! Optimization method mismatch!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
 		sprintf( filename, "%s-rerun.mads", root );
 		save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
-		sprintf( filename, "%s.results", root );
-		out = Fwrite( filename );
-		printf( "\nOptimized parameter values:\n" );
-		fprintf( out, "\nOptimized parameter values:\n" );
-		for( i = 0; i < pd.nParam; i++ )
-			if( pd.var_opt[i] >= 1 )
-			{
-				if( pd.var_log[i] == 0 ) printf( "%s %g\n", pd.var_id[i], pd.var[i] );
-				else printf( "%s %g\n", pd.var_id[i], pow( 10, pd.var[i] ) );
-				if( pd.var_log[i] == 0 ) fprintf( out, "%s %g\n", pd.var_id[i], pd.var[i] );
-				else fprintf( out, "%s %g\n", pd.var_id[i], pow( 10, pd.var[i] ) );
-			}
-		if( pd.nParam > pd.nOptParam )
-		{
-			printf( "\nFixed parameters:\n" );
-			fprintf( out, "\nFixed parameters:\n" );
-			for( i = 0; i < pd.nParam; i++ )
-				if( pd.var_opt[i] == 0 )
-				{
-					printf( "%s %g\n", pd.var_id[i], pd.var[i] );
-					fprintf( out, "%s %.15g\n", pd.var_id[i], pd.var[i] );
-				}
-		}
-		printf( "\nOptimized calibration targets:\n" );
-		fprintf( out, "\nOptimized calibration targets:\n" );
-		status_all = 1;
-		if( cd.solution_type == EXTERNAL )
-			for( i = 0; i < od.nObs; i++ )
-			{
-				if( od.obs_weight[i] == 0 ) continue;
-				c = od.obs_current[i];
-				err = c - od.obs_target[i];
-				if( c < od.obs_min[i] || c > od.obs_max[i] ) { status_all = 0; status = 0; }
-				else status = 1;
-				if( od.nObs < 50 || ( i < 20 || i > od.nObs - 20 ) ) printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], status, od.obs_min[i], od.obs_max[i] );
-				if( od.nObs > 50 && i == 21 ) printf( "...\n" );
-				fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], status, od.obs_min[i], od.obs_max[i] );
-			}
-		else
-			for( k = 0, i = 0; i < wd.nW; i++ )
-				for( j = 0; j < wd.nWellObs[i]; j++ )
-				{
-					if( wd.obs_weight[i][j] == 0 ) continue;
-					c = od.obs_current[k++];
-					err = c - wd.obs_target[i][j];
-					if( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) { status_all = 0; status = 0; }
-					else status = 1;
-					printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], status, wd.obs_min[i][j], wd.obs_max[i][j] );
-					fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], status, wd.obs_min[i][j], wd.obs_max[i][j] );
-				}
-		printf( "Objective function: %g Success: %d\n", op.phi, status_all );
-		fprintf( out, "Objective function: %g Success: %d\n", op.phi, status_all );
-		fprintf( out, "Number of function evaluations = %d\n", cd.eval );
-		fprintf( out, "Seed = %d\n", cd.seed );
-		if( status_all )
-		{
-			printf( "All the predictions are within calibration ranges!\n" );
-			fprintf( out, "All the predictions are within calibration ranges!\n" );
-		}
-		else
-		{
-			printf( "At least one of the predictions is outside calibration ranges!\n" );
-			fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
-		}
+		printf( "\n" );
+		print_results( &op );
+		save_results( "", &op, &gd );
 		if( od.nObs < od.nTObs )
 		{
+			predict = 1; // Produce outputs for predictions that are not calibration targets (see below PREDICT)
+			sprintf( filename, "%s.results", root );
+			out = Fappend( filename ); // Reopen results file
 			printf( "\nModel predictions that are not calibration targets:\n" );
 			fprintf( out, "\nModel predictions that are not calibration targets:\n" );
-			predict = 1; // Produce outputs for predictions that are not calibration targets
 		}
-		else
-		{
-			predict = 0; // There are no observations that are not calibration targets
-			fclose( out ); // Do not close out if there model predictions that are not calibration targets
-		}
-		save_results( "", &op, &gd );
-	}
-//
-// ------------------------ MONTECARLO
-//
-	if( cd.problem_type == MONTECARLO ) /* Monte Carlo analysis */
-	{
-		if(( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		npar = pd.nOptParam;
-		if(( var_lhs = ( double * ) malloc( npar * cd.nreal * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		printf( "\nMonte Carlo analysis using latin-hyper cube sampling:\n" );
-		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
-		else if( cd.seed == 0 ) { printf( "New " ); cd.seed = get_seed(); }
-		else printf( "Current seed: %d\n", cd.seed );
-		printf( "Random sampling (variables %d; realizations %d) using ", npar, cd.nreal );
-		sampling( npar, cd.nreal, &cd.seed, var_lhs, &op );
-		printf( "done.\n" );
-		if( cd.mdebug )
-		{
-			sprintf( filename, "%s.mcrnd_set", root );
-			out = Fwrite( filename );
-			for( count = 0; count < cd.nreal; count ++ )
-			{
-				for( k = 0; k < npar; k++ )
-					fprintf( out, "%.15g ", var_lhs[k+count*npar] );
-				fprintf( out, "\n" );
-			}
-			fclose( out );
-			printf( "Random sampling set saved in %s.mcrnd_set\n", root );
-		}
-		sprintf( buf, "( mv -f %s.mcrnd.zip %s.mcrnd_%s.zip; zip -m %s.mcrnd.zip %s.mcrnd_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root );
-		system( buf );
-		sprintf( filename, "%s.mcrnd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.mcrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
-		out = Fwrite( filename );
-		cd.compute_phi = 1;
-		status_global = 0;
-		phi_min = HUGE;
-		if( cd.ncase != 0 ) k = cd.ncase - 1;
-		else k = 0;
-		if( cd.solution_type == EXTERNAL && cd.num_proc > 1 && k == 0 ) // Parallel job:
-		{
-			if( cd.debug ) printf( "Parallel execution of external jobs ...\n" );
-			for( count = 0; count < cd.nreal; count ++ ) // Write all the files
-			{
-				fprintf( out, "%d : ", count + 1 ); // counter
-				if( cd.mdebug ) printf( "\n" );
-				printf( "Random set #%d: ", count + 1 );
-				fflush( stdout );
-				for( i = 0; i < pd.nOptParam; i++ )
-				{
-					k = pd.var_index[i];
-					opt_params[i] = pd.var[k] = var_lhs[i+count*npar] * pd.var_range[k] + pd.var_min[k];
-				}
-				if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
-				Transform( opt_params, &op, opt_params );
-				func_extrn_write( count + 1, opt_params, &op );
-				printf( "external model input file(s) generated ...\n" );
-				if( cd.mdebug ) cd.fdebug = debug_level;
-				if( cd.mdebug )
-				{
-					printf( "\nRandom parameter values:\n" );
-					for( i = 0; i < pd.nOptParam; i++ )
-						if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
-						else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
-				}
-			}
-			if( cd.pardebug > 4 )
-			{
-				for( count = 0; count < cd.nreal; count ++ ) // Perform all the runs in serial model (for testing)
-				{
-					printf( "Execute model #%d ... ", count + 1 );
-					fflush( stdout );
-					func_extrn_exec_serial( count + 1, &op );
-					printf( "done!\n" );
-				}
-			}
-			else if( mprun( cd.nreal, &op ) < 0 ) // Perform all the runs in parallel
-			{
-				printf( "ERROR: there is a problem with the parallel execution!\n" );
-				sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-				system( buf );
-			}
-			for( count = 0; count < cd.nreal; count ++ ) // Read all the files
-			{
-				printf( "Model results #%d: ", count + 1 );
-				bad_data = 0;
-				bad_data = func_extrn_read( count + 1, &op, od.res );
-				if( bad_data )
-				{
-					sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-					system( buf );
-					exit( -1 );
-				}
-				if( cd.mdebug > 1 ) { printf( "\n" ); print_results( &op ); }
-				else if( cd.mdebug )
-				{
-					printf( "Objective function: %g Success: %d\n", op.phi, status_all );
-					if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
-					else printf( "At least one of the predictions is outside calibration ranges!\n" );
-				}
-				else
-					printf( "Objective function: %g Success = %d\n", op.phi, status_all );
-				if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
-				if( status_all ) status_global++;
-				for( i = 0; i < pd.nParam; i++ )
-					if( pd.var_opt[i] >= 1 )
-					{
-						if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
-						else fprintf( out, " %.15g", pd.var[i] );
-					}
-				fprintf( out, " OF %g status %d\n", op.phi, status_all );
-				fflush( out );
-				if( status_all ) save_results( "mc", &op, &gd );
-			}
-		}
-		else // Serial job
-		{
-			for( count = k; count < cd.nreal; count ++ )
-			{
-				fprintf( out, "%d : ", count + 1 ); // counter
-				if( cd.mdebug ) printf( "\n" );
-				printf( "Random set #%d: ", count + 1 );
-				fflush( stdout );
-				for( i = 0; i < pd.nOptParam; i++ )
-				{
-					k = pd.var_index[i];
-					opt_params[i] = pd.var[k] = var_lhs[i+count*npar] * pd.var_range[k] + pd.var_min[k];
-				}
-				if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
-				Transform( opt_params, &op, opt_params );
-				func( opt_params, &op, od.res );
-				if( cd.mdebug ) cd.fdebug = debug_level;
-				if( cd.mdebug )
-				{
-					printf( "\nRandom parameter values:\n" );
-					for( i = 0; i < pd.nOptParam; i++ )
-						if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
-						else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
-				}
-				if( cd.mdebug > 1 ) { printf( "\nPredicted calibration targets:\n" ); print_results( &op ); }
-				else if( cd.mdebug )
-				{
-					printf( "Objective function: %g Success: %d\n", op.phi, status_all );
-					if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
-					else printf( "At least one of the predictions is outside calibration ranges!\n" );
-				}
-				else
-					printf( "Objective function: %g Success = %d\n", op.phi, status_all );
-				if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
-				if( status_all ) status_global++;
-				for( i = 0; i < pd.nParam; i++ )
-					if( pd.var_opt[i] >= 1 )
-					{
-						if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
-						else fprintf( out, " %.15g", pd.var[i] );
-					}
-				fprintf( out, " OF %g status %d\n", op.phi, status_all );
-				fflush( out );
-				if( status_all ) save_results( "mc", &op, &gd );
-				if( cd.ncase != 0 ) break;
-			}
-		}
-		op.s = 0;
-		free( var_lhs );
-		fclose( out );
-		op.phi = phi_min;
-		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i];
-		printf( "Results are saved in %s.mcrnd_results\n", root );
-		printf( "Minimum objective function: %g\n", phi_min );
-		if( status_global == 0 ) printf( "None of the Monte-Carlo runs produced predictions within calibration ranges!\n" );
-		else printf( "Number of Monte-Carlo runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", status_global, cd.nreal, ( double ) status_global / cd.nreal );
-		printf( "Repeat the Monte-Carlo run producing the best results ...\n" );
-		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
-		Transform( opt_params, &op, opt_params );
-		func( opt_params, &op, od.res );
-		if( cd.debug ) cd.fdebug = debug_level;
-		free( opt_params );
-		save_results( "", &op, &gd );
-		cd.compute_phi = 0;
+		else predict = 0; // There are no observations that are not calibration targets
 	}
 //
 // ------------------------ EIGEN || LOCALSENS
 //
-	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS ) eigen( &op, NULL, NULL ); // Eigen or sensitivity analysis run
+	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS )
+		eigen( &op, NULL, NULL ); // Eigen or sensitivity analysis run
 //
 //------------------------- ABAGUS
 //
 	if( cd.problem_type == ABAGUS ) // Particle swarm sensitivity analysis run
-	{
 		status = pssa( &op ); // Optimize
-	}
 //
 //------------------------ POSTPUA
 //
 	if( cd.problem_type == POSTPUA ) // Predictive uncertainty analysis of sampling results
-	{
 		status = postpua( &op );
-	}
-//
-// ------------------------ GLOBALSENS
-//
-	if( cd.problem_type == GLOBALSENS ) // Global sensitivity analysis run
-	{
-		double fhat, fhat2, *phis_full, *phis_half;
-		int n_sub; //! number of samples for subsets a and b
-//		gsl_qrng *q = gsl_qrng_alloc( gsl_qrng_sobol, pd.nOptParam );
-		n_sub = cd.nreal / 2;	// set to half of user specified reals
-		if(( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		// Temporary variable to store cd.nreal phis
-		if(( phis_full = ( double * ) malloc( cd.nreal * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		// Temporary variable to store m_sub phis
-		if(( phis_half = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		// Temporary variable to store random sample a
-		if(( var_a_lhs = ( double * ) malloc( pd.nOptParam * n_sub * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		// Sample a phis
-		if(( gs.f_a = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		// Sample b phis
-		if(( gs.f_b = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		// Temporary variable to store random sample b
-		if(( var_b_lhs = ( double * ) malloc( pd.nOptParam * n_sub * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		// matrices to store lhs samples
-		gs.var_a_lhs = double_matrix( n_sub, pd.nOptParam );
-		gs.var_b_lhs = double_matrix( n_sub, pd.nOptParam );
-		// Matrices to store phis with different combinations of parameters from samples a and b
-		if(( gs.fmat_a = double_matrix( pd.nOptParam, n_sub ) ) == NULL )
-			{ printf( "Error creating 3D matrix\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 0 ); }
-		if(( gs.fmat_b = double_matrix( pd.nOptParam, n_sub ) ) == NULL )
-			{ printf( "Error creating 3D matrix\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 0 ); }
-		// Vector of variances for individual component contribution
-		if(( gs.D_hat = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
-		// Vector of variances for total component contribution
-		if(( gs.D_hat_n = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
-		printf( "\nGlobal sensitivity analysis using random sampling:\n" );
-		// Create samples
-		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
-		else if( cd.seed == 0 ) { printf( "New " ); cd.seed = get_seed(); }
-		else printf( "Current seed: %d\n", cd.seed );
-		printf( "Random sampling set 1 (variables %d; realizations %d) using ", pd.nOptParam, cd.nreal );
-		sampling( pd.nOptParam, n_sub, &cd.seed, var_a_lhs, &op );
-		printf( "done.\n" );
-		printf( "Random sampling set 2 (variables %d; realizations %d) using ", pd.nOptParam, cd.nreal );
-		sampling( pd.nOptParam, n_sub, &cd.seed, var_b_lhs, &op );
-		printf( "done.\n" );
-		// Create samples using Sobol's quasi-random sequence
-		/*		for( count = 0; count < n_sub; count++ )
-				{
-					double v[ pd.nOptParam ];
-					gsl_qrng_get( q, v);
-					for( i = 0; i < pd.nOptParam; i++ )
-					{
-						k = pd.var_index[i];
-						gs.var_a_lhs[count][i] = v[i] * pd.var_range[k] + pd.var_min[k];
-					}
-				}
-
-				for( count = 0; count < n_sub; count++ )
-				{
-					double v[ pd.nOptParam ];
-					gsl_qrng_get( q, v);
-					for( i = 0; i < pd.nOptParam; i++ )
-					{
-						k = pd.var_index[i];
-						gs.var_b_lhs[count][i] = v[i] * pd.var_range[k] + pd.var_min[k];
-					}
-				}*/
-		// Copy temp lhs vectors to matrices
-		for( count = 0; count < n_sub; count++ )
-			for( i = 0; i < pd.nOptParam; i++ )
-			{
-				k = pd.var_index[i];
-				gs.var_a_lhs[count][i] = var_a_lhs[i+count*pd.nOptParam] * pd.var_range[k] + pd.var_min[k];
-				gs.var_b_lhs[count][i] = var_b_lhs[i+count*pd.nOptParam] * pd.var_range[k] + pd.var_min[k];
-			}
-		free( var_a_lhs );
-		free( var_b_lhs );
-		// Output samples to files
-		if( cd.mdebug )
-		{
-			sprintf( filename, "%s.gsmcrnd_set_a", root );
-			out = Fwrite( filename );
-			sprintf( filename, "%s.gsmcrnd_set_b", root );
-			out2 = Fwrite( filename );
-			for( count = 0; count < n_sub; count ++ )
-			{
-				for( k = 0; k < pd.nOptParam; k++ )
-				{
-					fprintf( out, "%.15g ", gs.var_a_lhs[count][k] );
-					fprintf( out2, "%.15g ", gs.var_b_lhs[count][k] );
-				}
-				fprintf( out, "\n" );
-				fprintf( out2, "\n" );
-			}
-			fclose( out );
-			fclose( out2 );
-			printf( "Random sampling sets a and b saved in %s.mcrnd_set_a and %s.mcrnd_set_b\n", root, root );
-		}
-		// Copy existing mcrnd.zip to new file if it exists
-		sprintf( buf, "( mv -f %s.gsmcrnd.zip %s.gsmcrnd_%s.zip; zip -m %s.gsmcrnd.zip %s.gsmcrnd_set_* ) >& /dev/null", root, root, op.datetime, root, root ); system( buf );
-		// If gsmcrnd_results file exists, copy to new file
-		sprintf( filename, "%s.gsmcrnd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.gsmcrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
-		out = Fwrite( filename );
-		// Accumulate phis into fhat and fhat2 for total output mean and variance
-		fhat = fhat2 = 0;
-		cd.compute_phi = 1;
-		printf( "Computing phis to calculate total output mean and variance...\n" );
-		// Compute sample a phis
-		for( count = 0; count < n_sub; count ++ )
-		{
-			for( i = 0; i < pd.nOptParam; i++ )
-			{
-				k = pd.var_index[i];
-				opt_params[i] = pd.var[k] = gs.var_a_lhs[count][i];
-			}
-			Transform( opt_params, &op, opt_params );
-			func( opt_params, &op, od.res );
-			// Sum phi and phi^2
-			fhat += op.phi;
-			fhat2 += pow( op.phi, 2 );
-			// Save sample a phis
-			gs.f_a[count] = op.phi;
-			phis_full[count] = op.phi;
-			// save to results file
-			fprintf( out, "%d : ", count + 1 ); // counter
-			fprintf( out, "%g :", op.phi );
-			for( i = 0; i < pd.nParam; i++ )
-				if( pd.var_opt[i] >= 1 )
-					fprintf( out, " %.15g", pd.var[i] );
-			fprintf( out, "\n" );
-			fflush( out );
-		}
-		// Compute sample b phis
-		for( count = 0; count < n_sub; count ++ )
-		{
-			for( i = 0; i < pd.nOptParam; i++ )
-			{
-				k = pd.var_index[i];
-				opt_params[i] = pd.var[k] = gs.var_b_lhs[count][i];
-			}
-			Transform( opt_params, &op, opt_params );
-			func( opt_params, &op, od.res );
-			// Sum phi and phi^2
-			fhat += op.phi;
-			fhat2 += pow( op.phi, 2 );
-			// Save sample b phis
-			gs.f_b[count] = op.phi;
-			phis_full[ n_sub + count ] = op.phi;
-			// save to results file
-			fprintf( out, "%d : ", n_sub + count ); // counter
-			fprintf( out, "%g :", op.phi );
-			for( i = 0; i < pd.nParam; i++ )
-				if( pd.var_opt[i] >= 1 )
-					fprintf( out, " %.15g", pd.var[i] );
-			fprintf( out, "\n" );
-			fflush( out );
-		}
-		fclose( out );
-		printf( "Global Sensitivity MC results are saved in %s.gsmcrnd_results\n", root );
-		// Calculate total output mean and variance based on sample a
-		gs.f_hat_0 = fhat / ( 2 * n_sub );
-		gs.D_hat_t = fhat2 / ( 2 * n_sub ) - gs.f_hat_0;
-		printf( "Total output mean = %g\n", gs.f_hat_0 );
-		printf( "Total output variance = %g\n", gs.D_hat_t );
-		gs.f_hat_0 = gsl_stats_mean( phis_full, 1, cd.nreal );
-		gs.D_hat_t = gsl_stats_variance( phis_full, 1, cd.nreal );
-		printf( "Total output mean = %g\n", gs.f_hat_0 );
-		printf( "Total output variance = %g\n", gs.D_hat_t );
-		gs.f_hat_0 = gs.D_hat_t = 0.0;
-		ave_sorted( phis_full, cd.nreal, &gs.f_hat_0, &gs.ep );
-		printf( "Total output mean = %g abs 1st moment = %g\n", gs.f_hat_0, gs.ep );
-		var_sorted( phis_full, phis_full, cd.nreal, gs.f_hat_0, gs.ep, &gs.D_hat_t );
-		printf( "Total output variance = %g\n", gs.D_hat_t );
-		/*		// Subtract f_hat_0 from phis and recalculate total output variance
-				fhat2 = 0;
-				for( count = 0; count < n_sub; count++ )
-				{
-					gs.f_a[count] -= gs.f_hat_0;
-					gs.f_b[count] -= gs.f_hat_0;
-					phis_full[ count ] = gs.f_a[count];
-					phis_full[ n_sub + count ] = gs.f_b[count];
-					fhat2 += pow( gs.f_a[count], 2 );
-					fhat2 += pow( gs.f_b[count], 2 );
-				}
-				gs.D_hat_t = fhat2 / (2 * n_sub);
-				printf( "Total output variance = %g\n", gs.D_hat_t );
-				gs.D_hat_t = gsl_stats_variance( phis_full, 1, cd.nreal );
-				printf( "Total output variance = %g\n", gs.D_hat_t );
-		*/		free( phis_full );
-		// Collect matrix of phis for fmat_a
-		printf( "Computing phis for calculation of individual output variances:\n" );
-		fflush( stdout );
-		for( i = 0; i < pd.nOptParam; i++ )
-		{
-			printf( "Parameter %d...\n", i + 1 );
-			for( count = 0; count < n_sub; count ++ )
-			{
-				for( j = 0; j < pd.nOptParam; j++ )
-				{
-					k = pd.var_index[j];
-					if( i == j ) // then select from sample a
-						opt_params[j] = pd.var[k] = gs.var_a_lhs[count][j];
-					else // else select from sample b
-						opt_params[j] = pd.var[k] = gs.var_b_lhs[count][j];
-				}
-				Transform( opt_params, &op, opt_params );
-				func( opt_params, &op, od.res );
-				// Save phi to fmat_a
-				gs.fmat_a[i][count] = op.phi;
-			}
-		}
-		// Collect matrix of phis for fmat_b
-		printf( "Computing phis for calculation of individual plus interaction output variances:\n" );
-		for( i = 0; i < pd.nOptParam; i++ )
-		{
-			printf( "Parameter %d...\n", i + 1 );
-			for( count = 0; count < n_sub; count ++ )
-			{
-				for( j = 0; j < pd.nOptParam; j++ )
-				{
-					k = pd.var_index[j];
-					if( i == j ) // then select from sample b
-						opt_params[j] = pd.var[k] = gs.var_b_lhs[count][j];
-					else // else select from sample a
-						opt_params[j] = pd.var[k] = gs.var_a_lhs[count][j];
-				}
-				Transform( opt_params, &op, opt_params );
-				func( opt_params, &op, od.res );
-				// Save phi to fmat_b
-				gs.fmat_b[i][count] = op.phi;
-			}
-		}
-		printf( "done\n" );
-		// Calculate individual and interaction output variances
-		for( i = 0; i < pd.nOptParam; i++ )
-		{
-			fhat2 = 0;
-			for( j = 0; j < n_sub; j++ )
-			{
-				fhat2 += ( gs.f_a[j] * gs.fmat_a[i][j] );
-				phis_half[ j ] = ( gs.f_a[j] * gs.fmat_a[i][j] );
-			}
-			gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-			printf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-			gs.D_hat[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
-			printf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-			gs.D_hat[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_a[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
-			printf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-			var_sorted( gs.f_a, gs.fmat_a[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat[i] );
-			printf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-			//gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-			fhat2 = 0;
-			for( j = 0; j < n_sub; j++ )
-			{
-				fhat2 += ( gs.f_a[j] * gs.fmat_b[i][j] );
-				phis_half[ j ] = ( gs.f_a[j] * gs.fmat_b[i][j] );
-			}
-			gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-			printf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-			gs.D_hat_n[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
-			printf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-			gs.D_hat_n[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_b[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
-			printf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-			var_sorted( gs.f_a, gs.fmat_b[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat_n[i] );
-			printf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-			//gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		}
-		// Print sensitivity indices
-		printf( "\nParameter sensitivity indices:\n" );
-		printf( "parameter individual interaction\n" );
-		for( i = 0; i < pd.nOptParam; i++ ) printf( "%d %g %g\n", i + 1, gs.D_hat[i] / gs.D_hat_t, 1 - ( gs.D_hat_n[i] / gs.D_hat_t ) );
-		printf( "\n" );
-		free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat ); free( gs.D_hat_n );
-		free_matrix(( void ** ) gs.var_a_lhs, n_sub );
-		free_matrix(( void ** ) gs.var_b_lhs, n_sub );
-		free_matrix(( void ** ) gs.fmat_a, pd.nOptParam );
-		free_matrix(( void ** ) gs.fmat_b, pd.nOptParam );
-	}
 //
 // ------------------------ FORWARD
 //
@@ -1744,7 +1627,7 @@ int optimize_lm( struct opt_data *op )
 				if( opts[4] > 0 ) maxiter = ( double )( op->cd->maxeval - op->cd->eval ) / ( op->pd->nOptParam + 10 ) + 1; // Forward derivatives
 				else              maxiter = ( double )( op->cd->maxeval - op->cd->eval ) / ( 2 * op->pd->nOptParam + 10 ) + 1; // Central derivatives
 				if( maxiter > op->cd->niter ) maxiter = op->cd->niter;
-				maxiter *= 10; // About 10 lambda searches per iteration
+				maxiter *= 10; // Assuming about 10 lambda searches per iteration
 				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter, opts, info, work, covar, op );
 				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter, opts, info, work, covar, op );
 				if( info[6] == 4 || info[6] == 5 ) { opts[0] *= 10; if( op->cd->ldebug ) printf( "Rerun with larger initial lambda (%g)\n", opts[0] ); }
@@ -2136,44 +2019,6 @@ int postpua( struct opt_data *op )
 	return 1;
 }
 
-void Transform( double *v, void *data, double *vt )
-{
-	struct opt_data *p = ( struct opt_data * )data;
-	int i, k;
-	if( p->cd->sintrans == 0 )
-		for( i = 0; i < p->pd->nOptParam; i++ )
-			vt[i] = v[i];
-	else
-		for( i = 0; i < p->pd->nOptParam; i++ )
-		{
-			k = p->pd->var_index[i];
-//		printf( "trans %s %g %g %g -> ", p->pd->var_id[p->pd->var_index[i]], v[i], p->pd->var_range[k], p->pd->var_min[k] );
-			vt[i] = ( v[i] - p->pd->var_min[k] ) / p->pd->var_range[k];
-			vt[i] = asin(( double ) vt[i] * 2.0 - 1.0 );
-//		printf( "%g\n", vt[i] );
-		}
-}
-
-void DeTransform( double *v, void *data, double *vt )
-{
-	struct opt_data *p = ( struct opt_data * )data;
-	int i, k;
-	if( p->cd->sintrans == 0 )
-		for( i = 0; i < p->pd->nOptParam; i++ )
-		{
-			vt[i] = v[i];
-//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
-		}
-	else
-		for( i = 0; i < p->pd->nOptParam; i++ )
-		{
-			k = p->pd->var_index[i];
-			vt[i] = (( double ) sin( v[i] ) + 1.0 ) / 2.0;
-			vt[i] = p->pd->var_min[k] + vt[i] * p->pd->var_range[k];
-//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
-		}
-}
-
 // Modified from Numerical Recipes in C: The Art of Scientific Computing (ISBN 0-521-43108-5)
 // corrected three-pass algorithm to minimize roundoff error in variance
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var )
@@ -2274,7 +2119,7 @@ void print_results( struct opt_data *op )
 			{
 				if( op->wd->obs_weight[i][j] == 0 ) continue;
 				c = op->od->obs_current[k++];
-				err = c - op->wd->obs_target[i][j];
+				err = op->wd->obs_target[i][j] - c;
 				if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { status_all = 0; status = 0; }
 				else status = 1;
 				printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], status, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
@@ -2333,7 +2178,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 				if( op->wd->obs_weight[i][j] != 0 )
 				{
 					c = op->od->obs_current[k++];
-					err = c - op->wd->obs_target[i][j];
+					err = op->wd->obs_target[i][j] - c;
 					if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { status_all = 0; status = 0; }
 					else status = 1;
 				}

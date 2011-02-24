@@ -16,6 +16,8 @@ void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void 
 int func_dx( double *x, double *f_x, void *data, double *jacobian );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
+void Transform( double *v, void *data, double *vt );
+void DeTransform( double *v, void *data, double *vt );
 /* Functions elsewhere */
 void Transform( double *v, void *data, double *vt );
 void DeTransform( double *v, void *data, double *vt );
@@ -634,4 +636,42 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 			c2 = box_source( x, y, z2, t, ( void * ) p );
 	}
 	return(( c1 + c2 ) / 2 );
+}
+
+void Transform( double *v, void *data, double *vt )
+{
+	struct opt_data *p = ( struct opt_data * )data;
+	int i, k;
+	if( p->cd->sintrans == 0 )
+		for( i = 0; i < p->pd->nOptParam; i++ )
+			vt[i] = v[i];
+	else
+		for( i = 0; i < p->pd->nOptParam; i++ )
+		{
+			k = p->pd->var_index[i];
+//			printf( "trans %s %g %g %g -> ", p->pd->var_id[p->pd->var_index[i]], v[i], p->pd->var_range[k], p->pd->var_min[k] );
+			vt[i] = ( v[i] - p->pd->var_min[k] ) / p->pd->var_range[k];
+			vt[i] = asin(( double ) vt[i] * 2.0 - 1.0 );
+//			printf( "%g\n", vt[i] );
+		}
+}
+
+void DeTransform( double *v, void *data, double *vt )
+{
+	struct opt_data *p = ( struct opt_data * )data;
+	int i, k;
+	if( p->cd->sintrans == 0 )
+		for( i = 0; i < p->pd->nOptParam; i++ )
+		{
+			vt[i] = v[i];
+//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
+		}
+	else
+		for( i = 0; i < p->pd->nOptParam; i++ )
+		{
+			k = p->pd->var_index[i];
+			vt[i] = (( double ) sin( v[i] ) + 1.0 ) / 2.0;
+			vt[i] = p->pd->var_min[k] + vt[i] * p->pd->var_range[k];
+//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
+		}
 }
