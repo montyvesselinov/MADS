@@ -45,7 +45,8 @@ struct calc_data
 	char *mydir_hosts;
 	char **paral_hosts;
 	time_t time_infile;
-	char *timedate_infile;
+	char *datetime_infile;
+	char *restart_zip_file;
 	char *infile; //! old results file from pssa to be read in to initialize kdtree
 	double phi_cutoff;
 	double sindx;
@@ -160,7 +161,7 @@ struct opt_data
 	int success;
 	int s;
 	char *root;
-	char *datetime;
+	char *datetime_stamp;
 	FILE *f_ofe;
 	struct param_data *pd;
 	struct obs_data *od;

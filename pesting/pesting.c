@@ -16,8 +16,8 @@ int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debu
 int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
-static char *white_trim( char *x );
-static void white_skip( char **s );
+char *white_trim( char *x );
+void white_skip( char **s );
 char **char_matrix( int maxCols, int maxRows );
 
 int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct extrn_data *extrn )
@@ -610,12 +610,12 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	else return( 0 );
 }
 
-static void white_skip( char **s )
+void white_skip( char **s )
 {
 	while( iswhite( **s ) )( *s )++;
 }
 
-static char *white_trim( char *x )
+char *white_trim( char *x )
 {
 	char *y;
 	if( !x ) return( x );

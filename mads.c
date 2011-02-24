@@ -50,6 +50,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc( char *filename, struct opt_data *od, struct grid_data *gd );
 void compute_btc2( char *filename, struct opt_data *od, struct grid_data *gd );
 int Ftest( char *filename );
+FILE *Fread( char *filename );
 FILE *Fwrite( char *filename );
 FILE *Fappend( char *filename );
 char *Fdatetime( char *filename, int debug );
@@ -94,7 +95,8 @@ void Transform( double *v, void *data, double *vt );
 void DeTransform( double *v, void *data, double *vt );
 int delete_mprun_outputs( int nDir, void *data );
 int mprun( int nJob, void *data );
-char *dir_hosts( void *data );
+char *dir_hosts( void *data, char *timedate_stamp );
+char *white_trim( char *x );
 
 int main( int argn, char *argv[] )
 {
@@ -116,7 +118,7 @@ int main( int argn, char *argv[] )
 	pid_t pid;
 	struct tm *ptr_ts;
 	t1 = time( NULL );
-	op.datetime = datestamp();
+	op.datetime_stamp = datestamp();
 	op.pd = &pd;
 	op.od = &od;
 	op.wd = &wd;
@@ -199,10 +201,11 @@ int main( int argn, char *argv[] )
 		printf( "                        [default oweight=-1; weights for each observation are explicitly defined in the input file]\n" );
 		printf( "\nparallelization (parallelization environment and available resources are internally detected by default):\n" );
 		printf( "   np=[integer]       - Number of requested parallel jobs [optional]\n" );
+		printf( "   zipfile=[string]   - name of previous restart file to be used [optional]\n" );
 		printf( "   restart=[integer]  - restart=1 (default; automatic restart if possible); restart=0 (force no restart); restart=2 (force restart)\n" );
 		printf( "                        by default the analyses will be restarted automatically (restart=1)\n" );
 		printf( "\nABAGUS ( Agent-Based Global Uncertainty & Sensitivity Analysis) options:\n" );
-		printf( "   infile=[file_name] - previous results file to be used to initialize kdtree [default=NULL]\n" );
+		printf( "   infile=[string]    - name of previous results file to be used to initialize kdtree [default=NULL]\n" );
 		printf( "   energy=[integer]   - starting energy for particles [default energy=10000]\n" );
 		printf( "\nbuild-in analytical solutions:\n" );
 		printf( "   point              - point contaminant source in 3D flow domain\n" );
@@ -259,7 +262,7 @@ int main( int argn, char *argv[] )
 	}
 	printf( "Input file name: %s\n", filename );
 	cd.time_infile = Fdatetime_t( filename, 0 );
-	cd.timedate_infile = Fdatetime( filename, 0 );
+	cd.datetime_infile = Fdatetime( filename, 0 );
 	if( cd.debug ) printf( "Root: %s", root );
 	op.root = root;
 	op.s = 0;
@@ -295,9 +298,9 @@ int main( int argn, char *argv[] )
 			printf( "MADS quits! Data input problem!\n" );
 			if( ier == 0 )
 			{
-				sprintf( filename, "%s-error.mads", root );
+				sprintf( filename, "%s-error.mads", op.root );
 				save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
-				printf( "\nMADS problem file named %s-error.mads is created to debug.\n", root );
+				printf( "\nMADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			sprintf( buf, "rm %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			system( buf );
@@ -366,13 +369,17 @@ int main( int argn, char *argv[] )
 	else if( cd.num_proc > 1 )
 	{
 		printf( "\nLocal parallel execution is requested using %d processors (np=%d)\n", cd.num_proc, cd.num_proc );
-		system( "\\rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc" );
-		in = fopen( "num_proc", "r" );
+		cwd = getenv( "OSTYPE" ); printf( "OS type: %s\n", cwd );
+		if( strncasecmp( cwd, "darwin", 6) == 0 )
+			system( "\\rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc" ); // MAC OS
+		else
+			system( "\\rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc" ); // LINIX
+		in = Fread( "num_proc" );
 		fscanf( in, "%d", &k );
 		fclose( in );
 		system( "\\rm -f num_proc >& /dev/null" );
 		printf( "Number of local processors available for parallel execution: %i\n", k );
-		if( k > cd.num_proc ) printf( "WARNING: Number of requested processors exceeds the available resources!\n" );
+		if( k < cd.num_proc ) printf( "WARNING: Number of requested processors exceeds the available resources!\n" );
 	}
 	if( cd.num_proc > 1 ) // Parallel job
 	{
@@ -381,7 +388,7 @@ int main( int argn, char *argv[] )
 		cwd = getenv( "PWD" ); dot = strrchr( cwd, '/' );
 		cd.mydir = &dot[1];
 		if( cd.debug ) printf( "Working directory: %s (%s)\n", cwd, cd.mydir );
-		cd.mydir_hosts = dir_hosts( &op );
+		cd.mydir_hosts = dir_hosts( &op, op.datetime_stamp ); // Directories for parallel execution have unique name based on the execution time
 	}
 	if(( orig_params = ( double * ) malloc( pd.nParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory for orig_params!\n" ); exit( 1 ); }
 	/*
@@ -432,44 +439,64 @@ int main( int argn, char *argv[] )
 	/*
 	 *  Check for restart conditions
 	 */
-	printf( "\nExecution date & time stamp: %s\n", op.datetime ); // Stamp will be applied to name / rename various output files
+	printf( "\nExecution date & time stamp: %s\n", op.datetime_stamp ); // Stamp will be applied to name / rename various output files
 	if( cd.solution_type == EXTERNAL && cd.num_proc > 1 )
 	{
 		if( cd.restart == 1 ) // Restart by default
 		{
 			strcpy( buf, filename ); // Temporarily preserve the input file name
-			sprintf( filename, "%s-restart-%s.zip", root, cd.timedate_infile );
-			if( Ftest( filename ) != 0 ) { if( cd.pardebug ) printf( "ZIP file (%s) with restart information is not available.\n", filename ); cd.restart = 0; }
+			sprintf( filename, "%s-restart-%s.zip", op.root, cd.datetime_infile );
+			strcpy( cd.restart_zip_file, filename );
+			if( Ftest( cd.restart_zip_file ) != 0 ) { if( cd.pardebug ) printf( "ZIP file (%s) with restart information is not available.\n", cd.restart_zip_file ); cd.restart = 0; }
 			else
 			{
-				dt = cd.time_infile - Fdatetime_t( filename, 0 ); // time_infile - time_zipfile ...
-				if( dt >= 0 ) { if( cd.pardebug ) printf( "No restart: the zip file (%s) with restart information is older than the MADS input file (%s) (restart can be enforced using \'restart=1\')\n", filename, buf ); cd.restart = 0; } // No restart
+				dt = cd.time_infile - Fdatetime_t( cd.restart_zip_file, 0 ); // time_infile - time_zipfile ...
+				if( dt >= 0 ) { if( cd.pardebug ) printf( "No restart: the zip file (%s) with restart information is older than the MADS input file (%s) (restart can be enforced using \'restart=-1\')\n", cd.restart_zip_file, buf ); cd.restart = 0; } // No restart
 				else cd.restart = 1; // Attempt restart
 			}
+			printf( "Restart is attempted because zip file %s is consistent with date/time stamp of the MADS input file ... \n", filename );
 		}
 		else if( cd.restart == -1 ) // Forced restart
 		{
-			sprintf( filename, "%s-restart-%s.zip", root, cd.timedate_infile );
-			if( Ftest( filename ) != 0 ) { printf( "Restart is requested but a zip file (%s) with restart information is not available.\n", filename ); cd.restart = 0; }
-			else printf( "Restart is attempted because it is requested (option restart=-1)\n" );
+			sprintf( filename, "%s-restart-%s.zip", op.root, cd.datetime_infile );
+			if( cd.restart_zip_file[0] == 0 ) strcpy( cd.restart_zip_file, filename );
+			if( Ftest( cd.restart_zip_file ) != 0 ) { printf( "Restart is requested but a zip file (%s) with restart information is not available.\n", cd.restart_zip_file ); cd.restart = 0; }
+			else printf( "Restart is attempted because it is requested (keyword restart=-1) using zip file %s ...\n", cd.restart_zip_file );
 		}
 		if( cd.restart )
 		{
-			printf( "Restart is attempted ... \n" );
 			printf( "MADS  input  file \'%40s\' last modified on %s\n", buf, Fdatetime( buf, 0 ) );
-			sprintf( filename, "%s.results", root ); if( Ftest( filename ) != 0 ) printf( "MADS results file \'%40s\' last modified on %s\n", filename, Fdatetime( filename, 0 ) );
-			sprintf( filename, "%s-restart-%s.zip", root, cd.timedate_infile ); printf( "MADS restart file \'%40s\' last modified on %s\n", filename, Fdatetime( filename, 0 ) );
-			printf( "ZIP file (%s) with restart information is unzipped ... \n", filename );
-			sprintf( buf, "rm -fR ../%s*; unzip -u -: %s >& /dev/null", cd.mydir_hosts, filename ); // the input file name was temporarily in buf; not any more ...
+			sprintf( filename, "%s.results", op.root ); if( Ftest( filename ) != 0 ) printf( "MADS results file \'%40s\' last modified on %s\n", filename, Fdatetime( filename, 0 ) );
+			printf( "MADS restart file \'%40s\' last modified on %s\n", cd.restart_zip_file, Fdatetime( cd.restart_zip_file, 0 ) );
+			printf( "ZIP file (%s) with restart information is unzipped ... \n", cd.restart_zip_file );
+			sprintf( buf, "rm -fR ../%s* %s.restart_info; unzip -u -: %s >& /dev/null", cd.mydir_hosts, op.root, cd.restart_zip_file ); // the input file name was temporarily in buf; not any more ...
 			system( buf );
+			sprintf( filename, "%s.restart_info", op.root );
+			in = Fread( filename );
+			fgets( buf, 255, in );
+			white_trim( buf );
+			cd.mydir_hosts = dir_hosts( &op, buf ); // Directories for parallel execution have unique name based on the old execution time (when restart files were created)
+			fclose( in );
+			printf( "Date & time stamp of the previous run: %s\n", buf );
 		}
 		// Preserve the existing restart zip file
-		sprintf( filename, "%s-restart-%s.zip", root, cd.timedate_infile );
-		if( Ftest( filename ) == 0 )
+		if( Ftest( cd.restart_zip_file ) == 0 )
 		{
-			if( cd.pardebug ) printf( "Previous restart file (%s) existis!\n", filename );
-			if( cd.restart ) sprintf( buf, "cp %s %s-restart-%s_%s.zip >& /dev/null", filename, root, cd.timedate_infile, op.datetime ); // Copy if restart
-			else sprintf( buf, "mv %s %s-restart-%s_%s.zip >& /dev/null", filename, root, cd.timedate_infile, op.datetime ); // Move if no restart
+			if( cd.pardebug ) printf( "Previous restart file (%s) exists!\n", cd.restart_zip_file );
+			if( cd.restart ) sprintf( buf, "cp %s %s-restart-%s_%s.zip >& /dev/null", cd.restart_zip_file, op.root, cd.datetime_infile, op.datetime_stamp ); // Copy if restart
+			else sprintf( buf, "mv %s %s-restart-%s_%s.zip >& /dev/null", cd.restart_zip_file, op.root, cd.datetime_infile, op.datetime_stamp ); // Move if no restart
+			system( buf );
+		}
+		if( cd.restart == 0 )
+		{
+			sprintf( filename, "%s.restart_info", op.root );
+			out = Fwrite( filename );
+			fprintf( in, "%s\n", op.datetime_stamp );
+			for( i = 0; i < argn; i++ )
+				fprintf( in, "%s ", argv[i] );
+			fprintf( in, "\n" );
+			fclose( in );
+			sprintf( buf, "zip %s %s.restart_info >& /dev/null", cd.restart_zip_file, op.root );
 			system( buf );
 		}
 	}
@@ -498,7 +525,7 @@ int main( int argn, char *argv[] )
 		printf( "done.\n" );
 		if( cd.mdebug )
 		{
-			sprintf( filename, "%s.igrnd_set", root );
+			sprintf( filename, "%s.igrnd_set", op.root );
 			out = Fwrite( filename );
 			for( count = 0; count < cd.nreal; count ++ )
 			{
@@ -507,19 +534,19 @@ int main( int argn, char *argv[] )
 				fprintf( out, "\n" );
 			}
 			fclose( out );
-			printf( "Random sampling set saved in %s.igrnd_set\n", root );
+			printf( "Random sampling set saved in %s.igrnd_set\n", op.root );
 		}
 		for( i = 0; i < pd.nParam; i++ )
 			orig_params[i] = pd.var[i]; // Save original initial values for all parameters
 		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) f = optimize_lm; // Define optimization method: LM
 		else f = optimize_pso; // Define optimization method: PSO
 		// File management
-		sprintf( buf, "( mv -f %s.igrnd.zip %s.igrnd_%s.zips; zip -m %s.igrnd.zip %s.igrnd_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root );
+		sprintf( buf, "( mv -f %s.igrnd.zip %s.igrnd_%s.zips; zip -m %s.igrnd.zip %s.igrnd_[0-9]*.* ) >& /dev/null", op.root, op.root, op.datetime_stamp, op.root, op.root );
 		system( buf );
-		sprintf( filename, "%s.igrnd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.igrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
+		sprintf( filename, "%s.igrnd_results", op.root );
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.igrnd_results >& /dev/null", filename, op.root, op.datetime_stamp ); system( buf ); }
 		out = Fwrite( filename );
-		sprintf( filename, "%s.igrnd_opt=%s_eval=%d_real=%d", root, cd.opt_method, cd.maxeval, cd.nreal );
+		sprintf( filename, "%s.igrnd_opt=%s_eval=%d_real=%d", op.root, cd.opt_method, cd.maxeval, cd.nreal );
 		out2 = Fwrite( filename );
 		if( pd.nOptParam == 0 )
 			printf( "WARNING: No parameters to optimize! Forward runs performed instead (ie Monte Carlo analysis)\n" );
@@ -606,7 +633,7 @@ int main( int argn, char *argv[] )
 		fprintf( out2, "eval %d\n", eval_total );
 		fprintf( out, "Number of evaluations = %d\n", eval_total );
 		fclose( out ); fclose( out2 );
-		printf( "Results are saved in %s.igrnd_results and %s.igrnd_opt=%s_eval=%d_real=%d\n", root, root, cd.opt_method, cd.maxeval, cd.nreal );
+		printf( "Results are saved in %s.igrnd_results and %s.igrnd_opt=%s_eval=%d_real=%d\n", op.root, op.root, cd.opt_method, cd.maxeval, cd.nreal );
 		printf( "Repeat the run producing the best results and save them ...\n" );
 		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
 		Transform( opt_params, &op, opt_params );
@@ -631,10 +658,10 @@ int main( int argn, char *argv[] )
 		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) f = optimize_lm; // Define optimization method: LM
 		else f = optimize_pso; // Define optimization method: PSO
 		// File management
-		sprintf( buf, "( mv -f %s.igdp.zip %s.igdp_%s.zip; zip -m %s.igdp.zip %s.igdp_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root );
+		sprintf( buf, "( mv -f %s.igdp.zip %s.igdp_%s.zip; zip -m %s.igdp.zip %s.igdp_[0-9]*.* ) >& /dev/null", op.root, op.root, op.datetime_stamp, op.root, op.root );
 		system( buf );
-		sprintf( filename, "%s.igpd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.igpd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
+		sprintf( filename, "%s.igpd_results", op.root );
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.igpd_results >& /dev/null", filename, op.root, op.datetime_stamp ); system( buf ); }
 		out = Fwrite( filename );
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 )
@@ -719,7 +746,7 @@ int main( int argn, char *argv[] )
 		fprintf( out2, "eval %d\n", eval_total );
 		fprintf( out, "Number of evaluations = %d\n", eval_total );
 		fclose( out ); fclose( out2 );
-		printf( "Results are saved in %s.igpd_results\n", root );
+		printf( "Results are saved in %s.igpd_results\n", op.root );
 		printf( "Repeat the run producing the best results ...\n" );
 		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
 		Transform( opt_params, &op, opt_params );
@@ -743,9 +770,9 @@ int main( int argn, char *argv[] )
 		for( i = 0; i < pd.nParam; i++ ) orig_params[i] = pd.var[i]; // Save original initial values for all parameters
 		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) f = optimize_lm; // Define optimization method: LM
 		else f = optimize_pso; // Define optimization method: PSO
-		sprintf( buf, "( mv -f %s.ppsd.zip %s.ppsd_%s.zip; zip -m %s.ppsd.zip %s.ppsd_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root ); system( buf );
-		sprintf( filename, "%s.ppsd_results", root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.ppsd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
+		sprintf( buf, "( mv -f %s.ppsd.zip %s.ppsd_%s.zip; zip -m %s.ppsd.zip %s.ppsd_[0-9]*.* ) >& /dev/null", op.root, op.root, op.datetime_stamp, op.root, op.root ); system( buf );
+		sprintf( filename, "%s.ppsd_results", op.root );
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.ppsd_results >& /dev/null", filename, op.root, op.datetime_stamp ); system( buf ); }
 		out = Fwrite( filename );
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 ) cd.var[i] = pd.var_min[i];
@@ -810,7 +837,7 @@ int main( int argn, char *argv[] )
 		printf( "Total number of evaluations = %d\n", eval_total );
 		op.s = 0;
 		fclose( out );
-		printf( "Results are saved in %s.ppsd_results\n", root );
+		printf( "Results are saved in %s.ppsd_results\n", op.root );
 	}
 	//
 	// ------------------------ MONTECARLO
@@ -831,7 +858,7 @@ int main( int argn, char *argv[] )
 			printf( "done.\n" );
 			if( cd.mdebug )
 			{
-				sprintf( filename, "%s.mcrnd_set", root );
+				sprintf( filename, "%s.mcrnd_set", op.root );
 				out = Fwrite( filename );
 				for( count = 0; count < cd.nreal; count ++ )
 				{
@@ -840,12 +867,12 @@ int main( int argn, char *argv[] )
 					fprintf( out, "\n" );
 				}
 				fclose( out );
-				printf( "Random sampling set saved in %s.mcrnd_set\n", root );
+				printf( "Random sampling set saved in %s.mcrnd_set\n", op.root );
 			}
-			sprintf( buf, "( mv -f %s.mcrnd.zip %s.mcrnd_%s.zip; zip -m %s.mcrnd.zip %s.mcrnd_[0-9]*.* ) >& /dev/null", root, root, op.datetime, root, root );
+			sprintf( buf, "( mv -f %s.mcrnd.zip %s.mcrnd_%s.zip; zip -m %s.mcrnd.zip %s.mcrnd_[0-9]*.* ) >& /dev/null", op.root, op.root, op.datetime_stamp, op.root, op.root );
 			system( buf );
-			sprintf( filename, "%s.mcrnd_results", root );
-			if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.mcrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
+			sprintf( filename, "%s.mcrnd_results", op.root );
+			if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.mcrnd_results >& /dev/null", filename, op.root, op.datetime_stamp ); system( buf ); }
 			out = Fwrite( filename );
 			cd.compute_phi = 1;
 			status_global = 0;
@@ -980,7 +1007,7 @@ int main( int argn, char *argv[] )
 			fclose( out );
 			op.phi = phi_min;
 			for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i];
-			printf( "Results are saved in %s.mcrnd_results\n", root );
+			printf( "Results are saved in %s.mcrnd_results\n", op.root );
 			printf( "Minimum objective function: %g\n", phi_min );
 			if( status_global == 0 ) printf( "None of the Monte-Carlo runs produced predictions within calibration ranges!\n" );
 			else printf( "Number of Monte-Carlo runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", status_global, cd.nreal, ( double ) status_global / cd.nreal );
@@ -1082,9 +1109,9 @@ int main( int argn, char *argv[] )
 				// Output samples to files
 				if( cd.mdebug )
 				{
-					sprintf( filename, "%s.gsmcrnd_set_a", root );
+					sprintf( filename, "%s.gsmcrnd_set_a", op.root );
 					out = Fwrite( filename );
-					sprintf( filename, "%s.gsmcrnd_set_b", root );
+					sprintf( filename, "%s.gsmcrnd_set_b", op.root );
 					out2 = Fwrite( filename );
 					for( count = 0; count < n_sub; count ++ )
 					{
@@ -1098,13 +1125,13 @@ int main( int argn, char *argv[] )
 					}
 					fclose( out );
 					fclose( out2 );
-					printf( "Random sampling sets a and b saved in %s.mcrnd_set_a and %s.mcrnd_set_b\n", root, root );
+					printf( "Random sampling sets a and b saved in %s.mcrnd_set_a and %s.mcrnd_set_b\n", op.root, op.root );
 				}
 				// Copy existing mcrnd.zip to new file if it exists
-				sprintf( buf, "( mv -f %s.gsmcrnd.zip %s.gsmcrnd_%s.zip; zip -m %s.gsmcrnd.zip %s.gsmcrnd_set_* ) >& /dev/null", root, root, op.datetime, root, root ); system( buf );
+				sprintf( buf, "( mv -f %s.gsmcrnd.zip %s.gsmcrnd_%s.zip; zip -m %s.gsmcrnd.zip %s.gsmcrnd_set_* ) >& /dev/null", op.root, op.root, op.datetime_stamp, op.root, op.root ); system( buf );
 				// If gsmcrnd_results file exists, copy to new file
-				sprintf( filename, "%s.gsmcrnd_results", root );
-				if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.gsmcrnd_results >& /dev/null", filename, root, op.datetime ); system( buf ); }
+				sprintf( filename, "%s.gsmcrnd_results", op.root );
+				if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s_%s.gsmcrnd_results >& /dev/null", filename, op.root, op.datetime_stamp ); system( buf ); }
 				out = Fwrite( filename );
 				// Accumulate phis into fhat and fhat2 for total output mean and variance
 				fhat = fhat2 = 0;
@@ -1161,7 +1188,7 @@ int main( int argn, char *argv[] )
 					fflush( out );
 				}
 				fclose( out );
-				printf( "Global Sensitivity MC results are saved in %s.gsmcrnd_results\n", root );
+				printf( "Global Sensitivity MC results are saved in %s.gsmcrnd_results\n", op.root );
 				// Calculate total output mean and variance based on sample a
 				gs.f_hat_0 = fhat / ( 2 * n_sub );
 				gs.D_hat_t = fhat2 / ( 2 * n_sub ) - gs.f_hat_0;
@@ -1294,7 +1321,7 @@ int main( int argn, char *argv[] )
 		status = f( &op ); // Optimize
 		if( status == 0 )
 			{ printf( "ERROR: Optimization did not start! Optimization method mismatch!\n" ); sprintf( buf, "rm %s.running", op.root ); system( buf ); exit( 1 ); }
-		sprintf( filename, "%s-rerun.mads", root );
+		sprintf( filename, "%s-rerun.mads", op.root );
 		save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
 		printf( "\n" );
 		print_results( &op );
@@ -1302,7 +1329,7 @@ int main( int argn, char *argv[] )
 		if( od.nObs < od.nTObs )
 		{
 			predict = 1; // Produce outputs for predictions that are not calibration targets (see below PREDICT)
-			sprintf( filename, "%s.results", root );
+			sprintf( filename, "%s.results", op.root );
 			out = Fappend( filename ); // Reopen results file
 			printf( "\nModel predictions that are not calibration targets:\n" );
 			fprintf( out, "\nModel predictions that are not calibration targets:\n" );
@@ -1329,14 +1356,14 @@ int main( int argn, char *argv[] )
 //
 	if( cd.problem_type == FORWARD ) // Forward run
 	{
-		sprintf( filename, "%s.results", root );
+		sprintf( filename, "%s.results", op.root );
 		out = Fwrite( filename );
 		fprintf( out, "Model parameter values:\n" );
 		for( i = 0; i < pd.nParam; i++ )
 			fprintf( out, "%s %g\n", pd.var_id[i], pd.var[i] );
 		printf( "\nModel predictions (forward run; no calibration):\n" );
 		fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
-		sprintf( filename, "%s.forward", root );
+		sprintf( filename, "%s.forward", op.root );
 		out2 = Fwrite( filename );
 	}
 //
@@ -1413,7 +1440,7 @@ int main( int argn, char *argv[] )
 		if( gd.min_t > 0 && cd.solution_type != TEST )
 		{
 			printf( "\nCompute breakthrough curves at all the wells ...\n" );
-			sprintf( filename, "%s.btc2", root );
+			sprintf( filename, "%s.btc2", op.root );
 			compute_btc2( filename, &op, &gd );
 //			sprintf( filename, "%s.btc", root );
 //			compute_btc( filename, &op, &gd );
@@ -1421,10 +1448,10 @@ int main( int argn, char *argv[] )
 		if( gd.time > 0 && cd.solution_type != TEST )
 		{
 			printf( "\nCompute spatial distribution of predictions at t = %g ...\n", gd.time );
-			sprintf( filename, "%s.vtk", root );
+			sprintf( filename, "%s.vtk", op.root );
 			compute_grid( filename, &cd, &gd );
 		}
-		sprintf( filename, "%s.phi", root );
+		sprintf( filename, "%s.phi", op.root );
 		out2 = Fwrite( filename );
 		fprintf( out2, "%g\n", op.phi ); // Write phi in a separate file
 		fclose( out2 );
@@ -1432,9 +1459,9 @@ int main( int argn, char *argv[] )
 	if( cd.problem_type == CREATE ) /* Create a file with calibration targets equal to the model predictions */
 	{
 		cd.problem_type = CALIBRATE;
-		sprintf( filename, "%s-truth.mads", root );
+		sprintf( filename, "%s-truth.mads", op.root );
 		save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
-		printf( "\nMADS problem file named %s-truth.mads is created; modify the file if needed\n\n", root );
+		printf( "\nMADS problem file named %s-truth.mads is created; modify the file if needed\n\n", op.root );
 	}
 	free( orig_params );
 	// Finalize the run
@@ -1458,7 +1485,7 @@ int main( int argn, char *argv[] )
 	printf( "Execution  started  on %s", asctime( ptr_ts ) );
 	ptr_ts = gmtime( &t2 );
 	printf( "Execution completed on %s", asctime( ptr_ts ) );
-	printf( "Execution date & time stamp: %s\n", op.datetime );
+	printf( "Execution date & time stamp: %s\n", op.datetime_stamp );
 	sprintf( buf, "rm %s.running", op.root ); system( buf );
 	exit( 1 );
 }
@@ -2193,7 +2220,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	else fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->eval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed );
-	fprintf( out, "Execution date & time stamp: %s\n", op->datetime );
+	fprintf( out, "Execution date & time stamp: %s\n", op->datetime_stamp );
 	fclose( out ); fclose( out2 );
 	if( gd->min_t > 0 )
 	{

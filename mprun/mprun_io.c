@@ -5,12 +5,12 @@
 
 int Ftest( char *filename );
 
-char *dir_hosts( void *data )
+char *dir_hosts( void *data, char *timedate_stamp )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char *dir;
-	dir = ( char * ) malloc(( strlen( p->cd->mydir ) + strlen( p->root ) + 3 ) * sizeof( char ) );
-	sprintf( dir, "%s_%s", p->cd->mydir, p->root );
+	dir = ( char * ) malloc(( strlen( p->cd->mydir ) + strlen( p->root ) + strlen( timedate_stamp ) + 2 ) * sizeof( char ) );
+	sprintf( dir, "%s_%s_%s", p->cd->mydir, p->root, timedate_stamp );
 	return( dir );
 }
 

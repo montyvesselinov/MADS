@@ -218,7 +218,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
 			exit( -1 );
 	}
-	sprintf( buf, "zip -u %s-restart-%s.zip ", p->root, p->cd->timedate_infile ); // Archive input files
+	sprintf( buf, "zip -u %s ", p->cd->restart_zip_file ); // Archive input files
 	for( i = 0; i < p->ed->ntpl; i++ )
 		sprintf( &buf[( int ) strlen( buf )], "../%s/%s", dir, p->ed->fn_out[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
@@ -327,7 +327,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 	}
 	if( bad_data ) return( bad_data );
-	sprintf( buf, "zip -u %s-restart-%s.zip ", p->root, p->cd->timedate_infile ); // Archive output files
+	sprintf( buf, "zip -u %s ", p->cd->restart_zip_file ); // Archive output files
 	for( i = 0; i < p->ed->nins; i++ )
 		sprintf( &buf[strlen( buf )], "../%s/%s", dir, p->ed->fn_obs[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );

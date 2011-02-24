@@ -38,7 +38,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->opt_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->opt_method[0] = 0;
 	cd->smp_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->smp_method[0] = 0;
 	cd->paran_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->paran_method[0] = 0;
-	cd->infile = ( char * ) malloc( 50 * sizeof( char ) ); cd->infile[0] = 0;
+	cd->infile = ( char * ) malloc( 255 * sizeof( char ) ); cd->infile[0] = 0;
+	cd->restart_zip_file = ( char * ) malloc( 255 * sizeof( char ) ); cd->restart_zip_file[0] = 0;
 	strcpy( cd->opt_method, "lm" );
 	cd->problem_type = UNKNOWN;
 	cd->calib_type = SIMPLE;
@@ -114,6 +115,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); }
 		if( strcasestr( word, "np" ) ) { w = 1; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
+		if( strcasestr( word, "zipfile=" ) ) { w = 1; sscanf( word, "zipfile=%s", cd->restart_zip_file ); cd->restart = -1; }
 		if( strncasecmp( word, "debug", 5 ) == 0 ) { w = 1; if( sscanf( word, "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
 		if( strcasestr( word, "fdebug" ) ) { w = 1; sscanf( word, "fdebug=%d", &cd->fdebug ); if( cd->fdebug == 0 ) cd->fdebug = 1; }
 		if( strcasestr( word, "ldebug" ) ) { w = 1; sscanf( word, "ldebug=%d", &cd->ldebug ); if( cd->ldebug == 0 ) cd->ldebug = 1; }
