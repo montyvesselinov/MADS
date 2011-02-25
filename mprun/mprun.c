@@ -37,7 +37,7 @@ int mprun( int nJob, void *data )
 	ieval = p->cd->eval; // Current number of model evaluations
 	kidhost = p->cd->paral_hosts; // List of processors/hosts
 	if( nJob > 1 ) printf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
-	if( p->cd->pardebug && nJob > 1 ) printf( "\n" );
+	if( !p->cd->pardebug && nJob > 1 ) printf( "\n" );
 	skip_job = ( int * ) malloc( nJob * sizeof( int ) );
 	if( p->cd->restart ) // Check for already computed jobs (smart restart)
 	{
