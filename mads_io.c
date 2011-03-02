@@ -115,7 +115,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); }
 		if( strcasestr( word, "np" ) ) { w = 1; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
-		if( strcasestr( word, "zipfile=" ) ) { w = 1; sscanf( word, "zipfile=%s", cd->restart_zip_file ); cd->restart = -1; }
+		if( strcasestr( word, "rstfile=" ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_zip_file ); cd->restart = -1; }
 		if( strncasecmp( word, "debug", 5 ) == 0 ) { w = 1; if( sscanf( word, "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
 		if( strcasestr( word, "fdebug" ) ) { w = 1; sscanf( word, "fdebug=%d", &cd->fdebug ); if( cd->fdebug == 0 ) cd->fdebug = 1; }
 		if( strcasestr( word, "ldebug" ) ) { w = 1; sscanf( word, "ldebug=%d", &cd->ldebug ); if( cd->ldebug == 0 ) cd->ldebug = 1; }
@@ -134,7 +134,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type = POINT; }
 		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
 		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type = BOX; }
-		if( w == 0 ) { printf( "\nERROR: Unknown keyword \"%s\"!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); exit( 0 ); }
+		if( w == 0 ) { printf( "\nERROR: Unknown keyword \"%s\"!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); return( -1 ); }
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
@@ -221,7 +221,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		cd->sintrans = 0; printf( "\nsine tranformation disabled for ABAGUS runs" );
 	}
 	if( cd->problem_type == ABAGUS && cd->infile[0] != 0 ) { printf( "\nResults in %s to be read into kdtree\n", cd->infile );}
-	if( cd->problem_type == POSTPUA && cd->infile[0] == 0 ) { printf( "\nInfile must be specified for postpua run\n" ); exit( 0 ); }
+	if( cd->problem_type == POSTPUA && cd->infile[0] == 0 ) { printf( "\nInfile must be specified for postpua run\n" ); return( -1 ); }
 	if( cd->smp_method[0] != 0 )
 	{
 		printf( "\nSampling method: " );
@@ -286,7 +286,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 	}
 	// Add commands provided as arguments
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-	parse_cmd( buf, cd );
+	if( parse_cmd( buf, cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 	// Read Solution Type
 	cd->solution_id = ( char * ) malloc( 50 * sizeof( char ) ); ( *cd ).solution_id[0] = 0;
 	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fscanf( infile, "%s\n", ( *cd ).solution_id ); sscanf(( *cd ).solution_id, "%d",  &( *cd ).solution_type ); }
@@ -380,10 +380,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 			pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
 		}
 	}
-	if( bad_data ) exit( 1 );
+	if( bad_data ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 	if(( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD && ( *pd ).nFlgParam == 0 )
 	{
-		printf( "WARNING:\nPartial parameter-space discretization (PPSD) is selected.\nHowever no parameters are flagged!\n.Single calibration will be performed using the initial guesses provided in the input file!" );
+		printf( "WARNING: Partial parameter-space discretization (PPSD) is selected.\nHowever no parameters are flagged!\nSingle calibration will be performed using the initial guesses provided in the input file!\n" );
 		( *cd ).calib_type = SIMPLE;
 	}
 	pd->var_index = ( int * ) malloc(( *pd ).nOptParam * sizeof( int ) );
@@ -464,6 +464,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 		if( sscanf( ed->cmdline, "%i", &i ) == -1 )
 		{
 			printf( "ERROR: Execution command is not valid!\n" );
+			sprintf( buf, "rm -f %s.running", op->root ); system( buf );
 			exit( 1 );
 		}
 		strcpy( buf, ed->cmdline );

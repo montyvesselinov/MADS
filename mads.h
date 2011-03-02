@@ -161,6 +161,7 @@ struct opt_data
 	int success;
 	int s;
 	char *root;
+	char *label;
 	char *datetime_stamp;
 	FILE *f_ofe;
 	struct param_data *pd;
