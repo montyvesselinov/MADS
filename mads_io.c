@@ -134,7 +134,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type = POINT; }
 		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
 		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type = BOX; }
-		if( w == 0 ) { printf( "\nERROR: Unknown keyword \"%s\"!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); return( -1 ); }
+		if( w == 0 ) { printf( "\nERROR: Unknown keyword \'%s\'!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); return( -1 ); }
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
@@ -284,6 +284,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fscanf( infile, "%[^\n]s\n", buf ); fscanf( infile, "\n" );
 		if( sscanf( buf, "%i", &( *pd ).nParam ) == 1 ) { buf[0] = 0; skip = 1; }
 	}
+	else buf[0] = 0;
 	// Add commands provided as arguments
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
 	if( parse_cmd( buf, cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
