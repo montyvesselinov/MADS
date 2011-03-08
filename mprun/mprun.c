@@ -4,6 +4,7 @@
 #include <stdio.h>      /* header for fprintf() */
 #include <unistd.h>     /* header for fork() */
 #include <strings.h>    /* header for strcpy() */
+#include <string.h>     /* header for strcpy() */
 #include <stdlib.h>     /* header for exit() and malloc() */
 #include <time.h>       /* header for time() and ctime() */
 
@@ -36,8 +37,12 @@ int mprun( int nJob, void *data )
 	exec_name = p->ed->cmdline; // Executable / Execution command line
 	ieval = p->cd->eval; // Current number of model evaluations
 	kidhost = p->cd->paral_hosts; // List of processors/hosts
-	if( nJob > 1 ) printf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
-	if( !p->cd->pardebug && nJob > 1 ) printf( "\n" );
+	if( nJob > 1 )
+	{
+		printf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
+		if( p->cd->pardebug ) printf( "\n" );
+	}
+	else if( p->cd->pardebug ) printf( "Parallel execution of 1 job ...\n" );
 	skip_job = ( int * ) malloc( nJob * sizeof( int ) );
 	if( p->cd->restart ) // Check for already computed jobs (smart restart)
 	{
@@ -239,7 +244,7 @@ int mprun( int nJob, void *data )
 				if( cJob >= nJob ) done = 1;
 			}
 		}
-		if( p->cd->pardebug > 1 ) printf( " : %s in %s\n", exec_name, dir );
+		if( p->cd->pardebug > 1 ) printf( " : \'%s\' in \'%s\'\n", exec_name, dir );
 		else if( p->cd->pardebug ) { if( nJob > 1 ) printf( " ...\n" ); else printf( " ... " ); }
 		if( refork )
 		{
@@ -249,7 +254,7 @@ int mprun( int nJob, void *data )
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
-				if( p->cd->pardebug > 3 ) printf( "Forked Process %i [%s:%d] : %s in %s\n", child1, kidhost[child], pid, exec_name, dir );
+				if( p->cd->pardebug > 3 ) printf( "Forked Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], pid, exec_name, dir );
 				if( type ) execlp( "bpsh", "bpsh", kidhost[child], "/bin/tcsh", "-f", "-c", buf, ( char * ) 0 );
 				else       execlp( "/bin/tcsh", "-f", "-c", buf, ( char * ) 0 );
 				exit( 7 );
@@ -269,7 +274,7 @@ int mprun( int nJob, void *data )
 		else if( refresh )
 		{
 			strcpy( kiddir[child], dir );
-			printf( "Refreshed Process %i [%s:%d] : %s in %s\n", child1, kidhost[child], kidids[child], exec_name, kiddir[child] );
+			printf( "Refreshed Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], kidids[child], exec_name, kiddir[child] );
 			sleep( 1 );
 			kill( kidids[child] * -1, SIGCONT );
 		}

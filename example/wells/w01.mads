@@ -4956,7 +4956,7 @@ o4949 10.0650614 0
 o4950 10.06270804 0
 o4951 10.0699632 0
 Execution command: ~/wellscode/wells w01 >& /dev/null
-Templete files to create model input files: 1
+Template files to create model input files: 1
 w01.tpl w01.wells
 Instruction files to read model outpus files: 1
 w01.inst w01.s_point

@@ -1,0 +1,9 @@
+To compile, execute 'make'
+
+GSL, LAPACK and BLAS libraries are expected
+
+	GSL:    ftp://ftp.gnu.org/gnu/gsl/
+	LAPACK: http://www.netlib.org/lapack/
+	BLAS:   http://www.netlib.org/blas/
+
+To execute, run 'mads'

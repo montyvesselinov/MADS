@@ -458,7 +458,8 @@ int main( int argn, char *argv[] )
 				if( dt >= 0 ) { if( cd.pardebug ) printf( "No restart: the zip file (%s) with restart information is older than the MADS input file (%s)\n(restart can be enforced using \'restart=-1\' or \'rstfile=%s\')\n", cd.restart_zip_file, buf, cd.restart_zip_file ); cd.restart = 0; } // No restart
 				else cd.restart = 1; // Attempt restart
 			}
-			printf( "DEFAULT Restart: zip file %s is consistent with date/time stamp of the MADS input file\n(to ignore the zip file, either delete the zip file, or use keyword \'restart=0\' ... \n", filename );
+			if( cd.restart )
+				printf( "DEFAULT Restart: zip file %s is consistent with date/time stamp of the MADS input file\n(to ignore the zip file, either delete the zip file, or use keyword \'restart=0\' ... \n", filename );
 		}
 		else if( cd.restart == -1 ) // Forced restart
 		{
@@ -495,11 +496,11 @@ int main( int argn, char *argv[] )
 		{
 			sprintf( filename, "%s.restart_info", op.root );
 			out = Fwrite( filename );
-			fprintf( in, "%s\n", op.datetime_stamp );
+			fprintf( out, "%s\n", op.datetime_stamp );
 			for( i = 0; i < argn; i++ )
-				fprintf( in, "%s ", argv[i] );
-			fprintf( in, "\n" );
-			fclose( in );
+				fprintf( out, "%s ", argv[i] );
+			fprintf( out, "\n" );
+			fclose( out );
 			sprintf( buf, "zip %s %s.restart_info >& /dev/null", cd.restart_zip_file, op.root );
 			system( buf );
 		}
