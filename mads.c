@@ -236,7 +236,7 @@ int main( int argn, char *argv[] )
 		printf( "   tpldebug=[0-3]     - Debug the writing of external files [default tpldebug=0]\n" );
 		printf( "   insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]\n" );
 		printf( "   pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]\n" );
-		printf( "\nExamples: (code WELLS can be obtained at www.ees.lanl.gov/staff/monty/codes/wells)\n" );
+		printf( "\nExamples:\n" );
 		printf( "   mads a01 test=3 opt=pso igrnd real=1 (no input files are needed for execution)\n" );
 		printf( "   mads example/contamination/s01 ldebug (file s01.mads is located in example/contamination)\n" );
 		printf( "   mads example/contamination/s02 ldebug (file s02.mads is located in example/contamination)\n" );
@@ -245,12 +245,14 @@ int main( int argn, char *argv[] )
 		printf( "   mads example/contamination/s01 opt=squads seed=1549170842 eigen success pdebug igrnd real=1\n" );
 		printf( "   mads example/contamination/s01 opt=pso seed=1549170842 eigen success igrnd real=1\n" );
 		printf( "   mads w01 np=2 ldebug pardebug=2 (files associated with problem w01 are located in example/wells)\n" );
+		printf( "             (for w01 example, code WELLS can be obtained at www.ees.lanl.gov/staff/monty/codes/wells)\n" );
 		printf( "\nComparisons (code PEST can be obtained at http://www.sspa.com/pest/):\n" );
 		printf( "   mads s02 ldebug (file s02.mads is located in example/contamination)\n" );
 		printf( "   pest s02pest (file s02pest.pst is located in example/contamination)\n" );
 		printf( "   mads w01 ldebug (files associated with problem w01 are located in example/wells)\n" );
 		printf( "   pest w01pest (files associated with problem w01pest are located in example/wells)\n" );
 		printf( "   pest w02pest (files associated with problem w02pest are located in example/wells)\n" );
+		printf( "             (for w01 comparison, code WELLS can be obtained at www.ees.lanl.gov/staff/monty/codes/wells)\n" );
 		printf( "\nFor additional information:\n" );
 		printf( "   web:   www.ees.lanl.gov/staff/monty/codes/mads\n" );
 		printf( "   email: Velimir Vesselinov (monty) <vvv@lanl.gov>\n" );

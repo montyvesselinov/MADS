@@ -1,6 +1,7 @@
 syntax: glob
+# MADS files
 mads
-*.*results*
+*.results
 *-rerun.mads
 *-error.mads
 *-truth.mads
@@ -28,6 +29,7 @@ mads
 *.running
 *.s_point
 *.s_well
+# Genereal files
 *.vtk
 *.btc
 *.dat
@@ -54,8 +56,12 @@ mads
 *.so
 *.orig
 *.zip
+*out
+*output
+# MAC files
 ._*
 .DS*
+# PEST files
 *.cnd
 *.drf
 *.jac
@@ -68,5 +74,3 @@ mads
 *.rst
 *.sen
 *.seo
-*out
-*output

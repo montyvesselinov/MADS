@@ -1,0 +1,43 @@
+Optimized parameter values:
+Source x coordinate [L] 1121.04
+Source y coordinate [L] 1398.21
+Source x dimension [L] 267.702
+Source y dimension [L] 267.937
+Contaminant flux [M/T] 15.4846
+Start Time [T] 1.77978e-06
+Flow Angle [degrees] 2.3824
+Pore x velocity [L/T] 5.18098
+Dispersivity x [L] 65.256
+Dispersivity y [L] 15.4471
+Dispersivity z [L] 0.28907
+
+Optimized calibration targets:
+W-1       (   49):           0 -  0.000363101 = -0.000363101 (-0.000363101) success 1 range            0 -           25
+W-2       (   49):           0 -  0.000752886 = -0.000752886 (-0.000752886) success 1 range            0 -           10
+W-3       (   49):           0 -  5.42913e-07 = -5.42913e-07 (-5.42913e-07) success 1 range            0 -           25
+W-4       (   44):         350 -      349.999 =    0.0014176 (   0.0014176) success 1 range          300 -          700
+W-4       (   49):         432 -      432.003 =  -0.00333014 ( -0.00333014) success 1 range          300 -          700
+W-5       (   49):           0 -  2.13234e-24 = -2.13234e-24 (-2.13234e-24) success 1 range            0 -           10
+W-6       (   49):           0 -  2.47304e-25 = -2.47304e-25 (-2.47304e-25) success 1 range            0 -           10
+W-7       (   49):           0 -   1.3866e-17 =  -1.3866e-17 ( -1.3866e-17) success 1 range            0 -           10
+W-8       (   49):           0 -  1.70908e-19 = -1.70908e-19 (-1.70908e-19) success 1 range            0 -           10
+W-9       (   49):         981 -      980.996 =   0.00396094 (  0.00396094) success 1 range          600 -         1200
+W-10#1    (   49):         1.1 -      1.10671 =  -0.00670684 ( -0.00670684) success 1 range            0 -            5
+W-10#2    (   49):         0.1 -    0.0938668 =   0.00613324 (  0.00613324) success 1 range            0 -            5
+W-11#1    (   49):          22 -      21.9996 =  0.000441897 ( 0.000441897) success 1 range            3 -           25
+W-11#2    (   49):         0.3 -      0.34094 =   -0.0409401 (  -0.0409401) success 1 range            0 -            5
+W-12#1    (   49):          15 -      14.9998 =  0.000199591 ( 0.000199591) success 1 range            3 -           25
+W-12#2    (   49):        0.17 -      0.17091 = -0.000909589 (-0.000909589) success 1 range            0 -            5
+W-13#1    (   50):          72 -      71.9998 =  0.000163165 ( 0.000163165) success 1 range           40 -          100
+W-13#2    (   50):        0.26 -     0.257098 =   0.00290185 (  0.00290185) success 1 range            0 -           20
+W-14a     (   50):           0 -  0.000234951 = -0.000234951 (-0.000234951) success 1 range            0 -            5
+W-14b     (   50):          30 -      29.9999 =  0.000102323 ( 0.000102323) success 1 range            0 -           50
+W-14c     (   50):          10 -      29.9999 =  0.000102323 (           0) success 0 range            0 -           20
+Objective function: 0.00179776 Success: 1 
+All the predictions are within calibration ranges!
+Number of function evaluations = 62
+
+Model predictions that are not calibration targets:
+W-14c     (   50):          10 -      164.655 =     -154.655 (          -0) success 0
+Objective function = 23918.3 Success: 0
+At least one of the predictions is outside acceptable ranges!

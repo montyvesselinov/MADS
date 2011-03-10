@@ -1,12 +1,13 @@
 #!/bin/tcsh
-diff $1 $2 > $1-$$
+diff $1 $2 > $1_$$
 set a = $?
 if( $a != 0 ) then
 	echo Verification failed!
-	cat $1-$$
-	\rm -f $1-$$
+	cat $1_$$
+	\rm -f $1_$$
 	exit 1
 else
 	echo Verification is successful!
+	\rm -f $1_$$
 	exit 0
 endif
