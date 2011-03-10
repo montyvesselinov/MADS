@@ -47,9 +47,18 @@ levmar-2.5/lmbleic.o: levmar-2.5/lmbleic.c levmar-2.5/lmbleic_core.c levmar-2.5/
 clean:
 	rm -f $(PROG) $(OBJSMADS) $(OBJSLEVMAR) $(OBJSKDTREE)
 
+verify:
+	@echo "Test problem example/contamination/s01 ..."
+	mads example/contamination/s01 > /dev/null
+	@compare-results example/contamination/s01.results example/contamination/s01.results-correct
+	@echo "Test problem example/wells/w01 ..."
+	cd example/wells; mads w01 > /dev/null
+	@compare-results example/wells/w01.results example/wells/w01.results-correct
+
 astyle:
 	astyle $(SOURCE)
 	rm -f $(SOURCE:%c=%c.orig)
+
 tar:
 	tar -cvzf mads.tgz `hg st -c -m | awk '{print $$2}'` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'` .hg
 

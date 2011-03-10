@@ -1,0 +1,12 @@
+#!/bin/tcsh
+diff $1 $2 > $1-$$
+set a = $?
+if( $a != 0 ) then
+	echo Verification failed!
+	cat $1-$$
+	\rm -f $1-$$
+	exit 1
+else
+	echo Verification is successful!
+	exit 0
+endif

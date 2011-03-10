@@ -236,16 +236,23 @@ int main( int argn, char *argv[] )
 		printf( "   tpldebug=[0-3]     - Debug the writing of external files [default tpldebug=0]\n" );
 		printf( "   insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]\n" );
 		printf( "   pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]\n" );
-		printf( "\nExamples:\n" );
+		printf( "\nExamples: (code WELLS can be obtained at www.ees.lanl.gov/staff/monty/codes/wells)\n" );
 		printf( "   mads a01 test=3 opt=pso igrnd real=1 (no input files are needed for execution)\n" );
-		printf( "   mads example/s01 ldebug (example/s01.mads is located in directory example)\n" );
-		printf( "   mads example/s01 ldebug igrnd real=1 (example/s01.mads is located in directory example)\n" );
-		printf( "   mads example/s01 seed=1549170842 success igrnd real=1 (example/s01.mads is located in directory example)\n" );
-		printf( "   mads example/s01 opt=squads seed=1549170842 eigen success pdebug igrnd real=1 (example/s01.mads is located in directory example)\n" );
-		printf( "   mads example/s01 opt=pso seed=1549170842 eigen success igrnd real=1 (example/s01.mads is located in directory example)\n" );
-		printf( "   mads w01 np=2 ldebug pardebug=2 (files associated with problem w01 are located in directory example/wells)\n" );
+		printf( "   mads example/contamination/s01 ldebug (file s01.mads is located in example/contamination)\n" );
+		printf( "   mads example/contamination/s02 ldebug (file s02.mads is located in example/contamination)\n" );
+		printf( "   mads example/contamination/s01 ldebug igrnd real=1\n" );
+		printf( "   mads example/contamination/s01 seed=1549170842 success igrnd real=1\n" );
+		printf( "   mads example/contamination/s01 opt=squads seed=1549170842 eigen success pdebug igrnd real=1\n" );
+		printf( "   mads example/contamination/s01 opt=pso seed=1549170842 eigen success igrnd real=1\n" );
+		printf( "   mads w01 np=2 ldebug pardebug=2 (files associated with problem w01 are located in example/wells)\n" );
+		printf( "\nComparisons (code PEST can be obtained at http://www.sspa.com/pest/):\n" );
+		printf( "   mads s02 ldebug (file s02.mads is located in example/contamination)\n" );
+		printf( "   pest s02pest (file s02pest.pst is located in example/contamination)\n" );
+		printf( "   mads w01 ldebug (files associated with problem w01 are located in example/wells)\n" );
+		printf( "   pest w01pest (files associated with problem w01pest are located in example/wells)\n" );
+		printf( "   pest w02pest (files associated with problem w02pest are located in example/wells)\n" );
 		printf( "\nFor additional information:\n" );
-		printf( "   web:   www.ees.lanl.gov/staff/monty/mads.html\n" );
+		printf( "   web:   www.ees.lanl.gov/staff/monty/codes/mads\n" );
 		printf( "   email: Velimir Vesselinov (monty) <vvv@lanl.gov>\n" );
 		exit( 1 );
 	}
@@ -1511,7 +1518,7 @@ int main( int argn, char *argv[] )
 	printf( "Execution completed on %s", asctime( ptr_ts ) );
 	printf( "Execution date & time stamp: %s\n", op.datetime_stamp );
 	sprintf( buf, "rm -f %s.running", op.root ); system( buf );
-	exit( 1 );
+	exit( 0 );
 }
 
 int optimize_pso( struct opt_data *op )
@@ -2256,7 +2263,6 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	else fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->eval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed );
-	fprintf( out, "Execution date & time stamp: %s\n", op->datetime_stamp );
 	fclose( out ); fclose( out2 );
 	if( gd->min_t > 0 )
 	{

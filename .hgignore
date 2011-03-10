@@ -4,6 +4,7 @@ mads
 *-rerun.mads
 *-error.mads
 *-truth.mads
+*.mads-input
 *.*-restart-*
 *.restart_info
 *.eigen*
@@ -24,6 +25,7 @@ mads
 *.runs
 *.phi
 *debug*
+*.running
 *.s_point
 *.s_well
 *.vtk
@@ -54,3 +56,17 @@ mads
 *.zip
 ._*
 .DS*
+*.cnd
+*.drf
+*.jac
+*.jco
+*.jst
+*.mtt
+*.rec
+*.rei
+*.res
+*.rst
+*.sen
+*.seo
+*out
+*output
