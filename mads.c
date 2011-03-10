@@ -1354,8 +1354,8 @@ int main( int argn, char *argv[] )
 		if( status == 0 )
 			{ printf( "ERROR: Optimization did not start! Optimization method mismatch!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
 		sprintf( filename, "%s-rerun.mads", op.root );
-		save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
-		printf( "\n" );
+		if( cd.solution_type != TEST) save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
+		if( cd.debug == 0 ) printf( "\n" );
 		print_results( &op );
 		save_results( "", &op, &gd );
 		if( od.nObs < od.nTObs )
@@ -1541,7 +1541,7 @@ int optimize_pso( struct opt_data *op )
 		printf( "\n------------------------- Optimization Results:\n" );
 		print_results( op );
 	}
-	if( op->cd->leigen ) eigen( op, NULL, NULL ); // Execute eigen analysis of the final results
+	if( op->cd->leigen && op->cd->solution_type != TEST ) eigen( op, NULL, NULL ); // Execute eigen analysis of the final results
 	return( 1 );
 }
 
@@ -2184,7 +2184,7 @@ void print_results( struct opt_data *op )
 				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], status, op->od->obs_min[i], op->od->obs_max[i] );
 			if( op->od->nObs > 50 && i == 21 ) printf( "...\n" );
 		}
-	else
+	else if( op->cd->solution_type != TEST )
 	{
 		for( k = 0, i = 0; i < op->wd->nW; i++ )
 			for( j = 0; j < op->wd->nWellObs[i]; j++ )
@@ -2199,8 +2199,11 @@ void print_results( struct opt_data *op )
 	}
 	op->success = status_all;
 	printf( "Objective function: %g Success: %d \n", op->phi, op->success );
-	if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
-	else printf( "At least one of the predictions is outside calibration ranges!\n" );
+	if( op->cd->solution_type != TEST )
+	{
+		if( status_all ) printf( "All the predictions are within calibration ranges!\n" );
+		else printf( "At least one of the predictions is outside calibration ranges!\n" );
+	}
 	printf( "Number of function evaluations = %d\n", op->cd->eval );
 }
 
@@ -2217,9 +2220,12 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	strcpy( f, filename );
 	strcat( filename, ".results" );
 	out = Fwrite( filename );
-	strcpy( filename, f );
-	strcat( filename, ".residuals" );
-	out2 = Fwrite( filename );
+	if( op->cd->solution_type != TEST )
+	{
+		strcpy( filename, f );
+		strcat( filename, ".residuals" );
+		out2 = Fwrite( filename );
+	}
 	fprintf( out, "Optimized parameter values:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
@@ -2242,7 +2248,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 			fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], status, op->od->obs_min[i], op->od->obs_max[i] );
 			fprintf( out2, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], status, op->od->obs_min[i], op->od->obs_max[i] );
 		}
-	else
+	else if( op->cd->solution_type != TEST )
 	{
 		for( k = 0, i = 0; i < op->wd->nW; i++ )
 			for( j = 0; j < op->wd->nWellObs[i]; j++ )
@@ -2261,12 +2267,16 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	}
 	op->success = status_all;
 	fprintf( out, "Objective function: %g Success: %d \n", op->phi, op->success );
-	if( status_all ) fprintf( out, "All the predictions are within calibration ranges!\n" );
-	else fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
+	if( op->cd->solution_type != TEST )
+	{
+		if( status_all ) fprintf( out, "All the predictions are within calibration ranges!\n" );
+		else fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
+		fclose( out2 );
+	}
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->eval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed );
-	fclose( out ); fclose( out2 );
-	if( gd->min_t > 0 )
+	fclose( out );
+	if( gd->min_t > 0 && op->cd->solution_type != TEST )
 	{
 		printf( "\nCompute breakthrough curves at all the wells ..." );
 		fflush( stdout );
@@ -2274,7 +2284,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		compute_btc2( filename, op, gd );
 		printf( "done.\n" );
 	}
-	if( gd->time > 0 )
+	if( gd->time > 0 && op->cd->solution_type != TEST )
 	{
 		printf( "\nCompute spatial distribution of predictions at t = %g ...", gd->time );
 		fflush( stdout );
