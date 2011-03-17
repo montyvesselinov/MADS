@@ -47,6 +47,15 @@ levmar-2.5/lmbleic.o: levmar-2.5/lmbleic.c levmar-2.5/lmbleic_core.c levmar-2.5/
 clean:
 	rm -f $(PROG) $(OBJSMADS) $(OBJSLEVMAR) $(OBJSKDTREE)
 
+
+examples:
+	@echo "Example problem rosenbrock ... "
+	cd example/rosenbrock; mads a01 test=3 opt=pso igrnd real=1
+	@echo "Example problem example/contamination/s01 ..."
+	mads example/contamination/s01 ldebug
+	@echo "Example problem example/wells/w01 ..."
+	cd example/wells; mads w01 ldebug
+
 verify:
 	@echo "Test problem rosenbrock ... "
 	cd example/rosenbrock; mads a01 test=3 opt=pso igrnd real=1 seed=1977879092 > /dev/null
