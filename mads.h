@@ -1,7 +1,7 @@
 #include <gsl/gsl_vector.h>
 #include <stdio.h>
 
-enum PROBLEM_TYPE {UNKNOWN = -2, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, POSTPUA };
+enum PROBLEM_TYPE {UNKNOWN = -2, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, INFOGAP, POSTPUA };
 enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
 enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3 };
@@ -93,12 +93,17 @@ struct obs_data
 {
 	int nObs;
 	int nTObs;
+	int nPreds; //! Performance criterion prediction
 	char **obs_id;
+	char **preds_id; //! performance criterion identifier
 	double *obs_target;
+	double *pred_crit; //! value of prediction criterion
 	double *obs_current;
 	int *obs_log;
-	int *well_index;
+	int *well_index; 
 	int *time_index;
+	int *pwell_index; //! well index for prediction
+	int *ptime_index; //! time index for prediction
 	double *obs_weight;
 	double *obs_max;
 	double *obs_min;

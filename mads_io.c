@@ -10,7 +10,7 @@
 
 /* Functions here */
 int parse_cmd( char *buf, struct calc_data *cd );
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
+int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct obs_data *preds, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
 int save_problem( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( char *filename, struct opt_data *op, struct grid_data *gd );
@@ -83,6 +83,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "mont" ) ) { w = 1; cd->problem_type = MONTECARLO; }
 		if( strcasestr( word, "gsen" ) ) { w = 1; cd->problem_type = GLOBALSENS; }
 		if( strcasestr( word, "abag" ) ) { w = 1; cd->problem_type = ABAGUS; }
+		if( strcasestr( word, "infogap" ) ) { w = 1; cd->problem_type = INFOGAP; }
 		if( strcasestr( word, "postpua" ) ) { w = 1; cd->problem_type = POSTPUA; }
 		if( strcasestr( word, "sing" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 		if( strcasestr( word, "igpd" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGPD; }
@@ -146,6 +147,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		case MONTECARLO: printf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
 		case GLOBALSENS: printf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
 		case ABAGUS: printf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
+		case INFOGAP: printf( "Info-gap decision analysis" ); break;
 		case POSTPUA: printf( "predictive uncertainty analysis of sampling results" ); break;
 		default: printf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
@@ -215,6 +217,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		cd->sintrans = 0; printf( "\nsine tranformation disabled for ABAGUS runs" );
 	}
 	if( cd->problem_type == ABAGUS && cd->infile[0] != 0 ) { printf( "\nResults in %s to be read into kdtree\n", cd->infile );}
+	if( cd->problem_type == INFOGAP && cd->infile[0] == 0 ) { printf( "\nInfile must be specified for infogap run\n" ); exit( 0 ); }
 	if( cd->problem_type == POSTPUA && cd->infile[0] == 0 ) { printf( "\nInfile must be specified for postpua run\n" ); exit( 0 ); }
 	if( cd->smp_method[0] != 0 )
 	{
@@ -248,7 +251,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 }
 
 
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed )
+int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct obs_data *preds, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed )
 {
 	FILE *infile;
 	//	FILE *infileb;
@@ -535,7 +538,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 	wd->obs_weight = ( double ** ) malloc(( *wd ).nW * sizeof( double * ) );
 	wd->obs_min = ( double ** ) malloc(( *wd ).nW * sizeof( double * ) );
 	wd->obs_max = ( double ** ) malloc(( *wd ).nW * sizeof( double * ) );
-	( *od ).nObs = ( *od ).nTObs = 0;
+	( *od ).nObs = ( *preds ).nObs = ( *od ).nTObs = 0;
 	if( cd->debug ) printf( "\nObservation data:\n" );
 	for( i = 0; i < ( *wd ).nW; i++ )
 	{
@@ -570,6 +573,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 				bad_data = 1;
 			}
 			if(( *wd ).obs_weight[i][j] > 0 )( *od ).nObs++;
+			if(( *wd ).obs_weight[i][j] < 0 )( *preds ).nObs++;
 			( *od ).nTObs++;
 			if( j + 1 < ( *wd ).nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) printf( "\t\t\t\t\t\t\t      " ); }
 		}
@@ -596,6 +600,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 	od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 	od->obs_current = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 	od->obs_id = char_matrix(( *od ).nObs, 50 );
+	od->preds_id = char_matrix(( *od ).nObs, 50 );
 	od->obs_weight = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 	od->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 	od->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
@@ -620,6 +625,35 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 				if( cd->debug ) printf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 				k++;
 			}
+	if(( *preds ).nObs > 0 )
+	{
+		printf( "Number of performance criterion predictions for infogap analysis = %d\n", ( *preds ).nObs );
+		preds->obs_target = ( double * ) malloc(( *preds ).nObs * sizeof( double ) ); 
+		preds->obs_current = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
+		preds->well_index = ( int * ) malloc(( *preds ).nObs * sizeof( int ) );
+		preds->time_index = ( int * ) malloc(( *preds ).nObs * sizeof( int ) );
+		preds->obs_id = char_matrix(( *preds ).nObs, 50 );
+		preds->obs_weight = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
+		preds->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		preds->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		preds->res = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		for( k = i = 0; i < ( *wd ).nW; i++ )
+			for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
+				if(( *wd ).obs_weight[i][j] < 0 )
+				{
+					preds->obs_target[k] = ( *wd ).obs_target[i][j];
+					preds->obs_weight[k] = 1.0;
+					preds->obs_min[k] = ( *wd ).obs_target[i][j];
+					preds->obs_max[k] = ( *wd ).obs_target[i][j];
+					preds->obs_log[k] = ( *wd ).obs_log[i][j];
+					preds->well_index[k] = i;
+					preds->time_index[k] = j;
+					sprintf( preds->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
+					if( cd->debug ) printf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
+					k++;
+				}
+	} else if( (( *preds ).nObs <= 0) && (( *cd ).problem_type == INFOGAP) )
+		{ printf( "\nWeight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for infogap analysis\n\n" ); exit( 0 ); }
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf\n", &( *gd ).time );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &( *gd ).nx, &( *gd ).ny, &( *gd ).nz );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &( *gd ).min_x, &( *gd ).min_y, &( *gd ).min_z );
