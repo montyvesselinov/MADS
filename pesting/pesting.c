@@ -137,8 +137,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 {
 	FILE *infile_inst;
 	char *separator = " \t\n";
-	char *token_obs = "!";
-	char *word_inst, token_search[2], buf_inst[1000], *pnt_inst;
+	char *word_inst, token_obs[2], token_search[2], dummy_var[6], buf_inst[1000], *pnt_inst;
 	int i, c, bad_data = 0;
 	if(( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
@@ -155,8 +154,9 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 			if( strcasestr( word_inst, "pif" ) )
 			{
 				if( debug ) printf( "PEST Instruction file\n" );
+				token_obs[0] = '!';
 			}
-			else if( strcasestr( word_inst, "ins" ) )
+			else if( strcasestr( word_inst, "instruction" ) )
 			{
 				if( debug ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
 			}
@@ -165,12 +165,14 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 				if( debug ) printf( "MADS Instruction file\n" );
 				rewind( infile_inst );
 				token_search[0] = '@';
+				token_obs[0] = '!';
 				break;
 			}
 		}
 		else if( c == 1 ) // second entry; "search" token
 		{
 			white_trim( word_inst );
+			if( debug ) printf( "Search token %s\n", word_inst );
 			token_search[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
 				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
@@ -179,6 +181,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		else if( c == 2 ) // third entry; "variable" token
 		{
 			white_trim( word_inst );
+			if( debug ) printf( "Variable token %s\n", word_inst );
 			token_obs[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
 				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
@@ -186,11 +189,17 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 			break;
 		}
 	}
-	token_search[1] = 0;
+	token_search[1] = token_obs[1] = 0;
+	dummy_var[0] = token_obs[0];
+	dummy_var[1] = 0;
+	strcat( dummy_var, "dum" );
+	dummy_var[4] = token_obs[0];
+	dummy_var[5] = 0;
 	if( debug )
 	{
 		printf( "Search separator: %s\n", token_search );
 		printf( "Parameter separator: %s\n", token_obs );
+		printf( "Dummy observation: %s\n", dummy_var );
 	}
 	while( 1 )
 	{
@@ -216,7 +225,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 				white_skip( &word_inst ); white_trim( word_inst );
 				if( debug ) printf( "Search for keyword \'%s\' in the data file ...\n", word_inst );
 			}
-			else if( strncmp( word_inst, "!dum!", 5 ) == 0 ) // dummy variable
+			else if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
 			{
 				if( debug ) printf( "Skip dummy data!\n" );
 			}
@@ -262,8 +271,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 {
 	FILE *infile_inst, *infile_data;
 	char *separator = " \t\n";
-	char *token_obs = "!";
-	char *word_inst, *word_data, token_search[2], buf_data[1000], buf_inst[1000], *pnt_inst, *pnt_data;
+	char *word_inst, *word_data, token_search[2], token_obs[2], dummy_var[6], buf_data[1000], buf_inst[1000], *pnt_inst, *pnt_data;
 	int i, c, bad_data = 0;
 	double v;
 	if(( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
@@ -286,8 +294,9 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			if( strcasestr( word_inst, "pif" ) )
 			{
 				if( debug ) printf( "PEST Instruction file\n" );
+				token_obs[0] = '!';
 			}
-			else if( strcasestr( word_inst, "ins" ) )
+			else if( strcasestr( word_inst, "instruction" ) )
 			{
 				if( debug ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
 			}
@@ -296,6 +305,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				if( debug ) printf( "MADS Instruction file\n" );
 				rewind( infile_inst );
 				token_search[0] = '@';
+				token_obs[0] = '!';
 				break;
 			}
 		}
@@ -317,11 +327,17 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			break;
 		}
 	}
-	token_search[1] = 0;
+	token_search[1] = token_obs[1] = 0;
+	dummy_var[0] = token_obs[0];
+	dummy_var[1] = 0;
+	strcat( dummy_var, "dum" );
+	dummy_var[4] = token_obs[0];
+	dummy_var[5] = 0;
 	if( debug )
 	{
 		printf( "Search separator: %s\n", token_search );
 		printf( "Parameter separator: %s\n", token_obs );
+		printf( "Dummy observation: %s\n", dummy_var );
 	}
 	buf_data[0] = 0; word_data = pnt_data = NULL;
 	while( 1 )
@@ -383,7 +399,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 					return( -1 );
 				}
 			}
-			else if( strncmp( word_inst, "!dum!", 5 ) == 0 ) // dummy variable
+			else if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
 			{
 				if( debug ) printf( "Skip dummy data!\n" );
 				word_data = strtok_r( NULL, separator, &pnt_data );
@@ -460,11 +476,15 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 			{
 				if( debug ) printf( "PEST Template file\n" );
 			}
+			else if( strcasestr( word, "template" ) )
+			{
+				if( debug ) printf( "MADS Template file; user-specified parameter token is expected\n" );
+			}
 			else
 			{
 				if( debug ) printf( "MADS Template file\n" );
 				rewind( in );
-				token[0] = '#';
+				token[0] = '#'; // default tokes
 				break; // quit the loop; done
 			}
 		}
@@ -547,6 +567,10 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 			if( strcasestr( word, "ptf" ) )
 			{
 				if( debug ) printf( "PEST Template file\n" );
+			}
+			else if( strcasestr( word, "template" ) )
+			{
+				if( debug ) printf( "MADS Template file; user-specified parameter token is expected\n" );
 			}
 			else
 			{
