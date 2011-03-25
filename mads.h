@@ -24,6 +24,7 @@ struct calc_data
 	int nlmo;
 	int nreal;
 	int nretries;
+	int retry_ind;
 	int ntribe;
 	int niter;
 	int maxeval;

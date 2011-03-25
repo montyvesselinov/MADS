@@ -1428,7 +1428,7 @@ int optimize_lm( struct opt_data *op )
 		sampling( npar, op->cd->nretries, &op->cd->seed, var_lhs, op );
 		if( op->cd->paran_method[0] != 0 ) strcpy( op->cd->smp_method, buf );
 		printf( "done.\n" );
-		count = count_set = 0;
+		op->cd->retry_ind = count = count_set = 0;
 	}
 	phi_min = HUGE;
 	do // BEGIN Paranoid loop
@@ -1438,9 +1438,10 @@ int optimize_lm( struct opt_data *op )
 		if( op->cd->paranoid )
 		{
 			count++;
+			op->cd->retry_ind = count;
 			if( op->cd->calib_type == IGRND && count == 1 )
-				printf( "CALIBRATION %d: initial guesses from the provided IGRND random set: ", count );
-			else
+				printf( "CALIBRATION %d: initial guesses from IGRND random set: ", count );
+			else if ( count > 1 )
 			{
 				printf( "CALIBRATION %d: initial guesses from internal paranoid random set #%d: ", count, count_set + 1 );
 				for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1454,6 +1455,21 @@ int optimize_lm( struct opt_data *op )
 					}
 				}
 				count_set++;
+			}
+			else 
+			{
+				printf( "CALIBRATION %d: initial guesses from mads input file #: ", count );
+				for( i = 0; i < op->pd->nOptParam; i++ )
+				{
+					opt_params[i] = op->pd->var[op->pd->var_index[i]];
+
+					if( debug )
+					{
+					if( op->pd->var_log[k] ) printf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
+					else printf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
+					}
+
+				}
 			}
 			if( debug ) printf( "\n" );
 			fflush( stdout );

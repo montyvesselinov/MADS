@@ -207,7 +207,8 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 		{
 			if( func_data->s > 0 ) sprintf( filename, "%s.%08d.ofe", func_data->root, func_data->s );
 			else sprintf( filename, "%s.ofe", func_data->root );
-			func_data->f_ofe = fopen( filename, "w" );
+			if( func_data->cd->nretries > 1 && func_data->cd->retry_ind > 1 ) func_data->f_ofe = fopen( filename, "a" );
+			else func_data->f_ofe = fopen( filename, "w" );
 			ofe_close = 1;
 		}
 		else ofe_close = 0;

@@ -203,7 +203,8 @@ int LEVMAR_DER(
 		{
 			if( op->s > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->s );
 			else sprintf( filename, "%s.ofe", op->root );
-			op->f_ofe = fopen( filename, "w" );
+			if( op->cd->nretries > 1 && op->cd->retry_ind > 1 ) op->f_ofe = fopen( filename, "a" );
+			else op->f_ofe = fopen( filename, "w" );
 			ofe_close = 1;
 		}
 		else ofe_close = 0;
@@ -690,7 +691,8 @@ int LEVMAR_DIF(
 		{
 			if( op->s > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->s );
 			else sprintf( filename, "%s.ofe", op->root );
-			op->f_ofe = fopen( filename, "w" );
+			if( op->cd->nretries > 1 && op->cd->retry_ind > 1 ) op->f_ofe = fopen( filename, "a" );
+			else op->f_ofe = fopen( filename, "w" );
 			ofe_close = 1;
 		}
 		else ofe_close = 0;
