@@ -152,16 +152,19 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
 		if( p->cd->fdebug >= 2 )
 		{
-			if( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) { status_all = status = 0; }
-			else status = 1;
+			if( p->od->obs_weight[i] > 0.0 )
+			{
+				if( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) status_all = status = 0; 
+				else status = 1;
+			}
 			if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
 				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * p->od->obs_weight[i], status, p->od->obs_min[i], p->od->obs_max[i] );
 			if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
-		else if( p->cd->compute_phi || p->cd->check_success )
+		else if( ( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
 		{
-			if( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) { status_all = status = 0; }
+			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { status_all = status = 0; }
 			else status = 1;
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
@@ -364,14 +367,17 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
 		if( p->cd->fdebug >= 2 )
 		{
-			if( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) { status_all = status = 0; }
-			else status = 1;
+			if( p->od->obs_weight[i] > 0.0 )
+			{
+				if( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) { status_all = status = 0; }
+				else status = 1;
+			}
 			if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
 				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * p->od->obs_weight[i], status, p->od->obs_min[i], p->od->obs_max[i] );
 			if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
-		else if( p->cd->compute_phi || p->cd->check_success )
+		else if( ( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
 		{
 			if( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) { status_all = status = 0; }
 			else status = 1;
@@ -483,14 +489,17 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->cd->compute_phi ) phi += f[k] * f[k];
 			if( p->cd->fdebug >= 2 )
 			{
-				if( c < p->wd->obs_min[i][j] || c > p->wd->obs_max[i][j] ) { status_all = status = 0; }
-				else status = 1;
+				if( p->od->obs_weight[i] > 0.0 )
+				{
+					if( c < p->wd->obs_min[i][j] || c > p->wd->obs_max[i][j] ) { status_all = status = 0; }
+					else status = 1;
+				}
 				if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
 					printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->wd->id[i], p->wd->obs_time[i][j], p->wd->obs_target[i][j], c, err, err * p->wd->obs_weight[i][j], status, p->wd->obs_min[i][j], p->wd->obs_max[i][j] );
 				if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 				if( !p->cd->compute_phi ) phi += f[k] * f[k];
 			}
-			else if( p->cd->compute_phi || p->cd->check_success )
+			else if( ( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
 			{
 				if( c < p->wd->obs_min[i][j] || c > p->wd->obs_max[i][j] ) { status_all = status = 0; }
 				else status = 1;

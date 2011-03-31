@@ -118,10 +118,9 @@ struct position
 double perf_pssa( int s, int function ); // Fitness evaluation
 double round_to_res( double x, double dx );
 int compare_pos( double x[], double y[], int size );
-void read_in( void *kdtree, int size, double eps, double *finv, int *ind, char *file );
-// in alea.c
-void seed_rand_kiss( unsigned long seed );
-unsigned int    rand_kiss(); // For the pseudo-random number generator KISS
+void read_in( void *kdtree, int size, double eps, int check_success, double *finv, int *ind, char *file );
+void write_loc( double of, double *x, int x_size, int *ind );
+// in Standard_PSO_2006.c
 double alea( double a, double b );
 int alea_integer( int a, int b );
 // in ../mads.c
@@ -156,7 +155,7 @@ int pssa( struct opt_data *op )
 {
 	double c; // Second onfidence coefficient
 	int d; // Current dimension
-	double eps; // Admissible error
+	double eps, err; // Admissible error
 	double eps_mean; // Average error
 	double error; // Error for a given position
 	double error_prev; // Error after previous iteration
@@ -165,7 +164,7 @@ int pssa( struct opt_data *op )
 	int function; // Code of the objective function
 	int g; // Rank of the best informant
 	int init_links; // Flag to (re)init or not the information links
-	int i;
+	int i, j, k;
 	int K; // Max number of particles informed by a given one
 	int m;
 	//double mean_best[R_max];
@@ -234,22 +233,77 @@ int pssa( struct opt_data *op )
 		// Find smallest dx among parameters
 		if( dxmin > dx[d] ) dxmin = dx[d];
 	}
-	eps = op->cd->phi_cutoff; // Acceptable error
+	// Determine eps by max possible phi within success
+	if( op->cd->check_success )
+	{
+		eps = 0;
+		for( k = 0; k < op->od->nObs; k++ )
+		{
+			i = op->od->well_index[k];
+                        j = op->od->time_index[k];
+			if( op->wd->obs_log[i][j] == 0 )
+                        {
+				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) ) 
+					err =  op->wd->obs_target[i][j] - op->wd->obs_min[i][j];
+				else err = op->wd->obs_max[i][j] - op->wd->obs_target[i][j];
+                                if( op->cd->objfunc != SSR )
+                                {
+                                        if( op->cd->objfunc == SSD0 ) err = 0;
+                                        if( op->cd->objfunc == SSDA )
+                                                err = sqrt( fabs( err ) );
+                                }
+                        }
+                        else
+                        {
+				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) ) 
+                                err = log10( op->wd->obs_target[i][j] ) - log10( op->wd->obs_min[i][j] );
+                                else err = log10( op->wd->obs_max[i][j] ) - log10( op->wd->obs_target[i][j] );
+                        }
+                        eps += pow( err * op->wd->obs_weight[i][j], 2 );
+		}
+		if( op->cd->pdebug )printf( "Max OF within success: %g\n", eps );
+	}
+	else eps = op->cd->phi_cutoff; // If success option is not selected, use phi_cutoff
+	if( eps < op->cd->phi_cutoff ) { printf( "phi_cutoff > Max OF within success (%lf > %lf), abagus will use phi_cutoff\n", op->cd->phi_cutoff, eps ); eps = op->cd->phi_cutoff;  } // If max eps within success is less than phi_cutoff
 	f_min = 0; // Objective value
 	n_exec_max = 1; // Numbers of runs
 	eval_max = op->cd->maxeval; // Max number of evaluations for each run
 	// Read in previous results
 	if( op->cd->infile[0] != 0 )
 	{
-		read_in( kd, D, eps,  finv, &f_ind, op->cd->infile );
+		read_in( kd, D, eps, op->cd->check_success, finv, &f_ind, op->cd->infile );
 		f_ind_old = f_ind;
 	}
+	// Write accepted locations from input file to output file
 	// Open output file
 	sprintf( filename, "%s.pssa", op->root );
-	if(( f_run = fopen( filename, "w" ) ) == NULL )
+	if(( f_run = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+	fprintf( f_run, "Number OF parameters...\n" ); // Write header
+	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] ); // Determine center parameter space for search
+	if( op->cd->infile[0] != 0 )
 	{
-		printf( "File %s cannot be opened to write results!\n", filename );
-		return( 0 );
+		if( f_ind > 0 )
+		{
+			kdset = kd_nearest_range( kd, G.x, dmax );
+			i = 0;
+			while( !kd_res_end( kdset ) )
+			{
+				i++;
+				pch = ( double * ) kd_res_item( kdset, G.x );
+				//fprintf( f_run, "%d ", i + 1 );
+				f = eps - ( *pch - eps );
+				write_loc( f, G.x, D, &i );
+				//fprintf( f_run, " %lf", f );
+				//for( d = 0; d < D; d++ )
+				//	fprintf( f_run, " %lf", G.x[d] );
+				//fprintf( f_run, "\n" );
+				kd_res_next( kdset );
+			}
+			printf( "\n%d locations accepted from %s\n\n", kd_res_size( kdset ), op->cd->infile );
+			kd_res_free( kdset );
+		}
+		else if( op->cd->check_success ) printf( "\nNo solutions found in %s within target ranges\n\n", op->cd->infile );
+		else printf( "\nNo solutions found in %s at phi cutoff = %g\n\n", op->cd->infile, eps );
 	}
 	if( n_exec_max > R_max ) n_exec_max = R_max;
 	//-----------------------------------------------------  PARAMETERS
@@ -306,15 +360,16 @@ int pssa( struct opt_data *op )
 			kd_res_free( kdset );
 		}
 		else X[s].f = fabs( perf_pssa( s, function ) - f_min );
-	}
+	//}
 	// invert OF values if below eps
-	for( s = 0; s < S; s++ )
-	{
-		if( X[s].f < eps )
+	//for( s = 0; s < S; s++ )
+	//{
+		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f );
 			kd_insert( kd, X[s].x, &finv[f_ind] );
 			f_ind++;
+			write_loc( X[s].f, X[s].x, D, &f_ind );
 			energy += enrgy_add;
 		}
 		P[s] = X[s]; // Best position = current one
@@ -399,17 +454,20 @@ loop:
 				pch = ( double * ) kd_res_item( kdset, X[s].x );
 				X[s].f = *pch;
 				old_pos++;
+				op->success = 0;
 			}
 			else	printf( "Warning: %d point(s) within grid resolution of proposal point! %f %f\n", kdsize, X[s].x[0], X[s].x[1] );
 			kd_res_free( kdset );
 		}
 		else { X[s].f = fabs( perf_pssa( s, function ) - f_min ); new_pos++; }
 		// if below eps, insert into kdtree
-		if( X[s].f < eps )
+		//if( X[s].f < eps )
+		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f ); // invert f
 			kd_insert( kd, X[s].x, &finv[f_ind] );
 			f_ind++;
+			write_loc( X[s].f, X[s].x, D, &f_ind );
 			energy += enrgy_add;
 			//X[s].f = finv[f_ind]; // set phi to inverted value
 		}
@@ -458,7 +516,7 @@ loop:
 		printf( "%d new solutions\n", f_ind - f_ind_old );
 	}
 	printf( "%d total solutions collected\n", f_ind );
-	// Save result
+/*	// Save result
 	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
 	if( f_ind > 0 )
 	{
@@ -480,7 +538,8 @@ loop:
 		kd_res_free( kdset );
 		printf( "\nResults written to %s\n\n", filename );
 	}
-	else printf( "\nNo solutions found at phi cutoff = %g\n\n", eps );
+	else if( op->cd->check_success ) printf( "\nNo solutions found within observation ranges (success)\n\n");
+	else printf( "\nNo solutions found at phi cutoff = %g\n\n", eps );*/
 	kd_free( kd );
 	fclose( f_run );
 	/*    // Compute some statistical information
@@ -553,19 +612,20 @@ int compare_pos( double x[], double y[], int size )
 	return 1;
 }
 
-void read_in( void *kdtree, int size, double eps, double *finv, int *ind, char *file )
+void read_in( void *kdtree, int size, double eps, int check_success, double *finv, int *ind, char *file )
 {
 	FILE *fl;
 	char buf[500];
 	double of, pars[size];
 	int i;
+	if( check_success ) printf( "\nAssuming samples in %s meet current criteria for success!", file );
 	printf( "\nReading previous results from %s...", file );
 	fl = fopen( file, "r" );
 	if( fl == NULL ) { printf( "\nError opening %s\n", file ); exit( 0 ); }
 	fgets( buf, sizeof buf, fl );
 	while( fscanf( fl, "%*d %lf", &of ) > 0 )
 	{
-		if( of < eps )
+		if( of < eps || check_success )
 		{
 			finv[*ind] = eps + ( eps - of );
 			for( i = 0; i < size; i++ )
@@ -579,6 +639,19 @@ void read_in( void *kdtree, int size, double eps, double *finv, int *ind, char *
 	printf( "Done\n" );
 }
 
+void write_loc( double of, double *x, int x_size, int *ind )
+{
+	int d;
+
+	fprintf( f_run, "%d ", (*ind) );
+	//f = eps - ( *pch - eps );
+	fprintf( f_run, " %lf", of );
+	for( d = 0; d < x_size; d++ )
+		fprintf( f_run, " %lf", x[d] );
+	fprintf( f_run, "\n" );
+	fflush( f_run );
+
+}
 //===========================================================
 double perf_pssa( int s, int function )
 {

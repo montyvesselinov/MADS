@@ -15,6 +15,7 @@
 #include <gsl/gsl_qrng.h>
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_sort.h>
+#include <gsl/gsl_sort_vector.h>
 #include "levmar-2.5/levmar.h"
 #include "mads.h"
 
@@ -36,10 +37,11 @@ char *datestamp();
 /* Functions elsewhere */
 int pssa( struct opt_data *op );
 int postpua( struct opt_data *op );
+int infogap( struct opt_data *op );
 int pso_tribes( struct opt_data *op );
 int pso_std( struct opt_data *op );
 int parse_cmd( char *buf, struct calc_data *cd );
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
+int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct obs_data *preds, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
 int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct extrn_data *ed );
 int save_problem( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
 int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
@@ -74,6 +76,8 @@ int get_seed( );
 double **double_matrix( int maxCols, int maxRows );
 void free_matrix( void **matrix, int maxCols );
 void zero_double_matrix( double **matrix, int maxCols, int maxRows );
+int count_lines( char *filename );
+int count_cols( char *filename, int row );
 int func_gsl_dx( const gsl_vector *x, void *data, gsl_matrix *J );
 int func_gsl_xdx( const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J );
 double func_gsl_deriv( double x, void *data );
@@ -105,6 +109,7 @@ int main( int argn, char *argv[] )
 	struct calc_data cd;
 	struct param_data pd;
 	struct obs_data od;
+	struct obs_data preds;
 	struct well_data wd;
 	struct extrn_data ed;
 	struct grid_data gd;
@@ -150,8 +155,9 @@ int main( int argn, char *argv[] )
 		printf( "   gsens              - global sensitivity analysis\n" );
 		printf( "   lsens              - local sensitivity analysis (standalone or at the end of the calibration)\n" );
 		printf( "   eigen              - local eigensystem analysis (standalone or at the end of the calibration)\n" );
-		printf( "   abagus             - Agent-Based Global Uncertainty & Sensitivity Analysis (ABAGUS)\n" );
-		printf( "   postpua            - predictive uncertainty analysis of sampling results (currently works with ABAGUS output files only)\n" );
+		printf( "   abagus             - Agent-Based Global Uncertainty & Sensitivity Analysis\n" );
+		printf( "   infogap            - Info-gap decision analysis\n" );
+		printf( "   postpua            - predictive uncertainty analysis of sampling results (currently for abagus PSSA files only)\n" );
 		printf( "\ncalibration method keywords (select one):\n" );
 		printf( "   single             - single calibration using initial guesses provided in the input file [default]\n" );
 		printf( "   igrnd              - sequential calibrations using a set of random initial values (number of realizations defined by real=X)\n" );
@@ -306,7 +312,7 @@ int main( int argn, char *argv[] )
 	}
 	else // MADS Problem
 	{
-		if(( ier = load_problem( filename, argn, argv, &op, &cd, &pd, &od, &wd, &gd, &ed ) ) <= 0 )
+		if(( ier = load_problem( filename, argn, argv, &op, &cd, &pd, &od, &preds, &wd, &gd, &ed ) ) <= 0 )
 		{
 			printf( "MADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
 			if( ier == 0 )
@@ -1052,9 +1058,36 @@ int main( int argn, char *argv[] )
 		save_results( "", &op, &gd );
 		cd.compute_phi = 0;
 	}
-	//
-	// ------------------------ GLOBALSENS
-	//
+//
+// ------------------------ EIGEN || LOCALSENS
+//
+	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS ) eigen( &op, NULL, NULL ); // Eigen or sensitivity analysis run
+//
+//------------------------- ABAGUS
+//
+	if( cd.problem_type == ABAGUS ) // Particle swarm sensitivity analysis run
+	{
+
+		status = pssa( &op ); // Optimize
+	}
+//
+//------------------------ INFOGAP
+//
+	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
+	{
+		op.od = &preds; // Switch to performance criterion predictions
+		status = infogap( &op );
+	}	
+//
+//------------------------ POSTPUA
+//
+	if( cd.problem_type == POSTPUA ) // Predictive uncertainty analysis of sampling results
+	{
+		status = postpua( &op );
+	}
+//
+// ------------------------ GLOBALSENS
+//
 	if( cd.problem_type == GLOBALSENS ) // Global sensitivity analysis run
 	{
 		strcpy( op.label, "gsens" );
@@ -1420,7 +1453,7 @@ int main( int argn, char *argv[] )
 				c = od.obs_current[i];
 				err = od.obs_target[i] - c;
 				phi += ( err * err ) * od.obs_weight[i];
-				if( c < od.obs_min[i] || c > od.obs_max[i] ) { status_all = 0; status = 0; }
+				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { status_all = 0; status = 0; }
 				else status = 1;
 				if( od.nObs < 50 || ( i < 20 || i > od.nObs - 20 ) ) printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], status, od.obs_min[i], od.obs_max[i] );
 				if( od.nObs > 50 && i == 21 ) printf( "...\n" );
@@ -1437,7 +1470,7 @@ int main( int argn, char *argv[] )
 					err = wd.obs_target[i][j] - c;
 					if( cd.problem_type != CALIBRATE ) phi += ( err * err ) * wd.obs_weight[i][j];
 					else phi += ( err * err );
-					if( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) { status_all = 0; status = 0; }
+					if( ( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { status_all = 0; status = 0; }
 					else status = 1;
 					if( cd.problem_type != CALIBRATE )
 						printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], status, wd.obs_min[i][j], wd.obs_max[i][j] );
@@ -1583,7 +1616,7 @@ int optimize_lm( struct opt_data *op )
 		sampling( npar, op->cd->nretries, &op->cd->seed, var_lhs, op );
 		if( op->cd->paran_method[0] != 0 ) strcpy( op->cd->smp_method, buf );
 		printf( "done.\n" );
-		count = count_set = 0;
+		op->cd->retry_ind = count = count_set = 0;
 	}
 	phi_min = HUGE;
 	do // BEGIN Paranoid loop
@@ -1593,9 +1626,10 @@ int optimize_lm( struct opt_data *op )
 		if( op->cd->paranoid )
 		{
 			count++;
+			op->cd->retry_ind = count;
 			if( op->cd->calib_type == IGRND && count == 1 )
-				printf( "CALIBRATION %d: initial guesses from the provided IGRND random set: ", count );
-			else
+				printf( "CALIBRATION %d: initial guesses from IGRND random set: ", count );
+			else if ( count > 1 )
 			{
 				printf( "CALIBRATION %d: initial guesses from internal paranoid random set #%d: ", count, count_set + 1 );
 				for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1609,6 +1643,21 @@ int optimize_lm( struct opt_data *op )
 					}
 				}
 				count_set++;
+			}
+			else 
+			{
+				printf( "CALIBRATION %d: initial guesses from mads input file #: ", count );
+				for( i = 0; i < op->pd->nOptParam; i++ )
+				{
+					opt_params[i] = op->pd->var[op->pd->var_index[i]];
+
+					if( debug )
+					{
+					if( op->pd->var_log[k] ) printf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
+					else printf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
+					}
+
+				}
 			}
 			if( debug ) printf( "\n" );
 			fflush( stdout );
@@ -2050,6 +2099,88 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	if( compute_jacobian ) gsl_matrix_free( gsl_jacobian );
 	if( compute_covar ) gsl_matrix_free( gsl_covar );
 	return( 1 );
+}
+
+int infogap( struct opt_data *op )
+{
+	FILE *fl, *outfl;
+	double *opt_params, of, maxof;
+	char buf[80], filename[80];
+	int i, j, k, n, npar, nrow, ncol, *nPreds, col;
+	gsl_matrix *ig_mat; //! info gap matrix for sorting
+	gsl_permutation *p;
+	
+	nPreds = &op->od->nObs; // Set pointer to nObs for convenience
+	if( op->cd->infile[0] == 0 ) { printf( "\nInfile must be specified for infogap run\n" ); exit( 0 );}
+	nrow = count_lines( op->cd->infile ); nrow--; // Determine number of parameter sets in file
+	npar = count_cols( op->cd->infile, 2 ); npar = npar - 2; // Determine number of parameter sets in file
+	if( npar != op->pd->nOptParam ) { printf( "Number of optimization parameters in %s does not match input file\n", op->cd->infile ); exit( 0 ); } // Make sure MADS input file and PSSA file agree
+	printf( "\n%s contains %d parameters and %d parameter sets\n", op->cd->infile, npar, nrow );
+	ncol = npar + *nPreds + 1; // Number of columns for ig_mat = #pars + #preds + #ofs
+	ig_mat = gsl_matrix_alloc( nrow, ncol );
+	p = gsl_permutation_alloc( nrow );
+
+	fl = fopen( op->cd->infile, "r" );
+	if( fl == NULL ) { printf( "\nError opening %s\n", op->cd->infile ); exit( 0 ); }
+
+	printf( "Computing predictions for %s...", op->cd->infile );
+	fflush( stdout );
+	if(( opt_params = ( double * ) malloc( npar * sizeof( double ) ) ) == NULL )
+		{ printf( "Not enough memory!\n" ); exit( 0 ); }
+	fgets( buf, sizeof buf, fl ); // Skip header
+	// Fill in ig_mat
+	for( i = 0; i < nrow; i++ )
+	{
+		fscanf( fl, "%d %lf", &n, &of );
+		gsl_matrix_set( ig_mat, i, *nPreds, of ); // Place of after predictions
+		for( j = 0; j < npar; j++ )
+		{
+			fscanf( fl, "%lf", &opt_params[j] );
+			col = *nPreds + 1 + j;
+			gsl_matrix_set( ig_mat, i, col, opt_params[j] ); // Place after of
+		}
+		fscanf( fl, " \n" );
+		func( opt_params, op, op->od->res );
+		for( j = 0; j < *nPreds; j++ )
+		{
+			gsl_matrix_set( ig_mat, i, j, op->od->obs_current[j] ); // Place in first columns
+		}
+	}
+	fclose( fl );
+			
+	for( k = 0; k < *nPreds; k++ )
+	{
+		gsl_vector_view column = gsl_matrix_column( ig_mat, k );
+		gsl_sort_vector_index( p, &column.vector);
+
+		// Print out ig_mat with headers
+		sprintf( filename, "%s-pred%d.igap", op->root, k );
+		outfl = fopen( filename , "w" );
+		if( outfl == NULL ) { printf( "\nError opening %s\n", filename ); exit( 0 ); }
+		fprintf( outfl, " %-12s", op->od->obs_id[k] );
+		fprintf( outfl, " OFmax OF" );
+		for( i = 0; i < npar; i++ )
+			fprintf( outfl, " (%-12s)", op->pd->var_id[i] );
+		fprintf( outfl, "\n" );
+		maxof = gsl_matrix_get( ig_mat, gsl_permutation_get(p,0), *nPreds );
+		for( i = 0; i < nrow; i++ )
+		{
+			if( maxof < gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), *nPreds ) )
+				maxof = gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), *nPreds );
+			fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), k ) );
+			fprintf( outfl, "%-12g", maxof );
+			fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), *nPreds ) );
+			for( j = *nPreds + 1; j < ncol; j++ )
+				fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), j ) );
+			fprintf( outfl, "\n" );
+		}
+		fclose( outfl ); 
+		printf( "Done\n" );	
+		printf( "Results written to %s\n\n", filename );
+	}
+	gsl_matrix_free( ig_mat );
+
+	return 1;
 }
 
 int postpua( struct opt_data *op )
