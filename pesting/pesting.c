@@ -369,6 +369,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		}
 		if( debug ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'", word_data, pnt_data );
 		if( debug ) { if( pnt_data == NULL ) printf( "\n" ); else { if( pnt_data[strlen( pnt_data )-2] != '\n' ) printf( "\n" ); } }
+		c = 0;
 		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 		{
 			white_skip( &word_inst ); white_trim( word_inst );
@@ -421,8 +422,8 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			}
 			else if( word_inst[0] == token_obs[0] ) // observation variable
 			{
-				c = 0;
-				if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
+				c++;
+				if( word_data == NULL || c > 1 ) word_data = strtok_r( NULL, separator, &pnt_data );
 				if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
 				else word_inst = &word_inst[1];
 				if( word_inst[strlen( word_inst )-1] == token_obs[0] ) word_inst[strlen( word_inst )-1] = 0;
