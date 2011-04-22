@@ -1067,7 +1067,6 @@ int main( int argn, char *argv[] )
 //
 	if( cd.problem_type == ABAGUS ) // Particle swarm sensitivity analysis run
 	{
-
 		status = pssa( &op ); // Optimize
 	}
 //
@@ -1077,7 +1076,7 @@ int main( int argn, char *argv[] )
 	{
 		op.od = &preds; // Switch to performance criterion predictions
 		status = infogap( &op );
-	}	
+	}
 //
 //------------------------ POSTPUA
 //
@@ -1387,7 +1386,7 @@ int main( int argn, char *argv[] )
 		if( status == 0 )
 			{ printf( "ERROR: Optimization did not start! Optimization method mismatch!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
 		sprintf( filename, "%s-rerun.mads", op.root );
-		if( cd.solution_type != TEST) save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
+		if( cd.solution_type != TEST ) save_problem( filename, &cd, &pd, &od, &wd, &gd, &ed );
 		if( cd.debug == 0 ) printf( "\n" );
 		print_results( &op );
 		save_results( "", &op, &gd );
@@ -1453,7 +1452,7 @@ int main( int argn, char *argv[] )
 				c = od.obs_current[i];
 				err = od.obs_target[i] - c;
 				phi += ( err * err ) * od.obs_weight[i];
-				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { status_all = 0; status = 0; }
+				if(( c < od.obs_min[i] || c > od.obs_max[i] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { status_all = 0; status = 0; }
 				else status = 1;
 				if( od.nObs < 50 || ( i < 20 || i > od.nObs - 20 ) ) printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], status, od.obs_min[i], od.obs_max[i] );
 				if( od.nObs > 50 && i == 21 ) printf( "...\n" );
@@ -1470,7 +1469,7 @@ int main( int argn, char *argv[] )
 					err = wd.obs_target[i][j] - c;
 					if( cd.problem_type != CALIBRATE ) phi += ( err * err ) * wd.obs_weight[i][j];
 					else phi += ( err * err );
-					if( ( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { status_all = 0; status = 0; }
+					if(( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { status_all = 0; status = 0; }
 					else status = 1;
 					if( cd.problem_type != CALIBRATE )
 						printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], status, wd.obs_min[i][j], wd.obs_max[i][j] );
@@ -1629,7 +1628,7 @@ int optimize_lm( struct opt_data *op )
 			op->cd->retry_ind = count;
 			if( op->cd->calib_type == IGRND && count == 1 )
 				printf( "CALIBRATION %d: initial guesses from IGRND random set: ", count );
-			else if ( count > 1 )
+			else if( count > 1 )
 			{
 				printf( "CALIBRATION %d: initial guesses from internal paranoid random set #%d: ", count, count_set + 1 );
 				for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1644,19 +1643,17 @@ int optimize_lm( struct opt_data *op )
 				}
 				count_set++;
 			}
-			else 
+			else
 			{
 				printf( "CALIBRATION %d: initial guesses from mads input file #: ", count );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					opt_params[i] = op->pd->var[op->pd->var_index[i]];
-
 					if( debug )
 					{
-					if( op->pd->var_log[k] ) printf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
-					else printf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
+						if( op->pd->var_log[k] ) printf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
+						else printf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
 					}
-
 				}
 			}
 			if( debug ) printf( "\n" );
@@ -2109,7 +2106,6 @@ int infogap( struct opt_data *op )
 	int i, j, k, n, npar, nrow, ncol, *nPreds, col;
 	gsl_matrix *ig_mat; //! info gap matrix for sorting
 	gsl_permutation *p;
-	
 	nPreds = &op->od->nObs; // Set pointer to nObs for convenience
 	if( op->cd->infile[0] == 0 ) { printf( "\nInfile must be specified for infogap run\n" ); exit( 0 );}
 	nrow = count_lines( op->cd->infile ); nrow--; // Determine number of parameter sets in file
@@ -2119,10 +2115,8 @@ int infogap( struct opt_data *op )
 	ncol = npar + *nPreds + 1; // Number of columns for ig_mat = #pars + #preds + #ofs
 	ig_mat = gsl_matrix_alloc( nrow, ncol );
 	p = gsl_permutation_alloc( nrow );
-
 	fl = fopen( op->cd->infile, "r" );
 	if( fl == NULL ) { printf( "\nError opening %s\n", op->cd->infile ); exit( 0 ); }
-
 	printf( "Computing predictions for %s...", op->cd->infile );
 	fflush( stdout );
 	if(( opt_params = ( double * ) malloc( npar * sizeof( double ) ) ) == NULL )
@@ -2147,12 +2141,10 @@ int infogap( struct opt_data *op )
 		}
 	}
 	fclose( fl );
-			
 	for( k = 0; k < *nPreds; k++ )
 	{
 		gsl_vector_view column = gsl_matrix_column( ig_mat, k );
-		gsl_sort_vector_index( p, &column.vector);
-
+		gsl_sort_vector_index( p, &column.vector );
 		// Print out ig_mat with headers
 		sprintf( filename, "%s-pred%d.igap", op->root, k );
 		outfl = fopen( filename , "w" );
@@ -2162,24 +2154,23 @@ int infogap( struct opt_data *op )
 		for( i = 0; i < npar; i++ )
 			fprintf( outfl, " (%-12s)", op->pd->var_id[i] );
 		fprintf( outfl, "\n" );
-		maxof = gsl_matrix_get( ig_mat, gsl_permutation_get(p,0), *nPreds );
+		maxof = gsl_matrix_get( ig_mat, gsl_permutation_get( p, 0 ), *nPreds );
 		for( i = 0; i < nrow; i++ )
 		{
-			if( maxof < gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), *nPreds ) )
-				maxof = gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), *nPreds );
-			fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), k ) );
+			if( maxof < gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), *nPreds ) )
+				maxof = gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), *nPreds );
+			fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), k ) );
 			fprintf( outfl, "%-12g", maxof );
-			fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), *nPreds ) );
+			fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), *nPreds ) );
 			for( j = *nPreds + 1; j < ncol; j++ )
-				fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get(p,i), j ) );
+				fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), j ) );
 			fprintf( outfl, "\n" );
 		}
-		fclose( outfl ); 
-		printf( "Done\n" );	
+		fclose( outfl );
+		printf( "Done\n" );
 		printf( "Results written to %s\n\n", filename );
 	}
 	gsl_matrix_free( ig_mat );
-
 	return 1;
 }
 

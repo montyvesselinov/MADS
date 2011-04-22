@@ -90,13 +90,12 @@ void *malloc_check( const char *what, size_t n )
 
 int count_lines( char *filename )
 {
-	int nol=0;
+	int nol = 0;
 	FILE *fl;
 	char buf[1000];
-
 	fl = fopen( filename, "r" );
 	if( fl == NULL ) { printf( "\nError opening %s\n", filename ); exit( 0 ); }
-	while( (fgets( buf, sizeof buf, fl )) != NULL) nol++;
+	while(( fgets( buf, sizeof buf, fl ) ) != NULL ) nol++;
 	fclose( fl );
 	return nol;
 }
@@ -104,10 +103,9 @@ int count_lines( char *filename )
 //! Count number of columns at row
 int count_cols( char *filename, int row )
 {
-	int ncol=0, i, n=0;
+	int ncol = 0, i, n = 0;
 	FILE *fl;
 	char buf[1000], entry[16], *ln;
-
 	fl = fopen( filename, "r" );
 	if( fl == NULL ) { printf( "\nError opening %s\n", filename ); exit( 0 ); }
 	for( i = 1; i < row; i++ ) ln = fgets( buf, sizeof buf, fl );

@@ -240,26 +240,26 @@ int pssa( struct opt_data *op )
 		for( k = 0; k < op->od->nObs; k++ )
 		{
 			i = op->od->well_index[k];
-                        j = op->od->time_index[k];
+			j = op->od->time_index[k];
 			if( op->wd->obs_log[i][j] == 0 )
-                        {
-				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) ) 
+			{
+				if(( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
 					err =  op->wd->obs_target[i][j] - op->wd->obs_min[i][j];
 				else err = op->wd->obs_max[i][j] - op->wd->obs_target[i][j];
-                                if( op->cd->objfunc != SSR )
-                                {
-                                        if( op->cd->objfunc == SSD0 ) err = 0;
-                                        if( op->cd->objfunc == SSDA )
-                                                err = sqrt( fabs( err ) );
-                                }
-                        }
-                        else
-                        {
-				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) ) 
-                                err = log10( op->wd->obs_target[i][j] ) - log10( op->wd->obs_min[i][j] );
-                                else err = log10( op->wd->obs_max[i][j] ) - log10( op->wd->obs_target[i][j] );
-                        }
-                        eps += pow( err * op->wd->obs_weight[i][j], 2 );
+				if( op->cd->objfunc != SSR )
+				{
+					if( op->cd->objfunc == SSD0 ) err = 0;
+					if( op->cd->objfunc == SSDA )
+						err = sqrt( fabs( err ) );
+				}
+			}
+			else
+			{
+				if(( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
+					err = log10( op->wd->obs_target[i][j] ) - log10( op->wd->obs_min[i][j] );
+				else err = log10( op->wd->obs_max[i][j] ) - log10( op->wd->obs_target[i][j] );
+			}
+			eps += pow( err * op->wd->obs_weight[i][j], 2 );
 		}
 		if( op->cd->pdebug )printf( "Max OF within success: %g\n", eps );
 	}
@@ -360,11 +360,11 @@ int pssa( struct opt_data *op )
 			kd_res_free( kdset );
 		}
 		else X[s].f = fabs( perf_pssa( s, function ) - f_min );
-	//}
-	// invert OF values if below eps
-	//for( s = 0; s < S; s++ )
-	//{
-		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
+		//}
+		// invert OF values if below eps
+		//for( s = 0; s < S; s++ )
+		//{
+		if(( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f );
 			kd_insert( kd, X[s].x, &finv[f_ind] );
@@ -462,7 +462,7 @@ loop:
 		else { X[s].f = fabs( perf_pssa( s, function ) - f_min ); new_pos++; }
 		// if below eps, insert into kdtree
 		//if( X[s].f < eps )
-		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
+		if(( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f ); // invert f
 			kd_insert( kd, X[s].x, &finv[f_ind] );
@@ -516,30 +516,30 @@ loop:
 		printf( "%d new solutions\n", f_ind - f_ind_old );
 	}
 	printf( "%d total solutions collected\n", f_ind );
-/*	// Save result
-	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
-	if( f_ind > 0 )
-	{
-		kdset = kd_nearest_range( kd, G.x, dmax );
-		fprintf( f_run, "Number OF parameters...\n" );
-		i = 0;
-		while( !kd_res_end( kdset ) )
+	/*	// Save result
+		for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
+		if( f_ind > 0 )
 		{
-			pch = ( double * ) kd_res_item( kdset, G.x );
-			fprintf( f_run, "%d ", i + 1 );
-			f = eps - ( *pch - eps );
-			fprintf( f_run, " %lf", f );
-			for( d = 0; d < D; d++ )
-				fprintf( f_run, " %lf", G.x[d] );
-			fprintf( f_run, "\n" );
-			i++;
-			kd_res_next( kdset );
+			kdset = kd_nearest_range( kd, G.x, dmax );
+			fprintf( f_run, "Number OF parameters...\n" );
+			i = 0;
+			while( !kd_res_end( kdset ) )
+			{
+				pch = ( double * ) kd_res_item( kdset, G.x );
+				fprintf( f_run, "%d ", i + 1 );
+				f = eps - ( *pch - eps );
+				fprintf( f_run, " %lf", f );
+				for( d = 0; d < D; d++ )
+					fprintf( f_run, " %lf", G.x[d] );
+				fprintf( f_run, "\n" );
+				i++;
+				kd_res_next( kdset );
+			}
+			kd_res_free( kdset );
+			printf( "\nResults written to %s\n\n", filename );
 		}
-		kd_res_free( kdset );
-		printf( "\nResults written to %s\n\n", filename );
-	}
-	else if( op->cd->check_success ) printf( "\nNo solutions found within observation ranges (success)\n\n");
-	else printf( "\nNo solutions found at phi cutoff = %g\n\n", eps );*/
+		else if( op->cd->check_success ) printf( "\nNo solutions found within observation ranges (success)\n\n");
+		else printf( "\nNo solutions found at phi cutoff = %g\n\n", eps );*/
 	kd_free( kd );
 	fclose( f_run );
 	/*    // Compute some statistical information
@@ -642,15 +642,13 @@ void read_in( void *kdtree, int size, double eps, int check_success, double *fin
 void write_loc( double of, double *x, int x_size, int *ind )
 {
 	int d;
-
-	fprintf( f_run, "%d ", (*ind) );
+	fprintf( f_run, "%d ", ( *ind ) );
 	//f = eps - ( *pch - eps );
 	fprintf( f_run, " %lf", of );
 	for( d = 0; d < x_size; d++ )
 		fprintf( f_run, " %lf", x[d] );
 	fprintf( f_run, "\n" );
 	fflush( f_run );
-
 }
 //===========================================================
 double perf_pssa( int s, int function )

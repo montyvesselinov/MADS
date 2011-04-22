@@ -643,7 +643,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 	if(( *preds ).nObs > 0 )
 	{
 		printf( "Number of performance criterion predictions for infogap analysis = %d\n", ( *preds ).nObs );
-		preds->obs_target = ( double * ) malloc(( *preds ).nObs * sizeof( double ) ); 
+		preds->obs_target = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
 		preds->obs_current = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
 		preds->well_index = ( int * ) malloc(( *preds ).nObs * sizeof( int ) );
 		preds->time_index = ( int * ) malloc(( *preds ).nObs * sizeof( int ) );
@@ -667,7 +667,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 					if( cd->debug ) printf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 					k++;
 				}
-	} else if( (( *preds ).nObs <= 0) && (( *cd ).problem_type == INFOGAP) )
+	}
+	else if((( *preds ).nObs <= 0 ) && (( *cd ).problem_type == INFOGAP ) )
 		{ printf( "\nWeight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for infogap analysis\n\n" ); exit( 0 ); }
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf\n", &( *gd ).time );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &( *gd ).nx, &( *gd ).ny, &( *gd ).nz );
