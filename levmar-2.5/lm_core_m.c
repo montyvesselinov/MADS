@@ -201,15 +201,15 @@ int LEVMAR_DER(
 	{
 		if( op->f_ofe == NULL )
 		{
-			if( op->s > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->s );
+			if( op->counter > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->counter );
 			else sprintf( filename, "%s.ofe", op->root );
 			if( op->cd->nretries > 1 && op->cd->retry_ind > 1 ) op->f_ofe = fopen( filename, "a" );
 			else op->f_ofe = fopen( filename, "w" );
 			ofe_close = 1;
 		}
 		else ofe_close = 0;
-		if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->eval, p_eL2 ); // Print current best
-		else fprintf( op->f_ofe, "%d %g\n", op->cd->eval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
+		if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, p_eL2 ); // Print current best
+		else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
 		fflush( op->f_ofe );
 	}
 	for( k = 0; k < itmax && !stop; ++k )
@@ -267,8 +267,8 @@ int LEVMAR_DER(
 			}
 			if( op->cd->odebug )
 			{
-				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->eval, p_eL2 ); // Print current best
-				else fprintf( op->f_ofe, "%d %g\n", op->cd->eval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
+				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, p_eL2 ); // Print current best
+				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
 				fflush( op->f_ofe );
 			}
 		}
@@ -413,8 +413,8 @@ int LEVMAR_DER(
 			if( op->cd->ldebug ) printf( "OF %g lambda %g ", pDp_eL2, mu );
 			if( op->cd->odebug )
 			{
-				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->eval, pDp_eL2 ); // Print current best
-				else fprintf( op->f_ofe, "%d %g\n", op->cd->eval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
+				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, pDp_eL2 ); // Print current best
+				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
 				fflush( op->f_ofe );
 			}
 			if( !LM_FINITE( pDp_eL2 ) )
@@ -689,15 +689,15 @@ int LEVMAR_DIF(
 	{
 		if( op->f_ofe == NULL )
 		{
-			if( op->s > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->s );
+			if( op->counter > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->counter );
 			else sprintf( filename, "%s.ofe", op->root );
 			if( op->cd->nretries > 1 && op->cd->retry_ind > 1 ) op->f_ofe = fopen( filename, "a" );
 			else op->f_ofe = fopen( filename, "w" );
 			ofe_close = 1;
 		}
 		else ofe_close = 0;
-		if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->eval, p_eL2 ); // Print current best
-		else fprintf( op->f_ofe, "%d %g\n", op->cd->eval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
+		if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, p_eL2 ); // Print current best
+		else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
 		fflush( op->f_ofe );
 	}
 	for( k = 0; k < itmax && !stop; ++k )
@@ -752,8 +752,8 @@ int LEVMAR_DIF(
 			}
 			if( op->cd->odebug )
 			{
-				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->eval, p_eL2 ); // Print current best
-				else fprintf( op->f_ofe, "%d %g\n", op->cd->eval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
+				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, p_eL2 ); // Print current best
+				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
 				fflush( op->f_ofe );
 			}
 		}
@@ -898,8 +898,8 @@ int LEVMAR_DIF(
 			if( op->cd->ldebug ) printf( "OF %g lambda %g ", pDp_eL2, mu );
 			if( op->cd->odebug )
 			{
-				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->eval, pDp_eL2 ); // Print current best
-				else fprintf( op->f_ofe, "%d %g\n", op->cd->eval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
+				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, pDp_eL2 ); // Print current best
+				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
 				fflush( op->f_ofe );
 			}
 			if( !LM_FINITE( pDp_eL2 ) )

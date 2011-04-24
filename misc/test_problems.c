@@ -9,7 +9,7 @@ int set_test_problems( struct calc_data *cd, struct param_data *pd )
 {
 	int d;
 	cd->sintrans = 0; // No sin transformations
-	pd->nParam = pd->nOptParam = cd->dim;
+	pd->nParam = pd->nOptParam = cd->test_func_dim;
 	pd->nFlgParam = 0;
 	pd->var_id = char_matrix(( *pd ).nParam, 50 );
 	pd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
@@ -23,7 +23,7 @@ int set_test_problems( struct calc_data *cd, struct param_data *pd )
 	pd->var_index = ( int * ) malloc(( *pd ).nOptParam * sizeof( int ) );
 	pd->var_current = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
 	pd->var_best = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
-	for( d = 0; d < cd->dim; d++ )
+	for( d = 0; d < cd->test_func_dim; d++ )
 	{
 		sprintf( pd->var_id[d], "Parameter #%d", d + 1 );
 		pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0;
@@ -33,7 +33,7 @@ int set_test_problems( struct calc_data *cd, struct param_data *pd )
 		pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 		pd->var_index[d] = d;
 	}
-	switch( cd->test )
+	switch( cd->test_func )
 	{
 		case 0: // Parabola (Sphere)
 			printf( "Parabola (Sphere)" );
@@ -47,7 +47,7 @@ int set_test_problems( struct calc_data *cd, struct param_data *pd )
 		case 3: // Rosenbrock
 			printf( "Rosenbrock" );
 			if( cd->problem_type == ABAGUS )
-				for( d = 0; d < cd->dim; d++ )
+				for( d = 0; d < cd->test_func_dim; d++ )
 					pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0;
 			break;
 		case 4: // Step
@@ -55,7 +55,7 @@ int set_test_problems( struct calc_data *cd, struct param_data *pd )
 			break;
 		case 6: //Foxholes 2D
 			printf( "Foxholes 2D" );
-			if( cd->dim != 2 ) cd->dim = 2;
+			if( cd->test_func_dim != 2 ) cd->test_func_dim = 2;
 			break;
 		case 7: // Polynomial fitting problem on [-100 100]^9
 			printf( "Polynomial fitting" );
@@ -71,14 +71,14 @@ int set_test_problems( struct calc_data *cd, struct param_data *pd )
 			break;
 		case 13: // 2D Tripod function (Louis Gacogne) Search [-100, 100]^2. min 0 on (0  -50)
 			printf( "2D Tripod function" );
-			if( cd->dim != 2 ) cd->dim = 2;
+			if( cd->test_func_dim != 2 ) cd->test_func_dim = 2;
 			break;
 		case 17: // KrishnaKumar
 			printf( "Krishna Kumar" );
 			break;
 		case 18: // Eason 2D (usually on [-100,100] Minimum -1 on (pi,pi)
 			printf( "Eason 2D " );
-			if( cd->dim != 2 ) cd->dim = 2;
+			if( cd->test_func_dim != 2 ) cd->test_func_dim = 2;
 			break;
 	}
 	return( 0 );

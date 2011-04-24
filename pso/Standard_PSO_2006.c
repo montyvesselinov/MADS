@@ -262,7 +262,7 @@ init:
 	{
 		if( op->f_ofe == NULL )
 		{
-			if( op->s > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->s );
+			if( op->counter > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->counter );
 			else sprintf( filename, "%s.ofe", op->root );
 			op->f_ofe = fopen( filename, "w" );
 			ofe_close = 1;
@@ -341,8 +341,8 @@ loop:
 		}
 	}
 	if( lmo_flag && ( loop_count > D * 10 || nb_eval * 2 > eval_max ) ) position_lm_std( op, &P[best] );
-	if( gop->cd->pdebug ) printf( "OF %g E %d\n", P[best].f, gop->cd->eval );
-	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", gop->cd->eval, P[best].f ); fflush( gop->f_ofe ); }
+	if( gop->cd->pdebug ) printf( "OF %g E %d\n", P[best].f, gop->cd->neval );
+	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", gop->cd->neval, P[best].f ); fflush( gop->f_ofe ); }
 	// Check if finished
 	// If no improvement, information links will be reinitialized
 	error = P[best].f;
@@ -605,12 +605,12 @@ void position_lm_std( struct opt_data *op, struct position *P )
 	int d;
 	for( d = 0; d < D; d++ )
 		op->pd->var[op->pd->var_index[d]] = ( *P ).x[d];
-	d = gop->cd->eval;
+	d = gop->cd->neval;
 	gop->cd->standalone = 0;
 	optimize_lm( op );
 	gop->cd->standalone = 1;
-	nb_eval += gop->cd->eval - d; // add the number of evaluations performed within LM
-	if( gop->cd->pdebug ) printf( "%d %d %d OF %g -> %g\n", d, nb_eval, gop->cd->eval - d, ( *P ).f, op->phi );
+	nb_eval += gop->cd->neval - d; // add the number of evaluations performed within LM
+	if( gop->cd->pdebug ) printf( "%d %d %d OF %g -> %g\n", d, nb_eval, gop->cd->neval - d, ( *P ).f, op->phi );
 	for( d = 0; d < D; d++ )
 		( *P ).x[d] = asin( sin( op->pd->var[op->pd->var_index[d]] ) ); // keep the estimates within the initial range ...
 	( *P ).f = op->phi;

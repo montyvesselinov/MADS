@@ -246,10 +246,10 @@ int pssa( struct opt_data *op )
 				if(( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
 					err =  op->wd->obs_target[i][j] - op->wd->obs_min[i][j];
 				else err = op->wd->obs_max[i][j] - op->wd->obs_target[i][j];
-				if( op->cd->objfunc != SSR )
+				if( op->cd->objfunc_type != SSR )
 				{
-					if( op->cd->objfunc == SSD0 ) err = 0;
-					if( op->cd->objfunc == SSDA )
+					if( op->cd->objfunc_type == SSD0 ) err = 0;
+					if( op->cd->objfunc_type == SSDA )
 						err = sqrt( fabs( err ) );
 				}
 			}

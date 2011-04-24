@@ -38,7 +38,6 @@ int mprun( int nJob, void *data );
 int Ftest( char *filename );
 time_t Fdatetime_t( char *filename, int debug );
 
-
 int func_extrn( double *x, void *data, double *f )
 {
 	struct opt_data *p = ( struct opt_data * )data;
@@ -47,17 +46,17 @@ int func_extrn( double *x, void *data, double *f )
 	int i, k, status, status_all = 1, bad_data = 0;
 	if( p->cd->num_proc > 1 ) // Parallel execution of a serial job to archive all the intermediate results
 	{
-		func_extrn_write( p->cd->eval + 1, x, data );
+		func_extrn_write( p->cd->neval + 1, x, data );
 		if( mprun( 1, data ) < 0 ) // Perform one (1) run in parallel
 		{
 			printf( "ERROR: there is a problem with the parallel execution!\n" );
 			exit( 1 );
 		}
-		bad_data = func_extrn_read( p->cd->eval, data, f ); // p->cd->eval was already incremented in mprun
+		bad_data = func_extrn_read( p->cd->neval, data, f ); // p->cd->eval was already incremented in mprun
 		if( bad_data ) exit( -1 );
 		return GSL_SUCCESS; // DONE
 	}
-	p->cd->eval++;
+	p->cd->neval++;
 	DeTransform( x, p, p->pd->var_current );
 	if( p->cd->fdebug >= 3 ) printf( "Model parameters:\n" );
 	for( i = 0; i < p->pd->nOptParam; i++ )
@@ -82,13 +81,13 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->cd->fdebug >= 4 )
 	{
 		printf( "Objective function: " );
-		switch( p->cd->objfunc )
+		switch( p->cd->objfunc_type )
 		{
 			case SSR: printf( "sum of squared residuals" ); break;
 			case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
 			case SSDA: printf( "sum of squared discrepancies and absolute residuals" ); break;
 			case SSD0: printf( "sum of squared discrepancies" ); break;
-			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc = SSR; break;
+			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 		}
 	}
 	for( i = 0; i < p->ed->ntpl; i++ )
@@ -130,10 +129,10 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
-			if( p->cd->objfunc != SSR )
+			if( p->cd->objfunc_type != SSR )
 			{
-				if( p->cd->objfunc == SSD0 ) err = 0;
-				else if( p->cd->objfunc == SSDA )
+				if( p->cd->objfunc_type == SSD0 ) err = 0;
+				else if( p->cd->objfunc_type == SSDA )
 				{
 					err = sqrt( fabs( err ) );
 					if( c < t ) err *= -1;
@@ -204,13 +203,13 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	if( p->cd->fdebug >= 4 )
 	{
 		printf( "Objective function: " );
-		switch( p->cd->objfunc )
+		switch( p->cd->objfunc_type )
 		{
 			case SSR: printf( "sum of squared residuals" ); break;
 			case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
 			case SSDA: printf( "sum of squared discrepancies and absolute residuals" ); break;
 			case SSD0: printf( "sum of squared discrepancies" ); break;
-			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc = SSR; break;
+			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 		}
 	}
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
@@ -247,7 +246,7 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
-	p->cd->eval++;
+	p->cd->neval++;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "\nWorking directory: ../%s\n", dir );
 	if( p->cd->pardebug > 1 )
@@ -345,10 +344,10 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
-			if( p->cd->objfunc != SSR )
+			if( p->cd->objfunc_type != SSR )
 			{
-				if( p->cd->objfunc == SSD0 ) err = 0;
-				else if( p->cd->objfunc == SSDA )
+				if( p->cd->objfunc_type == SSD0 ) err = 0;
+				else if( p->cd->objfunc_type == SSDA )
 				{
 					err = sqrt( fabs( err ) );
 					if( c < t ) err *= -1;
@@ -395,7 +394,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	int i, j, k, status, status_all = 1;
 	double c, t, c1, c2, err, phi = 0.0;
 	struct opt_data *p = ( struct opt_data * )data;
-	p->cd->eval++;
+	p->cd->neval++;
 	DeTransform( x, p, p->pd->var_current );
 	if( p->cd->fdebug >= 3 ) printf( "Model parameters:\n" );
 	for( i = 0; i < p->pd->nOptParam; i++ )
@@ -420,18 +419,18 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	if( p->cd->fdebug >= 4 )
 	{
 		printf( "Objective function: " );
-		switch( p->cd->objfunc )
+		switch( p->cd->objfunc_type )
 		{
 			case SSR: printf( "sum of squared residuals" ); break;
 			case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
 			case SSDA: printf( "sum of squared discrepancies and absolute residuals" ); break;
 			case SSD0: printf( "sum of squared discrepancies" ); break;
-			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc = SSR; break;
+			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 		}
 	}
 	if( p->cd->solution_type == TEST )
 	{
-		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test, p->cd->var );
+		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var );
 		if( p->cd->fdebug >= 2 ) printf( "Test OF %g\n", phi );
 	}
 	else
@@ -466,10 +465,10 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->wd->obs_log[i][j] == 0 )
 			{
 				err = c - p->wd->obs_target[i][j];
-				if( p->cd->objfunc != SSR )
+				if( p->cd->objfunc_type != SSR )
 				{
-					if( p->cd->objfunc == SSD0 ) err = 0;
-					if( p->cd->objfunc == SSDA )
+					if( p->cd->objfunc_type == SSD0 ) err = 0;
+					if( p->cd->objfunc_type == SSDA )
 					{
 						err = sqrt( fabs( err ) );
 						if( c < p->wd->obs_target[i][j] ) err *= -1;
@@ -538,7 +537,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	double *f_xpdx;
 	double x_old, dx;
 	int i, j, k, compute_center = 0, bad_data = 0, ieval;
-	ieval = p->cd->eval;
+	ieval = p->cd->neval;
 	if(( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
 	if( p->cd->num_proc > 1 && p->cd->solution_type == EXTERNAL ) // Parallel execution of external runs

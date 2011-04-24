@@ -293,7 +293,7 @@ int pso_tribes( struct opt_data *op )
 	{
 		if( op->f_ofe == NULL )
 		{
-			if( op->s > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->s );
+			if( op->counter > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->counter );
 			else sprintf( filename, "%s.ofe", op->root );
 			op->f_ofe = fopen( filename, "w" );
 			ofe_close = 1;
@@ -1235,10 +1235,10 @@ void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 	int d;
 	for( d = 0; d < ( *pb ).D; d++ )
 		op->pd->var[op->pd->var_index[d]] = ( *P ).x[d];
-	d = gop->cd->eval;
+	d = gop->cd->neval;
 	op->phi = ( *P ).f.f[0];
 	optimize_lm( op );
-	eval += gop->cd->eval - d; // add the number of evaluations performed within LM
+	eval += gop->cd->neval - d; // add the number of evaluations performed within LM
 	for( d = 0; d < ( *pb ).D; d++ )
 		( *P ).x[d] = asin( sin( op->pd->var[op->pd->var_index[d]] ) ); // keep the estimates within the initial range ...
 	( *P ).f.f[0] = op->phi;
