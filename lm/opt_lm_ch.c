@@ -16,8 +16,8 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 {
 	int     imjc, ieval, ibad, isw, iter, j, ijac, i, ier, k, l, is, js, icount, izero, label;
 	double   al, cons2, dnorm, dsq, erl2, erl2x, f0, f0sq, f0sqs4, g, hh, onesf0, ax,
-		 prec, rel, rhh, sig, sqdif, ssqold, sum, xdif, xhold, up, xdabs,
-		 relcon, delta2, temp;
+			 prec, rel, rhh, sig, sqdif, ssqold, sum, xdif, xhold, up, xdabs,
+			 relcon, delta2, temp;
 	double  *work, *grad, *delx, *scall, *xnew, *xbad, *fplus, *fminus;
 	sig = 6.3;
 	ax = 0.1;
@@ -28,21 +28,21 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 	prec = pow( 10., -sig - 1. );
 	rel = pow( 10., -sig * 0.5 );
 	relcon = pow( 10., ( double ) - nsig );
-	if(( work = ( double * ) malloc( sizeof( double ) * ( n + 1 ) * n / 2 ) ) == NULL )
+	if( ( work = ( double * ) malloc( sizeof( double ) * ( n + 1 ) * n / 2 ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if(( grad = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
+	if( ( grad = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if(( delx = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
+	if( ( delx = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if(( scall = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
+	if( ( scall = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if(( xnew = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
+	if( ( xnew = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if(( xbad = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
+	if( ( xbad = ( double * ) malloc( sizeof( double ) * n ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if(( fplus = ( double * ) malloc( sizeof( double ) * m ) ) == NULL )
+	if( ( fplus = ( double * ) malloc( sizeof( double ) * m ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if(( fminus = ( double * ) malloc( sizeof( double ) * m ) ) == NULL )
+	if( ( fminus = ( double * ) malloc( sizeof( double ) * m ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
 	imjc = ixjac - m;
 	al = 1.;
@@ -207,7 +207,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 					{
 						for( j = 0; j <= i; j++, k++ )
 							work[k] = xjtj[k];
-						work[k-1] += scall[i] * al;
+						work[k - 1] += scall[i] * al;
 						delx[i] = grad[i];
 					}
 					/*
@@ -240,7 +240,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 								{
 									for( j = 0; j <= i; j++, k++ )
 										work[k] = xjtj[k];
-									work[k-1] = 1.5 * ( xjtj[k-1] + al * erl2 * scall[i] ) + rel;
+									work[k - 1] = 1.5 * ( xjtj[k - 1] + al * erl2 * scall[i] ) + rel;
 								}
 								ibad = 2;
 								label = 155;
@@ -335,7 +335,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 			temp = -log10( xhold ) + log10( temp );
 			g = g < temp ? g : temp;
 		}
-		if( n <= 2 ) { for( j = 0; j < n; j++ ) work[j+5] = grad[j]; }
+		if( n <= 2 ) { for( j = 0; j < n; j++ ) work[j + 5] = grad[j]; }
 		work[0] = erl2 + erl2;
 		work[1] = ieval;
 		work[2] = g;

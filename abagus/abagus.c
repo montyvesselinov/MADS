@@ -124,8 +124,8 @@ void write_loc( double of, double *x, int x_size, int *ind );
 double alea( double a, double b );
 int alea_integer( int a, int b );
 // in ../mads.c
-int DeTransform( double *x, void *data, double *f );
-int Transform( double *x, void *data, double *f );
+void DeTransform( double *x, void *data, double *f );
+void Transform( double *x, void *data, double *f );
 int get_seed( );
 
 // Global variables

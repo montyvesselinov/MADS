@@ -116,8 +116,8 @@ int alea_integer( int a, int b );
 double perf( int s, int function ); // Fitness evaluation
 
 // Functions elsewhere
-int Transform( double *x, void *data, double *f );
-int DeTransform( double *x, void *data, double *f );
+void Transform( double *x, void *data, double *f );
+void DeTransform( double *x, void *data, double *f );
 int get_seed( );
 void position_lm_std( struct opt_data *op, struct position *P );
 int optimize_lm( struct opt_data *op );

@@ -1,6 +1,8 @@
 #include <gsl/gsl_vector.h>
 #include <stdio.h>
 #include <time.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
 
 enum PROBLEM_TYPE {UNKNOWN = -2, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, INFOGAP, POSTPUA };
 enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
@@ -8,13 +10,7 @@ enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3 };
 enum PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END, POROSITY, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ };
 
-struct problem_data
-{
-	int narg;
-	char **arg;
-};
-
-int (*func)( double *x, void *data, double *f ); // model evaluation func (external or internal)
+int (*func)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 
 struct opt_data // TODO class MADS (in C++)
 {
@@ -58,6 +54,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int restart; // flag restart for parallel jobs
 	int njob; // number of parallel jobs
 	int energy; // starting energy for pssa particles
+	double lmfactor;
 	char *solution_id; // solution identifier (name)
 	char *opt_method; // optimization method identifier
 	char *smp_method; // sampling method identifier
@@ -113,12 +110,12 @@ struct param_data // data structure for model parameters
 	double *var_range; // parameter range: range = max - min
 	double *var_current; // parameter value (current)
 	double *var_best; // parameter value (current best)
-	gsl_vector *var_current_gsl;
+	gsl_vector *var_current_gsl; // current model parameters as GSL vector
 };
 
 struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 {
-	int nObs; // number of obsevration for calibration: nObs = nTObs - nPreds
+	int nObs; // number of observation for calibration: nObs = nTObs - nPreds
 	int nTObs; // total number of observations: nTObs = nObs + nPreds
 	int nPreds; // number of performance criterion prediction: nPreds = nTObs - nObs
 	char **obs_id; // observation identifier (name) 
@@ -135,7 +132,7 @@ struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 	double *obs_min; // observation min
 	double *obs_max; // observation max
 	double *res; // current residual: res = obs_target - obs_current
-	gsl_vector *obs_current_gsl; // // current model predicted observation as GSL vector; NOTE: redundant
+	gsl_vector *obs_current_gsl; // current model predicted observation as GSL vector; NOTE: redundant
 };
 
 struct well_data // data structure for well data (INTERNAL PROBLEM)
@@ -188,7 +185,7 @@ struct extrn_data // data structure for external problem
 	char **fn_out; // model input filename associated with the template file
 	int nins; // number of instruction files
 	char **fn_ins; // instruction filename
-	char **fn_obs; // // model output filename associated with the instruction file
+	char **fn_obs; // model output filename associated with the instruction file
 };
 
 struct gsens_data // global sensitivity analysis data structure
@@ -203,5 +200,54 @@ struct gsens_data // global sensitivity analysis data structure
 	double D_hat_t;		// total output variance
 	double *D_hat; 		// component output variance (\hat{D}_i)
 	double *D_hat_n; 	// not component output variance (\hat{D}_{~i})
-	double ep;		// absolute first moment
+	double ep;          // absolute first moment
 };
+
+// mads.c
+int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
+int optimize_pso( struct opt_data *op ); // PSO optimization
+int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
+void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op ); // Random sampling
+void print_results( struct opt_data *op ); // Print final results
+void save_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
+void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
+void ave_sorted( double data[], int n, double *ave, double *ep );
+char *timestamp(); // create time stamp
+char *datestamp(); // create date stamp
+// mads_func.c
+int func_extrn( double *x, void *data, double *f );
+int func_extrn_write( int ieval, double *x, void *data );
+int func_extrn_read( int ieval, void *data, double *f );
+int func_extrn_check_read( int ieval, void *data );
+int func_extrn_r( double *x, void *data, double *f );
+int func_intrn( double *x, void *data, double *f );
+void func_levmar( double *x, double *f, int m, int n, void *data );
+void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data );
+int func_dx( double *x, double *f_x, void *data, double *jacobian );
+double func_solver( double x, double y, double z1, double z2, double t, void *data );
+double func_solver1( double x, double y, double z, double t, void *data );
+void Transform( double *v, void *data, double *vt );
+void DeTransform( double *v, void *data, double *vt );
+// mads_mem.c
+char **char_matrix( int maxCols, int maxRows );
+float **float_matrix( int maxCols, int maxRows );
+double **double_matrix( int maxCols, int maxRows );
+void free_matrix( void **matrix, int maxCols );
+void zero_double_matrix( double **matrix, int maxCols, int maxRows );
+void *malloc_check( const char *what, size_t n );
+char *white_trim( char *x );
+void white_skip( char **s );
+// mads_io.c
+int parse_cmd( char *buf, struct calc_data *cd );
+int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
+int save_problem( char *filename, struct opt_data *op );
+void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
+void compute_btc2( char *filename, struct opt_data *op );
+void compute_btc( char *filename, struct opt_data *op );
+// pesting/pesting.c
+int load_pst( char *filename, struct opt_data *op );
+int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
+int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
+int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
+int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
+

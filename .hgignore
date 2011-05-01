@@ -29,6 +29,7 @@ mads
 *.running
 *.s_point
 *.s_well
+*.ofe
 # Genereal files
 *.vtk
 *.btc

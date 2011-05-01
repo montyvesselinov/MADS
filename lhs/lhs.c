@@ -20,31 +20,31 @@ void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x_int[] )
 {
 	int *avail, best, count, i, j, k, *list, *point, point_index;
 	double dist, min_all, min_can, opt;
-	if(( avail = ( int * ) malloc( nvar * npoint * sizeof( int ) ) ) == NULL )
+	if( ( avail = ( int * ) malloc( nvar * npoint * sizeof( int ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return; }
-	if(( list = ( int * ) malloc( d * npoint * sizeof( int ) ) ) == NULL )
+	if( ( list = ( int * ) malloc( d * npoint * sizeof( int ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return; }
-	if(( point = ( int * ) malloc( nvar * d * npoint * sizeof( int ) ) ) == NULL )
+	if( ( point = ( int * ) malloc( nvar * d * npoint * sizeof( int ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return; }
-	opt = (( double ) npoint ) / pow(( double ) npoint, ( double )( 1.0 / ( double ) nvar ) );
+	opt = ( ( double ) npoint ) / pow( ( double ) npoint, ( double )( 1.0 / ( double ) nvar ) );
 	for( i = 0; i < nvar; i++ )
-		x_int[i+( npoint-1 )*nvar] = ( double ) int_uniform( 1, npoint, seed );
+		x_int[i + ( npoint - 1 )*nvar] = ( double ) int_uniform( 1, npoint, seed );
 	for( j = 0; j < npoint; j++ )
 		for( i = 0; i < nvar; i++ )
-			avail[i+j *nvar] = j + 1;
+			avail[i + j * nvar] = j + 1;
 	for( i = 0; i < nvar; i++ )
-		avail[i+((( int ) x_int[i+( npoint-1 )*nvar] ) - 1 )*nvar] = npoint;
+		avail[i + ( ( ( int ) x_int[i + ( npoint - 1 )*nvar] ) - 1 )*nvar] = npoint;
 	for( count = npoint - 1; 2 <= count; count-- )
 	{
 		for( i = 0; i < nvar; i++ )
 		{
 			for( k = 0; k < d; k++ )
 				for( j = 0; j < count; j++ )
-					list[j+k *count] = avail[i+j*nvar];
+					list[j + k * count] = avail[i + j * nvar];
 			for( k = count * d - 1; 0 <= k; k-- )
 			{
 				point_index = int_uniform( 0, k, seed );
-				point[i+k *nvar] = list[point_index];
+				point[i + k * nvar] = list[point_index];
 				list[point_index] = list[k];
 			}
 		}
@@ -57,7 +57,7 @@ void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x_int[] )
 			{
 				dist = 0.0;
 				for( i = 0; i < nvar; i++ )
-					dist += ( point[i+k*nvar] - x_int[i+j*nvar] ) * ( point[i+k*nvar] - x_int[i+j*nvar] );
+					dist += ( point[i + k * nvar] - x_int[i + j * nvar] ) * ( point[i + k * nvar] - x_int[i + j * nvar] );
 				dist = sqrt( dist );
 				if( dist < min_can ) min_can = dist;
 			}
@@ -68,16 +68,16 @@ void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x_int[] )
 			}
 		}
 		for( i = 0; i < nvar; i++ )
-			x_int[i+( count-1 )*nvar] = point[i+best*nvar];
+			x_int[i + ( count - 1 )*nvar] = point[i + best * nvar];
 		for( i = 0; i < nvar; i++ )
 			for( j = 0; j < npoint; j++ )
-				if( avail[i+j *nvar] == x_int[i+( count-1 )*nvar] ) avail[i+j *nvar] = avail[i+( count-1 )*nvar];
+				if( avail[i + j * nvar] == x_int[i + ( count - 1 )*nvar] ) avail[i + j * nvar] = avail[i + ( count - 1 ) * nvar];
 	}
 	for( i = 0; i < nvar; i++ )
-		x_int[i+0*nvar] = avail[i+0*nvar];
+		x_int[i + 0 * nvar] = avail[i + 0 * nvar];
 	for( j = 0; j < npoint; j++ )
 		for( i = 0; i < nvar; i++ )
-			x_int[i+j *nvar] /= ( double ) npoint;
+			x_int[i + j * nvar] /= ( double ) npoint;
 	free( avail ); free( list ); free( point );
 }
 
@@ -88,7 +88,7 @@ void lhs_center( int nvar, int npoint, int *seed, double x[] )
 	{
 		perm = perm_uniform( npoint, base, seed );
 		for( j = 0; j < npoint; j++ )
-			x[k++] = ((( double ) perm[j] ) + 0.5 ) / (( double ) npoint );
+			x[k++] = ( ( ( double ) perm[j] ) + 0.5 ) / ( ( double ) npoint );
 		free( perm );
 	}
 }
@@ -111,7 +111,7 @@ void lhs_random( int nvar, int npoint, int *seed, double x[] )
 		for( j = 0; j < npoint; j++ )
 		{
 			r = float_uniform( seed );
-			x[k++] = ((( double ) perm[j] ) + r ) / (( double ) npoint );
+			x[k++] = ( ( ( double ) perm[j] ) + r ) / ( ( double ) npoint );
 		}
 		free( perm );
 	}
@@ -128,7 +128,7 @@ void lhs_edge( int nvar, int npoint, int *seed, double x[] )
 		{
 			perm = perm_uniform( npoint, base, seed );
 			for( j = 0; j < npoint; j++ )
-				x[k++] = (( double ) perm[j] ) / (( float )( npoint - 1 ) );
+				x[k++] = ( ( double ) perm[j] ) / ( ( float )( npoint - 1 ) );
 			free( perm );
 		}
 }
@@ -136,7 +136,7 @@ void lhs_edge( int nvar, int npoint, int *seed, double x[] )
 int *perm_uniform( int n, int base, int *seed )
 {
 	int i, j, k, *p;
-	if(( p = ( int * ) malloc( n * sizeof( int ) ) ) == NULL )
+	if( ( p = ( int * ) malloc( n * sizeof( int ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( NULL ); }
 	for( i = 0; i < n; i++ )
 		p[i] = i + base;
@@ -165,7 +165,7 @@ double float_uniform( int *seed )
 	k = *seed / 127773;
 	*seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
 	if( *seed < 0 ) *seed += 2147483647;
-	return(( double )( *seed ) * 4.656612875E-10 );
+	return( ( double )( *seed ) * 4.656612875E-10 );
 }
 
 int int_uniform( int a, int b, int *seed )
@@ -179,7 +179,7 @@ int int_uniform( int a, int b, int *seed )
 	if( *seed < 0 ) *seed += 2147483647;
 	r = ( float )( *seed ) * 4.656612875E-10;
 	//  Scale R to lie between A-0.5 and B+0.5.
-	r = ( 1.0 - r ) * (( float )( int_min( a, b ) ) - 0.5 ) +  r  * (( float )( int_max( a, b ) ) + 0.5 );
+	r = ( 1.0 - r ) * ( ( float )( int_min( a, b ) ) - 0.5 ) +  r  * ( ( float )( int_max( a, b ) ) + 0.5 );
 	//  Use rounding to convert R to an integer between A and B.
 	value = nint( r );
 	value = int_max( value, int_min( a, b ) );
@@ -203,8 +203,7 @@ int get_seed( )
 	isec = lt->tm_sec;
 	seed = isec + 60 * ( imin + 60 * ihour );
 	seed = seed + 1;
-	//  Remap *seed from [1,43200] to [1,2147483647].
-	seed = ( int )((( double ) seed ) * (( double ) 2147483647 ) / ( 60.0 * 60.0 * 12.0 ) );
+	seed = ( int )( ( ( double ) seed ) * ( ( double ) 2147483647 ) / ( 60.0 * 60.0 * 12.0 ) ); 	//  Remap *seed from [1,43200] to [1,2147483647].
 	if( seed == 0 ) seed = 1;
 	printf( "Seed: %d\n", seed );
 	return seed;
