@@ -17,10 +17,10 @@ char **char_matrix( int maxCols, int maxRows )
 {
 	char **matrix;
 	int i;
-	if( ( matrix = ( char ** ) malloc( maxCols * sizeof( char * ) ) ) == NULL )
+	if(( matrix = ( char ** ) malloc( maxCols * sizeof( char * ) ) ) == NULL )
 		return( NULL );
 	for( i = 0; i < maxCols; i++ )
-		if( ( matrix[i] = ( char * ) malloc( maxRows * sizeof( char ) ) ) == NULL )
+		if(( matrix[i] = ( char * ) malloc( maxRows * sizeof( char ) ) ) == NULL )
 		{
 			for( i--; i >= 0; i-- )
 				free( matrix[i] );
@@ -34,10 +34,10 @@ float **float_matrix( int maxCols, int maxRows )
 {
 	float **matrix;
 	int i;
-	if( ( matrix = ( float ** ) malloc( maxCols * sizeof( float * ) ) ) == NULL )
+	if(( matrix = ( float ** ) malloc( maxCols * sizeof( float * ) ) ) == NULL )
 		return( NULL );
 	for( i = 0; i < maxCols; i++ )
-		if( ( matrix[i] = ( float * ) malloc( maxRows * sizeof( float ) ) ) == NULL )
+		if(( matrix[i] = ( float * ) malloc( maxRows * sizeof( float ) ) ) == NULL )
 		{
 			for( i--; i >= 0; i-- )
 				free( matrix[i] );
@@ -51,10 +51,10 @@ double **double_matrix( int maxCols, int maxRows )
 {
 	double **matrix;
 	int i;
-	if( ( matrix = ( double ** ) malloc( maxCols * sizeof( double * ) ) ) == NULL )
+	if(( matrix = ( double ** ) malloc( maxCols * sizeof( double * ) ) ) == NULL )
 		return( NULL );
 	for( i = 0; i < maxCols; i++ )
-		if( ( matrix[i] = ( double * ) malloc( maxRows * sizeof( double ) ) ) == NULL )
+		if(( matrix[i] = ( double * ) malloc( maxRows * sizeof( double ) ) ) == NULL )
 		{
 			for( i--; i >= 0; i-- )
 				free( matrix[i] );

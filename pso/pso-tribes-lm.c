@@ -262,15 +262,13 @@ int pso_tribes( struct opt_data *op )
 		errorMean[n] /= pb.repeat;
 		successRate[n] /= pb.repeat;
 	}
-	if( op->cd->pdebug > 1 )
+	if( op->cd->pdebug && pb.repeat > 1 )
 	{
 		printf( "\nMean errors:" );
 		for( n = 0; n < pb.nPhi; n++ ) printf( " %g", errorMean[n] );
 		printf( "\nSuccess rate: " );
 		for( n = 0; n < pb.nPhi; n++ ) printf( " %g", successRate[n] );
-		printf( "\n\n" );
-//	printf( "\nBest result:\n" );
-//	position_print(bestBest);
+		printf( "\nBest result: " );
 		objfunc_print( &bestBest.f );
 	}
 	if( pb.repeat > 1 )

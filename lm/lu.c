@@ -30,7 +30,7 @@ int lu_decomposition( double a[], double ul[], int n )
 					x -= ul[k] * ul[ir++];
 			if( j == i )
 			{
-				if( ( a[ip] + x * rn ) <= a[ip] )
+				if(( a[ip] + x * rn ) <= a[ip] )
 					return( 1 );
 				ul[ip] = ( double ) 1.0 / sqrt( x );
 			}

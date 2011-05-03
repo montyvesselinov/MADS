@@ -143,7 +143,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-	if( ( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) && cd->nreal == 0 ) cd->nreal = 100;
+	if(( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) && cd->nreal == 0 ) cd->nreal = 100;
 	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { strcat( cd->opt_method, "_paran" ); cd->paranoid = 1; }
 	if( cd->test_func >= 0 ) { printf( "Test %d Dimensionality %d\n", cd->test_func, cd->test_func_dim ); }
 	printf( "Problem type: " );
@@ -255,11 +255,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		printf( "Debug level for Particle-Swarm optimization progress: pdebug= %d\n", cd->pdebug );
 		printf( "Debug level for objective function progress: odebug=%d\n", cd->odebug );
 	}
-	if( ( cd->debug || cd->mdebug ) && cd->problem_type != CREATE && cd->problem_type != EIGEN )
+	if(( cd->debug || cd->mdebug ) && cd->problem_type != CREATE && cd->problem_type != EIGEN )
 		printf( "Debug level for random sets: mdebug=%d\n", cd->mdebug );
-	if( ( cd->debug || cd->pardebug ) && cd->num_proc > 1 )
+	if(( cd->debug || cd->pardebug ) && cd->num_proc > 1 )
 		printf( "Debug level for parallel execution: pardebug=%d\n", cd->pardebug );
-	if( ( cd->debug || cd->tpldebug || cd->insdebug ) && cd->solution_type == EXTERNAL )
+	if(( cd->debug || cd->tpldebug || cd->insdebug ) && cd->solution_type == EXTERNAL )
 	{
 		printf( "Debug level for template file: tpldebug=%d\n", cd->tpldebug );
 		printf( "Debug level for instruction file: insdebug=%d\n", cd->insdebug );
@@ -289,11 +289,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	gd = op->gd;
 	ed = op->ed;
 	bad_data = 0;
-	if( ( infile = fopen( filename, "r" ) ) == NULL )
+	if(( infile = fopen( filename, "r" ) ) == NULL )
 	{
 		printf( "File \'%s\' cannot be opened to read problem information!\n", filename );
 		sprintf( filename, "%s.in", op->root );
-		if( ( infile = fopen( filename, "r" ) ) == NULL )
+		if(( infile = fopen( filename, "r" ) ) == NULL )
 			nofile = 1;
 		else
 			printf( "WARNING: File \'%s\' is opened to read problem information!\n", filename );
@@ -310,15 +310,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( parse_cmd( buf, cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 	// Read Solution Type
 	cd->solution_id = ( char * ) malloc( 50 * sizeof( char ) ); ( *cd ).solution_id[0] = 0;
-	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fscanf( infile, "%s\n", ( *cd ).solution_id ); sscanf( ( *cd ).solution_id, "%d",  &( *cd ).solution_type ); }
-	if( strcasestr( ( *cd ).solution_id, "ext" ) )( *cd ).solution_type = EXTERNAL;
-	if( strcasestr( ( *cd ).solution_id, "poi" ) )( *cd ).solution_type = POINT;
-	if( strcasestr( ( *cd ).solution_id, "rec" ) ) { if( strcasestr( ( *cd ).solution_id, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
-	if( strcasestr( ( *cd ).solution_id, "box" ) )( *cd ).solution_type = BOX;
-	if( strcasestr( ( *cd ).solution_id, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type = TEST; od->nObs = 0; }
+	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fscanf( infile, "%s\n", ( *cd ).solution_id ); sscanf(( *cd ).solution_id, "%d",  &( *cd ).solution_type ); }
+	if( strcasestr(( *cd ).solution_id, "ext" ) )( *cd ).solution_type = EXTERNAL;
+	if( strcasestr(( *cd ).solution_id, "poi" ) )( *cd ).solution_type = POINT;
+	if( strcasestr(( *cd ).solution_id, "rec" ) ) { if( strcasestr(( *cd ).solution_id, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
+	if( strcasestr(( *cd ).solution_id, "box" ) )( *cd ).solution_type = BOX;
+	if( strcasestr(( *cd ).solution_id, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type = TEST; od->nObs = 0; }
 	if( nofile )
 	{
-		if( ( *cd ).solution_type != TEST )
+		if(( *cd ).solution_type != TEST )
 		{
 			printf( "\nERROR: Input file is needed!\n\n" );
 			return( -1 );
@@ -330,30 +330,30 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 	}
 	printf( "\nModel: " );
-	switch( ( *cd ).solution_type )
+	switch(( *cd ).solution_type )
 	{
-		case EXTERNAL: { printf( "external" ); strcpy( ( *cd ).solution_id, "external" ); break; }
-		case POINT: { printf( "internal | point contaminant source" ); strcpy( ( *cd ).solution_id, "point" ); break; }
-		case PLANE: { printf( "internal | rectangular contaminant source" ); strcpy( ( *cd ).solution_id, "rect" ); break; }
-		case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcpy( ( *cd ).solution_id, "rect_vert" ); break; }
-		case BOX: { printf( "internal | box contaminant source" ); strcpy( ( *cd ).solution_id, "box" ); break; }
-		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); printf( " dimensionality %d", ( *pd ).nOptParam ); strcpy( ( *cd ).solution_id, "test" ); break; }
+		case EXTERNAL: { printf( "external" ); strcpy(( *cd ).solution_id, "external" ); break; }
+		case POINT: { printf( "internal | point contaminant source" ); strcpy(( *cd ).solution_id, "point" ); break; }
+		case PLANE: { printf( "internal | rectangular contaminant source" ); strcpy(( *cd ).solution_id, "rect" ); break; }
+		case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcpy(( *cd ).solution_id, "rect_vert" ); break; }
+		case BOX: { printf( "internal | box contaminant source" ); strcpy(( *cd ).solution_id, "box" ); break; }
+		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); printf( " dimensionality %d", ( *pd ).nOptParam ); strcpy(( *cd ).solution_id, "test" ); break; }
 		default: printf( "WARNING! UNDEFINED model type!" );
 	}
 	printf( "\n" );
-	if( ( *cd ).solution_type == TEST ) return( 1 );
+	if(( *cd ).solution_type == TEST ) return( 1 );
 	// Read parameters
 	if( skip == 0 ) fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &( *pd ).nParam );
 	printf( "\nNumber of model parameters: %d\n", ( *pd ).nParam );
-	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
-	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_opt = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_log = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_dx = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_id = char_matrix(( *pd ).nParam, 50 );
+	pd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	cd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_opt = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
+	pd->var_log = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
+	pd->var_dx = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_min = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_max = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_range = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
 	( *pd ).nOptParam = ( *pd ).nFlgParam = 0;
 	for( i = 0; i < ( *pd ).nParam; i++ )
 	{
@@ -363,14 +363,14 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		( *cd ).var[i] = ( *pd ).var[i];
 //		if( (*pd).var_log[i] == 1 ) { (*pd).var[i] = log10( (*pd).var[i] ); (*pd).var_min[i] = log10( (*pd).var_min[i] ); (*pd).var_max[i] = log10( (*pd).var_max[i] ); }
 		if( cd->debug ) printf( "init %17.12g opt %1d log %1d step %7g min %7g max %7g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
-		if( ( *pd ).var_opt[i] == 1 )( *pd ).nOptParam++;
-		else if( ( *pd ).var_opt[i] == 2 )
+		if(( *pd ).var_opt[i] == 1 )( *pd ).nOptParam++;
+		else if(( *pd ).var_opt[i] == 2 )
 		{
 			( *pd ).nFlgParam++;
-			if( !( ( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD ) )
+			if( !(( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD ) )
 				( *pd ).nOptParam++;
 		}
-		if( ( *pd ).var_opt[i] >= 1 )
+		if(( *pd ).var_opt[i] >= 1 )
 		{
 			if( pd->var_max[i] < pd->var[i] || pd->var_min[i] > pd->var[i] )
 			{
@@ -386,7 +386,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 			if( cd->plogtrans == 1 )( *pd ).var_log[i] = 1;
 			else if( cd->plogtrans == 0 )( *pd ).var_log[i] = 0;
-			if( ( *pd ).var_log[i] == 1 )
+			if(( *pd ).var_log[i] == 1 )
 			{
 				if( pd->var_dx[i] < 2 ) d = ( pd->var_max[i] - pd->var_min[i] ) / pd->var_dx[i];
 				if( pd->var_min[i] < 0 || pd->var[i] < 0 ) { printf( "ERROR: Parameter cannot be log transformed\n" ); printf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] ); if( cd->plogtrans ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; continue; } else bad_data = 1; }
@@ -402,16 +402,16 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 	}
 	if( bad_data ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
-	if( ( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD && ( *pd ).nFlgParam == 0 )
+	if(( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD && ( *pd ).nFlgParam == 0 )
 	{
 		printf( "WARNING: Partial parameter-space discretization (PPSD) is selected.\nHowever no parameters are flagged!\nSingle calibration will be performed using the initial guesses provided in the input file!\n" );
 		( *cd ).calib_type = SIMPLE;
 	}
-	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
+	pd->var_index = ( int * ) malloc(( *pd ).nOptParam * sizeof( int ) );
 	if( cd->debug ) printf( "\n" );
 	printf( "Number of optimized parameters = %d\n", ( *pd ).nOptParam );
 	for( k = i = 0; i < ( *pd ).nParam; i++ )
-		if( ( *pd ).var_opt[i] == 1 || ( ( *pd ).var_opt[i] > 1 && ( *cd ).calib_type != PPSD ) )
+		if(( *pd ).var_opt[i] == 1 || (( *pd ).var_opt[i] > 1 && ( *cd ).calib_type != PPSD ) )
 		{
 			if( cd->debug ) printf( "%-26s: init %17.12g step %8.3g min %7g max %7g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 			( *pd ).var_index[k++] = i;
@@ -419,15 +419,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( cd->debug ) printf( "\n" );
 	printf( "Number of flagged parameters = %d\n", ( *pd ).nFlgParam );
 	for( i = 0; i < ( *pd ).nParam; i++ )
-		if( ( *pd ).var_opt[i] == 2 )
+		if(( *pd ).var_opt[i] == 2 )
 			if( cd->debug ) printf( "%-26s: init %17.12g step %6g min %6g max %6g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
-	if( ( *pd ).nParam == ( *pd ).nOptParam && cd->debug ) printf( "\nNO fixed parameters\n" );
+	if(( *pd ).nParam == ( *pd ).nOptParam && cd->debug ) printf( "\nNO fixed parameters\n" );
 	else
 	{
 		if( cd->debug ) printf( "\n" );
 		printf( "Number of fixed parameters = %d\n", ( *pd ).nParam - ( *pd ).nOptParam );
 		for( i = 0; i < ( *pd ).nParam; i++ )
-			if( ( *pd ).var_opt[i] == 0 )
+			if(( *pd ).var_opt[i] == 0 )
 				if( cd->debug ) printf( "%-26s: %g\n", pd->var_id[i], ( *pd ).var[i] );
 	}
 	/*
@@ -447,26 +447,26 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 		}
 	*/
-	pd->var_current = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
-	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
+	pd->var_current = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
+	pd->var_best = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
 	if( cd->solution_type == EXTERNAL )
 	{
 		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &od->nObs );
-		od->obs_id = char_matrix( ( *od ).nObs, 50 );
-		od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+		od->obs_id = char_matrix(( *od ).nObs, 50 );
+		od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_weight = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_current = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->res = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_log = ( int * ) malloc(( *od ).nObs * sizeof( int ) );
 		for( i = 0; i < od->nObs; i++ )
 			fscanf( infile, "%s %lf %lf %d %lf %lf\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i], &od->obs_log[i], &od->obs_min[i], &od->obs_max[i] );
 		if( cd->ologtrans == 1 ) od->obs_log[i] = 1;
 		else if( cd->ologtrans == 0 ) od->obs_log[i] = 0;
 		if( cd->oweight == 1 )( *od ).obs_weight[i] = 1;
 		else if( cd->oweight == 0 )( *od ).obs_weight[i] = 0;
-		else if( cd->oweight == 2 ) { if( abs( ( *od ).obs_target[i] ) > DBL_EPSILON )( *od ).obs_weight[i] = ( double ) 1.0 / ( *od ).obs_target[i]; else( *od ).obs_weight[i] = HUGE; }
+		else if( cd->oweight == 2 ) { if( abs(( *od ).obs_target[i] ) > DBL_EPSILON )( *od ).obs_weight[i] = ( double ) 1.0 / ( *od ).obs_target[i]; else( *od ).obs_weight[i] = HUGE; }
 		if( cd->debug ) printf( "\n" );
 		printf( "Number of calibration targets = %d\n", ( *od ).nObs );
 		if( cd->debug )
@@ -554,35 +554,35 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		return( 1 ); // EXIT; Done with external problem
 	}
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &( *wd ).nW );
-	wd->id = char_matrix( ( *wd ).nW, 40 );
-	wd->x = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
-	wd->y = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
-	wd->z1 = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
-	wd->z2 = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
-	wd->xa = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
-	wd->ya = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
-	wd->za1 = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
-	wd->za2 = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
-	wd->nWellObs = ( int * ) malloc( ( *wd ).nW * sizeof( int ) );
-	wd->obs_target = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
-	wd->obs_log = ( int ** ) malloc( ( *wd ).nW * sizeof( int * ) );
-	wd->obs_time = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
-	wd->obs_weight = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
-	wd->obs_min = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
-	wd->obs_max = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
+	wd->id = char_matrix(( *wd ).nW, 40 );
+	wd->x = ( double * ) malloc(( *wd ).nW * sizeof( double ) );
+	wd->y = ( double * ) malloc(( *wd ).nW * sizeof( double ) );
+	wd->z1 = ( double * ) malloc(( *wd ).nW * sizeof( double ) );
+	wd->z2 = ( double * ) malloc(( *wd ).nW * sizeof( double ) );
+	wd->xa = ( double * ) malloc(( *wd ).nW * sizeof( double ) );
+	wd->ya = ( double * ) malloc(( *wd ).nW * sizeof( double ) );
+	wd->za1 = ( double * ) malloc(( *wd ).nW * sizeof( double ) );
+	wd->za2 = ( double * ) malloc(( *wd ).nW * sizeof( double ) );
+	wd->nWellObs = ( int * ) malloc(( *wd ).nW * sizeof( int ) );
+	wd->obs_target = ( double ** ) malloc(( *wd ).nW * sizeof( double * ) );
+	wd->obs_log = ( int ** ) malloc(( *wd ).nW * sizeof( int * ) );
+	wd->obs_time = ( double ** ) malloc(( *wd ).nW * sizeof( double * ) );
+	wd->obs_weight = ( double ** ) malloc(( *wd ).nW * sizeof( double * ) );
+	wd->obs_min = ( double ** ) malloc(( *wd ).nW * sizeof( double * ) );
+	wd->obs_max = ( double ** ) malloc(( *wd ).nW * sizeof( double * ) );
 	( *od ).nObs = ( *preds ).nObs = ( *od ).nTObs = 0;
 	if( cd->debug ) printf( "\nObservation data:\n" );
 	for( i = 0; i < ( *wd ).nW; i++ )
 	{
 		fscanf( infile, "%s %lf %lf %lf %lf %i ", wd->id[i], &( *wd ).x[i], &( *wd ).y[i], &( *wd ).z1[i], &( *wd ).z2[i], &( *wd ).nWellObs[i] );
 		if( cd->debug ) printf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
-		if( ( *wd ).nWellObs[i] <= 0 ) { printf( "Warning: no observations\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
-		wd->obs_target[i] = ( double * ) malloc( ( *wd ).nWellObs[i] * sizeof( double ) );
-		wd->obs_time[i] = ( double * ) malloc( ( *wd ).nWellObs[i] * sizeof( double ) );
-		wd->obs_log[i] = ( int * ) malloc( ( *wd ).nWellObs[i] * sizeof( int ) );
-		wd->obs_weight[i] = ( double * ) malloc( ( *wd ).nWellObs[i] * sizeof( double ) );
-		wd->obs_min[i] = ( double * ) malloc( ( *wd ).nWellObs[i] * sizeof( double ) );
-		wd->obs_max[i] = ( double * ) malloc( ( *wd ).nWellObs[i] * sizeof( double ) );
+		if(( *wd ).nWellObs[i] <= 0 ) { printf( "Warning: no observations\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
+		wd->obs_target[i] = ( double * ) malloc(( *wd ).nWellObs[i] * sizeof( double ) );
+		wd->obs_time[i] = ( double * ) malloc(( *wd ).nWellObs[i] * sizeof( double ) );
+		wd->obs_log[i] = ( int * ) malloc(( *wd ).nWellObs[i] * sizeof( int ) );
+		wd->obs_weight[i] = ( double * ) malloc(( *wd ).nWellObs[i] * sizeof( double ) );
+		wd->obs_min[i] = ( double * ) malloc(( *wd ).nWellObs[i] * sizeof( double ) );
+		wd->obs_max[i] = ( double * ) malloc(( *wd ).nWellObs[i] * sizeof( double ) );
 		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
 		{
 			fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &( *wd ).obs_time[i][j], &( *wd ).obs_target[i][j], &( *wd ).obs_weight[i][j], &( *wd ).obs_log[i][j], &( *wd ).obs_min[i][j], &( *wd ).obs_max[i][j] );
@@ -590,7 +590,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			else if( cd->ologtrans == 0 )( *wd ).obs_log[i][j] = 0;
 			if( cd->oweight == 1 )( *wd ).obs_weight[i][j] = 1;
 			else if( cd->oweight == 0 )( *wd ).obs_weight[i][j] = 0;
-			else if( cd->oweight == 2 ) { if( abs( ( *wd ).obs_target[i][j] ) > DBL_EPSILON )( *wd ).obs_weight[i][j] = ( double ) 1.0 / ( *wd ).obs_target[i][j]; else( *wd ).obs_weight[i][j] = HUGE; }
+			else if( cd->oweight == 2 ) { if( abs(( *wd ).obs_target[i][j] ) > DBL_EPSILON )( *wd ).obs_weight[i][j] = ( double ) 1.0 / ( *wd ).obs_target[i][j]; else( *wd ).obs_weight[i][j] = HUGE; }
 			if( cd->debug ) printf( "t %5g c %5g weight %12g log %1d acceptable range: min %5g max %5g\n", ( *wd ).obs_time[i][j], ( *wd ).obs_target[i][j], ( *wd ).obs_weight[i][j], ( *wd ).obs_log[i][j], ( *wd ).obs_min[i][j], ( *wd ).obs_max[i][j] );
 			if( wd->obs_max[i][j] < wd->obs_target[i][j] || wd->obs_min[i][j] > wd->obs_target[i][j] )
 			{
@@ -604,8 +604,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				printf( "Observation %s(%g): min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
 				bad_data = 1;
 			}
-			if( ( *wd ).obs_weight[i][j] > 0 )( *od ).nObs++;
-			if( ( *wd ).obs_weight[i][j] < 0 )( *preds ).nObs++;
+			if(( *wd ).obs_weight[i][j] > 0 )( *od ).nObs++;
+			if(( *wd ).obs_weight[i][j] < 0 )( *preds ).nObs++;
 			( *od ).nTObs++;
 			if( j + 1 < ( *wd ).nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) printf( "\t\t\t\t\t\t\t      " ); }
 		}
@@ -629,22 +629,22 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				printf( "Well %10s %.15g %.15g : %.15g %.15g\n", wd->id[i], wd->x[i], ( *wd ).y[i], x, y );
 			}
 	}
-	od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_id = char_matrix( ( *od ).nObs, 50 );
-	od->preds_id = char_matrix( ( *od ).nObs, 50 );
-	od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-	od->well_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-	od->time_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+	od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+	od->obs_current = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+	od->obs_id = char_matrix(( *od ).nObs, 50 );
+	od->preds_id = char_matrix(( *od ).nObs, 50 );
+	od->obs_weight = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+	od->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+	od->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+	od->res = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+	od->obs_log = ( int * ) malloc(( *od ).nObs * sizeof( int ) );
+	od->well_index = ( int * ) malloc(( *od ).nObs * sizeof( int ) );
+	od->time_index = ( int * ) malloc(( *od ).nObs * sizeof( int ) );
 	if( cd->debug ) printf( "\n" );
 	printf( "Number of calibration targets = %d\n", ( *od ).nObs );
 	for( k = i = 0; i < ( *wd ).nW; i++ )
 		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
-			if( ( *wd ).obs_weight[i][j] > 0 )
+			if(( *wd ).obs_weight[i][j] > 0 )
 			{
 				od->obs_target[k] = ( *wd ).obs_target[i][j];
 				od->obs_weight[k] = ( *wd ).obs_weight[i][j];
@@ -657,21 +657,21 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				if( cd->debug ) printf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 				k++;
 			}
-	if( ( *preds ).nObs > 0 )
+	if(( *preds ).nObs > 0 )
 	{
 		printf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
-		preds->obs_target = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_current = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->well_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
-		preds->time_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
-		preds->obs_id = char_matrix( ( *preds ).nObs, 50 );
-		preds->obs_weight = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		preds->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		preds->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		preds->obs_target = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
+		preds->obs_current = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
+		preds->well_index = ( int * ) malloc(( *preds ).nObs * sizeof( int ) );
+		preds->time_index = ( int * ) malloc(( *preds ).nObs * sizeof( int ) );
+		preds->obs_id = char_matrix(( *preds ).nObs, 50 );
+		preds->obs_weight = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
+		preds->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		preds->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		preds->res = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 		for( k = i = 0; i < ( *wd ).nW; i++ )
 			for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
-				if( ( *wd ).obs_weight[i][j] < 0 )
+				if(( *wd ).obs_weight[i][j] < 0 )
 				{
 					preds->obs_target[k] = ( *wd ).obs_target[i][j];
 					preds->obs_weight[k] = 1.0;
@@ -685,7 +685,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					k++;
 				}
 	}
-	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == INFOGAP ) )
+	else if((( *preds ).nObs <= 0 ) && (( *cd ).problem_type == INFOGAP ) )
 		{ printf( "\nWeight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for infogap analysis\n\n" ); exit( 0 ); }
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf\n", &( *gd ).time );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &( *gd ).nx, &( *gd ).ny, &( *gd ).nz );
@@ -700,15 +700,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		printf( "Grid Minimums: %g %g %g\n", ( *gd ).min_x, ( *gd ).min_y, ( *gd ).min_z );
 		printf( "Grid Maximums: %g %g %g\n", ( *gd ).max_x, ( *gd ).max_y, ( *gd ).max_z );
 	}
-	if( ( *gd ).nx == 1 )( *gd ).dx = 0;
-	else( *gd ).dx = ( ( *gd ).max_x - ( *gd ).min_x ) / ( ( *gd ).nx - 1 );
-	if( ( *gd ).ny == 1 )( *gd ).dy = 0;
-	( *gd ).dy = ( ( *gd ).max_y - ( *gd ).min_y ) / ( ( *gd ).ny - 1 );
+	if(( *gd ).nx == 1 )( *gd ).dx = 0;
+	else( *gd ).dx = (( *gd ).max_x - ( *gd ).min_x ) / (( *gd ).nx - 1 );
+	if(( *gd ).ny == 1 )( *gd ).dy = 0;
+	( *gd ).dy = (( *gd ).max_y - ( *gd ).min_y ) / (( *gd ).ny - 1 );
 //	if(( *gd ).nz == 1 )( *gd ).dz = ( *gd ).max_z - ( *gd ).min_z ); // In this way compute_grid computed for min_z
-	if( ( *gd ).nz == 1 )( *gd ).dz = 0;
-	else( *gd ).dz = ( ( *gd ).max_z - ( *gd ).min_z ) / ( ( *gd ).nz - 1 );
+	if(( *gd ).nz == 1 )( *gd ).dz = 0;
+	else( *gd ).dz = (( *gd ).max_z - ( *gd ).min_z ) / (( *gd ).nz - 1 );
 	if( cd->debug ) printf( "Breakthrough-curve time window: %g %g %g\n", ( *gd ).min_t, ( *gd ).max_t, ( *gd ).dt );
-	gd->nt = 1 + ( ( *gd ).max_t - ( *gd ).min_t ) / ( *gd ).dt;
+	gd->nt = 1 + (( *gd ).max_t - ( *gd ).min_t ) / ( *gd ).dt;
 	return( 1 );
 }
 
@@ -730,7 +730,7 @@ int save_problem( char *filename, struct opt_data *op )
 //	FILE *outfileb;
 //	char buf[100];
 	int  i, j;
-	if( ( outfile = fopen( filename, "w" ) ) == NULL )
+	if(( outfile = fopen( filename, "w" ) ) == NULL )
 	{
 		printf( "File \'%s\' cannot be opened to save the problem information!\n", filename );
 		return( 0 );
@@ -802,7 +802,7 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, "Number of parameters: %i\n", ( *pd ).nParam );
 	for( i = 0; i < ( *pd ).nParam; i++ )
 	{
-		if( ( *pd ).var_opt[i] >= 1 && ( *pd ).var_log[i] == 1 )
+		if(( *pd ).var_opt[i] >= 1 && ( *pd ).var_log[i] == 1 )
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_id[i], pow( 10, ( *pd ).var[i] ), ( *pd ).var_opt[i], ( *pd ).var_log[i], pow( 10, ( *pd ).var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );
 		else
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_id[i], ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
@@ -813,7 +813,7 @@ int save_problem( char *filename, struct opt_data *op )
 		for( i = 0; i < ( *wd ).nW; i++ )
 		{
 			fprintf( outfile, "%s %.15g %.15g %g %g %i ", wd->id[i], ( *wd ).x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
-			if( ( *wd ).nWellObs[i] > 1 ) { fprintf( outfile, "\n" ); }
+			if(( *wd ).nWellObs[i] > 1 ) { fprintf( outfile, "\n" ); }
 			for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
 				fprintf( outfile, "%g %g %g %i %g %g\n", ( *wd ).obs_time[i][j], ( *wd ).obs_target[i][j], ( *wd ).obs_weight[i][j], ( *wd ).obs_log[i][j], ( *wd ).obs_min[i][j], ( *wd ).obs_max[i][j] );
 		}
@@ -862,7 +862,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 		}
 		printf( "\n" );
 	}
-	if( ( outfile = fopen( filename, "w" ) ) == NULL )
+	if(( outfile = fopen( filename, "w" ) ) == NULL )
 	{
 		printf( "Output file %s cannot be opened!\n", filename );
 		return;
@@ -910,7 +910,7 @@ void compute_btc2( char *filename, struct opt_data *op )
 	struct grid_data *gd;
 	gd = op->gd;
 	if( gd->min_t <= 0 ) return;
-	if( ( outfile = fopen( filename, "w" ) ) == NULL )
+	if(( outfile = fopen( filename, "w" ) ) == NULL )
 	{
 		printf( "Output file %s cannot be opened!\n", filename );
 		return;
@@ -953,7 +953,7 @@ void compute_btc( char *filename, struct opt_data *op )
 	struct grid_data *gd;
 	gd = op->gd;
 	if( gd->min_t <= 0 ) return;
-	if( ( outfile = fopen( filename, "w" ) ) == NULL )
+	if(( outfile = fopen( filename, "w" ) ) == NULL )
 	{
 		printf( " Output file %s cannot be opened!\n", filename );
 		return;
@@ -1049,7 +1049,7 @@ int count_lines( char *filename )
 	char buf[1000];
 	fl = fopen( filename, "r" );
 	if( fl == NULL ) { printf( "\nError opening %s\n", filename ); exit( 0 ); }
-	while( ( fgets( buf, sizeof buf, fl ) ) != NULL ) nol++;
+	while(( fgets( buf, sizeof buf, fl ) ) != NULL ) nol++;
 	fclose( fl );
 	return nol;
 }

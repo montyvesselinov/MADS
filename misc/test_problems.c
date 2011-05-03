@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <math.h>
 #include <string.h>
 #include "../mads.h"
@@ -18,18 +19,18 @@ int set_test_problems( struct opt_data *op )
 	cd->sintrans = 0; // No sin transformations
 	pd->nParam = pd->nOptParam = cd->test_func_dim;
 	pd->nFlgParam = 0;
-	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
-	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_opt = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_log = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_dx = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
-	pd->var_current = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
-	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
+	pd->var_id = char_matrix(( *pd ).nParam, 50 );
+	pd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	cd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_opt = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
+	pd->var_log = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
+	pd->var_dx = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_min = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_max = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_range = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_index = ( int * ) malloc(( *pd ).nOptParam * sizeof( int ) );
+	pd->var_current = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
+	pd->var_best = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
 	od->nObs = 0; // assume no observations ...
 	for( d = 0; d < cd->test_func_dim; d++ )
 	{
@@ -112,14 +113,14 @@ int set_test_problems( struct opt_data *op )
 	}
 	if( od->nObs > 1 )
 	{
-		od->obs_id = char_matrix( ( *od ).nObs, 50 );
-		od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+		od->obs_id = char_matrix(( *od ).nObs, 50 );
+		od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_weight = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_current = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->res = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_log = ( int * ) malloc(( *od ).nObs * sizeof( int ) );
 	}
 	for( d = 0; d < od->nObs; d++ )
 	{
@@ -175,7 +176,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			{
 				xd = x[d];
 				f += o[d] = xd * xd / 4000;
-				p *= cos( xd / sqrt( ( double ) d + 1 ) );
+				p *= cos( xd / sqrt(( double ) d + 1 ) );
 			}
 			for( d = 0; d < D; d++ )
 				o[d] += ( -p + 1 ) / D;
@@ -282,7 +283,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			break;
 		case 18: // Eason 2D (usually on [-100,100] Minimum -1 on (pi,pi)
 			x1 = x[0]; x2 = x[1];
-			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
+			f = -cos( x1 ) * cos( x2 ) / exp(( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
 		case 33: // Rosenbrock (with more observations)
 			f = 0;

@@ -186,6 +186,7 @@ int mopso( struct opt_data *op )
 	seed_rand_kiss( op->cd->seed );
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
+	pb.fNb = 1;
 	if(( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->odebug )
@@ -277,8 +278,8 @@ int mopso( struct opt_data *op )
 				op->cd->debug = debug;
 			}
 			fitness_print( S.best.f );
-			if( debug_level > 1 ) position_print( S.best );
-			position_save( fRun, S.best, r ); // Save the result
+			if( debug_level ) position_print( S.best );
+			if( op->cd->pdebug ) position_save( fRun, S.best, r ); // Save the result
 			for( n = 0; n < pb.fNb; n++ )
 			{
 				errorMean[n] += S.best.f.f[n];
@@ -289,23 +290,26 @@ int mopso( struct opt_data *op )
 		}
 	}
 	printf( "Particle-Swarm Optimization completed successfully!\n" );
-	for( n = 0; n < pb.fNb; n++ )
+	if( pb.repeat > 1 )
+		for( n = 0; n < pb.fNb; n++ )
+		{
+			errorMean[n] /= pb.repeat;
+			successRate[n] /= pb.repeat;
+		}
+	if( debug_level && pb.repeat > 1 )
 	{
-		errorMean[n] /= pb.repeat;
-		successRate[n] /= pb.repeat;
+		printf( "\nMean errors:" );
+		for( n = 0; n < pb.fNb; n++ ) printf( " %g", errorMean[n] );
+		printf( "\nSuccess rate: " );
+		for( n = 0; n < pb.fNb; n++ ) printf( " %f", successRate[n] );
+		printf( "\nBest result:\n" ); // position_print(bestBest);
 	}
-	printf( "\nMean errors:" );
-	for( n = 0; n < pb.fNb; n++ ) printf( " %g", errorMean[n] );
-	printf( "\nSuccess rate: " );
-	for( n = 0; n < pb.fNb; n++ ) printf( " %f", successRate[n] );
-	printf( "\nBest result:\n" );
-	//	position_print(bestBest);
 	debug = op->cd->debug; op->cd->debug = 3;
 	func( bestBest.x, gop, res );
 	op->cd->debug = debug;
 	fitness_print( bestBest.f );
-	printf( "\nTotal number of functional evaluations %d\n", eval_total );
-	printf( "\nTotal number of Leverberg-Marquardt optimizations %d\n", lmo_count );
+	printf( "Total number of functional evaluations %d\n", eval_total );
+	printf( "Total number of Leverberg-Marquardt optimizations %d\n", lmo_count );
 	if( pb.repeat > 1 ) printf( "Number of Particle-Swarm Optimizations %d\n", pb.repeat );
 	if( pb.repeat > 1 ) printf( "Average number of evaluations for each Particle-Swarm Optimization %g\n", (( double ) eval_total / pb.repeat ) );
 	if( overSizeTribe > 0 ) printf( "WARNING: Tribe size has been constrained %i times\n", overSizeTribe );
@@ -315,8 +319,8 @@ int mopso( struct opt_data *op )
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		op->pd->var[op->pd->var_index[i]] = bestBest.x[i];
 	op->cd->standalone = 1;
-	fclose( fRun );
-	fclose( fArchive );
+	if( op->cd->pdebug ) fclose( fRun );
+	if( op->cd->pdebug ) fclose( fArchive );
 	free( res );
 	return EXIT_SUCCESS;
 }

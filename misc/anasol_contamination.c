@@ -130,9 +130,9 @@ double int_box_source( double tau, void *params )
 	ry = 2.*sqrt( tau * ay * vx );
 	rz = 2.*sqrt( tau * az * vx );
 	e1 = exp( -tau * lambda );
-	ex = erfc( ( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2 - tau * vx ) / rx );
-	ey = erfc( ( ye - source_sizey / 2 ) / ry ) - erfc( ( ye + source_sizey / 2 ) / ry );
-	ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz ) );
+	ex = erfc(( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc(( xe + source_sizex / 2 - tau * vx ) / rx );
+	ey = erfc(( ye - source_sizey / 2 ) / ry ) - erfc(( ye + source_sizey / 2 ) / ry );
+	ez = erfc(( ze - source_sizez ) / rz ) - erfc(( ze + source_sizez ) / rz - erfc(( ze - source_z ) / rz ) + erfc(( ze + source_z ) / rz ) );
 //	if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
 	return( e1 * ex * ey * ez );
 }
@@ -188,8 +188,8 @@ double int_rectangle_source( double tau, void *params )
 	ry = 2.*sqrt( tau * ay * vx );
 	rz = 2.*sqrt( tau * az * vx );
 	e1 = exp( -tau * lambda - ze * ze / ( tau * ( 4 * az * vx ) ) );
-	ex = erfc( ( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2 - tau * vx ) / rx );
-	ey = erfc( ( ye - source_sizey / 2 ) / ry ) - erfc( ( ye + source_sizey / 2 ) / ry );
+	ex = erfc(( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc(( xe + source_sizex / 2 - tau * vx ) / rx );
+	ey = erfc(( ye - source_sizey / 2 ) / ry ) - erfc(( ye + source_sizey / 2 ) / ry );
 	return( e1 * ex * ey * pow( tau, -1.5 ) );
 }
 
@@ -244,10 +244,10 @@ double int_rectangle_source_vz( double tau, void *params )
 	ry = 2.*sqrt( tau * ay * v );
 	rz = 2.*sqrt( tau * az * v );
 	e1 = exp( -tau * lambda );
-	ex = erfc( ( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2 - tau * vx ) / rx );
-	ey = erfc( ( ye - source_sizey / 2 ) / ry ) - erfc( ( ye + source_sizey / 2 ) / ry );
+	ex = erfc(( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc(( xe + source_sizex / 2 - tau * vx ) / rx );
+	ey = erfc(( ye - source_sizey / 2 ) / ry ) - erfc(( ye + source_sizey / 2 ) / ry );
 	tz = ze - tau * vz;
 	ez = 1. / sqrt( tau * ( M_PI * az * v ) ) * exp( -tz * tz / ( tau * ( 4 * az * v ) ) ) -
-		 vz / ( 2 * az * v ) * exp( vz * ze / ( az * v ) ) * erfc( ( ze + tau * vz ) / rz );
+		 vz / ( 2 * az * v ) * exp( vz * ze / ( az * v ) ) * erfc(( ze + tau * vz ) / rz );
 	return( e1 * ex * ey * ez );
 }
