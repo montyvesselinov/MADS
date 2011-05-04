@@ -33,6 +33,7 @@ int load_pst( char *filename, struct opt_data *op )
 	pd = op->pd;
 	od = op->od;
 	ed = op->ed;
+	op->gd->min_t = op-> gd->time = 0;
 	if(( in = fopen( filename, "r" ) ) == NULL )
 	{
 		printf( "PEST control file %s cannot be opened to read problem data!\n", filename );
