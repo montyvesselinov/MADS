@@ -319,7 +319,7 @@ int main( int argn, char *argv[] )
 	{
 		printf( "Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
 		printf( "If there is no other MADS run, delete %s to execute (sorry for the inconvenience)!\n", buf );
-		exit( 1 );
+//		exit( 1 );
 	}
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
 	/*

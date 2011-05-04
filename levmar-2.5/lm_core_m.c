@@ -365,7 +365,10 @@ int LEVMAR_DER(
 		if( k == 0 )
 		{
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
+			{
 				if( diag_jacTjac[i] > tmp ) tmp = diag_jacTjac[i]; /* find max diagonal element */
+			}
+			if( tmp > 1e6 ) tmp = 1e6;
 			mu = tau * tmp;
 			if( op->cd->ldebug ) printf( "Computed initial lambda %g\n", mu );
 		}
