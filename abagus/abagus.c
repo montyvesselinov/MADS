@@ -124,8 +124,8 @@ void write_loc( double of, double *x, int x_size, int *ind );
 double alea( double a, double b );
 int alea_integer( int a, int b );
 // in ../mads.c
-int DeTransform( double *x, void *data, double *f );
-int Transform( double *x, void *data, double *f );
+void DeTransform( double *x, void *data, double *f );
+void Transform( double *x, void *data, double *f );
 int get_seed( );
 
 // Global variables
@@ -241,26 +241,26 @@ int pssa( struct opt_data *op )
 		for( k = 0; k < op->od->nObs; k++ )
 		{
 			i = op->od->well_index[k];
-                        j = op->od->time_index[k];
+			j = op->od->time_index[k];
 			if( op->wd->obs_log[i][j] == 0 )
-                        {
-				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) ) 
+			{
+				if(( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
 					err =  op->wd->obs_target[i][j] - op->wd->obs_min[i][j];
 				else err = op->wd->obs_max[i][j] - op->wd->obs_target[i][j];
-                                if( op->cd->objfunc != SSR )
-                                {
-                                        if( op->cd->objfunc == SSD0 ) err = 0;
-                                        if( op->cd->objfunc == SSDA )
-                                                err = sqrt( fabs( err ) );
-                                }
-                        }
-                        else
-                        {
-				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) ) 
-                                err = log10( op->wd->obs_target[i][j] ) - log10( op->wd->obs_min[i][j] );
-                                else err = log10( op->wd->obs_max[i][j] ) - log10( op->wd->obs_target[i][j] );
-                        }
-                        eps += pow( err * op->wd->obs_weight[i][j], 2 );
+				if( op->cd->objfunc_type != SSR )
+				{
+					if( op->cd->objfunc_type == SSD0 ) err = 0;
+					if( op->cd->objfunc_type == SSDA )
+						err = sqrt( fabs( err ) );
+				}
+			}
+			else
+			{
+				if(( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
+					err = log10( op->wd->obs_target[i][j] ) - log10( op->wd->obs_min[i][j] );
+				else err = log10( op->wd->obs_max[i][j] ) - log10( op->wd->obs_target[i][j] );
+			}
+			eps += pow( err * op->wd->obs_weight[i][j], 2 );
 		}
 		if( op->cd->pdebug )printf( "Max OF within success: %g\n", eps );
 	}
@@ -361,11 +361,11 @@ int pssa( struct opt_data *op )
 			kd_res_free( kdset );
 		}
 		else X[s].f = fabs( perf_pssa( s, function ) - f_min );
-	//}
-	// invert OF values if below eps
-	//for( s = 0; s < S; s++ )
-	//{
-		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
+		//}
+		// invert OF values if below eps
+		//for( s = 0; s < S; s++ )
+		//{
+		if(( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f );
 			kd_insert( kd, X[s].x, &finv[f_ind] );
@@ -463,7 +463,7 @@ loop:
 		else { X[s].f = fabs( perf_pssa( s, function ) - f_min ); new_pos++; }
 		// if below eps, insert into kdtree
 		//if( X[s].f < eps )
-		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
+		if(( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f ); // invert f
 			kd_insert( kd, X[s].x, &finv[f_ind] );

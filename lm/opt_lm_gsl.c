@@ -135,7 +135,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 			else break;
 		}
 		if( op->cd->ldebug && iter >= op->cd->niter ) { printf( "Maximum number of iterations is exceeded (%d)\n", op->cd->niter ); break; }
-		if( op->cd->ldebug && op->cd->eval >= op->cd->maxeval ) { printf( "Maximum number of evaluations is exceeded (%d)\n", op->cd->eval ); break; }
+		if( op->cd->ldebug && op->cd->neval >= op->cd->maxeval ) { printf( "Maximum number of evaluations is exceeded (%d)\n", op->cd->neval ); break; }
 	}
 	while( 1 );
 	if( op->cd->ldebug ) printf( "Delta test status = %s\n", gsl_strerror( status_d ) );

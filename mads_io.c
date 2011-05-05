@@ -10,16 +10,18 @@
 
 /* Functions here */
 int parse_cmd( char *buf, struct calc_data *cd );
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct obs_data *preds, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
-int save_problem( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed );
+int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
+int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
-void compute_btc2( char *filename, struct opt_data *op, struct grid_data *gd );
-void compute_btc( char *filename, struct opt_data *op, struct grid_data *gd );
+void compute_btc2( char *filename, struct opt_data *op );
+void compute_btc( char *filename, struct opt_data *op );
 static char *strsave( const char *s, const char *lim );
 char **shellpath( void );
 void freeshellpath( char *shellpath[] );
 unsigned maxpathlen( char *path[], const char *base );
 void execvepath( char *path[], const char *base, char *const argv[], char *const envp[] );
+int count_lines( char *filename );
+int count_cols( char *filename, int row );
 
 /* Functions elsewhere */
 char **char_matrix( int maxCols, int maxRows );
@@ -28,7 +30,7 @@ double func_solver1( double x, double y, double z, double t, void *data );
 int Ftest( char *filename );
 FILE *Fread( char *filename );
 FILE *Fwrite( char *filename );
-int set_test_problems( struct calc_data *cd, struct param_data *pd );
+int set_test_problems( struct opt_data *op );
 void *malloc_check( const char *what, size_t n );
 
 int parse_cmd( char *buf, struct calc_data *cd )
@@ -44,7 +46,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->problem_type = UNKNOWN;
 	cd->calib_type = SIMPLE;
 	cd->solution_type = EXTERNAL;
-	cd->objfunc = SSR;
+	cd->objfunc_type = SSR;
 	cd->check_success = 0;
 	cd->debug = 0;
 	cd->fdebug = 0;
@@ -70,11 +72,12 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->maxeval = 5000;
 	cd->paranoid = 0;
 	cd->phi_cutoff = 0;
-	cd->test = -1;
-	cd->dim = 0;
+	cd->test_func = -1;
+	cd->test_func_dim = 0;
 	cd->energy = 0;
-	cd->ncase = 0;
+	cd->ireal = 0;
 	cd->sindx = 0.01;
+	cd->lmfactor = 1.0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
@@ -96,11 +99,12 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "igpd" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGPD; }
 		if( strcasestr( word, "leig" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( strcasestr( word, "energy=" ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
+		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lmfactor ); }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
 		if( strcasestr( word, "iter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }
 		if( strcasestr( word, "eval=" ) ) { w = 1; sscanf( word, "eval=%d", &cd->maxeval ); }
-		if( strcasestr( word, "case=" ) ) { w = 1; sscanf( word, "case=%d", &cd->ncase ); }
+		if( strcasestr( word, "case=" ) ) { w = 1; sscanf( word, "case=%d", &cd->ireal ); }
 		if( strcasestr( word, "retry" ) ) { w = 1; sscanf( word, "retry=%d", &cd->nretries ); if( cd->nretries == 0 ) cd->nretries = 50; }
 		if( strcasestr( word, "tribe" ) ) { w = 1; if( sscanf( word, "tribe=%d", &cd->ntribe ) != 1 ) cd->ntribe = -1; }
 		if( strcasestr( word, "opt=" ) ) { w = 1; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; sscanf( word, "opt=%s", cd->opt_method ); }
@@ -126,12 +130,12 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "insdebug" ) ) { w = 1; sscanf( word, "insdebug=%d", &cd->insdebug ); if( cd->insdebug == 0 ) cd->insdebug = 1; }
 		if( strcasestr( word, "tpldebug" ) ) { w = 1; sscanf( word, "tpldebug=%d", &cd->tpldebug ); if( cd->tpldebug == 0 ) cd->tpldebug = 1; }
 		if( strcasestr( word, "pardebug" ) ) { w = 1; sscanf( word, "pardebug=%d", &cd->pardebug ); if( cd->pardebug == 0 ) cd->pardebug = 1; }
-		if( strcasecmp( word, "ssr" ) == 0 ) { w = 1; cd->objfunc = SSR; }
-		if( strcasecmp( word, "ssd0" ) == 0 ) { w = 1; cd->objfunc = SSD0; }
-		if( strcasecmp( word, "ssda" ) == 0 ) { w = 1; cd->objfunc = SSDA; }
-		if( strcasecmp( word, "ssdr" ) == 0 ) { w = 1; cd->objfunc = SSDR; }
-		if( strcasestr( word, "test" ) ) { w = 1; cd->test = 0; cd->dim = 2; sscanf( word, "test=%d", &cd->test ); ( *cd ).solution_type = TEST; }
-		if( strcasestr( word, "dim=" ) ) { w = 1; sscanf( word, "dim=%d", &cd->dim ); if( cd->dim < 2 ) cd->dim = 2; }
+		if( strcasecmp( word, "ssr" ) == 0 ) { w = 1; cd->objfunc_type = SSR; }
+		if( strcasecmp( word, "ssd0" ) == 0 ) { w = 1; cd->objfunc_type = SSD0; }
+		if( strcasecmp( word, "ssda" ) == 0 ) { w = 1; cd->objfunc_type = SSDA; }
+		if( strcasecmp( word, "ssdr" ) == 0 ) { w = 1; cd->objfunc_type = SSDR; }
+		if( strcasestr( word, "test" ) ) { w = 1; cd->test_func = 0; cd->test_func_dim = 2; sscanf( word, "test=%d", &cd->test_func ); ( *cd ).solution_type = TEST; }
+		if( strcasestr( word, "dim=" ) ) { w = 1; sscanf( word, "dim=%d", &cd->test_func_dim ); if( cd->test_func_dim < 2 ) cd->test_func_dim = 2; }
 		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type = POINT; }
 		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
 		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type = BOX; }
@@ -141,7 +145,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 	if(( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) && cd->nreal == 0 ) cd->nreal = 100;
 	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { strcat( cd->opt_method, "_paran" ); cd->paranoid = 1; }
-	if( cd->test >= 0 ) { printf( "Test %d Dimensionality %d\n", cd->test, cd->dim ); }
+	if( cd->test_func >= 0 ) { printf( "Test %d Dimensionality %d\n", cd->test_func, cd->test_func_dim ); }
 	printf( "Problem type: " );
 	switch( cd->problem_type )
 	{
@@ -198,13 +202,13 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( cd->check_success == 1 ) printf( "implemented (keyword success)\n" );
 		else printf( "NOT implemented (ADD keyword success to implement)\n" );
 		printf( "Objectve function: " );
-		switch( cd->objfunc )
+		switch( cd->objfunc_type )
 		{
 			case SSR: printf( "sum of squared residuals" ); break;
 			case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
 			case SSDA: printf( "sum of squared discrepancies and residuals" ); break;
 			case SSD0: printf( "sum of squared discrepancies" ); break;
-			default: printf( "unknown value; sum of squared residuals assumed" ); cd->objfunc = SSR; break;
+			default: printf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
 		}
 		printf( "\n" );
 	}
@@ -263,14 +267,27 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	return( 1 );
 }
 
-
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct obs_data *preds, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed )
+int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 {
 	FILE *infile;
-	//	FILE *infileb;
+//	FILE *infileb;
 	double x0, y0, x, y, d, alpha, beta;
 	char buf[1000], *file, **path, exec[1000];
 	int  i, j, k, bad_data, nofile = 0, skip = 0;
+	struct calc_data *cd;
+	struct param_data *pd;
+	struct obs_data *od;
+	struct obs_data *preds;
+	struct well_data *wd;
+	struct grid_data *gd;
+	struct extrn_data *ed;
+	cd = op->cd;
+	pd = op->pd;
+	od = op->od;
+	preds = op->preds;
+	wd = op->wd;
+	gd = op->gd;
+	ed = op->ed;
 	bad_data = 0;
 	if(( infile = fopen( filename, "r" ) ) == NULL )
 	{
@@ -298,7 +315,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 	if( strcasestr(( *cd ).solution_id, "poi" ) )( *cd ).solution_type = POINT;
 	if( strcasestr(( *cd ).solution_id, "rec" ) ) { if( strcasestr(( *cd ).solution_id, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
 	if( strcasestr(( *cd ).solution_id, "box" ) )( *cd ).solution_type = BOX;
-	if( strcasestr(( *cd ).solution_id, "test" ) || ( *cd ).test >= 0 ) { ( *cd ).solution_type = TEST; od->nObs = 0; }
+	if( strcasestr(( *cd ).solution_id, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type = TEST; od->nObs = 0; }
 	if( nofile )
 	{
 		if(( *cd ).solution_type != TEST )
@@ -320,7 +337,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 		case PLANE: { printf( "internal | rectangular contaminant source" ); strcpy(( *cd ).solution_id, "rect" ); break; }
 		case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcpy(( *cd ).solution_id, "rect_vert" ); break; }
 		case BOX: { printf( "internal | box contaminant source" ); strcpy(( *cd ).solution_id, "box" ); break; }
-		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test ); set_test_problems( cd, pd ); printf( " dimensionality %d", ( *pd ).nOptParam ); strcpy(( *cd ).solution_id, "test" ); break; }
+		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); printf( " dimensionality %d", ( *pd ).nOptParam ); strcpy(( *cd ).solution_id, "test" ); break; }
 		default: printf( "WARNING! UNDEFINED model type!" );
 	}
 	printf( "\n" );
@@ -344,7 +361,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 		if( cd->debug ) printf( "%-26s: ", pd->var_id[i] );
 		fscanf( infile, ": %lf %d %d %lf %lf %lf\n", &( *pd ).var[i], &( *pd ).var_opt[i], &( *pd ).var_log[i], &( *pd ).var_dx[i], &( *pd ).var_min[i], &( *pd ).var_max[i] );
 		( *cd ).var[i] = ( *pd ).var[i];
-		//		if( (*pd).var_log[i] == 1 ) { (*pd).var[i] = log10( (*pd).var[i] ); (*pd).var_min[i] = log10( (*pd).var_min[i] ); (*pd).var_max[i] = log10( (*pd).var_max[i] ); }
+//		if( (*pd).var_log[i] == 1 ) { (*pd).var[i] = log10( (*pd).var[i] ); (*pd).var_min[i] = log10( (*pd).var_min[i] ); (*pd).var_max[i] = log10( (*pd).var_max[i] ); }
 		if( cd->debug ) printf( "init %17.12g opt %1d log %1d step %7g min %7g max %7g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 		if(( *pd ).var_opt[i] == 1 )( *pd ).nOptParam++;
 		else if(( *pd ).var_opt[i] == 2 )
@@ -642,8 +659,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 			}
 	if(( *preds ).nObs > 0 )
 	{
-		printf( "Number of performance criterion predictions for infogap analysis = %d\n", ( *preds ).nObs );
-		preds->obs_target = ( double * ) malloc(( *preds ).nObs * sizeof( double ) ); 
+		printf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
+		preds->obs_target = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
 		preds->obs_current = ( double * ) malloc(( *preds ).nObs * sizeof( double ) );
 		preds->well_index = ( int * ) malloc(( *preds ).nObs * sizeof( int ) );
 		preds->time_index = ( int * ) malloc(( *preds ).nObs * sizeof( int ) );
@@ -667,7 +684,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 					if( cd->debug ) printf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 					k++;
 				}
-	} else if( (( *preds ).nObs <= 0) && (( *cd ).problem_type == INFOGAP) )
+	}
+	else if((( *preds ).nObs <= 0 ) && (( *cd ).problem_type == INFOGAP ) )
 		{ printf( "\nWeight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for infogap analysis\n\n" ); exit( 0 ); }
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf\n", &( *gd ).time );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &( *gd ).nx, &( *gd ).ny, &( *gd ).nz );
@@ -694,8 +712,20 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op, s
 	return( 1 );
 }
 
-int save_problem( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct well_data *wd, struct grid_data *gd, struct extrn_data *ed )
+int save_problem( char *filename, struct opt_data *op )
 {
+	struct calc_data *cd;
+	struct param_data *pd;
+	struct obs_data *od;
+	struct well_data *wd;
+	struct grid_data *gd;
+	struct extrn_data *ed;
+	cd = op->cd;
+	pd = op->pd;
+	od = op->od;
+	wd = op->wd;
+	gd = op->gd;
+	ed = op->ed;
 	FILE *outfile;
 //	FILE *outfileb;
 //	char buf[100];
@@ -738,8 +768,8 @@ int save_problem( char *filename, struct calc_data *cd, struct param_data *pd, s
 	if( cd->insdebug > 0 ) fprintf( outfile, " insdebug=%d", cd->insdebug );
 	if( cd->tpldebug > 0 ) fprintf( outfile, " tpldebug=%d", cd->tpldebug );
 	if( cd->pardebug > 0 ) fprintf( outfile, " pardebug=%d", cd->pardebug );
-	if( cd->test >= 0 ) fprintf( outfile, " test=%d", cd->test );
-	if( cd->dim > 2 ) fprintf( outfile, " dim=%d", cd->dim );
+	if( cd->test_func >= 0 ) fprintf( outfile, " test=%d", cd->test_func );
+	if( cd->test_func_dim > 2 ) fprintf( outfile, " dim=%d", cd->test_func_dim );
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
 	if( cd->sindx > 0 ) fprintf( outfile, " sindx=%g", cd->sindx );
 	if( cd->check_success ) fprintf( outfile, " success" );
@@ -760,7 +790,7 @@ int save_problem( char *filename, struct calc_data *cd, struct param_data *pd, s
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, " rnd=%s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fprintf( outfile, " paran=%s", cd->paran_method );
 	fprintf( outfile, " " );
-	switch( cd->objfunc )
+	switch( cd->objfunc_type )
 	{
 		case SSR: fprintf( outfile, "ssr" ); break;
 		case SSDR: fprintf( outfile, "ssdr" ); break;
@@ -872,11 +902,13 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 	printf( "Spatial concentration data saved in %s.\n", filename );
 }
 
-void compute_btc2( char *filename, struct opt_data *op, struct grid_data *gd )
+void compute_btc2( char *filename, struct opt_data *op )
 {
 	FILE *outfile;
 	double time, c, *max_conc, *max_time;
 	int  i, k;
+	struct grid_data *gd;
+	gd = op->gd;
 	if( gd->min_t <= 0 ) return;
 	if(( outfile = fopen( filename, "w" ) ) == NULL )
 	{
@@ -913,11 +945,13 @@ void compute_btc2( char *filename, struct opt_data *op, struct grid_data *gd )
 	free( max_time );
 }
 
-void compute_btc( char *filename, struct opt_data *op, struct grid_data *gd )
+void compute_btc( char *filename, struct opt_data *op )
 {
 	FILE *outfile;
 	double time, c, max_conc, max_time;
 	int  i, k;
+	struct grid_data *gd;
+	gd = op->gd;
 	if( gd->min_t <= 0 ) return;
 	if(( outfile = fopen( filename, "w" ) ) == NULL )
 	{
@@ -947,7 +981,7 @@ static char *strsave( const char *s, const char *lim )
 		lim = s + strlen( s );
 	char *p = malloc_check( "save string", lim - s + 1 );
 	strncpy( p, s, lim - s );
-	p[lim-s] = '\0';
+	p[lim - s] = '\0';
 	return p;
 }
 
@@ -1006,4 +1040,33 @@ void execvepath( char *path[], const char *base, char *const argv[], char *const
 			execve( buf, argv, envp );
 		}
 	}
+}
+
+int count_lines( char *filename )
+{
+	int nol = 0;
+	FILE *fl;
+	char buf[1000];
+	fl = fopen( filename, "r" );
+	if( fl == NULL ) { printf( "\nError opening %s\n", filename ); exit( 0 ); }
+	while(( fgets( buf, sizeof buf, fl ) ) != NULL ) nol++;
+	fclose( fl );
+	return nol;
+}
+
+int count_cols( char *filename, int row )
+{
+	int ncol = 0, i, n = 0;
+	FILE *fl;
+	char buf[1000], entry[16], *ln;
+	fl = fopen( filename, "r" );
+	if( fl == NULL ) { printf( "\nError opening %s\n", filename ); exit( 0 ); }
+	for( i = 1; i < row; i++ ) ln = fgets( buf, sizeof buf, fl );
+	while( sscanf( ln, "%10s%n", entry, &n ) == 1 )
+	{
+		ncol++;
+		ln += n;
+	}
+	fclose( fl );
+	return ncol;
 }

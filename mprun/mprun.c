@@ -35,7 +35,7 @@ int mprun( int nJob, void *data )
 	else { if( p->cd->pardebug ) printf( "Parallel runs using %d hosts!\n", p->cd->num_proc ); type = 1; }
 	nProc = nHosts = p->cd->num_proc; // Number of processors/hosts available initially
 	exec_name = p->ed->cmdline; // Executable / Execution command line
-	ieval = p->cd->eval; // Current number of model evaluations
+	ieval = p->cd->neval; // Current number of model evaluations
 	kidhost = p->cd->paral_hosts; // List of processors/hosts
 	if( nJob > 1 )
 	{
@@ -58,7 +58,7 @@ int mprun( int nJob, void *data )
 		}
 		if( done == nJob ) // All the jobs will be skipped
 		{
-			p->cd->eval += nJob;
+			p->cd->neval += nJob;
 			free( skip_job );
 			return( 1 );
 		}
@@ -73,9 +73,9 @@ int mprun( int nJob, void *data )
 		free( skip_job );
 		return( -1 );
 	}
-	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset(( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
-	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidstatus, ( int ) - 1, nProc * sizeof( int ) ); // Status of external jobs
-	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidattempt, ( int ) - 1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
+	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset(( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) );  // ID's of external jobs
+	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidstatus, ( int ) - 1, nProc * sizeof( int ) );  // Status of external jobs
+	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidattempt, ( int ) - 1, nProc * sizeof( int ) );  // Number of attempts to execute each external job
 	kiddir = char_matrix( nProc, 95 ); // Directories for external jobs
 	rerundir = char_matrix( nProc, 95 ); // Rerun directories for external jobs
 	if( type == 0 )
@@ -283,7 +283,7 @@ int mprun( int nJob, void *data )
 	free(( void * ) kidids ); free(( void * ) kidstatus ); free(( void * ) kidattempt );
 	free( skip_job );
 	free_matrix(( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix(( void ** ) kidhost, nProc );
-	p->cd->eval += nJob;
+	p->cd->neval += nJob;
 	return( 1 );
 }
 

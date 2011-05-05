@@ -9,7 +9,8 @@ else
 endif
 CFLAGS = -Wall $(DIRS)
 LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas $(LG) $(DIRS)
-OBJSMADS = mads.o mads_io.o mads_func.o mads_mem.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o pesting/pesting.o lhs/lhs.o pso/pso-tribes-lm.o pso/Standard_PSO_2006.o abagus/abagus.o
+OBJSMADS = mads.o mads_io.o mads_func.o mads_mem.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o pesting/pesting.o lhs/lhs.o 
+OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o abagus/abagus.o
 OBJSMPUN = mprun/mprun.o mprun/mprun_io.o
 OBJSKDTREE = abagus/kdtree-0.5.5/kdtree.o
 OBJSLEVMAR = levmar-2.5/lm_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o
@@ -17,7 +18,7 @@ SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDT
 
 all: $(PROG)
 
-$(PROG): $(OBJSMADS) $(OBJSMPUN) $(OBJSLEVMAR) $(OBJSKDTREE)
+$(PROG): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSLEVMAR) $(OBJSKDTREE)
 
 mads.o: mads.c mads.h levmar-2.5/levmar.h
 mads_io.o: mads_io.c mads.h
@@ -34,6 +35,7 @@ misc/anasol_contamination.o: misc/anasol_contamination.c mads.h
 pesting/pesting.o: pesting/pesting.c mads.h
 pso/pso-tribes-lm.o: pso/pso-tribes-lm.c pso/pso.h mads.h
 pso/Standard_PSO_2006.o: pso/Standard_PSO_2006.c mads.h
+pso/mopso.o: pso/mopso.c pso/mopso.h
 abagus/abagus.o: abagus/abagus.c mads.h abagus/kdtree-0.5.5/kdtree.o
 abagus/kdtree-0.5.5/kdtree.o: abagus/kdtree-0.5.5/kdtree.c abagus/kdtree-0.5.5/kdtree.h
 levmar-2.5/lm_m.o: levmar-2.5/lm_m.c levmar-2.5/lm_core_m.c levmar-2.5/levmar.h levmar-2.5/misc.h levmar-2.5/compiler.h mads.h
@@ -45,7 +47,7 @@ levmar-2.5/lmblec.o: levmar-2.5/lmblec.c levmar-2.5/lmblec_core.c levmar-2.5/lev
 levmar-2.5/lmbleic.o: levmar-2.5/lmbleic.c levmar-2.5/lmbleic_core.c levmar-2.5/levmar.h levmar-2.5/misc.h
 
 clean:
-	rm -f $(PROG) $(OBJSMADS) $(OBJSLEVMAR) $(OBJSKDTREE)
+	rm -f $(PROG) $(OBJSPSO) $(OBJSMADS) $(OBJSLEVMAR) $(OBJSKDTREE)
 
 
 examples:

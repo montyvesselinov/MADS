@@ -242,7 +242,7 @@ int kd_insertf( struct kdtree *tree, const float *pos, void *data )
 #ifndef NO_ALLOCA
 	if( tree->dim > 256 )
 #else
-	if( tree->dim > 16 )
+	if( tree->test_func_dim > 16 )
 #endif
 		free( buf );
 	return res;
@@ -459,7 +459,7 @@ struct kdres *kd_nearestf( struct kdtree *tree, const float *pos )
 #ifndef NO_ALLOCA
 	if( tree->dim > 256 )
 #else
-	if( tree->dim > 16 )
+	if( tree->test_func_dim > 16 )
 #endif
 		free( buf );
 	return res;
@@ -543,7 +543,7 @@ struct kdres *kd_nearest_rangef( struct kdtree *kd, const float *pos, float rang
 #ifndef NO_ALLOCA
 	if( kd->dim > 256 )
 #else
-	if( kd->dim > 16 )
+	if( kd->test_func_dim > 16 )
 #endif
 		free( buf );
 	return res;

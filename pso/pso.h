@@ -44,6 +44,7 @@ struct problem
 	int maxEval;
 	int repeat;
 	int D;
+	float lmfactor;
 	float *min;
 	float *max;
 	float *dx;

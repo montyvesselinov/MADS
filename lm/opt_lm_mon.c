@@ -205,7 +205,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 	{
 		if( func_data->f_ofe == NULL )
 		{
-			if( func_data->s > 0 ) sprintf( filename, "%s.%08d.ofe", func_data->root, func_data->s );
+			if( func_data->counter > 0 ) sprintf( filename, "%s.%08d.ofe", func_data->root, func_data->counter );
 			else sprintf( filename, "%s.ofe", func_data->root );
 			if( func_data->cd->nretries > 1 && func_data->cd->retry_ind > 1 ) func_data->f_ofe = fopen( filename, "a" );
 			else func_data->f_ofe = fopen( filename, "w" );
@@ -250,8 +250,8 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 			if( debug ) printf( "OF: last %g current best %g all-over best %g initial %g (evaluations %d)\n", *phi, phi_old, phi_best, phi_init, ieval );
 			if( func_data->cd->odebug )
 			{
-				if( func_data->cd->standalone ) fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->eval, phi_best ); // Print current best
-				else fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->eval, ( func_data->phi < phi_best ) ? func_data->phi : phi_best ); // Print overall best
+				if( func_data->cd->standalone ) fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->neval, phi_best ); // Print current best
+				else fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->neval, ( func_data->phi < phi_best ) ? func_data->phi : phi_best ); // Print overall best
 				fflush( func_data->f_ofe );
 			}
 			if( fabs( phi_ibest - *phi ) / phi_ibest < phi_range ) iter_best++;

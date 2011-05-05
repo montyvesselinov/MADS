@@ -8,24 +8,32 @@
 
 #include "../mads.h"
 
-#define iswhite(c) ((c)== ' ' || (c)=='\t' || (c)=='\n')
-
 /* Functions here */
-int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct extrn_data *extrn );
+int load_pst( char *filename, struct opt_data *op );
 int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
 int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
+/* Functions elsewhere */
 char *white_trim( char *x );
 void white_skip( char **s );
 char **char_matrix( int maxCols, int maxRows );
 
-int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struct obs_data *od, struct extrn_data *extrn )
+int load_pst( char *filename, struct opt_data *op )
 {
 	FILE *in;
 	double d;
 	char code[20], buf[1000];
 	int i, k, npar_groups, nobs_groups;
+	struct calc_data *cd;
+	struct param_data *pd;
+	struct obs_data *od;
+	struct extrn_data *ed;
+	cd = op->cd;
+	pd = op->pd;
+	od = op->od;
+	ed = op->ed;
+	op->gd->min_t = op-> gd->time = 0;
 	if(( in = fopen( filename, "r" ) ) == NULL )
 	{
 		printf( "PEST control file %s cannot be opened to read problem data!\n", filename );
@@ -35,16 +43,14 @@ int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struc
 	cd->solution_id = ( char * ) malloc( 50 * sizeof( char ) );
 	strcpy( cd->solution_id, "extertnal" );
 	cd->solution_type = -1;
-	fgets( buf, 1000, in );
-	fgets( buf, 1000, in );
-	fgets( buf, 1000, in );
-	fgets( buf, 1000, in );
+	for( i = 0; i < 4; i++ ) // skip 4 lines
+		fgets( buf, 1000, in );
 	sscanf( buf, "%d %d %d %*d %d", &( *pd ).nParam, &( *od ).nObs, &npar_groups, &nobs_groups );
 	printf( "Parameters = %d (groups %d)\n", pd->nParam, npar_groups );
 	printf( "Observations = %d (groups %d)\n", od->nObs, nobs_groups );
 	fgets( buf, 1000, in );
-	sscanf( buf, "%d %d", &( *extrn ).ntpl, &( *extrn ).nins );
-	printf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *extrn ).ntpl, ( *extrn ).nins );
+	sscanf( buf, "%d %d", &( *ed ).ntpl, &( *ed ).nins );
+	printf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *ed ).ntpl, ( *ed ).nins );
 	pd->var_id = char_matrix(( *pd ).nParam, 50 );
 	pd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
 	pd->var_current = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
@@ -56,7 +62,7 @@ int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struc
 	pd->var_max = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
 	pd->var_range = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
 	printf( "Parameters = %d:\n", pd->nParam );
-	for( i = 0; i < 6; i++ )
+	for( i = 0; i < 6; i++ ) // skip 6 lines
 		fgets( buf, 1000, in );
 	for( i = 0; i < npar_groups; i++ )
 		fgets( buf, 1000, in );
@@ -86,10 +92,10 @@ int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struc
 			printf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, ( *pd ).var_min[i], ( *pd ).var_max[i] );
 			( *pd ).var_index[k++] = i;
 		}
-	fgets( buf, 1000, in );
+	fgets( buf, 1000, in ); // skip line
 	for( i = 0; i < nobs_groups; i++ )
 		fgets( buf, 1000, in );
-	fgets( buf, 1000, in );
+	fgets( buf, 1000, in ); // skip line
 	od->obs_id = char_matrix(( *od ).nObs, 50 );
 	od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 	od->obs_weight = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
@@ -103,31 +109,33 @@ int load_pst( char *filename, struct calc_data *cd, struct param_data *pd, struc
 	printf( "Calibration targets = %d\n", ( *od ).nObs );
 	for( i = 0; i < od->nObs; i++ )
 	{
-		printf( "%-13s: value %15.12g weight %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i] );
+		if( od->nObs < 50 || ( i < 20 || i > od->nObs - 20 ) )
+			printf( "%-13s: value %15.12g weight %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i] );
+		if( od->nObs > 50 && i == 21 ) printf( "...\n" );
 		od->obs_min[i] = 0; od->obs_max[i] = od->obs_target[i] * 2;
 		od->obs_log[i] = 0;
 	}
-	fgets( buf, 1000, in );
-	extrn->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
-	fgets( extrn->cmdline, 80, in );
-	extrn->cmdline[strlen( extrn->cmdline ) - 1] = 0;
-	printf( "Execution command: %s\n", extrn->cmdline );
+	fgets( buf, 1000, in ); // skip line
+	ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
+	fgets( ed->cmdline, 80, in );
+	ed->cmdline[strlen( ed->cmdline ) - 1] = 0;
+	printf( "Execution command: %s\n", ed->cmdline );
 	printf( "External files:\n" );
-	extrn->fn_ins = char_matrix( extrn->nins, 80 );
-	extrn->fn_obs = char_matrix( extrn->nins, 80 );
-	extrn->fn_tpl = char_matrix( extrn->ntpl, 80 );
-	extrn->fn_out = char_matrix( extrn->ntpl, 80 );
-	fgets( buf, 1000, in );
-	for( i = 0; i < extrn->ntpl; i++ )
-		fscanf( in, "%s %s\n", extrn->fn_tpl[i], extrn->fn_out[i] );
+	ed->fn_ins = char_matrix( ed->nins, 80 );
+	ed->fn_obs = char_matrix( ed->nins, 80 );
+	ed->fn_tpl = char_matrix( ed->ntpl, 80 );
+	ed->fn_out = char_matrix( ed->ntpl, 80 );
+	fgets( buf, 1000, in ); // skip line
+	for( i = 0; i < ed->ntpl; i++ )
+		fscanf( in, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
 	printf( "- to provide current model parameters:\n" );
-	for( i = 0; i < extrn->ntpl; i++ )
-		printf( "%s -> %s\n", extrn->fn_tpl[i], extrn->fn_out[i] );
-	for( i = 0; i < extrn->nins; i++ )
-		fscanf( in, "%s %s\n", extrn->fn_ins[i], extrn->fn_obs[i] );
+	for( i = 0; i < ed->ntpl; i++ )
+		printf( "%s -> %s\n", ed->fn_tpl[i], ed->fn_out[i] );
+	for( i = 0; i < ed->nins; i++ )
+		fscanf( in, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );
 	printf( "- to read current model predictions:\n" );
-	for( i = 0; i < extrn->nins; i++ )
-		printf( "%s <- %s\n", extrn->fn_ins[i], extrn->fn_obs[i] );
+	for( i = 0; i < ed->nins; i++ )
+		printf( "%s <- %s\n", ed->fn_ins[i], ed->fn_obs[i] );
 	fclose( in );
 	printf( "\n" );
 	return( 0 );
@@ -238,7 +246,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 				c = 0;
 				if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
 				else word_inst = &word_inst[1];
-				if( word_inst[strlen( word_inst )-1] == token_obs[0] ) word_inst[strlen( word_inst )-1] = 0;
+				if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
 				else strtok_r( NULL, separator, &pnt_inst );
 				if( debug ) printf( "Observation keyword \'%s\' ... ", word_inst );
 				white_skip( &word_inst );
@@ -368,7 +376,8 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			word_data = NULL;
 		}
 		if( debug ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'", word_data, pnt_data );
-		if( debug ) { if( pnt_data == NULL ) printf( "\n" ); else { if( pnt_data[strlen( pnt_data )-2] != '\n' ) printf( "\n" ); } }
+		if( debug ) { if( pnt_data == NULL ) printf( "\n" ); else { if( pnt_data[strlen( pnt_data ) - 2] != '\n' ) printf( "\n" ); } }
+		c = 0;
 		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 		{
 			white_skip( &word_inst ); white_trim( word_inst );
@@ -421,11 +430,11 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			}
 			else if( word_inst[0] == token_obs[0] ) // observation variable
 			{
-				c = 0;
-				if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
+				c++;
+				if( word_data == NULL || c > 1 ) word_data = strtok_r( NULL, separator, &pnt_data );
 				if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
 				else word_inst = &word_inst[1];
-				if( word_inst[strlen( word_inst )-1] == token_obs[0] ) word_inst[strlen( word_inst )-1] = 0;
+				if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
 				else strtok_r( NULL, separator, &pnt_inst );
 				if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
 				white_skip( &word_inst );
@@ -505,7 +514,7 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 		fgets( buf, 1000, in );
 		if( feof( in ) ) break; // fgets does not produce EOF after reading the last line ...
 		l = strlen( buf );
-		buf[l-1] = 0;
+		buf[l - 1] = 0;
 		if( buf[0] == token[0] ) start = 0; else start = 1;
 		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
 		{
@@ -597,7 +606,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		fgets( buf, 1000, in );
 		if( feof( in ) ) break; // fgets does not produce EOF after reading the last line ...
 		l = strlen( buf );
-		buf[l-1] = 0; // remove 'new line' character
+		buf[l - 1] = 0; // remove 'new line' character
 		if( buf[0] == token[0] ) start = 0; else start = 1; // if first character is a token it will be not considered a separator
 		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
 		{
@@ -632,18 +641,4 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	fclose( in ); fclose( out );
 	if( bad_data == 1 ) return( -1 );
 	else return( 0 );
-}
-
-void white_skip( char **s )
-{
-	while( iswhite( **s ) )( *s )++;
-}
-
-char *white_trim( char *x )
-{
-	char *y;
-	if( !x ) return( x );
-	y = x + strlen( x ) - 1;
-	while( y >= x && iswhite( *y ) ) *y-- = 0;
-	return x;
 }

@@ -207,7 +207,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 					{
 						for( j = 0; j <= i; j++, k++ )
 							work[k] = xjtj[k];
-						work[k-1] += scall[i] * al;
+						work[k - 1] += scall[i] * al;
 						delx[i] = grad[i];
 					}
 					/*
@@ -240,7 +240,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 								{
 									for( j = 0; j <= i; j++, k++ )
 										work[k] = xjtj[k];
-									work[k-1] = 1.5 * ( xjtj[k-1] + al * erl2 * scall[i] ) + rel;
+									work[k - 1] = 1.5 * ( xjtj[k - 1] + al * erl2 * scall[i] ) + rel;
 								}
 								ibad = 2;
 								label = 155;
@@ -335,7 +335,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 			temp = -log10( xhold ) + log10( temp );
 			g = g < temp ? g : temp;
 		}
-		if( n <= 2 ) { for( j = 0; j < n; j++ ) work[j+5] = grad[j]; }
+		if( n <= 2 ) { for( j = 0; j < n; j++ ) work[j + 5] = grad[j]; }
 		work[0] = erl2 + erl2;
 		work[1] = ieval;
 		work[2] = g;
