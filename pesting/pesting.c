@@ -109,7 +109,9 @@ int load_pst( char *filename, struct opt_data *op )
 	printf( "Calibration targets = %d\n", ( *od ).nObs );
 	for( i = 0; i < od->nObs; i++ )
 	{
-		printf( "%-13s: value %15.12g weight %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i] );
+		if( od->nObs < 50 || ( i < 20 || i > od->nObs - 20 ) )
+			printf( "%-13s: value %15.12g weight %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i] );
+		if( od->nObs > 50 && i == 21 ) printf( "...\n" );
 		od->obs_min[i] = 0; od->obs_max[i] = od->obs_target[i] * 2;
 		od->obs_log[i] = 0;
 	}

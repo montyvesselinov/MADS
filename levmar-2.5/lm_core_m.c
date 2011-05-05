@@ -103,11 +103,12 @@ int LEVMAR_DER(
 	int using_ffdif = 1;
 	register LM_REAL mu,  /* damping constant */
 			 tmp; /* mainly used in matrix & vector multiplications */
-	LM_REAL p_eL2, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
+	LM_REAL p_eL2, p_eL2_old, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
 	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, dF, dL;
 	LM_REAL tau, eps1, eps2, eps2_sq, eps3, delta;
 	LM_REAL init_p_eL2;
 	int nu, nu2, stop = 0, nfev, njap = 0, nlss = 0, K = ( m >= 10 ) ? m : 10, updjac, updp = 1, newjac;
+	int mu_big = 0, mu_constrained = 0, phi_decline = 0;
 	const int nm = n * m;
 	int ( *linsolver )( LM_REAL * A, LM_REAL * B, LM_REAL * x, int m ) = NULL;
 	mu = jacTe_inf = p_L2 = 0.0; /* -Wall */
@@ -194,7 +195,7 @@ int LEVMAR_DER(
 		p_eL2 += tmp * tmp;
 	}
 #endif
-	init_p_eL2 = p_eL2;
+	init_p_eL2 = p_eL2_old = p_eL2;
 	if( !LM_FINITE( p_eL2 ) ) stop = 7;
 	nu = 20; /* force computation of J */
 	if( op->cd->odebug )
@@ -230,15 +231,20 @@ int LEVMAR_DER(
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if(( updp && nu > 16 ) || updjac == K ) /* compute difference approximation to J */
+		if(( updp && nu > 16 ) || updjac == K || mu_big || phi_decline ) /* compute difference approximation to J */
 		{
-			if( op->cd->ldebug )
+			if( op->cd->ldebug && k != 0 )
 			{
-				printf( "New jacobian because: " );
-				if( nu > 16 ) printf( "Lambda multiplication factor too large (nu = %d > 16); ", nu );
+				if( k != 0 ) printf( "New Jacobian because: " );
+				if( nu > 16 && k != 0 ) printf( "Lambda multiplication factor too large (nu = %d > 16); ", nu );
 				if( updjac == K ) printf( "Maximum number of lambda iteration is reached (%d); ", K );
+				if( mu_big ) printf( "Lambda is constrained (%g); ", 1e3 );
+				if( phi_decline ) printf( "OF declined substantially (%g << %g)", p_eL2, p_eL2_old );
 				printf( "\n\n" );
 			}
+			mu_big = 0;
+			phi_decline = 0;
+			p_eL2_old = p_eL2;
 			if( using_ffdif ) /* use forward differences */
 			{
 				jacf( p, hx, jac, m, n, adata );
@@ -367,8 +373,9 @@ int LEVMAR_DER(
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
 			{
 				if( diag_jacTjac[i] > tmp ) tmp = diag_jacTjac[i]; /* find max diagonal element */
+				if( op->cd->ldebug > 2 && tmp > 1e6 ) printf( "Parameter %s is not very sensitive (matrix diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], mu );
 			}
-			if( tmp > 1e6 ) tmp = 1e6;
+			if( tmp > 1e4 ) tmp = 1e4;
 			mu = tau * tmp;
 			if( op->cd->ldebug ) printf( "Computed initial lambda %g\n", mu );
 		}
@@ -429,6 +436,8 @@ int LEVMAR_DER(
 				stop = 7;
 				break;
 			}
+			tmp = p_eL2_old / p_eL2;
+			if( tmp > 2.0 ) phi_decline = 1; /* recompute jacobina because OF decreased substantially */
 			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
 			// printf( "dF = %g (%g - %g)\n", dF, p_eL2, pDp_eL2 );
 			if( updp || dF > 0.0 ) /* update jac because OF increases */
@@ -452,6 +461,23 @@ int LEVMAR_DER(
 				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
 				tmp = (( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				mu = mu * tmp; // change lambda
+				if( mu > 1e3 )
+				{
+					if( mu_constrained == 1 )
+					{
+						if( op->cd->ldebug ) printf( "lambda has been already constrained; new iteration" );
+						if( op->cd->ldebug > 1 ) printf( "\n" );
+						// mu_big = 1;
+					}
+					else
+					{
+						mu = 1e3;
+						mu_constrained = 1;
+						if( op->cd->ldebug ) printf( "lambda is constrained to be less than %g", mu );
+						if( op->cd->ldebug > 1 ) printf( "\n" );
+					}
+				}
+				else mu_constrained = 0;
 				if( op->cd->ldebug > 1 ) printf( "change factor (tmp) %g\n", tmp );
 				else if( op->cd->ldebug ) printf( "\n" );
 				nu = 2;
@@ -471,9 +497,26 @@ int LEVMAR_DER(
 		 * the error did not reduce; in any case, the increment must be rejected
 		 */
 		mu *= nu; // increase lambda
+		if( mu > 1e3 )
+		{
+			if( mu_constrained == 1 )
+			{
+				if( op->cd->ldebug ) printf( "lambda has been already constrained; new iteration" );
+				if( op->cd->ldebug > 1 ) printf( "\n" );
+				// mu_big = 1;
+			}
+			else
+			{
+				mu = 1e3;
+				mu_constrained = 1;
+				if( op->cd->ldebug ) printf( "lambda is constrained to be less than %g", mu );
+				if( op->cd->ldebug > 1 ) printf( "\n" );
+			}
+		}
+		else mu_constrained = 0;
 		if( op->cd->ldebug > 1 ) printf( "change factor (nu) %d\n", nu );
 		else if( op->cd->ldebug ) printf( "\n" );
-		nu2 = nu << 1; // 2*nu;
+		nu2 = nu << 1; // 2 * nu;
 		if( nu2 <= nu ) /* nu has wrapped around (overflown). Thanks to Frank Jordan for spotting this case */
 		{
 			if( op->cd->ldebug ) printf( "CONVERGED: lambda multiplication factor has wrapped around (overflown)\n" );
@@ -482,11 +525,11 @@ int LEVMAR_DER(
 		}
 		nu = nu2;
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-			jacTjac[i *m+i] = diag_jacTjac[i];
+			jacTjac[i*m+i] = diag_jacTjac[i];
 	}
 	if( k >= itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-		jacTjac[i *m+i] = diag_jacTjac[i];
+		jacTjac[i*m+i] = diag_jacTjac[i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
