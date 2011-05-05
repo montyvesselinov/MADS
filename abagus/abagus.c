@@ -188,6 +188,7 @@ int pssa( struct opt_data *op )
 	int energy; // energy of swarm
 	int kdsize; // size of kdset
 	int old_pos = 0, new_pos = 0; // number of particles visiting old and new positions each iteration
+	int t_old_pos = 0, t_new_pos = 0; // total number of particles visiting old and new positions
 	//double expl_rate, old_expl_rate = 1; // rate of new to old positions
 	int mflag; // indicates if particles are actually moving
 	op->cd->compute_phi = 1;
@@ -505,6 +506,7 @@ loop:
 		init_links = 0;
 	}
 	if( op->cd->pdebug > 1 ) printf( "evals: %d n_found: %d old_pos: %d new_pos: %d\n", nb_eval, f_ind, old_pos, new_pos );
+	t_new_pos += new_pos; t_old_pos += old_pos;
 	// Check if finished
 	if( nb_eval < eval_max && energy > 0 ) goto loop;
 	if( error > eps ) n_failure = n_failure + 1;
@@ -516,6 +518,8 @@ loop:
 		printf( "%d new solutions\n", f_ind - f_ind_old );
 	}
 	printf( "%d total solutions collected\n", f_ind );
+	printf( "%d calculated solutions\n", t_new_pos);
+	printf( "%d revisits\n", t_old_pos);
 /*	// Save result
 	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
 	if( f_ind > 0 )
