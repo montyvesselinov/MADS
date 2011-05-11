@@ -576,7 +576,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	{
 		fscanf( infile, "%s %lf %lf %lf %lf %i ", wd->id[i], &( *wd ).x[i], &( *wd ).y[i], &( *wd ).z1[i], &( *wd ).z2[i], &( *wd ).nWellObs[i] );
 		if( cd->debug ) printf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
-		if(( *wd ).nWellObs[i] <= 0 ) { printf( "Warning: no observations\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
+		if(( *wd ).nWellObs[i] <= 0 ) { if( cd->debug ) printf( "Warning: no observations\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
 		wd->obs_target[i] = ( double * ) malloc(( *wd ).nWellObs[i] * sizeof( double ) );
 		wd->obs_time[i] = ( double * ) malloc(( *wd ).nWellObs[i] * sizeof( double ) );
 		wd->obs_log[i] = ( int * ) malloc(( *wd ).nWellObs[i] * sizeof( int ) );
@@ -612,7 +612,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	if( bad_data ) return( 0 );
 	if( pd->nParam == 0 || pd->nOptParam == 0 ) { printf( "\nERROR: Number of model parameters is zero!\n\n" ); return( 0 ); }
-	if( od->nObs == 0 ) { printf( "\nERROR: Number of calibration targets is equal to zero!\n\n" ); return( 0 ); }
+	if( od->nObs == 0 )
+	{
+		if( cd->problem_type != FORWARD )
+			{ printf( "\nERROR: Number of calibration targets is equal to zero!\n\n" ); return( 0 ); }
+		else printf( "\nWARNING: Number of calibration targets is equal to zero!\n\n" );
+	}
 	if( cd->debug > 2 )
 	{
 		d = ( -pd->var[FLOW_ANGLE] * M_PI ) / 180;
