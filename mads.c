@@ -455,10 +455,7 @@ int main( int argn, char *argv[] )
 				bad_data = 1;
 			}
 			else if( orig_params[i] > 1.5 )
-			{
 				printf( "WARNING: Model parameter \'%s\' is represented more than once (%d) in the template file(s)!\n", pd.var_id[i], ( int ) orig_params[i] );
-				bad_data = 1;
-			}
 		}
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )

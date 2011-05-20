@@ -229,7 +229,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst );
 			if( word_inst[0] == token_search[0] ) // search for keyword
 			{
-				word_inst = strtok( word_inst, token_search );
+				word_inst = strtok_r( NULL, token_search, &pnt_inst );
 				white_skip( &word_inst ); white_trim( word_inst );
 				if( debug ) printf( "Search for keyword \'%s\' in the data file ...\n", word_inst );
 			}
@@ -384,7 +384,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst );
 			if( word_inst[0] == token_search[0] ) // search for keyword
 			{
-				word_inst = strtok( word_inst, token_search );
+				word_inst = strtok_r( NULL, token_search, &pnt_inst );
 				white_skip( &word_inst ); white_trim( word_inst );
 				if( debug ) printf( "Search for keyword \'%s\' in the data file ...\n", word_inst );
 				bad_data = 1;
@@ -468,7 +468,7 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 	FILE *in;
 	char *sep = " \t\n"; // White spaces
 	char *word, token[2], buf[1000];
-	int i, l, c, start, bad_data = 0;
+	int i, l, c, start = 0, bad_data = 0;
 	if(( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
@@ -554,7 +554,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	FILE *in, *out;
 	char *sep = " \t\n";
 	char *word, token[2], number[80], buf[1000];
-	int i, l, c, start, bad_data = 0;
+	int i, l, l2, c, start, space = 0, bad_data = 0;
 	if(( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
@@ -608,6 +608,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		l = strlen( buf );
 		buf[l - 1] = 0; // remove 'new line' character
 		if( buf[0] == token[0] ) start = 0; else start = 1; // if first character is a token it will be not considered a separator
+		space = 0;
 		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
 		{
 			if( c % 2 == start )
@@ -621,8 +622,10 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 					if( strcmp( word, par_id[i] ) == 0 )
 					{
 						sprintf( number, "%-30.25g", par[i] );
-						number[l] = 0;
-						fprintf( out, "%s", number );
+						l2 = strlen( number );
+						if( l2 > l ) number[l] = 0;
+						if( space ) fprintf( out, " %s", number );
+						else { space = 1; fprintf( out, "%s", number ); }
 						if( debug ) printf( "replaced with \'%s\' (parameter \'%s\')\n", number, par_id[i] );
 						break;
 					}
@@ -634,7 +637,11 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 					bad_data = 1;
 				}
 			}
-			else fprintf( out, " %s", word );
+			else
+			{
+				if( space ) fprintf( out, " %s", word );
+				else { space = 1; fprintf( out, "%s", word ); }
+			}
 		}
 		fprintf( out, "\n" );
 	}
