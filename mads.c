@@ -7,6 +7,7 @@
 //
 #define _GNU_SOURCE
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 #include <time.h>
 #include <sys/types.h>
@@ -132,7 +133,7 @@ int main( int argn, char *argv[] )
 	struct grid_data gd;
 	struct opt_data op;
 	struct gsens_data gs;
-	char filename[80], root[80], extension[80], buf[255], *dot, *cwd;
+	char filename[255], root[255], extension[255], buf[255], *dot, *cwd;
 	int ( *optimize )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
 	FILE *in, *out, *out2;
@@ -441,7 +442,7 @@ int main( int argn, char *argv[] )
 	 */
 	if( cd.solution_type == EXTERNAL ) // Check the files for external execution
 	{
-		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the instruction and template files for errors ...\n" );
+		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the template files for errors ...\n" );
 		bad_data = 0;
 		for( i = 0; i < pd.nParam; i++ ) orig_params[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
@@ -457,6 +458,7 @@ int main( int argn, char *argv[] )
 			else if( orig_params[i] > 1.5 )
 				printf( "WARNING: Model parameter \'%s\' is represented more than once (%d) in the template file(s)!\n", pd.var_id[i], ( int ) orig_params[i] );
 		}
+		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the instruction files for errors ...\n" );
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
 			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
