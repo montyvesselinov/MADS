@@ -663,7 +663,6 @@ int main( int argn, char *argv[] )
 			fprintf( out, "\n" );
 			fflush( out );
 			if( op.success && cd.nreal > 1 ) save_results( "igrnd", &op, &gd );
-			else                             save_results( "igrnd", &op, &gd );
 			neval_total += cd.neval;
 			if( cd.ireal != 0 ) break;
 		}
@@ -684,7 +683,7 @@ int main( int argn, char *argv[] )
 		fprintf( out2, "success %d\n", success_global );
 		fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d\n", success_global );
 		fprintf( out2, "eval %d\n", neval_total );
-		fprintf( out, "Number of evaluations = %d\n", neval_total );
+		fprintf( out, "Total number of evaluations = %d\n", neval_total );
 		fclose( out ); fclose( out2 );
 		printf( "Results are saved in %s.igrnd.results and %s.igrnd-opt=%s_eval=%d_real=%d\n", op.root, op.root, cd.opt_method, cd.maxeval, cd.nreal );
 		printf( "Repeat the run producing the best results and save them ...\n" );
@@ -1455,10 +1454,13 @@ int main( int argn, char *argv[] )
 		fprintf( out, "Model parameter values:\n" );
 		for( i = 0; i < pd.nParam; i++ )
 			fprintf( out, "%s %g\n", pd.var_id[i], pd.var[i] );
-		printf( "\nModel predictions (forward run; no calibration):\n" );
-		fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
-		sprintf( filename, "%s.forward", op.root );
-		out2 = Fwrite( filename );
+		if( od.nObs > 0 )
+		{
+			printf( "\nModel predictions (forward run; no calibration):\n" );
+			fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
+			sprintf( filename, "%s.forward", op.root );
+			out2 = Fwrite( filename );
+		}
 	}
 //
 // ------------------------ CREATE
@@ -1528,7 +1530,7 @@ int main( int argn, char *argv[] )
 		else    printf( "No calibration targets!\n" );
 		fclose( out );
 	}
-	if( cd.problem_type == FORWARD ) fclose( out2 );
+	if( cd.problem_type == FORWARD && od.nObs > 0 ) fclose( out2 );
 	if( cd.problem_type == FORWARD || cd.problem_type == CALIBRATE )
 	{
 		if( gd.min_t > 0 && cd.solution_type != TEST )
@@ -1545,10 +1547,13 @@ int main( int argn, char *argv[] )
 			sprintf( filename, "%s.vtk", op.root );
 			compute_grid( filename, &cd, &gd );
 		}
-		sprintf( filename, "%s.phi", op.root );
-		out2 = Fwrite( filename );
-		fprintf( out2, "%g\n", op.phi ); // Write phi in a separate file
-		fclose( out2 );
+		if( od.nObs > 0 )
+		{
+			sprintf( filename, "%s.phi", op.root );
+			out2 = Fwrite( filename );
+			fprintf( out2, "%g\n", op.phi ); // Write phi in a separate file
+			fclose( out2 );
+		}
 	}
 	if( cd.problem_type == CREATE ) /* Create a file with calibration targets equal to the model predictions */
 	{
@@ -2389,7 +2394,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		if( op->pd->var_log[k] == 0 ) fprintf( out, "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
 		else fprintf( out, "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
-	if( op->od->nObs > 0 ) fprintf( out, "\nOptimized calibration targets:\n" );
+	if( op->od->nObs > 0 && op->cd->solution_type != TEST ) fprintf( out, "\nOptimized calibration targets:\n" );
 	if( op->cd->solution_type == EXTERNAL )
 		for( i = 0; i < op->od->nObs; i++ )
 		{

@@ -63,7 +63,7 @@ verify:
 	cd example/rosenbrock; mads a01 test=3 opt=pso igrnd real=1 seed=1977879092 > /dev/null
 	@compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-correct
 	@echo "Test problem example/contamination/s01 ..."
-	mads example/contamination/s01 > /dev/null
+	mads example/contamination/s01 sindx=0.01 > /dev/null
 	@compare-results example/contamination/s01.results example/contamination/s01.results-correct
 	@echo "Test problem example/wells/w01 ..."
 	cd example/wells; mads w01 > /dev/null

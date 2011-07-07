@@ -3,7 +3,7 @@ diff $1 $2 > $1_$$
 set a = $?
 if( $a != 0 ) then
 	echo Verification failed!
-	cat $1_$$
+	tail $1_$$
 	\rm -f $1_$$
 	exit 0
 else

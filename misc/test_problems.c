@@ -38,8 +38,7 @@ int set_test_problems( struct opt_data *op )
 		pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0;
 		pd->var_max[d] = 100; pd->var_min[d] = -100; pd->var_log[d] = 0; pd->var_opt[d] = 1;
 		if( cd->problem_type == ABAGUS ) pd->var_dx[d] = .1;
-		else if( strcasestr( op->cd->opt_method, "lm" ) != NULL ) pd->var_dx[d] = 1;
-		else pd->var_dx[d] = 0; // if not zero will force TRIBES to use discretized parameter space!
+		else pd->var_dx[d] = 0; // if not zero will force PSO/TRIBES/SQUADS to use discretized parameter space; if SQUADS/LM is called, dx = sindx is assumed for LM
 		pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 		pd->var_index[d] = d;
 	}
