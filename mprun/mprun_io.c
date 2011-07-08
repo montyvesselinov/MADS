@@ -9,7 +9,7 @@ char *dir_hosts( void *data, char *timedate_stamp )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char *dir;
-	dir = ( char * ) malloc(( strlen( p->cd->mydir ) + strlen( p->root ) + strlen( timedate_stamp ) + 255 ) * sizeof( char ) );
+	dir = ( char * ) malloc( ( strlen( p->cd->mydir ) + strlen( p->root ) + strlen( timedate_stamp ) + 255 ) * sizeof( char ) );
 	sprintf( dir, "%s_%s_%s", p->cd->mydir, p->root, timedate_stamp );
 	return( dir );
 }

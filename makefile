@@ -52,22 +52,45 @@ clean:
 
 examples:
 	@echo "Example problem rosenbrock ... "
-	cd example/rosenbrock; mads a01 test=3 opt=pso igrnd real=1
+	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1
 	@echo "Example problem example/contamination/s01 ..."
 	mads example/contamination/s01 ldebug
 	@echo "Example problem example/wells/w01 ..."
-	cd example/wells; mads w01 ldebug
+	cd example/wells; ../../mads w01 ldebug
 
 verify:
 	@echo "Test problem rosenbrock ... "
-	cd example/rosenbrock; mads a01 test=3 opt=pso igrnd real=1 seed=1977879092 > /dev/null
-	@compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-correct
-	@echo "Test problem example/contamination/s01 ..."
+	@echo "Levenberg-Marquardt ... "
+	cd example/rosenbrock; ../../mads a01 test=3 opt=lm igrnd real=1 seed=1977879092 > /dev/null
+	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-correct
+	@echo "Particle-Swarm ... "
+	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1 seed=1977879092 > /dev/null
+	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-pso-correct
+	@echo "TRIBES ... "
+	cd example/rosenbrock; ../../mads a01 test=3 opt=tribes igrnd real=1 seed=1977879092 > /dev/null
+	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-tribes-correct
+	@echo "SQUADS ... "
+	cd example/rosenbrock; ../../mads a01 test=3 opt=squads igrnd real=1 seed=1977879092 > /dev/null
+	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-correct
+	@echo; echo "Test problem example/contamination/s01 ..."
 	mads example/contamination/s01 sindx=0.01 > /dev/null
-	@compare-results example/contamination/s01.results example/contamination/s01.results-correct
-	@echo "Test problem example/wells/w01 ..."
-	cd example/wells; mads w01 > /dev/null
-	@compare-results example/wells/w01.results example/wells/w01.results-correct
+	@./compare-results example/contamination/s01.results example/contamination/s01.results-correct
+	@echo; echo "Test problem example/wells/w01 ..."
+	cd example/wells; ../../mads w01 > /dev/null
+	@./compare-results example/wells/w01.results example/wells/w01.results-correct
+	@echo; echo "Test problem example/wells-short/w01 ..."
+	@echo "Instruction file example/wells-short/w01-v1.inst ..."
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01 > /dev/null
+	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo "Instruction file example/wells-short/w01-v2.inst ..."
+	cd example/wells-short; ln -sf w01-v2.inst w01.inst; ../../mads w01 > /dev/null
+	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo "Instruction file example/wells-short/w01-v3.inst ..."
+	cd example/wells-short; ln -sf w01-v3.inst w01.inst; ../../mads w01 > /dev/null
+	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo "Instruction file example/wells-short/w01-v4.inst ..."
+	cd example/wells-short; ln -sf w01-v4.inst w01.inst; ../../mads w01 > /dev/null
+	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
 
 astyle:
 	astyle $(SOURCE)

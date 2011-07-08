@@ -171,7 +171,7 @@ int pso_tribes( struct opt_data *op )
 	bestBest.size = pb.nPhi; //Prepare final result
 	for( n = 0; n < pb.nPhi; n++ )
 	{
-		bestBest.f.f[n] = HUGE;
+		bestBest.f.f[n] = HUGE_VAL;
 		successRate[n] = 0;
 	}
 	if( multiObj )
@@ -736,14 +736,14 @@ double archive_spread()
 {
 	double dMin[MAXARCHIVE], diversity1, diversity2, dMean1, dMean2, phi_spread, z, d;
 	int m, n;
-	if( nArchive < 2 ) return HUGE;
+	if( nArchive < 2 ) return HUGE_VAL;
 	// For each position, find the  nearest one
 	// and the farest one, in the objfunc space
 	// Without the new position
 	diversity1 = 0;
 	for( n = 0; n < nArchive - 1; n++ )
 	{
-		dMin[n] = HUGE;
+		dMin[n] = HUGE_VAL;
 		for( m = 0; m < nArchive - 1; m++ )
 		{
 			if( m == n ) continue;
@@ -756,7 +756,7 @@ double archive_spread()
 	diversity2 = 0;
 	for( n = 0; n < nArchive; n++ )
 	{
-		dMin[n] = HUGE;
+		dMin[n] = HUGE_VAL;
 		for( m = 0; m < nArchive; m++ )
 		{
 			if( m == n ) continue;
@@ -1863,7 +1863,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Doen not ad
 				shaman = ( *S ).trib[tr].best;
 				for( d = 0; d < ( *pb ).D; d++ ) // find the nearest position to the shaman
 				{
-					dist = HUGE;
+					dist = HUGE_VAL;
 					for( pa = 0; pa < ( *S ).trib[tr].size; pa++ )
 					{
 						if( pa == shaman ) continue;
@@ -2034,7 +2034,7 @@ int tribe_varmin_dimension( struct tribe *T )
 {
 	int i, ip, dim_varmin = -1;
 	double mean_dim, var_dim, min_var, z;
-	min_var = HUGE;
+	min_var = HUGE_VAL;
 	for( i = 0; i < ( *T ).part[0].x.size; i++ )
 	{
 		mean_dim = 0;

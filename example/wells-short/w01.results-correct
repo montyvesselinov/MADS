@@ -1,0 +1,19 @@
+Optimized parameter values:
+k -1.7796
+S -4.81823
+
+Optimized calibration targets:
+o1                  :           0 -            0 =            0 (           0) success 1 range            0 -         0.05
+o2                  :        5.98 -       6.7082 =      -0.7282 (     -0.7282) success 0 range         5.93 -         6.03
+o3                  :        8.02 -      7.64787 =      0.37213 (     0.37213) success 0 range         7.97 -         8.07
+o4                  :        8.67 -      8.19823 =      0.47177 (     0.47177) success 0 range         8.62 -         8.72
+o5                  :        8.97 -      8.58891 =      0.38109 (     0.38109) success 0 range         8.92 -         9.02
+o6                  :        9.14 -      8.89202 =      0.24798 (     0.24798) success 0 range         9.09 -         9.19
+o7                  :        9.25 -      9.13973 =      0.11027 (     0.11027) success 0 range          9.2 -          9.3
+o8                  :        9.31 -      9.34918 =     -0.03918 (    -0.03918) success 1 range         9.26 -         9.36
+o9                  :        9.38 -      9.53064 =     -0.15064 (    -0.15064) success 0 range         9.33 -         9.43
+o10                 :        9.41 -       9.6907 =      -0.2807 (     -0.2807) success 0 range         9.36 -         9.46
+o11                 :        9.45 -      9.83389 =     -0.38389 (    -0.38389) success 0 range          9.4 -          9.5
+Objective function: 1.3606 Success: 0 
+At least one of the predictions is outside calibration ranges!
+Number of function evaluations = 56
