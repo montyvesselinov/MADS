@@ -450,6 +450,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( cd->solution_type == EXTERNAL )
 	{
 		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &od->nObs );
+		od->nTObs = od->nObs;
 		od->obs_id = char_matrix( ( *od ).nObs, 50 );
 		od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
