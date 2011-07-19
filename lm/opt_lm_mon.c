@@ -484,7 +484,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 				if( iphi < 0 ) // AVOID THIS; not working properly at the moment
 				{
 					phi_range_max = phi_best; // initialize max search
-					phi_range_min = HUGE; // initialize min search
+					phi_range_min = HUGE_VAL; // initialize min search
 					for( i = iphi - max_phi_range; i < iphi; i++ )
 					{
 //						printf( "p %g\n", vphi[i] );
@@ -577,7 +577,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 		}	/* END OF THE LOCAL WHILE */
 	}	/* END OF THE MAIN LOOP */
 	if( ier == 1 ) ier = 0;
-	temp = HUGE;                     /* OUTPUT grad_norm, IEVAL, NSIG, AL, AND ITER */
+	temp = HUGE_VAL;                     /* OUTPUT grad_norm, IEVAL, NSIG, AL, AND ITER */
 	for( j = 0; j < nParam; j++ )
 	{
 		x_old = fabs( x_update[j] );
