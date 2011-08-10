@@ -1,3 +1,12 @@
+// MADS: Model Analyses & Decision Support (v1.1) 2011
+//
+// Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dylan Harp, dharp@lanl.gov
+//
+// http://www.ees.lanl.gov/staff/monty/codes/mads
+//
+// LA-CC-10-055; LA-CC-11-035
+//
 #include <sys/types.h>  /* include this before any other sys headers */
 #include <sys/wait.h>   /* header for waitpid() and various macros */
 #include <signal.h>     /* header for signal functions */

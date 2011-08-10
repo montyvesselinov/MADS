@@ -1,3 +1,12 @@
+// MADS: Model Analyses & Decision Support (v1.1) 2011
+//
+// Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dylan Harp, dharp@lanl.gov
+//
+// http://www.ees.lanl.gov/staff/monty/codes/mads
+//
+// LA-CC-10-055; LA-CC-11-035
+//
 /* Standard PSO version 2006
 
 Motivation

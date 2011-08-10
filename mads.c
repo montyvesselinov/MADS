@@ -5,6 +5,8 @@
 //
 // http://www.ees.lanl.gov/staff/monty/codes/mads
 //
+// LA-CC-10-055; LA-CC-11-035
+//
 #define _GNU_SOURCE
 #include <string.h>
 #include <stdlib.h>

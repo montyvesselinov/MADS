@@ -1,3 +1,12 @@
+// MADS: Model Analyses & Decision Support (v1.1) 2011
+//
+// Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dylan Harp, dharp@lanl.gov
+//
+// http://www.ees.lanl.gov/staff/monty/codes/mads
+//
+// LA-CC-10-055; LA-CC-11-035
+//
 #define _GNU_SOURCE
 #include<stdio.h>
 #include<stdlib.h>
@@ -6,7 +15,7 @@
 #include<ctype.h>
 #include<math.h>
 
-#include "../mads.h"
+#include "mads.h"
 
 /* Functions here */
 int load_pst( char *filename, struct opt_data *op );

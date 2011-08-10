@@ -1,3 +1,12 @@
+// MADS: Model Analyses & Decision Support (v1.1) 2011
+//
+// Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dylan Harp, dharp@lanl.gov
+//
+// http://www.ees.lanl.gov/staff/monty/codes/mads
+//
+// LA-CC-10-055; LA-CC-11-035
+//
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
@@ -460,7 +469,23 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 		for( i = 0; i < od->nObs; i++ )
+		{
+			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0;
 			fscanf( infile, "%s %lf %lf %d %lf %lf\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i], &od->obs_log[i], &od->obs_min[i], &od->obs_max[i] );
+			if( od->obs_max[i] < od->obs_target[i] || od->obs_min[i] > od->obs_target[i] )
+			{
+				printf( "ERROR: Observation target is outside the specified min/max range! " );
+				printf( "Observation %s: %g min %g max %g\n", od->obs_id[i], od->obs_target[i], od->obs_min[i], od->obs_max[i] );
+				bad_data = 1;
+			}
+			if( od->obs_max[i] <= od->obs_min[i] )
+			{
+				printf( "ERROR: Calibration range is not correctly specified! " );
+				printf( "Observation %s: min %g max %g\n", od->obs_id[i], od->obs_min[i], od->obs_max[i] );
+				bad_data = 1;
+			}
+		}
+		if( bad_data ) return( 0 );
 		if( cd->ologtrans == 1 ) od->obs_log[i] = 1;
 		else if( cd->ologtrans == 0 ) od->obs_log[i] = 0;
 		if( cd->oweight == 1 )( *od ).obs_weight[i] = 1;
@@ -573,6 +598,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( cd->debug ) printf( "\nObservation data:\n" );
 	for( i = 0; i < ( *wd ).nW; i++ )
 	{
+		wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
 		fscanf( infile, "%s %lf %lf %lf %lf %i ", wd->id[i], &( *wd ).x[i], &( *wd ).y[i], &( *wd ).z1[i], &( *wd ).z2[i], &( *wd ).nWellObs[i] );
 		if( cd->debug ) printf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
 		if( ( *wd ).nWellObs[i] <= 0 ) { if( cd->debug ) printf( "Warning: no observations\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }

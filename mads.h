@@ -1,3 +1,15 @@
+// MADS: Model Analyses & Decision Support (v1.1) 2011
+//
+// Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dylan Harp, dharp@lanl.gov
+//
+// http://www.ees.lanl.gov/staff/monty/codes/mads
+//
+// LA-CC-10-055; LA-CC-11-035
+//
+#ifndef MADS_H
+#define MADS_H
+
 #include <gsl/gsl_vector.h>
 #include <stdio.h>
 #include <time.h>
@@ -251,3 +263,4 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t,
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 
+#endif /* MADS_H */
