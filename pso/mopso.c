@@ -769,8 +769,8 @@ static int compare_adapt_f( struct fitness f1[], int runs, int fCompare )
 
 static int compare_crowding_dist( void const *a, void const *b ) // QSORT: compare crowding distances in the archive
 {
-	struct archived const *pa = a;
-	struct archived const *pb = b;
+	struct archived const *pa = (struct archived const *) a;
+	struct archived const *pb = (struct archived const *) b;
 	if( pa->crowD > pb->crowD ) return 1;
 	if( pa->crowD < pb->crowD ) return -1;
 	return 0;
@@ -778,8 +778,8 @@ static int compare_crowding_dist( void const *a, void const *b ) // QSORT: compa
 
 static int compare_dist_rank( void const *a, void const *b ) // QSORT: compare distancences
 {
-	struct distRank const *pa = a;
-	struct distRank const *pb = b;
+	struct distRank const *pa = (struct distRank const *) a;
+	struct distRank const *pb = (struct distRank const *) b;
 	if( pa->dist > pb->dist ) return 1;
 	if( pa->dist < pb->dist ) return -1;
 	return 0;
@@ -787,8 +787,8 @@ static int compare_dist_rank( void const *a, void const *b ) // QSORT: compare d
 
 static int compare_fit( void const *a, void const *b ) // QSORT: compare f[fn] in archive
 {
-	struct archived const *pa = a;
-	struct archived const *pb = b;
+	struct archived const *pa = (struct archived const *) a;
+	struct archived const *pb = (struct archived const *) b;
 	if( pa->x.f.f[fn] > pb->x.f.f[fn] ) return 1; // NOTE: needs the global variable fn
 	if( pa->x.f.f[fn] < pb->x.f.f[fn] ) return -1;
 	return 0;
@@ -796,8 +796,8 @@ static int compare_fit( void const *a, void const *b ) // QSORT: compare f[fn] i
 
 static int compare_double( void const *a, void const *b ) // QSORT: compare double numbers
 {
-	double const *pa = a;
-	double const *pb = b;
+	double const *pa = (double const *) a;
+	double const *pb = (double const *) b;
 	if( *pa > *pb ) return 1;
 	if( *pa < *pb ) return -1;
 	return 0;

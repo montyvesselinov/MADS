@@ -1029,7 +1029,7 @@ static char *strsave( const char *s, const char *lim )
 {
 	if( lim == NULL )
 		lim = s + strlen( s );
-	char *p = malloc_check( "save string", lim - s + 1 );
+	char *p = (char *) malloc_check( "save string", lim - s + 1 );
 	strncpy( p, s, lim - s );
 	p[lim - s] = '\0';
 	return p;
@@ -1041,7 +1041,7 @@ char **shellpath( void )
 	if( !path )
 		path = "/bin:/usr/bin:/usr/local/bin";
 	char **vector = // size is overkill
-		malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
+			(char **) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
 	const char *p = path;
 	int next = 0;
 	while( p )
@@ -1083,7 +1083,7 @@ void execvepath( char *path[], const char *base, char *const argv[], char *const
 	else
 	{
 		size_t maxlen = maxpathlen( path, base ) + 1;
-		char *buf = malloc_check( "hold path", maxlen );
+		char *buf = (char *) malloc_check( "hold path", maxlen );
 		for( i = 0; path[i]; i++ )
 		{
 			snprintf( buf, maxlen, "%s/%s", path[i], base );

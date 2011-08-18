@@ -81,7 +81,7 @@ char *Fdatetime( char *filename, int debug )
 	struct tm *ptr_ts;
 	struct stat b;
 	char *datetime;
-	datetime = malloc( 16 * sizeof( char ) );
+	datetime = (char *) malloc( 16 * sizeof( char ) );
 	if( Ftest( filename ) != 0 ) { datetime[0] = 0; if( debug ) printf( "File %s: does not exist\n", filename ); }
 	else if( !stat( filename, &b ) )
 	{
@@ -98,7 +98,7 @@ time_t Fdatetime_t( char *filename, int debug )
 	struct tm *ptr_ts;
 	struct stat b;
 	char *datetime;
-	datetime = malloc( 16 * sizeof( char ) );
+	datetime = (char *) malloc( 16 * sizeof( char ) );
 	if( Ftest( filename ) != 0 ) { if( debug ) printf( "File %s: does not exist\n", filename ); return ( 0 ); }
 	else if( !stat( filename, &b ) )
 	{

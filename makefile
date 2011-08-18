@@ -1,5 +1,6 @@
 PROG = mads
 CC = gcc 
+# CC = g++ 
 ## rainier -L/usr/lib/gcc/x86_64-redhat-linux/4.1.1
 ifeq ($(OSTYPE),linux)
         DIRS = -I/home/monty/local/include/ -L/home/monty/local/lib

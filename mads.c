@@ -1836,8 +1836,8 @@ int optimize_lm( struct opt_data *op )
 			while( op->cd->maxeval > op->cd->neval )
 			{
 				// Levmar has no termination creteria based on the number of functional evaluations or number of jacobian evaluations
-				if( opts[4] > 0 ) maxiter = ( double )( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 10 ) + 1; // Forward derivatives
-				else              maxiter = ( double )( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 10 ) + 1; // Central derivatives
+				if( opts[4] > 0 ) maxiter = ( double ) (( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 10 ) + 1 ); // Forward derivatives
+				else              maxiter = ( double ) (( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 10 ) + 1); // Central derivatives
 				if( maxiter > op->cd->niter ) maxiter = op->cd->niter;
 				maxiter *= 10; // Assuming about 10 lambda searches per iteration
 				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter, opts, info, work, covar, op );
@@ -2527,7 +2527,7 @@ char *timestamp()
 	time_t raw_time;
 	struct tm *ptr_ts;
 	char *datetime;
-	datetime = malloc( 10 * sizeof( char ) );
+	datetime = (char *) malloc( 10 * sizeof( char ) );
 	time( &raw_time );
 	ptr_ts = localtime( &raw_time );
 //	printf( "%s\n", asctime( ptr_ts ) );
@@ -2540,7 +2540,7 @@ char *datestamp()
 	time_t raw_time;
 	struct tm *ptr_ts;
 	char *datetime;
-	datetime = malloc( 16 * sizeof( char ) );
+	datetime = (char *) malloc( 16 * sizeof( char ) );
 	time( &raw_time );
 	ptr_ts = localtime( &raw_time );
 //	printf( "%s\n", asctime( ptr_ts ) );

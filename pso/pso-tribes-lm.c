@@ -576,8 +576,8 @@ struct position archiveCrowDistSelect( int size )
 	double pr;
 	archive_crowding_dist(); // Compute the Crowding Distances
 	qsort( archiv, nArchive, sizeof( archiv[0] ), compare_crowding_dist ); // Sort the archive by increasing Crowding Distance
-	pr = 2 * log( 1 + size ); // Choose at random according to a non uniform distribution:
-	n = pow( random_double( 0, pow( nArchive - 1, pr ) ), 1. / pr );
+	pr = 2 * log( (double) 1 + size ); // Choose at random according to a non uniform distribution:
+	n = pow( random_double( 0, pow( (double) nArchive - 1, pr ) ), (double) 1. / pr );
 	return archiv[n].x;
 }
 
@@ -864,8 +864,8 @@ int adapt_compare( struct objfunc phi1[], int runs, int compare_type )
 
 static int compare_crowding_dist( void const *a, void const *b ) // QSORT: compare crowding distances in the archive
 {
-	struct archived const *pa = a;
-	struct archived const *pb = b;
+	struct archived const *pa = (struct archived const *) a;
+	struct archived const *pb = (struct archived const *) b;
 	if( pa->crow_dist > pb->crow_dist ) return 1;
 	if( pa->crow_dist < pb->crow_dist ) return -1;
 	return 0;
@@ -873,8 +873,8 @@ static int compare_crowding_dist( void const *a, void const *b ) // QSORT: compa
 
 static int compare_dist_rank( void const *a, void const *b ) // QSORT: compare distancences
 {
-	struct distRank const *pa = a;
-	struct distRank const *pb = b;
+	struct distRank const *pa = (struct distRank const *) a;
+	struct distRank const *pb = (struct distRank const *) b;
 	if( pa->dist > pb->dist ) return 1;
 	if( pa->dist < pb->dist ) return -1;
 	return 0;
@@ -882,8 +882,8 @@ static int compare_dist_rank( void const *a, void const *b ) // QSORT: compare d
 
 static int compare_fit( void const *a, void const *b ) // QSORT: compare f[fn] in archive
 {
-	struct archived const *pa = a;
-	struct archived const *pb = b;
+	struct archived const *pa = (struct archived const *) a;
+	struct archived const *pb = (struct archived const *) b;
 	if( pa->x.f.f[fn] > pb->x.f.f[fn] ) return 1; // NOTE: needs the global variable fn
 	if( pa->x.f.f[fn] < pb->x.f.f[fn] ) return -1;
 	return 0;
@@ -891,8 +891,8 @@ static int compare_fit( void const *a, void const *b ) // QSORT: compare f[fn] i
 
 static int compare_double( void const *a, void const *b ) // QSORT: compare double numbers
 {
-	double const *pa = a;
-	double const *pb = b;
+	double const *pa = (double const *) a;
+	double const *pb = (double const *) b;
 	if( *pa > *pb ) return 1;
 	if( *pa < *pb ) return -1;
 	return 0;
@@ -1668,7 +1668,7 @@ void swarm_init( struct problem *pb, int compare_type, struct swarm *S )
 {
 	int nPart, nTribe, i;
 	if( gop->cd->ntribe > 0 ) nTribe = gop->cd->ntribe; // Imported number of tribe
-	else  nTribe = 10 + sqrt(( *pb ).D );  // Initial number of tribes
+	else  nTribe = 10 + sqrt( (double) ( *pb ).D );  // Initial number of tribes
 	if( nTribe > MAXTRIBE ) nTribe = MAXTRIBE;
 	( *S ).size = nTribe; // Number of tribes
 	nPart = 1; // Initial number of particles in each tribe
