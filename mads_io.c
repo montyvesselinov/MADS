@@ -342,7 +342,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( strcasestr( ( *cd ).solution_id, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type = TEST; od->nObs = 0; }
 	if( nofile )
 	{
-		if( ( *cd ).solution_type != TEST )
+		if( ( *cd ).solution_type != TEST || ( *cd ).problem_type == INFOGAP )
 		{
 			printf( "\nERROR: Input file is needed!\n\n" );
 			return( -1 );
