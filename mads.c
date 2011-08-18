@@ -1064,9 +1064,9 @@ int main( int argn, char *argv[] )
 					printf( "\nRandom parameter values:\n" );
 					for( i = 0; i < pd.nOptParam; i++ )
 					{
-					    j = pd.var_index[i];
-					    if( pd.var_log[j] == 0 ) printf( "%s %g\n", pd.var_id[j], pd.var[j] );
-					    else printf( "%s %g\n", pd.var_id[j], pow( 10, pd.var[j] ) );
+						j = pd.var_index[i];
+						if( pd.var_log[j] == 0 ) printf( "%s %g\n", pd.var_id[j], pd.var[j] );
+						else printf( "%s %g\n", pd.var_id[j], pow( 10, pd.var[j] ) );
 					}
 				}
 				if( cd.mdebug > 1 ) { printf( "\nPredicted calibration targets:\n" ); print_results( &op ); }
