@@ -22,7 +22,7 @@ $(PROG): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSLEVMAR) $(OBJSKDTREE)
 
 mads.o: mads.c mads.h levmar-2.5/levmar.h
 mads_io.o: mads_io.c mads.h
-mads_io_external.o: mads_io_external.o mads.h
+mads_io_external.o: mads_io_external.c mads.h
 mads_func.o: mads_func.c mads.h
 mads_mem.o: mads_mem.c
 mprun/mprun.o: mprun/mprun.c mads.h

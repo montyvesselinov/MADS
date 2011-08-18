@@ -7,6 +7,23 @@
 //
 // LA-CC-10-055; LA-CC-11-035
 //
+// Copyright 2011.  Los Alamos National Security, LLC.  All rights reserved.
+// This material was produced under U.S. Government contract DE-AC52-06NA25396 for
+// Los Alamos National Laboratory, which is operated by Los Alamos National Security, LLC for
+// the U.S. Department of Energy. The Government is granted for itself and others acting on its
+// behalf a paid-up, nonexclusive, irrevocable worldwide license in this material to reproduce,
+// prepare derivative works, and perform publicly and display publicly. Beginning five (5) years after
+// --------------- March 11, 2011, -------------------------------------------------------------------
+// subject to additional five-year worldwide renewals, the Government is granted for itself and
+// others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this
+// material to reproduce, prepare derivative works, distribute copies to the public, perform
+// publicly and display publicly, and to permit others to do so.
+//
+// NEITHER THE UNITED STATES NOR THE UNITED STATES DEPARTMENT OF ENERGY, NOR LOS ALAMOS NATIONAL SECURITY, LLC,
+// NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR
+// RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
+// PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
@@ -101,8 +118,8 @@ void free_matrix( void **matrix, int maxCols );
 int lmo_count;
 int lmo_flag;
 struct archived archiv[MAXARCHIVE+1];
-int arch;
-int nArchive;
+int arch =0;
+int nArchive = 0;
 struct objfunc archiveVar;
 double epsilon_vector[MAXPHI]; // For epsilon-dominance
 int eval; // Number of functional evaluations
@@ -111,14 +128,14 @@ int compare_type;
 int fn;
 double phi_max[MAXPHI]; // Maximum objfunc value found during the process
 double phi_min[MAXPHI]; // Minimum objfunc value found during the process
-int iter;
-int nLocalSearchIter;
-int nSwarmAdaptIter; // Number of iterations between two swarm adaptations
-int nSwarmStagIter;
+int iter = 0;
+int nLocalSearchIter = 0;
+int nSwarmAdaptIter = 0; // Number of iterations between two swarm adaptations
+int nSwarmStagIter =0;
 int nTribeAdaptIter[MAXTRIBE]; // The same, but for each tribe
-int id; // id (integer number) of the last generated particle
-int multiObj; // Flag for multiobjective problem
-int overSizeSwarm; // Nunber of times the swarm tends to generate too many tribes
+int id = 0; // id (integer number) of the last generated particle
+int multiObj = FALSE; // Flag for multi-objective problem
+int overSizeSwarm; // Number of times the swarm tends to generate too many tribes
 int overSizeTribe; // Number of times a tribe tends to generate too many particles
 int restart;
 int nRestarts;
@@ -177,7 +194,7 @@ int pso_tribes( struct opt_data *op )
 	eval_total = 0;
 	nArchive = 0;
 	compare_type = 0; // Kind of comparison, to begin (see objfuncCompare() )
-	bestBest.size = pb.nPhi; //Prepare final result
+	bestBest.size = archiv[0].x.size = pb.nPhi; //Prepare final result
 	for( n = 0; n < pb.nPhi; n++ )
 	{
 		bestBest.f.f[n] = HUGE_VAL;
@@ -204,7 +221,7 @@ int pso_tribes( struct opt_data *op )
 	lmo_flag = 0;
 	if( strstr( op->cd->opt_method, "lm" ) != NULL || strncmp( op->cd->opt_method, "squad", 5 ) == 0 ) lmo_flag = 1;
 	if( lmo_flag )
-		printf( "SQUADS: Coupled Particle-Swarm (TRIBES) and Levenberg-Marquardt Optimization ... " );
+		printf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... " );
 	else
 		printf( "Particle-Swarm Optimization TRIBES ... " );
 	if( op->cd->pdebug )  printf( "\n" );
@@ -356,7 +373,6 @@ void free_tribe( struct tribe *T )
 	int i;
 	for( i = 0; i < MAXPART; i++ )
 		free_particle( &T->part[i] );
-	free( T->part );
 	free_objfunc( &T->fBestPrev );
 }
 
@@ -1066,8 +1082,8 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 				else( *P ).x.x[k] = ( *pb ).max[k];
 			}
 			break;
-		case 3: // Biggest empty hyperparallelepid (Binary Search)
-			// TODO: TO TRY for multiobjective, one may use the archive instead of (*S) as the list of known positions
+		case 3: // Biggest empty hyper-parallelepiped (Binary Search)
+			// TODO: TO TRY for multi-objective, one may use the archive instead of (*S) as the list of known positions
 			for( k = 0; k < ( *pb ).D; k++ )
 			{
 				sort_vec[0] = ( *pb ).min[k];
@@ -1319,7 +1335,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 		return;
 	}
 	iter = 0;
-	nSwarmAdaptIter = 0; // Last iteration at which the swarm has been adapted
+	nSwarmAdaptIter = nSwarmStagIter = 0; // Last iteration at which the swarm has been adapted
 	for( tr = 0; tr < ( *S ).size; tr++ ) nTribeAdaptIter[tr] = 0;
 	while( 1 )
 	{
@@ -1421,6 +1437,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 	nTribe = ( *S ).size;
 	for( tr = 0; tr < ( *S ).size; tr++ )
 	{
+		nPart = ( *S ).trib[tr].size;
 		nTribeAdaptIter[tr] = 0;
 		if(( *S ).trib[tr].status == -1 )( *S ).trib[tr].status = 0; // Very bad tribe
 		else
@@ -1440,7 +1457,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 			case 0: // Bad tribe.
 				/* The idea is to increase diversity. This is done by adding sometimes a completely new particle
 				and by disturbing another one a bit, typically along just one dimension. */
-				disturbPart = random_double( 0, 1 ) < 1 - 1. / ( *S ).trib[tr].size;
+				disturbPart = (double) random_double( 0, 1 ) < 1 - 1. / ( *S ).trib[tr].size;
 				if( disturbPart )
 					if(( *S ).trib[tr].size > 1 )
 					{
@@ -1449,17 +1466,19 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 						while( pa == ( *S ).trib[tr].best ); // Do not disturb the best one ...
 						d = random_int( 0, ( *pb ).D - 1 );
 						//d=tribeVarianceMin(St.trib[tr]); // EXPERIMENT
-						( *S ).trib[tr].part[pa].xBest.x[d] = random_double(( *pb ).min[d], ( *pb ).max[d] );
-						position_check( pb, &( *S ).trib[tr].part[pa].xBest );
-						position_eval( pb, &( *S ).trib[tr].part[pa].xBest );
+						( *S ).trib[tr].part[pa].x.x[d] = random_double(( *pb ).min[d], ( *pb ).max[d] );
+						position_check( pb, &( *S ).trib[tr].part[pa].x );
+						position_eval( pb, &( *S ).trib[tr].part[pa].x );
+						// printf( "mmm %i %i\n", pa, ( *S ).trib[tr].best );
+						// tribe_print( &( *S ).trib[tr] );
 						if( compare_particles( &( *S ).trib[tr].part[pa].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
 						{
-							( *S ).trib[tr].best = nPart; // By chance this particle might be the best of the tribe
-							copy_position( &( *S ).trib[tr].part[pa].x, &( *S ).trib[tr].part[( *S ).trib[( *S ).size].best].xBest ); // copy to tribes best position
+							( *S ).trib[tr].best = pa; // By chance this particle might be the best of the tribe
+							copy_position( &( *S ).trib[tr].part[pa].x, &( *S ).trib[tr].part[pa].xBest ); // copy to tribes best position
 							if( debug_level > 2 )
 							{
-								printf( "best particle in tribe #%d is now #%i ", tr + 1, ( *S ).trib[tr].part[nPart].id );
-								objfunc_print( &( *S ).trib[tr].part[nPart].x.f );
+								printf( "best particle in tribe #%d is now #%i ", tr + 1, ( *S ).trib[tr].part[pa].id );
+								objfunc_print( &( *S ).trib[tr].part[pa].x.f );
 								printf( "\n" );
 							}
 						}
@@ -1470,19 +1489,20 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 							( *S ).tr_best = tr;
 						}
 					}
-				nPart = ( *S ).trib[tr].size;
 				if( nPart < MAXPART )
 				{
 					if( multiObj ) initOption = 3;
 					else initOption = random_int( 0, 3 );
 					if( debug_level > 2 ) printf( "Bad tribe %i: new particle is added ", tr + 1 );
 					add_part_count++;
-					particle_init( pb, initOption, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[nPart] );
+					nPart++;
 					( *S ).trib[tr].size++; // Add a new particle
+					particle_init( pb, initOption, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[nPart] );
+					// printf( "mmm %i %i\n ", initOption, nPart);
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
 					{
 						( *S ).trib[tr].best = nPart; // By chance this particle might be the best of the tribe
-						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[( *S ).trib[( *S ).size].best].xBest ); // copy to tribes best position
+						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[nPart].xBest ); // copy to tribes best position
 						if( debug_level > 2 )
 						{
 							printf( "best particle in tribe #%d is now #%i ", tr + 1, ( *S ).trib[tr].part[nPart].id );
@@ -1500,7 +1520,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				else
 				{
 					overSizeTribe++;
-					if( debug_level > 0 ) printf( "WARNING: Cannot add a particle (increase MAXPART = %i)\n", MAXPART );
+					if( debug_level > 0 ) printf( "\nWARNING: Cannot add a particle (increase MAXPART = %i)\n", MAXPART );
 				}
 				break;
 			case 1: // Good tribe
@@ -1740,7 +1760,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			{
 				if( debug_level ) printf( " Bad shaman!\n" );
 				( *S ).trib[tr].status = -1; // Bad tribe
-				particle_init( pb, 3, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] );
+				particle_init( pb, 3, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] ); // reset shaman
 				position_check( pb, &( *S ).trib[tr].part[shaman].x );
 				position_eval( pb, &( *S ).trib[tr].part[shaman].x );
 				if( debug_level > 1 ) position_print( &( *S ).trib[tr].part[shaman].x );
@@ -1794,7 +1814,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 	}
 }
 
-void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Doen not add particles; adjusts the best ones only
+void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not add particles; adjusts the best ones only
 {
 	struct position simplex[MAXPHI+1];
 	struct position new_position;
@@ -2017,6 +2037,9 @@ void tribe_print( struct tribe *T )
 	printf( "Labels    :" );
 	for( pa = 0; pa < ( *T ).size; pa++ )
 		printf( " %3i", ( *T ).part[pa].id );
+	printf( "Labels    :" );
+	for( pa = 0; pa < ( *T ).size; pa++ )
+		printf( " %g", ( *T ).part[pa].xBest.f.f[0] );
 	printf( "\nStrategies:" );
 	for( pa = 0; pa < ( *T ).size; pa++ )
 		printf( " %3i", ( *T ).part[pa].strategy );
@@ -2031,7 +2054,7 @@ void tribe_init( struct problem *pb, int nPart, int compare_type, struct swarm( 
 	for( i = 0; i < ( *T ).size; i++ )
 	{
 		if(( *pb ).init == 1 ) { ( *pb ).init = 0; init_option = 5; } // User provided initial values
-		else init_option = 3; // Biggest empty hyperparallelepid
+		else init_option = 3; // Biggest empty hyper-parallelepiped
 		particle_init( pb, init_option, &( *T ).part[i].x, &( *T ).part[i].x, S, &( *T ).part[i] ); // Arguments 3 & 4 are dummy
 	}
 	( *T ).best = tribe_shaman( T, compare_type );

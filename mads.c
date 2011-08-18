@@ -7,6 +7,23 @@
 //
 // LA-CC-10-055; LA-CC-11-035
 //
+// Copyright 2011.  Los Alamos National Security, LLC.  All rights reserved.
+// This material was produced under U.S. Government contract DE-AC52-06NA25396 for
+// Los Alamos National Laboratory, which is operated by Los Alamos National Security, LLC for
+// the U.S. Department of Energy. The Government is granted for itself and others acting on its
+// behalf a paid-up, nonexclusive, irrevocable worldwide license in this material to reproduce,
+// prepare derivative works, and perform publicly and display publicly. Beginning five (5) years after
+// --------------- March 11, 2011, -------------------------------------------------------------------
+// subject to additional five-year worldwide renewals, the Government is granted for itself and
+// others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this
+// material to reproduce, prepare derivative works, distribute copies to the public, perform
+// publicly and display publicly, and to permit others to do so.
+//
+// NEITHER THE UNITED STATES NOR THE UNITED STATES DEPARTMENT OF ENERGY, NOR LOS ALAMOS NATIONAL SECURITY, LLC,
+// NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR
+// RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
+// PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+
 #define _GNU_SOURCE
 #include <string.h>
 #include <stdlib.h>
@@ -651,9 +668,10 @@ int main( int argn, char *argv[] )
 				printf( "\n" );
 				print_results( &op );
 			}
+			else printf( "Objective function: %g Success: %d", op.phi, op.success );
 			success_global += op.success;
 			if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
-			if( cd.pdebug || cd.ldebug ) printf( "\n" ); // extra new line if the optimization process is debugged
+			if( cd.mdebug || cd.pdebug || cd.ldebug ) printf( "\n" ); // extra new line if the optimization process is debugged
 			fprintf( out2, "%g %d %d\n", op.phi, op.success, cd.neval );
 			fflush( out2 );
 			fprintf( out, " : OF %g success %d : final var", op.phi, op.success );
@@ -674,7 +692,7 @@ int main( int argn, char *argv[] )
 		cd.neval = neval_total; // provide the correct number of total evaluations
 		op.phi = phi_min;
 		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
-		printf( "Minimum objective function: %g\n", phi_min );
+		printf( "\nMinimum objective function: %g\n", phi_min );
 		printf( "Total number of evaluations = %d\n", neval_total );
 		fprintf( out, "Minimum objective function: %g\n", phi_min );
 		if( cd.nreal > 1 )
@@ -794,7 +812,7 @@ int main( int argn, char *argv[] )
 		printf( "Total number of evaluations = %d\n", neval_total );
 		op.phi = phi_min;
 		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i];
-		printf( "Minimum objective function: %g\n", phi_min );
+		printf( "\nMinimum objective function: %g\n", phi_min );
 		printf( "Total number of evaluations = %d\n", neval_total );
 		fprintf( out, "Minimum objective function: %g\n", phi_min );
 		if( cd.nreal > 1 )
@@ -1034,8 +1052,8 @@ int main( int argn, char *argv[] )
 				fflush( stdout );
 				for( i = 0; i < pd.nOptParam; i++ )
 				{
-					k = pd.var_index[i];
-					opt_params[i] = pd.var[k] = var_lhs[i + count * npar] * pd.var_range[k] + pd.var_min[k];
+					j = pd.var_index[i];
+					opt_params[i] = pd.var[j] = var_lhs[i + count * npar] * pd.var_range[j] + pd.var_min[j];
 				}
 				if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
 				Transform( opt_params, &op, opt_params );
@@ -1045,8 +1063,11 @@ int main( int argn, char *argv[] )
 				{
 					printf( "\nRandom parameter values:\n" );
 					for( i = 0; i < pd.nOptParam; i++ )
-						if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
-						else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
+					{
+					    j = pd.var_index[i];
+					    if( pd.var_log[j] == 0 ) printf( "%s %g\n", pd.var_id[j], pd.var[j] );
+					    else printf( "%s %g\n", pd.var_id[j], pow( 10, pd.var[j] ) );
+					}
 				}
 				if( cd.mdebug > 1 ) { printf( "\nPredicted calibration targets:\n" ); print_results( &op ); }
 				else if( cd.mdebug )
@@ -1077,7 +1098,7 @@ int main( int argn, char *argv[] )
 		op.phi = phi_min;
 		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i];
 		printf( "Results are saved in %s.mcrnd.results\n", op.root );
-		printf( "Minimum objective function: %g\n", phi_min );
+		printf( "\nMinimum objective function: %g\n", phi_min );
 		if( success_global == 0 ) printf( "None of the Monte-Carlo runs produced predictions within calibration ranges!\n" );
 		else printf( "Number of Monte-Carlo runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
 		printf( "Repeat the Monte-Carlo run producing the best results ...\n" );
