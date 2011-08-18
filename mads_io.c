@@ -483,6 +483,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 		for( i = 0; i < od->nObs; i++ )
@@ -615,7 +616,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( cd->debug ) printf( "\nObservation data:\n" );
 	for( i = 0; i < ( *wd ).nW; i++ )
 	{
-		wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
 		fscanf( infile, "%s %lf %lf %lf %lf %i ", wd->id[i], &( *wd ).x[i], &( *wd ).y[i], &( *wd ).z1[i], &( *wd ).z2[i], &( *wd ).nWellObs[i] );
 		if( cd->debug ) printf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
 		if( ( *wd ).nWellObs[i] <= 0 ) { if( cd->debug ) printf( "Warning: no observations\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
@@ -627,6 +627,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		wd->obs_max[i] = ( double * ) malloc( ( *wd ).nWellObs[i] * sizeof( double ) );
 		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
 		{
+			wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
 			fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &( *wd ).obs_time[i][j], &( *wd ).obs_target[i][j], &( *wd ).obs_weight[i][j], &( *wd ).obs_log[i][j], &( *wd ).obs_min[i][j], &( *wd ).obs_max[i][j] );
 			if( cd->ologtrans == 1 )( *wd ).obs_log[i][j] = 1;
 			else if( cd->ologtrans == 0 )( *wd ).obs_log[i][j] = 0;
@@ -678,6 +679,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+	od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_id = char_matrix( ( *od ).nObs, 50 );
 	od->preds_id = char_matrix( ( *od ).nObs, 50 );
 	od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
@@ -709,6 +711,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		printf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
 		preds->obs_target = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_current = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
+		preds->obs_best = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->well_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
 		preds->time_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
 		preds->obs_id = char_matrix( ( *preds ).nObs, 50 );

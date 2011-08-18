@@ -152,6 +152,7 @@ struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 	double *obs_target; // observation value (target)
 	double *pred_crit; // value of prediction criterion
 	double *obs_current; // current model predicted observation; NOTE: redundant
+	double *obs_best; // current model predicted observation; NOTE: redundant
 	int *obs_log; // flag for log transformation
 	int *well_index; // well index for observations
 	int *time_index; // time index for observations

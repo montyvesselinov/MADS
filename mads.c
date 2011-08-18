@@ -670,7 +670,12 @@ int main( int argn, char *argv[] )
 			}
 			else printf( "Objective function: %g Success: %d", op.phi, op.success );
 			success_global += op.success;
-			if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+			if( op.phi < phi_min )
+			{
+				phi_min = op.phi;
+				for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]];
+				for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
+			}
 			if( cd.mdebug || cd.pdebug || cd.ldebug ) printf( "\n" ); // extra new line if the optimization process is debugged
 			fprintf( out2, "%g %d %d\n", op.phi, op.success, cd.neval );
 			fflush( out2 );
@@ -690,10 +695,23 @@ int main( int argn, char *argv[] )
 		op.counter = 0;
 		free( var_lhs );
 		cd.neval = neval_total; // provide the correct number of total evaluations
-		op.phi = phi_min;
+		printf( "\nTotal number of evaluations = %d\n", neval_total );
+		op.phi = phi_min; // get the best phi
 		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
-		printf( "\nMinimum objective function: %g\n", phi_min );
-		printf( "Total number of evaluations = %d\n", neval_total );
+		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = od.obs_best[i] ; // get the best observations
+		printf( "Minimum objective function: %g\n", phi_min );
+		print_results( &op );
+		if( cd.debug )
+		{
+			printf( "Repeat the run producing the best results ...\n" );
+			debug_level = cd.fdebug; cd.fdebug = 3;
+			Transform( opt_params, &op, opt_params );
+			cd.compute_phi = 1;
+			func( opt_params, &op, od.res );
+			cd.compute_phi = 0;
+			cd.fdebug = debug_level;
+		}
+		// File output
 		fprintf( out, "Minimum objective function: %g\n", phi_min );
 		if( cd.nreal > 1 )
 		{
@@ -707,13 +725,6 @@ int main( int argn, char *argv[] )
 		fprintf( out, "Total number of evaluations = %d\n", neval_total );
 		fclose( out ); fclose( out2 );
 		printf( "Results are saved in %s.igrnd.results and %s.igrnd-opt=%s_eval=%d_real=%d\n", op.root, op.root, cd.opt_method, cd.maxeval, cd.nreal );
-		printf( "Repeat the run producing the best results and save them ...\n" );
-		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
-		Transform( opt_params, &op, opt_params );
-		cd.compute_phi = 1;
-		func( opt_params, &op, od.res );
-		cd.compute_phi = 0;
-		if( cd.debug ) cd.fdebug = debug_level;
 		free( opt_params );
 		save_results( "", &op, &gd );
 	}
@@ -784,7 +795,12 @@ int main( int argn, char *argv[] )
 					fprintf( out, " : OF %g success %d : final var ", op.phi, op.success );
 				}
 				else printf( "Objective function: %g Success: %d\n", op.phi, op.success );
-				if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+				if( op.phi < phi_min )
+				{
+					phi_min = op.phi;
+					for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]];
+					for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
+				}
 				fprintf( out, " %d", op.success );
 				for( i = 0; i < pd.nParam; i++ )
 					if( pd.var_opt[i] >= 1 ) // Print only optimized parameters (including flagged); ignore fixed parameters
@@ -809,11 +825,22 @@ int main( int argn, char *argv[] )
 		while( 1 );
 		op.counter = 0;
 		cd.neval = neval_total; // provide the correct number of total evaluations
-		printf( "Total number of evaluations = %d\n", neval_total );
-		op.phi = phi_min;
-		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i];
-		printf( "\nMinimum objective function: %g\n", phi_min );
-		printf( "Total number of evaluations = %d\n", neval_total );
+		printf( "\nTotal number of evaluations = %d\n", neval_total );
+		op.phi = phi_min; // get the best phi
+		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
+		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = od.obs_best[i] ; // get the best observations
+		printf( "Minimum objective function: %g\n", phi_min );
+		print_results( &op );
+		if( cd.debug )
+		{
+			printf( "Repeat the run producing the best results ...\n" );
+			debug_level = cd.fdebug; cd.fdebug = 3;
+			Transform( opt_params, &op, opt_params );
+			cd.compute_phi = 1;
+			func( opt_params, &op, od.res );
+			cd.compute_phi = 0;
+			cd.fdebug = debug_level;
+		}
 		fprintf( out, "Minimum objective function: %g\n", phi_min );
 		if( cd.nreal > 1 )
 		{
@@ -827,13 +854,6 @@ int main( int argn, char *argv[] )
 		fprintf( out, "Number of evaluations = %d\n", neval_total );
 		fclose( out ); fclose( out2 );
 		printf( "Results are saved in %s.igpd.results\n", op.root );
-		printf( "Repeat the run producing the best results ...\n" );
-		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
-		Transform( opt_params, &op, opt_params );
-		cd.compute_phi = 1;
-		func( opt_params, &op, od.res );
-		cd.compute_phi = 0;
-		if( cd.debug ) cd.fdebug = debug_level;
 		free( opt_params );
 		save_results( "", &op, &gd );
 	}
@@ -896,7 +916,12 @@ int main( int argn, char *argv[] )
 				}
 				else printf( "Objective function: %g success: %d\n", op.phi, op.success );
 				fprintf( out, " : OF %g success %d : final var", op.phi, op.success );
-				if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+				if( op.phi < phi_min )
+				{
+					phi_min = op.phi;
+					for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]];
+					for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
+				}
 				for( i = 0; i < pd.nParam; i++ )
 					if( pd.var_opt[i] == 1 ) // Print only optimized parameters; ignore fixed and flagged parameters
 					{
@@ -1029,7 +1054,12 @@ int main( int argn, char *argv[] )
 				}
 				else
 					printf( "Objective function: %g Success = %d\n", op.phi, success_all );
-				if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+				if( op.phi < phi_min )
+				{
+					phi_min = op.phi;
+					for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]];
+					for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
+				}
 				if( success_all ) success_global++;
 				for( i = 0; i < pd.nParam; i++ )
 					if( pd.var_opt[i] >= 1 )
@@ -1078,7 +1108,12 @@ int main( int argn, char *argv[] )
 				}
 				else
 					printf( "Objective function: %g Success = %d\n", op.phi, success_all );
-				if( op.phi < phi_min ) { phi_min = op.phi; for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]]; }
+				if( op.phi < phi_min )
+				{
+					phi_min = op.phi;
+					for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]];
+					for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
+				}
 				if( success_all ) success_global++;
 				for( i = 0; i < pd.nParam; i++ )
 					if( pd.var_opt[i] >= 1 )
@@ -1095,17 +1130,25 @@ int main( int argn, char *argv[] )
 		op.counter = 0;
 		free( var_lhs );
 		fclose( out );
-		op.phi = phi_min;
-		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i];
+		op.phi = phi_min; // get the best phi
+		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
+		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = od.obs_best[i] ; // get the best observations
+		printf( "\nMinimum objective function: %g\n", phi_min );
+		print_results( &op );
+		if( cd.debug )
+		{
+			printf( "Repeat the run producing the best results ...\n" );
+			debug_level = cd.fdebug; cd.fdebug = 3;
+			Transform( opt_params, &op, opt_params );
+			cd.compute_phi = 1;
+			func( opt_params, &op, od.res );
+			cd.compute_phi = 0;
+			cd.fdebug = debug_level;
+		}
 		printf( "Results are saved in %s.mcrnd.results\n", op.root );
 		printf( "\nMinimum objective function: %g\n", phi_min );
 		if( success_global == 0 ) printf( "None of the Monte-Carlo runs produced predictions within calibration ranges!\n" );
 		else printf( "Number of Monte-Carlo runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
-		printf( "Repeat the Monte-Carlo run producing the best results ...\n" );
-		if( cd.debug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
-		Transform( opt_params, &op, opt_params );
-		func( opt_params, &op, od.res );
-		if( cd.debug ) cd.fdebug = debug_level;
 		free( opt_params );
 		save_results( "", &op, &gd );
 		cd.compute_phi = 0;

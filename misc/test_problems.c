@@ -144,6 +144,7 @@ int set_test_problems( struct opt_data *op )
 		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 	}

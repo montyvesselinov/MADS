@@ -1,6 +1,6 @@
 Optimized parameter values:
-Parameter #1 1.00011
-Parameter #2 1.0002
-Objective function: 1.94128e-08 Success: 1 
-Number of function evaluations = 5006
+Parameter #1 0.999965
+Parameter #2 0.99993
+Objective function: 1.20878e-09 Success: 1 
+Number of function evaluations = 5005
 Seed = 2096575428

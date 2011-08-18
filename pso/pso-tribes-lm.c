@@ -1496,11 +1496,10 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 					if( debug_level > 2 ) printf( "Bad tribe %i: new particle is added ", tr + 1 );
 					add_part_count++;
 					particle_init( pb, initOption, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[nPart] );
-                                        ( *S ).trib[tr].size++; // Add a new particle
-                                        nPart++; // Add a new particle
+					( *S ).trib[tr].size++; // Add a new particle
 					// printf( "mmm %i %i\n ", initOption, nPart);
-                                        if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[nPart].xBest.f, compare_type ) == 1 ) // Possibly update particles best
-                                                copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[nPart].xBest ); // copy to particles best position
+					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[nPart].xBest.f, compare_type ) == 1 ) // Possibly update particles best
+						// copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[nPart].xBest ); // copy to particles best position
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
 					{
 						( *S ).trib[tr].best = nPart; // By chance this particle is the best of the tribe
@@ -1517,6 +1516,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).best ); // By chance this particle is the best of the swarm; BEST COPY
 						( *S ).tr_best = tr;
 					}
+					nPart++; // Change the total internal count because a new particle is added
 				}
 				else
 				{
