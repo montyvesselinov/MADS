@@ -200,7 +200,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		printf( "\nOptimization method: opt=%s | ", cd->opt_method );
 		if( strncasecmp( cd->opt_method, "squad", 5 ) == 0 || ( strcasestr( cd->opt_method, "pso" ) && strcasestr( cd->opt_method, "lm" ) ) )
 			printf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization\n" );
-		else if( strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { printf( "Levenberg-Marquardt optimization\n" ); cd->leigen = 1; }
+		else if( strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { printf( "Levenberg-Marquardt optimization\n" ); if( cd->calib_type == SIMPLE ) cd->leigen = 1; }
 		else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
 			printf( "Particle-Swarm optimization\n" );
 		else { printf( "WARNING: Unknown method! Levenberg-Marquardt optimization assumed\n" ); strcpy( cd->opt_method, "lm" ); }
@@ -216,7 +216,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 			if( cd->ntribe > 1 ) printf( "Number of tribes = %d\n", cd->ntribe );
 			if( cd->ntribe == -1 ) printf( "Number of tribes = will be computed internally\n" );
 		}
-		if( cd->leigen == 1 ) printf( "Eigen analysis will be peformed of the final optimization results\n" );
+		if( cd->leigen == 1 ) printf( "Eigen analysis will be performed of the final optimization results\n" );
 		printf( "\nGlobal termination criteria:\n" );
 		printf( "1: Maximum number of evaluations = %d\n", cd->maxeval );
 		printf( "2: Objective function cutoff value: " );

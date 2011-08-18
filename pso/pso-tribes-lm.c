@@ -133,7 +133,7 @@ int nLocalSearchIter = 0;
 int nSwarmAdaptIter = 0; // Number of iterations between two swarm adaptations
 int nSwarmStagIter =0;
 int nTribeAdaptIter[MAXTRIBE]; // The same, but for each tribe
-int id = 0; // id (integer number) of the last generated particle
+int id_global = 0; // id (integer number) of the last generated particle
 int multiObj = FALSE; // Flag for multi-objective problem
 int overSizeSwarm; // Number of times the swarm tends to generate too many tribes
 int overSizeTribe; // Number of times a tribe tends to generate too many particles
@@ -1123,7 +1123,7 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 		( *P ).xLast.x[k] = ( *P ).xBest.x[k] = ( *P ).x.x[k];
 	for( k = 0; k < ( *pb ).nPhi; k++ )
 		( *P ).fBestPrev.f[k] = ( *P ).xLast.f.f[k] = ( *P ).xBest.f.f[k] = ( *P ).x.f.f[k];
-	( *P ).id = ++id;
+	( *P ).id = ++id_global;
 	( *P ).strategy = 0; //TO TRY: aleaInteger(0,2);
 }
 
@@ -1465,7 +1465,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 						do { pa = random_int( 0, ( *S ).trib[tr].size - 1 ); }
 						while( pa == ( *S ).trib[tr].best ); // Do not disturb the best one ...
 						d = random_int( 0, ( *pb ).D - 1 );
-						//d=tribeVarianceMin(St.trib[tr]); // EXPERIMENT
+						// d = tribeVarianceMin(St.trib[tr]); // EXPERIMENT
 						( *S ).trib[tr].part[pa].x.x[d] = random_double(( *pb ).min[d], ( *pb ).max[d] );
 						position_check( pb, &( *S ).trib[tr].part[pa].x );
 						position_eval( pb, &( *S ).trib[tr].part[pa].x );
@@ -1473,7 +1473,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 						// tribe_print( &( *S ).trib[tr] );
 						if( compare_particles( &( *S ).trib[tr].part[pa].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
 						{
-							( *S ).trib[tr].best = pa; // By chance this particle might be the best of the tribe
+							( *S ).trib[tr].best = pa; // By chance this particle is the best of the tribe
 							copy_position( &( *S ).trib[tr].part[pa].x, &( *S ).trib[tr].part[pa].xBest ); // copy to tribes best position
 							if( debug_level > 2 )
 							{
@@ -1495,14 +1495,15 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 					else initOption = random_int( 0, 3 );
 					if( debug_level > 2 ) printf( "Bad tribe %i: new particle is added ", tr + 1 );
 					add_part_count++;
-					nPart++;
-					( *S ).trib[tr].size++; // Add a new particle
 					particle_init( pb, initOption, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[nPart] );
+                                        ( *S ).trib[tr].size++; // Add a new particle
+                                        nPart++; // Add a new particle
 					// printf( "mmm %i %i\n ", initOption, nPart);
+                                        if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[nPart].xBest.f, compare_type ) == 1 ) // Possibly update particles best
+                                                copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[nPart].xBest ); // copy to particles best position
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
 					{
-						( *S ).trib[tr].best = nPart; // By chance this particle might be the best of the tribe
-						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[nPart].xBest ); // copy to tribes best position
+						( *S ).trib[tr].best = nPart; // By chance this particle is the best of the tribe
 						if( debug_level > 2 )
 						{
 							printf( "best particle in tribe #%d is now #%i ", tr + 1, ( *S ).trib[tr].part[nPart].id );
@@ -1513,7 +1514,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 					else if( debug_level > 2 ) printf( "\n" );
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).best.f, compare_type ) == 1 ) // Possibly update swarm best
 					{
-						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).best ); // BEST COPY
+						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).best ); // By chance this particle is the best of the swarm; BEST COPY
 						( *S ).tr_best = tr;
 					}
 				}
@@ -1563,17 +1564,17 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				if(( *S ).size < MAXTRIBE )
 				{
 					if( debug_level > 2 ) printf( "Bad swarm: tribe is added\n" );
-					tribe_init( pb, 1, compare_type, S, &( *S ).trib[( *S ).size] );
+					tribe_init( pb, 1, compare_type, S, &( *S ).trib[tr] );
+                                        tr = ( *S ).size++; // Add a new tribe
+                                        add_tribe_count++; // Add a new tribe
 					if( debug_level > 2 ) printf( "\n" );
-					if( compare_particles( &( *S ).trib[( *S ).size].part[( *S ).trib[( *S ).size].best].xBest.f, &( *S ).best.f, compare_type ) == 1 )
+					if( compare_particles( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, &( *S ).best.f, compare_type ) == 1 )
 					{
 						for( i = 0; i < ( *pb ).nPhi; i++ )
 							( *S ).fBestPrev.f[i] = ( *S ).best.f.f[i];
-						copy_position( &( *S ).trib[( *S ).size].part[( *S ).trib[( *S ).size].best].xBest, &( *S ).best ); // BEST COPY
-						( *S ).tr_best = ( *S ).size;
+						copy_position( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, &( *S ).best ); // BEST COPY
+						( *S ).tr_best = tr;
 					}
-					( *S ).size++;
-					add_tribe_count++; // Add a new tribe
 				}
 				else
 				{
@@ -1761,8 +1762,8 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				if( debug_level ) printf( " Bad shaman!\n" );
 				( *S ).trib[tr].status = -1; // Bad tribe
 				particle_init( pb, 3, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] ); // reset shaman
-				position_check( pb, &( *S ).trib[tr].part[shaman].x );
-				position_eval( pb, &( *S ).trib[tr].part[shaman].x );
+				// position_check( pb, &( *S ).trib[tr].part[shaman].x );
+				// position_eval( pb, &( *S ).trib[tr].part[shaman].x );
 				if( debug_level > 1 ) position_print( &( *S ).trib[tr].part[shaman].x );
 				for( pa = 0; pa < ( *S ).trib[tr].size; pa++ ) // Possibly update tribe best
 					if( compare_particles( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, &( *S ).trib[tr].part[pa].xBest.f, 0 ) == 1 )
@@ -2046,7 +2047,7 @@ void tribe_print( struct tribe *T )
 	printf( "\n" );
 }
 
-void tribe_init( struct problem *pb, int nPart, int compare_type, struct swarm( *S ), struct tribe *T )
+void tribe_init( struct problem *pb, int nPart, int compare_type, struct swarm( *S ), struct tribe *T ) // S is not needed here; it is needed by particle_init
 {
 	int i, init_option;
 	( *T ).status = 0;

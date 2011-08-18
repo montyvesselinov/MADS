@@ -6,23 +6,6 @@
 // http://www.ees.lanl.gov/staff/monty/codes/mads
 //
 // LA-CC-10-055; LA-CC-11-035
-//
-// Copyright 2011.  Los Alamos National Security, LLC.  All rights reserved.
-// This material was produced under U.S. Government contract DE-AC52-06NA25396 for
-// Los Alamos National Laboratory, which is operated by Los Alamos National Security, LLC for
-// the U.S. Department of Energy. The Government is granted for itself and others acting on its
-// behalf a paid-up, nonexclusive, irrevocable worldwide license in this material to reproduce,
-// prepare derivative works, and perform publicly and display publicly. Beginning five (5) years after
-// --------------- March 11, 2011, -------------------------------------------------------------------
-// subject to additional five-year worldwide renewals, the Government is granted for itself and
-// others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this
-// material to reproduce, prepare derivative works, distribute copies to the public, perform
-// publicly and display publicly, and to permit others to do so.
-//
-// NEITHER THE UNITED STATES NOR THE UNITED STATES DEPARTMENT OF ENERGY, NOR LOS ALAMOS NATIONAL SECURITY, LLC,
-// NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR
-// RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
-// PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 #include "../mads.h"
 // #include "mopso.h"
@@ -176,7 +159,7 @@ int iterLocalSearchNb;
 int iterSwarmAdapt; // Number of iterations between two swarm adaptations
 int iterSwarmStag;
 int iterTribeAdapt[tribMax]; // The same, but for each tribe
-int label; // label (integer number) of the last generated particle
+int label = 0; // label (integer number) of the last generated particle
 int multiObj; // Flag for multiobjective problem
 float o[DMax]; // Offset, in particular for CEC 2005 benchmark
 int overSizeSwarm;// Nb of times the swarm tends to generate too many tribes
