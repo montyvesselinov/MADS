@@ -30,6 +30,7 @@ mads
 *.s_point
 *.s_well
 *.ofe
+*.igpd-opt*
 # Genereal files
 *.vtk
 *.btc
