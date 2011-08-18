@@ -1499,7 +1499,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 					( *S ).trib[tr].size++; // Add a new particle
 					// printf( "mmm %i %i\n ", initOption, nPart);
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[nPart].xBest.f, compare_type ) == 1 ) // Possibly update particles best
-						// copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[nPart].xBest ); // copy to particles best position
+						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[nPart].xBest ); // copy to particles best position
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
 					{
 						( *S ).trib[tr].best = nPart; // By chance this particle is the best of the tribe
