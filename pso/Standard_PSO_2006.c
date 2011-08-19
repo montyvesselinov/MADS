@@ -174,7 +174,7 @@ int pso_std( struct opt_data *op )
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed = get_seed(); }
 	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
-	srand( op->cd->seed );
+	if( op->counter == 1 ) srand( op->cd->seed );
 	lmo_flag = 0;
 	if( strstr( op->cd->opt_method, "lm" ) != NULL || strncmp( op->cd->opt_method, "squad", 5 ) == 0 ) lmo_flag = 1;
 	if( lmo_flag )

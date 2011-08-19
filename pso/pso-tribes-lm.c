@@ -160,7 +160,7 @@ int pso_tribes( struct opt_data *op )
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed = get_seed(); }
 	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
-	seed_rand_kiss( op->cd->seed );
+	if( op->counter == 0 ) { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	op->cd->compute_phi = 1;
