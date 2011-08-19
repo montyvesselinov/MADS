@@ -286,6 +286,8 @@ int main( int argn, char *argv[] )
 		printf( "\nExamples:\n" );
 		printf( "   mads a01 test=2 opt=lm igrnd real=1 (no input files are needed for execution)\n" );
 		printf( "   mads a01 test=2 opt=squads igrnd real=1\n" );
+		printf( "   mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)\n" );
+		printf( "   mads a01 test=3 abagus cutoff=20 eval=100000 (collect solutions of Rosenbrock function below phi cutoff)\n" );
 		printf( "   mads example/contamination/s01 ldebug (file s01.mads is located in example/contamination)\n" );
 		printf( "   mads example/contamination/s02 ldebug (file s02.mads is located in example/contamination)\n" );
 		printf( "   mads example/contamination/s01 ldebug igrnd real=1\n" );
