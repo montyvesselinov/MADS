@@ -219,7 +219,7 @@ int main( int argn, char *argv[] )
 		printf( "   opt=pso            - Global Particle Swarm optimization (default Standard2006)\n" );
 		printf( "   opt=apso           - Global Adaptive Particle Swarm optimization (default TRIBES)\n" );
 		printf( "   opt=swarm          - Global Particle Swarm optimization Standard2006 (also opt=pso_std)\n" );
-		printf( "   opt=tribes         - Global Particle Swarm optimization TRIBES (also opt=pso_tribes)\n" );
+		printf( "   opt=tribes         - Global Particle Swarm optimization TRIBES\n" );
 		printf( "   opt=squads         - SQUADS: Adaptive hybrid optimization using coupled local and global optimization techniques\n" );
 		printf( "\nsampling method (smp=[string] OR paran=[string] for paranoid LM analysis using multiple retries):\n" );
 		printf( "   smp=olhs           - Optimal Latin Hyper Cube sampling [default] (if real = 1 RANDOM; if real > IDLHS; if real > 500 LHS)\n" );
