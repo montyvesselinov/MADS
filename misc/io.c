@@ -46,7 +46,7 @@ int Ftest( char *filename )
 FILE *Fread( char *filename )
 {
 	FILE *in;
-	if( ( in = fopen( filename, "rb" ) ) == NULL )
+	if(( in = fopen( filename, "rb" ) ) == NULL )
 	{
 		printf( "ERROR: The file %s could not opened to read!\n", filename );
 		exit( 0 );
@@ -57,7 +57,7 @@ FILE *Fread( char *filename )
 FILE *Fwrite( char *filename )
 {
 	FILE *out;
-	if( ( out = fopen( filename, "w" ) ) == NULL )
+	if(( out = fopen( filename, "w" ) ) == NULL )
 	{
 		printf( "ERROR: The file %s could not opened to write!\n", filename );
 		exit( 0 );
@@ -68,7 +68,7 @@ FILE *Fwrite( char *filename )
 FILE *Fappend( char *filename )
 {
 	FILE *out;
-	if( ( out = fopen( filename, "a" ) ) == NULL )
+	if(( out = fopen( filename, "a" ) ) == NULL )
 	{
 		printf( "ERROR: The file %s could not opened to write!\n", filename );
 		exit( 0 );
@@ -81,7 +81,7 @@ char *Fdatetime( char *filename, int debug )
 	struct tm *ptr_ts;
 	struct stat b;
 	char *datetime;
-	datetime = (char *) malloc( 16 * sizeof( char ) );
+	datetime = ( char * ) malloc( 16 * sizeof( char ) );
 	if( Ftest( filename ) != 0 ) { datetime[0] = 0; if( debug ) printf( "File %s: does not exist\n", filename ); }
 	else if( !stat( filename, &b ) )
 	{
@@ -98,7 +98,7 @@ time_t Fdatetime_t( char *filename, int debug )
 	struct tm *ptr_ts;
 	struct stat b;
 	char *datetime;
-	datetime = (char *) malloc( 16 * sizeof( char ) );
+	datetime = ( char * ) malloc( 16 * sizeof( char ) );
 	if( Ftest( filename ) != 0 ) { if( debug ) printf( "File %s: does not exist\n", filename ); return ( 0 ); }
 	else if( !stat( filename, &b ) )
 	{

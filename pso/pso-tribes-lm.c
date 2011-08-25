@@ -1667,8 +1667,8 @@ void swarm_print( struct swarm *S )
 void swarm_init( struct problem *pb, int compare_type, struct swarm *S )
 {
 	int nPart, nTribe, i;
-	if( gop->cd->ntribe > 0 ) nTribe = gop->cd->ntribe; // Imported number of tribe
-	else  nTribe = 10 + sqrt( (double) ( *pb ).D );  // Initial number of tribes
+	if( gop->cd->init_particles > 0 ) nTribe = gop->cd->init_particles; // Imported number of tribe
+	else  nTribe = 10 + (int) 2 * sqrt( (double) ( *pb ).D );  // Initial number of tribes
 	if( nTribe > MAXTRIBE ) nTribe = MAXTRIBE;
 	( *S ).size = nTribe; // Number of tribes
 	nPart = 1; // Initial number of particles in each tribe

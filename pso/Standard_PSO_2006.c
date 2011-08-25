@@ -211,17 +211,27 @@ int pso_std( struct opt_data *op )
 	D = op->pd->nOptParam; // Search space dimension
 	gop = op;
 	// D-cube data
-	for( d = 0; d < D; d++ )
-	{
-		xmin[d] = -pi / 2; xmax[d] = pi / 2;
-	}
+	if( op->cd->sintrans )
+		for( d = 0; d < D; d++ )
+		{
+			xmin[d] = -pi / 2;
+			xmax[d] = pi / 2;
+		}
+	else
+		for( d = 0; d < D; d++ )
+		{
+			xmin[d] = op->pd->var_min[op->pd->var_index[d]];
+			xmax[d] = op->pd->var_max[op->pd->var_index[d]];
+		}
 	eps = 0.0; // Acceptable error
 	f_min = 0; // Objective value
 	n_exec_max = 1; // Numbers of runs
 	eval_max = op->cd->maxeval; // Max number of evaluations for each run
 	if( n_exec_max > R_max ) n_exec_max = R_max;
 	//-----------------------------------------------------  PARAMETERS
-	S = 10 + ( int )( 2 * sqrt( D ) ); if( S > S_max ) S = S_max;
+	if( gop->cd->init_particles > 0 ) S = gop->cd->init_particles; // Imported number of particles
+	else S = 10 + ( int )( 2.0 * sqrt( D ) );  // Initial number of particles
+	if( S > S_max ) S = S_max;
 	K = 3;
 	w = 1 / ( 2 * log( 2 ) ); c = 0.5 + log( 2 );
 	if( op->cd->pdebug ) printf( "\n Swarm size %i", S );
@@ -238,12 +248,25 @@ init:
 		X[0].x[d] = op->pd->var[op->pd->var_index[d]];
 	if( op->cd->pdebug )
 	{
-		printf( "\nParticle 1 position from initial values:\n" );
-		for( d = 0; d < D; d++ )
-			printf( "%g\n", X[0].x[d] );
-		printf( "\n" );
+		for( s = 0; s < S; s++ )
+		{
+			printf( "Particle %i ", s + 1 );
+			for( d = 0; d < D; d++ )
+				printf( "%g ", X[s].x[d] );
+			printf( "\n" );
+		}
 	}
 	Transform( X[0].x, op, X[0].x );
+	if( op->cd->pdebug )
+	{
+		for( s = 0; s < S; s++ )
+		{
+			printf( "Particle %i ", s + 1 );
+			for( d = 0; d < D; d++ )
+				printf( "%g ", X[s].x[d] );
+			printf( "\n" );
+		}
+	}
 	for( d = 0; d < D; d++ )
 		V[0].v[d] = ( alea( xmin[d], xmax[d] ) - X[0].x[d] ) / 2; // Non uniform
 	for( s = 1; s < S; s++ )   // Positions and velocities
@@ -254,6 +277,16 @@ init:
 			X[s].x[d] = alea( xmin[d], xmax[d] );
 			V[s].v[d] = ( alea( xmin[d], xmax[d] ) - X[s].x[d] ) / 2; // Non uniform
 			// V[s].v[d] = ( xmin[d]-xmax[d] )*(0.5-alea(0,1)); //Uniform. 2006-02-24
+		}
+	}
+	if( op->cd->pdebug )
+	{
+		for( s = 0; s < S; s++ )
+		{
+			printf( "Particle %i ", s + 1 );
+			for( d = 0; d < D; d++ )
+				printf( "%g ", X[s].x[d] );
+			printf( "\n" );
 		}
 	}
 	// First evaluations
@@ -273,6 +306,13 @@ init:
 	{
 		X[s].f = fabs( perf( s, function ) - f_min );
 		P[s] = X[s]; // Best position = current one
+		if( op->cd->pdebug )
+		{
+			printf( "Particle %i ", s + 1 );
+			for( d = 0; d < D; d++ )
+				printf( "%g ", X[s].x[d] );
+			printf( "%g\n", X[s].f );
+		}
 	}
 	// Find the best
 	best = 0;

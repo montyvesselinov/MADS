@@ -71,7 +71,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int ireal; // execution of specific realization (case)
 	int nretries; // number of paranoid retries
 	int retry_ind; // retry evaluation counter
-	int ntribe; // number of tribes (squads, tribes)
+	int init_particles; // number of tribes (squads, tribes)
 	int niter; // number of iterations
 	int neval; // current number of evaluations (can be applied as termination criteria)
 	int maxeval; // maximum number of evaluations (termination criteria)
