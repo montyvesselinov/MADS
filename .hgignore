@@ -34,6 +34,8 @@ mads
 # Genereal files
 *.vtk
 *.btc
+*.btc-peak
+*.btc2
 *.dat
 *.zip
 *.tar

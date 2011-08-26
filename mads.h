@@ -272,7 +272,7 @@ int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
-void compute_btc2( char *filename, struct opt_data *op );
+void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 void compute_btc( char *filename, struct opt_data *op );
 // pesting/pesting.c
 int load_pst( char *filename, struct opt_data *op );

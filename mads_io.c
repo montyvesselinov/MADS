@@ -39,7 +39,7 @@ int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
-void compute_btc2( char *filename, struct opt_data *op );
+void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 void compute_btc( char *filename, struct opt_data *op );
 static char *strsave( const char *s, const char *lim );
 char **shellpath( void );
@@ -657,7 +657,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( pd->nParam == 0 || pd->nOptParam == 0 ) { printf( "\nERROR: Number of model parameters is zero!\n\n" ); return( 0 ); }
 	if( od->nObs == 0 )
 	{
-		if( cd->problem_type != FORWARD )
+		if( cd->problem_type != FORWARD && cd->problem_type != MONTECARLO )
 			{ printf( "\nERROR: Number of calibration targets is equal to zero!\n\n" ); return( 0 ); }
 		else printf( "\nWARNING: Number of calibration targets is equal to zero!\n\n" );
 	}
@@ -666,16 +666,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		d = ( -pd->var[FLOW_ANGLE] * M_PI ) / 180;
 		alpha = cos( d );
 		beta = sin( d );
-		printf( "\nCoordinate transformation of observation points:\n" );
+		printf( "\nCoordinate transformation of the observation points relative to the source:\n" );
 		for( i = 0; i < ( *wd ).nW; i++ )
-			for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
-			{
-				x0 = wd->x[i] - pd->var[SOURCE_X];
-				y0 = wd->y[i] - pd->var[SOURCE_Y];
-				x = x0 * alpha - y0 * beta;
-				y = x0 * beta  + y0 * alpha;
-				printf( "Well %10s %.15g %.15g : %.15g %.15g\n", wd->id[i], wd->x[i], ( *wd ).y[i], x, y );
-			}
+		{
+			x0 = wd->x[i] - pd->var[SOURCE_X];
+			y0 = wd->y[i] - pd->var[SOURCE_Y];
+			x = x0 * alpha - y0 * beta;
+			y = x0 * beta  + y0 * alpha;
+			printf( "Well %10s %.15g %.15g : %.15g %.15g\n", wd->id[i], wd->x[i], ( *wd ).y[i], x, y );
+		}
 	}
 	od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 	od->obs_current = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
@@ -952,7 +951,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 	printf( "Spatial concentration data saved in %s.\n", filename );
 }
 
-void compute_btc2( char *filename, struct opt_data *op )
+void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 {
 	FILE *outfile;
 	double time, c, *max_conc, *max_time;
@@ -988,9 +987,19 @@ void compute_btc2( char *filename, struct opt_data *op )
 		fprintf( outfile, "\n" );
 	}
 	fclose( outfile );
-	for( i = 0; i < op->wd->nW; i++ )
-		printf( "%s\tPeak Conc = %12.4g @ time %12g\n", op->wd->id[i], max_conc[i], max_time[i] );
 	printf( "Concentration breakthrough data saved in %s\n", filename );
+	if(( outfile = fopen( filename2, "w" ) ) == NULL )
+	{
+		printf( "Output file %s cannot be opened!\n", filename );
+		return;
+	}
+	for( i = 0; i < op->wd->nW; i++ )
+	{
+		printf( "%s\tPeak Conc = %12.4g @ time %12g\n", op->wd->id[i], max_conc[i], max_time[i] );
+		fprintf( outfile, "%s\tPeak Conc = %g @ time %g\n", op->wd->id[i], max_conc[i], max_time[i] );
+	}
+	fclose( outfile );
+	printf( "Concentration peak data saved in %s\n", filename2 );
 	free( max_conc );
 	free( max_time );
 }

@@ -86,7 +86,7 @@ int load_pst( char *filename, struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc( char *filename, struct opt_data *op );
-void compute_btc2( char *filename, struct opt_data *op );
+void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 int Ftest( char *filename );
 FILE *Fread( char *filename );
 FILE *Fwrite( char *filename );
@@ -152,7 +152,7 @@ int main( int argn, char *argv[] )
 	struct grid_data gd;
 	struct opt_data op;
 	struct gsens_data gs;
-	char filename[255], root[255], extension[255], buf[255], *dot, *cwd;
+	char filename[255], filename2[255], root[255], extension[255], buf[255], *dot, *cwd;
 	int ( *optimize )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
 	FILE *in, *out, *out2;
@@ -1038,6 +1038,7 @@ int main( int argn, char *argv[] )
 			}
 			for( count = 0; count < cd.nreal; count ++ ) // Read all the files
 			{
+				op.counter = count + 1;
 				printf( "Model results #%d: ", count + 1 );
 				bad_data = 0;
 				bad_data = func_extrn_read( count + 1, &op, od.res );
@@ -1069,15 +1070,16 @@ int main( int argn, char *argv[] )
 						if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
 						else fprintf( out, " %.15g", pd.var[i] );
 					}
-				fprintf( out, " OF %g success %d\n", op.phi, success_all );
+				if( od.nObs > 0 ) fprintf( out, " OF %g success %d\n", op.phi, success_all );
 				fflush( out );
-				if( success_all ) save_results( "mcrnd", &op, &gd );
+				if( success_all || od.nObs == 0 ) save_results( "mcrnd", &op, &gd );
 			}
 		}
 		else // Serial job
 		{
 			for( count = k; count < cd.nreal; count ++ )
 			{
+				op.counter = count + 1;
 				fprintf( out, "%d : ", count + 1 ); // counter
 				if( cd.mdebug ) printf( "\n" );
 				printf( "Random set #%d: ", count + 1 );
@@ -1123,9 +1125,9 @@ int main( int argn, char *argv[] )
 						if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
 						else fprintf( out, " %.15g", pd.var[i] );
 					}
-				fprintf( out, " OF %g success %d\n", op.phi, success_all );
+				if( od.nObs > 0 ) fprintf( out, " OF %g success %d\n", op.phi, success_all );
 				fflush( out );
-				if( success_all ) save_results( "mcrnd", &op, &gd );
+				if( success_all || od.nObs == 0 ) save_results( "mcrnd", &op, &gd );
 				if( cd.ireal != 0 ) break;
 			}
 		}
@@ -1605,8 +1607,9 @@ int main( int argn, char *argv[] )
 		if( gd.min_t > 0 && cd.solution_type != TEST )
 		{
 			printf( "\nCompute breakthrough curves at all the wells ...\n" );
-			sprintf( filename, "%s.btc2", op.root );
-			compute_btc2( filename, &op );
+			sprintf( filename, "%s.btc", op.root );
+			sprintf( filename2, "%s.btc-peak", op.root );
+			compute_btc2( filename, filename2, &op );
 //			sprintf( filename, "%s.btc", root );
 //			compute_btc( filename, &op, &gd );
 		}
@@ -2442,7 +2445,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	FILE *out, *out2;
 	int i, j, k, success, success_all;
 	double c, err;
-	char filename[80], f[80];
+	char filename[255], filename2[255], f[255];
 	success_all = 1;
 	sprintf( filename, "%s", op->root );
 	if( label[0] != 0 ) sprintf( filename, "%s.%s", filename, label );
@@ -2450,20 +2453,20 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	strcpy( f, filename );
 	strcat( filename, ".results" );
 	out = Fwrite( filename );
-	if( op->cd->solution_type != TEST )
+	if( op->cd->solution_type != TEST && op->od->nObs > 0 )
 	{
 		strcpy( filename, f );
 		strcat( filename, ".residuals" );
 		out2 = Fwrite( filename );
 	}
-	fprintf( out, "Optimized parameter values:\n" );
+	fprintf( out, "Model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
 		if( op->pd->var_log[k] == 0 ) fprintf( out, "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
 		else fprintf( out, "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
-	if( op->od->nObs > 0 && op->cd->solution_type != TEST ) fprintf( out, "\nOptimized calibration targets:\n" );
+	if( op->od->nObs > 0 && op->cd->solution_type != TEST ) fprintf( out, "\nModel predictions:\n" );
 	if( op->cd->solution_type == EXTERNAL )
 		for( i = 0; i < op->od->nObs; i++ )
 		{
@@ -2495,13 +2498,16 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 				fprintf( out2, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
 			}
 	}
-	op->success = success_all;
-	fprintf( out, "Objective function: %g Success: %d \n", op->phi, op->success );
-	if( op->cd->solution_type != TEST )
+	if( op->od->nObs == 0 ) op->success = success_all = 0;
+	else
 	{
-		if( success_all ) fprintf( out, "All the predictions are within calibration ranges!\n" );
-		else fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
-		fclose( out2 );
+		fprintf( out, "Objective function: %g Success: %d \n", op->phi, op->success );
+		if( op->cd->solution_type != TEST )
+		{
+			if( success_all ) fprintf( out, "All the predictions are within calibration ranges!\n" );
+			else fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
+			fclose( out2 );
+		}
 	}
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->neval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed );
@@ -2511,8 +2517,8 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		printf( "\nCompute breakthrough curves at all the wells ..." );
 		fflush( stdout );
 		sprintf( filename, "%s.btc", f );
-		compute_btc2( filename, op );
-		printf( "done.\n" );
+		sprintf( filename2, "%s.btc-peak", f );
+		compute_btc2( filename, filename2, op );
 	}
 	if( gd->time > 0 && op->cd->solution_type != TEST )
 	{
@@ -2520,7 +2526,6 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		fflush( stdout );
 		sprintf( filename, "%s.vtk", f );
 		compute_grid( filename, op->cd, gd );
-		printf( "done.\n" );
 	}
 }
 
