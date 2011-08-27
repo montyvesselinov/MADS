@@ -391,7 +391,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		else if(( *pd ).var_opt[i] == 2 )
 		{
 			( *pd ).nFlgParam++;
-			if( !(( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD ) )
+			if(( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type != PPSD )
 				( *pd ).nOptParam++;
 		}
 		if(( *pd ).var_opt[i] >= 1 )
@@ -654,7 +654,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 	}
 	if( bad_data ) return( 0 );
-	if( pd->nParam == 0 || pd->nOptParam == 0 ) { printf( "\nERROR: Number of model parameters is zero!\n\n" ); return( 0 ); }
+	if( pd->nParam == 0 || ( pd->nOptParam == 0 && pd->nFlgParam == 0 ) ) { printf( "\nERROR: Number of model parameters is zero!\n\n" ); return( 0 ); }
 	if( od->nObs == 0 )
 	{
 		if( cd->problem_type != FORWARD && cd->problem_type != MONTECARLO )
@@ -954,7 +954,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 {
 	FILE *outfile;
-	double time, c, *max_conc, *max_time;
+	double time, c, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye;
 	int  i, k;
 	struct grid_data *gd;
 	gd = op->gd;
@@ -995,8 +995,16 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	}
 	for( i = 0; i < op->wd->nW; i++ )
 	{
-		printf( "%s\tPeak Conc = %12.4g @ time %12g\n", op->wd->id[i], max_conc[i], max_time[i] );
-		fprintf( outfile, "%s\tPeak Conc = %g @ time %g\n", op->wd->id[i], max_conc[i], max_time[i] );
+		x0 = ( op->wd->x[i] - op->pd->var[SOURCE_X] );
+		y0 = ( op->wd->y[i] - op->pd->var[SOURCE_Y] );
+		d = ( -op->pd->var[FLOW_ANGLE] * M_PI ) / 180;
+		alpha = cos( d );
+		beta = sin( d );
+		xe = x0 * alpha - y0 * beta;
+		ye = x0 * beta  + y0 * alpha;
+		d = sqrt( xe * xe + ye * ye );
+		printf( "%s\tPeak Conc = %12.4g @ time %12g velocity = %12g\n", op->wd->id[i], max_conc[i], max_time[i], d / max_time[i] );
+		fprintf( outfile, "%s\tPeak Conc = %g @ time %g velocity = %g\n", op->wd->id[i], max_conc[i], max_time[i],  d / max_time[i] );
 	}
 	fclose( outfile );
 	printf( "Concentration peak data saved in %s\n", filename2 );

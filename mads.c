@@ -340,8 +340,9 @@ int main( int argn, char *argv[] )
 	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
 	if( Ftest( buf ) == 0 ) // If file already exists quit ...
 	{
-		printf( "Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-		printf( "If there is no other MADS run, delete %s to execute (sorry for the inconvenience)!\n", buf );
+		printf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n\n", op.root, buf );
+//		printf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
+//		printf( "Delete %s to execute (sorry for the inconvenience)!\n", buf );
 //		exit( 1 );
 	}
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
@@ -579,7 +580,7 @@ int main( int argn, char *argv[] )
 		strcpy( op.label, "igrnd" );
 		if(( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
 			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
-		printf( "\nSEQUENTIAL CALIBRATION using random initial guesses for model parameters (realizations = %d):\n", cd.nreal );
+		printf( "\nSEQUENTIAL RUNS using random initial guesses for model parameters (realizations = %d):\n", cd.nreal );
 		if( pd.nFlgParam != 0 ) { printf( "Only flagged parameters are randomized\n" ); npar = pd.nFlgParam; }
 		else if( pd.nOptParam != 0 ) { printf( "No flagged parameters; all optimizable parameters are randomized\n" ); npar = pd.nOptParam; }
 		else { printf( "No flagged or optimizable parameters; all parameters are randomized\n" ); npar = pd.nParam; }
@@ -738,7 +739,7 @@ int main( int argn, char *argv[] )
 		strcpy( op.label, "igpd" );
 		if(( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
 			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
-		printf( "\nSEQUENTIAL CALIBRATION using discretized initial guesses for model parameters:\n" );
+		printf( "\nSEQUENTIAL CALIBRATIONS using discretized initial guesses for model parameters:\n" );
 		if( pd.nFlgParam == 0 )
 			printf( "WARNING: No flagged parameters! Discretization of the initial guesses cannot be performed! Forward run will be performed instead.\n" );
 		if( pd.nOptParam == 0 )
@@ -754,8 +755,14 @@ int main( int argn, char *argv[] )
 		sprintf( filename, "%s.igpd.results", op.root );
 		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.igpd_%s.results >& /dev/null", filename, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
 		out = Fwrite( filename );
-		sprintf( filename, "%s.igpd-opt=%s_eval=%d_real=%d", op.root, cd.opt_method, cd.maxeval, cd.nreal );
 		out2 = Fwrite( filename );
+		k = 1;
+		for( i = 0; i < pd.nParam; i++ )
+			if( pd.var_opt[i] == 2 )
+				k *= ( double )( pd.var_max[i] - pd.var_min[i] ) / pd.var_dx[i] + 1;
+		printf( "Total number of sequential calbrations will be %i\n", k );
+		cd.nreal = k;
+		sprintf( filename, "%s.igpd-opt=%s_eval=%d_real=%d", op.root, cd.opt_method, cd.maxeval, cd.nreal );
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 )
 				orig_params[i] = pd.var_min[i];
@@ -768,7 +775,7 @@ int main( int argn, char *argv[] )
 			if( cd.ireal == 0 || cd.ireal == count )
 			{
 				fprintf( out, "%d : init var", count ); // counter
-				printf( "SEQUENTIAL CALIBRATION #%d: ", count );
+				printf( "SEQUENTIAL CALIBRATIONS #%d: ", count );
 				op.counter = count;
 				if( cd.debug == 0 ) printf( "\n" );
 				for( i = 0; i < pd.nParam; i++ )
@@ -865,7 +872,7 @@ int main( int argn, char *argv[] )
 	if( cd.problem_type == CALIBRATE && cd.calib_type == PPSD ) /* Calibration analysis using discretized parameters */
 	{
 		strcpy( op.label, "ppsd" );
-		printf( "\nSEQUENTIAL CALIBRATION using partial parameter-space discretization (PPSD):\n" );
+		printf( "\nSEQUENTIAL RUNS using partial parameter-space discretization (PPSD):\n" );
 		if( pd.nFlgParam == 0 )
 			printf( "WARNING: No flagged parameters! Discretization of the initial guesses cannot be performed!\n" );
 		if( pd.nOptParam == 0 )
@@ -880,6 +887,12 @@ int main( int argn, char *argv[] )
 		sprintf( filename, "%s.ppsd.results", op.root );
 		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.ppsd_%s.results >& /dev/null", filename, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
 		out = Fwrite( filename );
+		k = 1;
+		for( i = 0; i < pd.nParam; i++ )
+			if( pd.var_opt[i] == 2 )
+				k *= ( double )( pd.var_max[i] - pd.var_min[i] ) / pd.var_dx[i] + 1;
+		printf( "Total number of sequential runs will be %i\n", k );
+		cd.nreal = k;
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 ) cd.var[i] = pd.var_min[i];
 		phi_min = HUGE_VAL;
@@ -891,11 +904,11 @@ int main( int argn, char *argv[] )
 			if( cd.ireal == 0 || cd.ireal == count )
 			{
 				fprintf( out, "%d : ", count );
-				printf( "\nDISCRETIZED CALIBRATION #%d:", count );
+				printf( "\nSEQUENTIAL RUN #%d:", count );
 				op.counter = count;
 				if( cd.debug ) printf( "\nDiscretized parameters:\n" );
 				for( i = 0; i < pd.nParam; i++ )
-					if( pd.var_opt[i] == 2 ) // Print flagged parameters
+					if( pd.var_opt[i] == 2 ) // Print only flagged parameters
 					{
 						if( cd.debug ) printf( "%s %g\n", pd.var_id[i], cd.var[i] );
 						fprintf( out, "%g ", cd.var[i] );
@@ -916,8 +929,8 @@ int main( int argn, char *argv[] )
 					printf( "\n" );
 					print_results( &op );
 				}
-				else printf( "Objective function: %g success: %d\n", op.phi, op.success );
-				fprintf( out, " : OF %g success %d : final var", op.phi, op.success );
+				else printf( "Objective function: %g Success: %d", op.phi, op.success );
+				fprintf( out, " : OF %g Success %d : final var", op.phi, op.success );
 				if( op.phi < phi_min )
 				{
 					phi_min = op.phi;
@@ -945,7 +958,7 @@ int main( int argn, char *argv[] )
 		}
 		while( 1 );
 		cd.neval = neval_total; // provide the correct number of total evaluations
-		printf( "Total number of evaluations = %d\n", neval_total );
+		printf( "\nTotal number of evaluations = %d\n", neval_total );
 		op.counter = 0;
 		fclose( out );
 		printf( "Results are saved in %s.ppsd.results\n", op.root );
