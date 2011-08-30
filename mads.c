@@ -237,7 +237,8 @@ int main( int argn, char *argv[] )
 		printf( "   ssdr               - sum of the squared discrepancies and squared residuals\n" );
 		printf( "\ntransformation of parameter space and observations:\n" );
 		printf( "   nosin              - Sin transformation of optimized parameters is not applied [parameters are sin transformed by default]\n" );
-		printf( "   sindx              - Parameter space step for numerical derivatives of sin parameters [default sindx=0.001]\n" );
+		printf( "   sindx              - Parameter space step for numerical derivatives of sin transformed parameters [default sindx=0.001]\n" );
+		printf( "   dx                 - Parameter space step for numerical derivatives of not transformed parameters [default dx=0.1]\n" );
 		printf( "   plog=[-1,0,1]      - Log transformation of all optimized parameters is enforced (1) or disabled (0)\n" );
 		printf( "                        [default plog=-1; log transformation is explicitly defined for each parameter in the input file]\n" );
 		printf( "   olog=[-1,0,1]      - Log transformation of all the observations (simulated and measured) is enforced (1) or disabled (0)\n" );

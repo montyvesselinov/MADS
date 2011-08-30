@@ -97,6 +97,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	char *infile; // old results file from pssa to be read in to initialize kdtree
 	double phi_cutoff; // objective function cutoff value (termination criteria)
 	double sindx; // discretization step / increments for model parameters in the sin transformed space
+	double dx; // discretization step / increments for model parameters that are not sin transformed
 	int debug; // various debug / verbosity levels
 	int fdebug;
 	int ldebug;
