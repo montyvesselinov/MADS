@@ -385,7 +385,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( cd->debug ) printf( "%-26s: ", pd->var_id[i] );
 		fscanf( infile, ": %lf %d %d %lf %lf %lf\n", &( *pd ).var[i], &( *pd ).var_opt[i], &( *pd ).var_log[i], &( *pd ).var_dx[i], &( *pd ).var_min[i], &( *pd ).var_max[i] );
 		( *cd ).var[i] = ( *pd ).var[i];
-//		if( (*pd).var_log[i] == 1 ) { (*pd).var[i] = log10( (*pd).var[i] ); (*pd).var_min[i] = log10( (*pd).var_min[i] ); (*pd).var_max[i] = log10( (*pd).var_max[i] ); }
 		if( cd->debug ) printf( "init %17.12g opt %1d log %1d step %7g min %7g max %7g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 		if(( *pd ).var_opt[i] == 1 )( *pd ).nOptParam++;
 		else if(( *pd ).var_opt[i] == 2 )
@@ -954,7 +953,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 {
 	FILE *outfile;
-	double time, c, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye;
+	double time, time_expected, c, c0, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye, v, v_apparent;
 	int  i, k;
 	struct grid_data *gd;
 	gd = op->gd;
@@ -971,7 +970,8 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	for( i = 0; i < op->wd->nW; i++ )
 	{
 		fprintf( outfile, " \"%s\"", op->wd->id[i] );
-		max_conc[i] = max_time[i] = 0;
+		max_conc[i] = 0;
+		max_time[i] = -1;
 	}
 	fprintf( outfile, "\n" );
 	for( k = 0; k < gd->nt; k++ )
@@ -993,6 +993,16 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		printf( "Output file %s cannot be opened!\n", filename );
 		return;
 	}
+	for( i = 0; i < op->pd->nParam; i++ ) // IMPORTANT: Take care of log transformed variable
+		if( op->pd->var_opt[i] >= 1 && op->pd->var_log[i] == 1 )
+			op->pd->var[i] = pow( 10, op->pd->var[i] );
+	c0 = op->pd->var[C0] * ( op->pd->var[TIME_END] - op->pd->var[TIME_INIT] ) * 1e6 /
+		 ( op->pd->var[SOURCE_DX] * op->pd->var[SOURCE_DY] * op->pd->var[SOURCE_DZ] * op->pd->var[POROSITY] ); // Source concentration
+	time = op->pd->var[TIME_END];
+	c = func_solver( op->pd->var[SOURCE_X], op->pd->var[SOURCE_Y], op->pd->var[SOURCE_Z], op->pd->var[SOURCE_Z] + op->pd->var[SOURCE_DZ], time, ( void * ) op->cd );
+	printf( "Source concentration = %g %g\n", c0, c );
+	v = sqrt( op->pd->var[VX] * op->pd->var[VX] + op->pd->var[VY] * op->pd->var[VY] + op->pd->var[VZ] * op->pd->var[VZ] ); // Flow velocity
+	printf( "Flow velocity = %g (%g %g %g)\n", v, op->pd->var[VX], op->pd->var[VY], op->pd->var[VZ] );
 	for( i = 0; i < op->wd->nW; i++ )
 	{
 		x0 = ( op->wd->x[i] - op->pd->var[SOURCE_X] );
@@ -1003,11 +1013,21 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		xe = x0 * alpha - y0 * beta;
 		ye = x0 * beta  + y0 * alpha;
 		d = sqrt( xe * xe + ye * ye );
-		printf( "%s\tPeak Conc = %12.4g @ time %12g velocity = %12g\n", op->wd->id[i], max_conc[i], max_time[i], d / max_time[i] );
-		fprintf( outfile, "%s\tPeak Conc = %g @ time %g velocity = %g\n", op->wd->id[i], max_conc[i], max_time[i],  d / max_time[i] );
+		if( max_time[i] > op->pd->var[TIME_END] )
+			time = max_time[i] - ( op->pd->var[TIME_INIT] + op->pd->var[TIME_END] ) / 2;
+		else
+			time = max_time[i] - op->pd->var[TIME_INIT];
+		if( time > DBL_EPSILON ) v_apparent = d / time; else { v_apparent = -1; if( time < 0 ) time = -1; };
+		c = max_conc[i] / c0; // Normalized concentration
+		if( v > DBL_EPSILON ) time_expected = d / v; else time_expected = -1;
+		printf( "%s\tPeak Concentration = %12g (%12g) @ time %12g (%12g) velocity = %12g (%g) distance = %g\n", op->wd->id[i], c, max_conc[i], time, time_expected, v_apparent, v, d );
+		fprintf( outfile, "%s\tPeak Conc = %12g @ time %12g (%g) velocity = %12g (%g) distance = %12g\n", op->wd->id[i], c, time, time_expected, v_apparent, v, d );
 	}
 	fclose( outfile );
 	printf( "Concentration peak data saved in %s\n", filename2 );
+	for( i = 0; i < op->pd->nParam; i++ ) // IMPORTANT: Take care of log transformed variable
+		if( op->pd->var_opt[i] >= 1 && op->pd->var_log[i] == 1 )
+			op->pd->var[i] = log10( op->pd->var[i] );
 	free( max_conc );
 	free( max_time );
 }

@@ -62,6 +62,8 @@ mads
 *.zip
 *out
 *output
+# LINUX files
+.nfs*
 # MAC files
 ._*
 .DS*
