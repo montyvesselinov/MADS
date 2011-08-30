@@ -130,7 +130,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "eval=" ) ) { w = 1; sscanf( word, "eval=%d", &cd->maxeval ); }
 		if( strcasestr( word, "case=" ) ) { w = 1; sscanf( word, "case=%d", &cd->ireal ); }
 		if( strcasestr( word, "retry" ) ) { w = 1; sscanf( word, "retry=%d", &cd->nretries ); if( cd->nretries == 0 ) cd->nretries = 50; }
-		if( strcasestr( word, "tribe" ) ) { w = 1; if( sscanf( word, "tribe=%d", &cd->init_particles ) != 1 ) cd->init_particles = -1; }
+		if( strcasestr( word, "particles" ) ) { w = 1; if( sscanf( word, "particles=%d", &cd->init_particles ) != 1 ) cd->init_particles = -1; }
 		if( strcasestr( word, "opt=" ) ) { w = 1; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; sscanf( word, "opt=%s", cd->opt_method ); }
 		if( strcasestr( word, "smp=" ) ) { w = 1; sscanf( word, "smp=%s", cd->smp_method ); }
 		if( strcasestr( word, "paran=" ) ) { w = 1; sscanf( word, "paran=%s", cd->paran_method ); }
@@ -213,8 +213,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( cd->niter > 0 ) printf( "Number of Levenberg-Marquardt iterations = %d\n", cd->niter );
 		if( strcasestr( cd->opt_method, "apso" ) || strcasestr( cd->opt_method, "tribe" ) || strcasestr( cd->opt_method, "squad" ) )
 		{
-			if( cd->init_particles > 1 ) printf( "Number of tribes = %d\n", cd->init_particles );
-			if( cd->init_particles == -1 ) printf( "Number of tribes = will be computed internally\n" );
+			if( cd->init_particles > 1 ) printf( "Number of particles = %d\n", cd->init_particles );
+			if( cd->init_particles == -1 ) printf( "Number of particles = will be computed internally\n" );
 		}
 		if( cd->leigen == 1 ) printf( "Eigen analysis will be performed of the final optimization results\n" );
 		printf( "\nGlobal termination criteria:\n" );

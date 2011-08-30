@@ -318,6 +318,7 @@ init:
 	best = 0;
 	for( s = 1; s < S; s++ )
 		if( P[s].f < P[best].f ) best = s;
+	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", gop->cd->neval, P[best].f ); fflush( gop->f_ofe ); }
 	error =  P[best].f ; // Current min error
 	if( n_exec == 1 ) min = error;
 	error_prev = error; // Previous min error
