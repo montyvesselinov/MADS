@@ -103,6 +103,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->energy = 0;
 	cd->ireal = 0;
 	cd->sindx = 0.001;
+	cd->dx = 0.1;
 	cd->lmfactor = 1.0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -140,7 +141,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
 		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; }
 		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); }
-		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); }
+		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if ( cd->sindx < DBL_EPSILON ) cd->sindx = 0.1; }
+		if( strcasestr( word, "dx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "dx=%lf", &cd->dx ); if ( cd->dx < DBL_EPSILON ) cd->dx = 0.1;}
 		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); }
 		if( strcasestr( word, "np" ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
@@ -819,7 +821,8 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->test_func >= 0 ) fprintf( outfile, " test=%d", cd->test_func );
 	if( cd->test_func_dim > 2 ) fprintf( outfile, " dim=%d", cd->test_func_dim );
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
-	if( cd->sindx > 0 ) fprintf( outfile, " sindx=%g", cd->sindx );
+	fprintf( outfile, " sindx=%g", cd->sindx );
+	fprintf( outfile, " dx=%g", cd->dx );
 	if( cd->check_success ) fprintf( outfile, " success" );
 	fprintf( outfile, " " );
 	switch( cd->calib_type )
@@ -831,8 +834,8 @@ int save_problem( char *filename, struct opt_data *op )
 	}
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
 	if( cd->nretries > 0 ) fprintf( outfile, " retry=%d", cd->nretries );
-	if( cd->init_particles > 1 ) fprintf( outfile, " ntribe=%d", cd->init_particles );
-	else if( cd->init_particles < 0 ) fprintf( outfile, " ntribe" );
+	if( cd->init_particles > 1 ) fprintf( outfile, " particles=%d", cd->init_particles );
+	else if( cd->init_particles < 0 ) fprintf( outfile, " particles" );
 	if( cd->niter > 0 ) fprintf( outfile, " iter=%d", cd->niter );
 	fprintf( outfile, " eval=%d", cd->maxeval );
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, " rnd=%s", cd->smp_method );

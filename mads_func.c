@@ -589,7 +589,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
-				if( p->cd->sintrans == 0 ) if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = 1;
+			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->dx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
 			func_extrn_write( ++ieval, x, data );
@@ -621,7 +621,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
-				if( p->cd->sintrans == 0 ) if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->sindx;
+			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->dx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
 			func( x, data, f_xpdx );
