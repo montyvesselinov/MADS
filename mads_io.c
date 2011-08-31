@@ -956,7 +956,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 {
 	FILE *outfile;
-	double time, time_expected, c, c0, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye, v, v_apparent;
+	double time, time_expected, c, max_source_conc, max_source_time, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye, v, v_apparent;
 	int  i, k;
 	struct grid_data *gd;
 	gd = op->gd;
@@ -996,14 +996,18 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		printf( "Output file %s cannot be opened!\n", filename );
 		return;
 	}
+	printf( "\nCompute source max concentration ..." );
+	max_source_conc = 0; max_source_time = op->pd->var[TIME_INIT];
+	for( k = 0; k < gd->nt; k++ )
+	{
+		time = gd->min_t + gd->dt * k;
+		c = func_solver( op->pd->var[SOURCE_X], op->pd->var[SOURCE_Y], op->pd->var[SOURCE_Z], op->pd->var[SOURCE_Z], time, ( void * ) op->cd );
+		if( max_source_conc < c ) { max_source_conc = c; max_source_time = time; }
+	}
+	printf( "\nPeak source concentration = %g @ %g\n", max_source_conc, max_source_time );
 	for( i = 0; i < op->pd->nParam; i++ ) // IMPORTANT: Take care of log transformed variable
 		if( op->pd->var_opt[i] >= 1 && op->pd->var_log[i] == 1 )
 			op->pd->var[i] = pow( 10, op->pd->var[i] );
-	c0 = op->pd->var[C0] * ( op->pd->var[TIME_END] - op->pd->var[TIME_INIT] ) * 1e6 /
-		 ( op->pd->var[SOURCE_DX] * op->pd->var[SOURCE_DY] * op->pd->var[SOURCE_DZ] * op->pd->var[POROSITY] ); // Source concentration
-	time = op->pd->var[TIME_END];
-	c = func_solver( op->pd->var[SOURCE_X], op->pd->var[SOURCE_Y], op->pd->var[SOURCE_Z], op->pd->var[SOURCE_Z] + op->pd->var[SOURCE_DZ], time, ( void * ) op->cd );
-	printf( "Source concentration = %g %g\n", c0, c );
 	v = sqrt( op->pd->var[VX] * op->pd->var[VX] + op->pd->var[VY] * op->pd->var[VY] + op->pd->var[VZ] * op->pd->var[VZ] ); // Flow velocity
 	printf( "Flow velocity = %g (%g %g %g)\n", v, op->pd->var[VX], op->pd->var[VY], op->pd->var[VZ] );
 	for( i = 0; i < op->wd->nW; i++ )
@@ -1016,12 +1020,9 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		xe = x0 * alpha - y0 * beta;
 		ye = x0 * beta  + y0 * alpha;
 		d = sqrt( xe * xe + ye * ye );
-		if( max_time[i] > op->pd->var[TIME_END] )
-			time = max_time[i] - ( op->pd->var[TIME_INIT] + op->pd->var[TIME_END] ) / 2;
-		else
-			time = max_time[i] - op->pd->var[TIME_INIT];
+		time = max_time[i] - max_source_time;
 		if( time > DBL_EPSILON ) v_apparent = d / time; else { v_apparent = -1; if( time < 0 ) time = -1; };
-		c = max_conc[i] / c0; // Normalized concentration
+		c = max_conc[i] / max_source_conc; // Normalized concentration
 		if( v > DBL_EPSILON ) time_expected = d / v; else time_expected = -1;
 		printf( "%s\tPeak Concentration = %12g (%12g) @ time %12g (%12g) velocity = %12g (%g) distance = %g\n", op->wd->id[i], c, max_conc[i], time, time_expected, v_apparent, v, d );
 		fprintf( outfile, "%s\tPeak Conc = %12g @ time %12g (%g) velocity = %12g (%g) distance = %12g\n", op->wd->id[i], c, time, time_expected, v_apparent, v, d );

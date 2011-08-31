@@ -55,6 +55,8 @@ double point_source( double x, double y, double z, double t, void *params )
 	p->xe = x;
 	p->ye = y;
 	p->ze = z;
+	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
+		return( p->var[C0] * 1e6 / ( 44.546623974 * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
 	time = t - p->var[TIME_INIT];
 	F.function = &int_point_source;
 	F.params = p;
