@@ -756,14 +756,18 @@ int main( int argn, char *argv[] )
 		sprintf( filename, "%s.igpd.results", op.root );
 		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.igpd_%s.results >& /dev/null", filename, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
 		out = Fwrite( filename );
-		out2 = Fwrite( filename );
 		k = 1;
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 )
-				k *= ( double )( pd.var_max[i] - pd.var_min[i] ) / pd.var_dx[i] + 1;
+			{
+				j = ( double )( pd.var_max[i] - pd.var_min[i] ) / pd.var_dx[i] + 1;
+				if( pd.var_dx[i] > ( pd.var_max[i] - pd.var_min[i] ) ) j++;
+				k *= j;
+			}
 		printf( "Total number of sequential calbrations will be %i\n", k );
 		cd.nreal = k;
 		sprintf( filename, "%s.igpd-opt=%s_eval=%d_real=%d", op.root, cd.opt_method, cd.maxeval, cd.nreal );
+		out2 = Fwrite( filename );
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 )
 				orig_params[i] = pd.var_min[i];
@@ -802,7 +806,7 @@ int main( int argn, char *argv[] )
 				if( cd.debug )
 				{
 					printf( "\n" );
-					fprintf( out, " : OF %g success %d : final var ", op.phi, op.success );
+					print_results( &op );
 				}
 				else printf( "Objective function: %g Success: %d\n", op.phi, op.success );
 				if( op.phi < phi_min )
@@ -811,7 +815,7 @@ int main( int argn, char *argv[] )
 					for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]];
 					for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
 				}
-				fprintf( out, " %d", op.success );
+				fprintf( out, " : OF %g success %d : final var ", op.phi, op.success );
 				for( i = 0; i < pd.nParam; i++ )
 					if( pd.var_opt[i] >= 1 ) // Print only optimized parameters (including flagged); ignore fixed parameters
 					{
@@ -820,14 +824,19 @@ int main( int argn, char *argv[] )
 					}
 				fprintf( out, "\n" );
 				fflush( out );
-				if( op.success ) save_results( "igpd", &op, &gd );
+				if( op.success && cd.nreal > 1 ) save_results( "igpd", &op, &gd );
 				if( cd.ireal != 0 ) break;
 			}
 			if( pd.nFlgParam == 0 || pd.nOptParam == 0 ) break;
 			for( i = 0; i < pd.nParam; i++ )
 				if( pd.var_opt[i] == 2 )
 				{
-					if( orig_params[i] < pd.var_max[i] ) { orig_params[i] += pd.var_dx[i]; break; }
+					if( orig_params[i] < pd.var_max[i] )
+					{
+						orig_params[i] += pd.var_dx[i];
+						if( orig_params[i] > pd.var_max[i] ) orig_params[i] = pd.var_max[i];
+						break;
+					}
 					else orig_params[i] = pd.var_min[i];
 				}
 			if( i == pd.nParam ) break;
@@ -891,11 +900,15 @@ int main( int argn, char *argv[] )
 		k = 1;
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 )
-				k *= ( double )( pd.var_max[i] - pd.var_min[i] ) / pd.var_dx[i] + 1;
+			{
+				j = ( double )( pd.var_max[i] - pd.var_min[i] ) / pd.var_dx[i] + 1;
+				if( pd.var_dx[i] > ( pd.var_max[i] - pd.var_min[i] ) ) j++;
+				k *= j;
+			}
 		printf( "Total number of sequential runs will be %i\n", k );
 		cd.nreal = k;
 		for( i = 0; i < pd.nParam; i++ )
-			if( pd.var_opt[i] == 2 ) cd.var[i] = pd.var_min[i];
+			if( pd.var_opt[i] == 2 ) orig_params[i] = cd.var[i] = pd.var_min[i];
 		phi_min = HUGE_VAL;
 		count = neval_total = 0;
 		do
@@ -905,16 +918,18 @@ int main( int argn, char *argv[] )
 			if( cd.ireal == 0 || cd.ireal == count )
 			{
 				fprintf( out, "%d : ", count );
-				printf( "\nSEQUENTIAL RUN #%d:", count );
+				printf( "\nSEQUENTIAL RUN #%d:\n", count );
 				op.counter = count;
-				if( cd.debug ) printf( "\nDiscretized parameters:\n" );
+				printf( "Discretized parameters:\n" );
 				for( i = 0; i < pd.nParam; i++ )
+				{
+					cd.var[i] = pd.var[i] = orig_params[i]; // these are the true original parameters
 					if( pd.var_opt[i] == 2 ) // Print only flagged parameters
 					{
-						if( cd.debug ) printf( "%s %g\n", pd.var_id[i], cd.var[i] );
+						printf( "%s %g\n", pd.var_id[i], cd.var[i] );
 						fprintf( out, "%g ", cd.var[i] );
 					}
-					else pd.var[i] = orig_params[i]; // these are the true original parameters
+				}
 				if( pd.nOptParam > 0 ) status = optimize( &op ); // Optimize
 				else
 				{
@@ -925,26 +940,31 @@ int main( int argn, char *argv[] )
 					if( cd.debug ) cd.fdebug = debug_level;
 				}
 				neval_total += cd.neval;
-				if( cd.debug )
+				if( cd.debug > 2 )
 				{
 					printf( "\n" );
 					print_results( &op );
 				}
 				else printf( "Objective function: %g Success: %d", op.phi, op.success );
-				fprintf( out, " : OF %g Success %d : final var", op.phi, op.success );
 				if( op.phi < phi_min )
 				{
 					phi_min = op.phi;
 					for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]];
 					for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
 				}
-				for( i = 0; i < pd.nParam; i++ )
-					if( pd.var_opt[i] == 1 ) // Print only optimized parameters; ignore fixed and flagged parameters
-					{
-						if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
-						else fprintf( out, " %.15g", pd.var[i] );
-					}
-				fprintf( out, "\n" );
+				if( pd.nOptParam > 0 )
+				{
+					fprintf( out, " : OF %g Success %d : final var", op.phi, op.success );
+					for( i = 0; i < pd.nParam; i++ )
+						if( pd.var_opt[i] == 1 ) // Print only optimized parameters; ignore fixed and flagged parameters
+						{
+							if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
+							else fprintf( out, " %.15g", pd.var[i] );
+						}
+					fprintf( out, "\n" );
+				}
+				else
+					fprintf( out, " : OF %g Success %d\n", op.phi, op.success );
 				fflush( out );
 				if( op.success ) save_results( "ppsd", &op, &gd );
 				if( cd.ireal != 0 ) break;
@@ -952,8 +972,13 @@ int main( int argn, char *argv[] )
 			for( i = 0; i < pd.nParam; i++ )
 				if( pd.var_opt[i] == 2 )
 				{
-					if( cd.var[i] < pd.var_max[i] ) { cd.var[i] += pd.var_dx[i]; break; }
-					else cd.var[i] = pd.var_min[i];
+					if( orig_params[i] < pd.var_max[i] )
+					{
+						orig_params[i] += pd.var_dx[i];
+						if( orig_params[i] > pd.var_max[i] ) orig_params[i] = pd.var_max[i];
+						break;
+					}
+					else orig_params[i] = pd.var_min[i];
 				}
 			if( i == pd.nParam ) break;
 		}

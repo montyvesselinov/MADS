@@ -141,8 +141,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
 		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; }
 		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); }
-		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if ( cd->sindx < DBL_EPSILON ) cd->sindx = 0.1; }
-		if( strcasestr( word, "dx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "dx=%lf", &cd->dx ); if ( cd->dx < DBL_EPSILON ) cd->dx = 0.1;}
+		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.1; }
+		if( strcasestr( word, "dx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "dx=%lf", &cd->dx ); if( cd->dx < DBL_EPSILON ) cd->dx = 0.1;}
 		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); }
 		if( strcasestr( word, "np" ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
