@@ -465,7 +465,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			for( k = 0; k < p->od->nObs; k++ )
 			{
 				printf( "%s %g\n", p->od->obs_id[k], f[k] );
-				c += f[k] * f[k];
+				c += f[k];
 			}
 			printf( "Test OF %g\n", c );
 		}

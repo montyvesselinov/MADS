@@ -222,6 +222,8 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				o[d] += x1;
 				t0 = t1;
 			}
+			// o[0] = (1-x[0]) * (1-x[0]);
+			// o[1] = 100*(x[1]-x[0]*x[0]) * (x[1]-x[0]*x[0]);
 			break;
 		case 4: // Step
 			f = 0;
@@ -325,7 +327,5 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 	}
-	for( d = 0; d < nObs; d++ )
-		o[d] = sqrt( o[d] );
 	return f;
 }

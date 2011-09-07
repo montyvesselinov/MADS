@@ -248,15 +248,15 @@ int LEVMAR_DER(
 			if( using_ffdif ) /* use forward differences */
 			{
 				jacf( p, hx, jac, m, n, adata );
-				/*
-								printf( "\n" );
-								for( l = j = 0; j < op->od->nObs; j++ )
-								{
-									for( i = 0; i < op->pd->nOptParam; i++, l++ )
-										printf( " %g", jac[l] );
-									printf( "\n" );
-								}
-				*/
+/*
+				printf( "\n" );
+				for( l = j = 0; j < op->od->nObs; j++ )
+				{
+					for( i = 0; i < op->pd->nOptParam; i++, l++ )
+						printf( " %g", jac[l] );
+					printf( "\n" );
+				}
+*/
 				++njap; nfev += m;
 			}
 			else  /* use central differences */
@@ -785,12 +785,14 @@ int LEVMAR_DIF(
 				++njap; nfev += 2 * m;
 			}
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
-			/*			for( l = j = 0; j < op->od->nObs; j++ )
-						{
-							for( i = 0; i < op->pd->nOptParam; i++, l++ )
-								printf( " %g", jac[l] );
-							printf( "\n" );
-						}*/
+/*
+			for( l = j = 0; j < op->od->nObs; j++ )
+			{
+				for( i = 0; i < op->pd->nOptParam; i++, l++ )
+					printf( " %g", jac[l] );
+				printf( "\n" );
+			}
+*/
 			if( op->cd->ldebug )
 			{
 				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
