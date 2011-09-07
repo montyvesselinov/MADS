@@ -248,7 +248,8 @@ int LEVMAR_DER(
 			if( using_ffdif ) /* use forward differences */
 			{
 				jacf( p, hx, jac, m, n, adata );
-/*
+			if( op->cd->ldebug > 2 )
+			{			
 				printf( "\n" );
 				for( l = j = 0; j < op->od->nObs; j++ )
 				{
@@ -256,8 +257,8 @@ int LEVMAR_DER(
 						printf( " %g", jac[l] );
 					printf( "\n" );
 				}
-*/
 				++njap; nfev += m;
+			}
 			}
 			else  /* use central differences */
 			{
