@@ -248,17 +248,6 @@ int LEVMAR_DER(
 			if( using_ffdif ) /* use forward differences */
 			{
 				jacf( p, hx, jac, m, n, adata );
-			if( op->cd->ldebug > 2 )
-			{			
-				printf( "\n" );
-				for( l = j = 0; j < op->od->nObs; j++ )
-				{
-					for( i = 0; i < op->pd->nOptParam; i++, l++ )
-						printf( " %g", jac[l] );
-					printf( "\n" );
-				}
-				++njap; nfev += m;
-			}
 			}
 			else  /* use central differences */
 			{
@@ -266,11 +255,23 @@ int LEVMAR_DER(
 				LEVMAR_FDIF_CENT_JAC_APPROX( func, p, wrk, wrk2, delta, jac, m, n, adata );
 				++njap; nfev += 2 * m;
 			}
+			++njap; nfev += m;
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
 				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
 				else printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
+			}
+			if( op->cd->ldebug > 2 )
+			{
+				printf( "Jacobian matrix:\n" );
+				for( l = j = 0; j < op->od->nObs; j++ )
+				{
+					printf( "Observation %i: ", j + 1 );
+					for( i = 0; i < op->pd->nOptParam; i++, l++ )
+						printf( " %g", jac[l] );
+					printf( "\n" );
+				}
 			}
 			if( op->cd->odebug )
 			{
@@ -351,15 +352,13 @@ int LEVMAR_DER(
 			}
 			//p_L2=sqrt(p_L2);
 		}
-#if 0
-		if( !( k % 100 ) )
+		if( op->cd->ldebug > 3 )
 		{
 			printf( "Current estimate: " );
 			for( i = 0; i < m; ++i )
-				printf( "%.9g ", p[i] );
-			printf( "-- errors %.9g %0.9g\n", jacTe_inf, p_eL2 );
+				printf( "%g ", p[i] );
+			printf( "-- errors %g %g\n", jacTe_inf, p_eL2 );
 		}
-#endif
 		/* check for convergence */
 		if(( jacTe_inf <= eps1 ) )
 		{
@@ -410,6 +409,11 @@ int LEVMAR_DER(
 				break;
 			}
 			( *func )( pDp, wrk, m, n, adata ); ++nfev; /* evaluate function at p + Dp */
+#if 0
+			if( op->cd->solution_type == TEST ) // this is a test; not needed in general
+				for( i = 0; i < n; i++ )
+					wrk[i] = sqrt( wrk[i] );
+#endif
 			/* compute ||e(pDp)||_2 */
 			/* ### wrk2=x-wrk, pDp_eL2=||wrk2|| */
 #if 1
@@ -418,7 +422,14 @@ int LEVMAR_DER(
 			for( i = 0, pDp_eL2 = 0.0; i < n; ++i )
 			{
 				wrk2[i] = tmp = x[i] - wrk[i];
+#if 1
 				pDp_eL2 += tmp * tmp;
+#else
+			if( op->cd->solution_type == TEST ) // this is a test; not needed in general
+				pDp_eL2 += wrk[i];
+			else
+				pDp_eL2 += tmp * tmp;
+#endif
 			}
 #endif
 			if( op->cd->ldebug ) printf( "OF %g lambda %g ", pDp_eL2, mu );
@@ -526,11 +537,11 @@ int LEVMAR_DER(
 		}
 		nu = nu2;
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-			jacTjac[i*m+i] = diag_jacTjac[i];
+			jacTjac[i *m+i] = diag_jacTjac[i];
 	}
 	if( k >= itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-		jacTjac[i*m+i] = diag_jacTjac[i];
+		jacTjac[i *m+i] = diag_jacTjac[i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
@@ -786,18 +797,21 @@ int LEVMAR_DIF(
 				++njap; nfev += 2 * m;
 			}
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
-/*
-			for( l = j = 0; j < op->od->nObs; j++ )
-			{
-				for( i = 0; i < op->pd->nOptParam; i++, l++ )
-					printf( " %g", jac[l] );
-				printf( "\n" );
-			}
-*/
 			if( op->cd->ldebug )
 			{
 				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
 				else printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
+			}
+			if( op->cd->ldebug > 2 )
+			{
+				printf( "Jacobian matrix:\n" );
+				for( l = j = 0; j < op->od->nObs; j++ )
+				{
+					printf( "Observation %i: ", j + 1 );
+					for( i = 0; i < op->pd->nOptParam; i++, l++ )
+						printf( " %g", jac[l] );
+					printf( "\n" );
+				}
 			}
 			if( op->cd->odebug )
 			{
@@ -878,15 +892,13 @@ int LEVMAR_DIF(
 			}
 			//p_L2=sqrt(p_L2);
 		}
-#if 0
-		if( !( k % 100 ) )
+		if( op->cd->ldebug > 3 )
 		{
 			printf( "Current estimate: " );
 			for( i = 0; i < m; ++i )
-				printf( "%.9g ", p[i] );
-			printf( "-- errors %.9g %0.9g\n", jacTe_inf, p_eL2 );
+				printf( "%g ", p[i] );
+			printf( "-- errors %g %g\n", jacTe_inf, p_eL2 );
 		}
-#endif
 		/* check for convergence */
 		if(( jacTe_inf <= eps1 ) )
 		{

@@ -327,5 +327,8 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 	}
+	for( d = 0; d < D; d++ )
+		if( o[d] < 0.0 ) o[d] = -sqrt( fabs( o[d] ) );
+		else o[d] = sqrt( o[d] );
 	return f;
 }

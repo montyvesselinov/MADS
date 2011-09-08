@@ -103,7 +103,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->energy = 0;
 	cd->ireal = 0;
 	cd->sindx = 0.001;
-	cd->dx = 0.1;
+	cd->dx = 0.001;
 	cd->lmfactor = 1.0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{

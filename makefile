@@ -14,8 +14,10 @@ OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o lm/opt_lm_
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o abagus/abagus.o
 OBJSMPUN = mprun/mprun.o mprun/mprun_io.o
 OBJSKDTREE = abagus/kdtree-0.5.5/kdtree.o
-OBJSLEVMAR = levmar-2.5/lm_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o
+OBJSLEVMAR = levmar-2.5/lm_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o 
+OBJSLEVMARSTYLE = levmar-2.5/lm_m.o levmar-2.5/lm_core_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o 
 SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
+SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
 
 all: $(PROG)
 
@@ -94,8 +96,8 @@ verify:
 	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
 
 astyle:
-	astyle $(SOURCE)
-	rm -f $(SOURCE:%c=%c.orig)
+	astyle $(SOURCESTYLE)
+	rm -f $(SOURCESTYLE:%c=%c.orig)
 
 tar:
 	tar -cvzf mads.tgz `hg st -c -m | awk '{print $$2}'` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'` .hg
