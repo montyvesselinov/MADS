@@ -94,7 +94,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->niter = 0;
 	cd->init_particles = -1;
 	cd->nretries = 0;
-	cd->seed = 0;
+	cd->seed = cd->seed_init = 0;
 	cd->maxeval = 5000;
 	cd->paranoid = 0;
 	cd->phi_cutoff = 0;
@@ -103,7 +103,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->energy = 0;
 	cd->ireal = 0;
 	cd->sindx = 0.001;
-	cd->dx = 0.001;
+	cd->lindx = 0.001;
 	cd->lmfactor = 1.0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -141,9 +141,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
 		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; }
 		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); }
-		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.1; }
-		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->dx ); if( cd->dx < DBL_EPSILON ) cd->dx = 0.1;}
-		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); }
+		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.001; }
+		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001;}
+		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
 		if( strcasestr( word, "np" ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
 		if( strcasestr( word, "rstfile=" ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_zip_file ); cd->restart = -1; }
@@ -162,6 +162,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasecmp( word, "ssdr" ) == 0 ) { w = 1; cd->objfunc_type = SSDR; }
 		if( strcasestr( word, "test" ) ) { w = 1; cd->test_func = 0; cd->test_func_dim = 2; sscanf( word, "test=%d", &cd->test_func ); ( *cd ).solution_type = TEST; }
 		if( strcasestr( word, "dim=" ) ) { w = 1; sscanf( word, "dim=%d", &cd->test_func_dim ); if( cd->test_func_dim < 2 ) cd->test_func_dim = 2; }
+		if( strcasestr( word, "npar=" ) ) { w = 1; sscanf( word, "npar=%d", &cd->test_func_npar ); if( cd->test_func_npar < 2 ) cd->test_func_npar = 2; }
+		if( strcasestr( word, "nobs=" ) ) { w = 1; sscanf( word, "nobs=%d", &cd->test_func_nobs ); if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 2; }
 		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type = POINT; }
 		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
 		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type = BOX; }
@@ -171,7 +173,16 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 	if( ( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) && cd->nreal == 0 ) cd->nreal = 100;
 	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { strcat( cd->opt_method, "_paran" ); cd->paranoid = 1; }
-	if( cd->test_func >= 0 ) { printf( "Test %d Dimensionality %d\n", cd->test_func, cd->test_func_dim ); }
+	if( cd->test_func )
+	{
+		if( cd->test_func < 40 ) printf( "Test Function #%d Dimensionality %d\n", cd->test_func, cd->test_func_dim );
+		else
+		{
+			cd->test_func_npar = 2;
+			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 2;
+			printf( "Test Function #%d Parameters %d Observations %d\n", cd->test_func, cd->test_func_npar, cd->test_func_nobs );
+		}
+	}
 	printf( "Problem type: " );
 	switch( cd->problem_type )
 	{
@@ -822,7 +833,7 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->test_func_dim > 2 ) fprintf( outfile, " dim=%d", cd->test_func_dim );
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
 	fprintf( outfile, " sindx=%g", cd->sindx );
-	fprintf( outfile, " dx=%g", cd->dx );
+	fprintf( outfile, " lindx=%g", cd->lindx );
 	if( cd->check_success ) fprintf( outfile, " success" );
 	fprintf( outfile, " " );
 	switch( cd->calib_type )

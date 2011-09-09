@@ -190,7 +190,7 @@ int mopso( struct opt_data *op )
 	int debug, i, n, r, eval_total, ofe_close;
 	gop = op;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed = get_seed(); }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
 	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
 	if( op->counter == 1 ) { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
 	overSizeSwarm = 0;

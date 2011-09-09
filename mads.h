@@ -77,8 +77,11 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int maxeval; // maximum number of evaluations (termination criteria)
 	int standalone; // flag standalone LM run (yes/no)
 	int seed; //random seed
+	int seed_init; //random seed
 	int test_func; // test function id
 	int test_func_dim; // test function dimensionality
+	int test_func_npar; // test function number of parameters
+	int test_func_nobs; // test function number of observations
 	int num_proc; // number of processors for parallel execution
 	int restart; // flag restart for parallel jobs
 	int njob; // number of parallel jobs
@@ -97,7 +100,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	char *infile; // old results file from pssa to be read in to initialize kdtree
 	double phi_cutoff; // objective function cutoff value (termination criteria)
 	double sindx; // discretization step / increments for model parameters in the sin transformed space
-	double dx; // discretization step / increments for model parameters that are not sin transformed
+	double lindx; // discretization step / increments for model parameters that are not sin transformed
 	int debug; // various debug / verbosity levels
 	int fdebug;
 	int ldebug;
@@ -140,6 +143,7 @@ struct param_data // data structure for model parameters
 	double *var_range; // parameter range: range = max - min
 	double *var_current; // parameter value (current)
 	double *var_best; // parameter value (current best)
+	double *var_truth; // true parameter value
 	gsl_vector *var_current_gsl; // current model parameters as GSL vector
 };
 

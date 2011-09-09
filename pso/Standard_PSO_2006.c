@@ -172,7 +172,7 @@ int pso_std( struct opt_data *op )
 	if(( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed = get_seed(); }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
 	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
 	if( op->counter == 1 ) srand( op->cd->seed );
 	lmo_flag = 0;

@@ -141,7 +141,7 @@ char *dir_hosts( void *data, char *timedate_stamp );
 int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
-	int i, j, k, ier, npar, status, success, success_global, success_all, count, debug_level, predict = 0, compare, neval_total, bad_data;
+	int i, j, k, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, neval_total, bad_data;
 	double c, err, phi, phi_min, *orig_params, *opt_params, *var_lhs, *var_a_lhs, *var_b_lhs;
 	struct calc_data cd;
 	struct param_data pd;
@@ -273,7 +273,11 @@ int main( int argn, char *argv[] )
 		printf( "                          13: 2D Tripod function\n" );
 		printf( "                          17: Krishna Kumar\n" );
 		printf( "                          18: Eason 2D (note: global methods only)\n" );
+		printf( "                          40: Sin/Cos test function\n" );
+		printf( "                          41: Sin/Cos test function (simplified)\n" );
 		printf( "   dim=[integer]      - dimensionality of parameter space for the test problem (fixed for some of the problems) [default=2]\n" );
+		printf( "   npar=[integer]     - number of model parameters for the test problem (fixed for some of the problems) [default=2]\n" );
+		printf( "   nobs=[integer]     - number of observations for the test problem (fixed for some of the problems) [default=2]\n" );
 		printf( "\ndebugging / verbose levels:\n" );
 		printf( "   debug=[0-5]        - general debugging [default debug=0]\n" );
 		printf( "   fdebug=[0-5]       - model evaluation debugging [default fdebug=0]\n" );
@@ -593,7 +597,7 @@ int main( int argn, char *argv[] )
 			exit( 1 );
 		}
 		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
-		else if( cd.seed == 0 ) { printf( "New " ); cd.seed = get_seed(); }
+		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
 		else printf( "Current seed: %d\n", cd.seed );
 		printf( "Random sampling (variables %d; realizations %d) using ", npar, cd.nreal );
 		sampling( npar, cd.nreal, &cd.seed, var_lhs, &op );
@@ -628,7 +632,7 @@ int main( int argn, char *argv[] )
 		if( pd.nOptParam == 0 )
 			printf( "WARNING: No parameters to optimize! Forward runs performed instead (ie Monte Carlo analysis)\n" );
 		phi_min = HUGE_VAL;
-		success_global = neval_total = 0;
+		phi_global = success_global = neval_total = 0;
 		if( cd.ireal != 0 ) k = cd.ireal - 1; // applied if execution of a specific realization is requested (ncase)
 		else k = 0;
 		printf( "\n" );
@@ -667,6 +671,7 @@ int main( int argn, char *argv[] )
 				cd.compute_phi = 0;
 				if( cd.mdebug ) cd.fdebug = debug_level;
 			}
+			if( op.phi < op.cd->phi_cutoff ) phi_global++;
 			if( cd.mdebug || cd.nreal == 1 )
 			{
 				printf( "\n" );
@@ -721,6 +726,11 @@ int main( int argn, char *argv[] )
 		{
 			if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", cd.nreal );
 			else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
+			if( op.cd->phi_cutoff > DBL_EPSILON )
+			{
+				if( phi_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions below predefined OF cutoff %g!\n", cd.nreal, op.cd->phi_cutoff );
+				else printf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op.cd->phi_cutoff, phi_global, cd.nreal, ( double ) phi_global / cd.nreal );
+			}
 		}
 		fprintf( out2, "min %g\n", phi_min );
 		fprintf( out2, "success %d\n", success_global );
@@ -771,6 +781,7 @@ int main( int argn, char *argv[] )
 		for( i = 0; i < pd.nParam; i++ )
 			if( pd.var_opt[i] == 2 )
 				orig_params[i] = pd.var_min[i];
+		phi_global = success_global = 0;
 		phi_min = HUGE_VAL;
 		count = neval_total = 0;
 		do
@@ -803,12 +814,14 @@ int main( int argn, char *argv[] )
 					if( cd.debug ) cd.fdebug = debug_level;
 				}
 				neval_total += cd.neval;
+				if( op.phi < op.cd->phi_cutoff ) phi_global++;
 				if( cd.debug )
 				{
 					printf( "\n" );
 					print_results( &op );
 				}
 				else printf( "Objective function: %g Success: %d\n", op.phi, op.success );
+				success_global += op.success;
 				if( op.phi < phi_min )
 				{
 					phi_min = op.phi;
@@ -865,6 +878,11 @@ int main( int argn, char *argv[] )
 		{
 			if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", cd.nreal );
 			else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
+			if( op.cd->phi_cutoff > DBL_EPSILON )
+			{
+				if( phi_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions below predefined OF cutoff %g!\n", cd.nreal, op.cd->phi_cutoff );
+				else printf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op.cd->phi_cutoff, phi_global, cd.nreal, ( double ) phi_global / cd.nreal );
+			}
 		}
 		fprintf( out2, "min %g\n", phi_min );
 		fprintf( out2, "success %d\n", success_global );
@@ -911,6 +929,7 @@ int main( int argn, char *argv[] )
 			if( pd.var_opt[i] == 2 ) orig_params[i] = cd.var[i] = pd.var_min[i];
 		phi_min = HUGE_VAL;
 		count = neval_total = 0;
+		phi_global = success_global = 0;
 		do
 		{
 			cd.neval = 0;
@@ -939,6 +958,7 @@ int main( int argn, char *argv[] )
 					cd.compute_phi = 0;
 					if( cd.debug ) cd.fdebug = debug_level;
 				}
+				if( op.phi < op.cd->phi_cutoff ) phi_global++;
 				neval_total += cd.neval;
 				if( cd.debug > 2 )
 				{
@@ -946,6 +966,7 @@ int main( int argn, char *argv[] )
 					print_results( &op );
 				}
 				else printf( "Objective function: %g Success: %d", op.phi, op.success );
+				success_global += op.success;
 				if( op.phi < phi_min )
 				{
 					phi_min = op.phi;
@@ -983,10 +1004,17 @@ int main( int argn, char *argv[] )
 			if( i == pd.nParam ) break;
 		}
 		while( 1 );
+		fclose( out );
 		cd.neval = neval_total; // provide the correct number of total evaluations
 		printf( "\nTotal number of evaluations = %d\n", neval_total );
+		if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", cd.nreal );
+		else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
+		if( op.cd->phi_cutoff > DBL_EPSILON )
+		{
+			if( phi_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions below predefined OF cutoff %g!\n", cd.nreal, op.cd->phi_cutoff );
+			else printf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op.cd->phi_cutoff, phi_global, cd.nreal, ( double ) phi_global / cd.nreal );
+		}
 		op.counter = 0;
-		fclose( out );
 		printf( "Results are saved in %s.ppsd.results\n", op.root );
 	}
 //
@@ -1002,7 +1030,7 @@ int main( int argn, char *argv[] )
 			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
 		printf( "\nMonte Carlo analysis using latin-hyper cube sampling:\n" );
 		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
-		else if( cd.seed == 0 ) { printf( "New " ); cd.seed = get_seed(); }
+		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
 		else printf( "Current seed: %d\n", cd.seed );
 		printf( "Random sampling (variables %d; realizations %d) using ", npar, cd.nreal );
 		sampling( npar, cd.nreal, &cd.seed, var_lhs, &op );
@@ -1028,7 +1056,7 @@ int main( int argn, char *argv[] )
 		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.mcrnd_%s.results >& /dev/null", filename, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
 		out = Fwrite( filename );
 		cd.compute_phi = 1;
-		success_global = 0;
+		phi_global = success_global = 0;
 		phi_min = HUGE_VAL;
 		if( cd.ireal != 0 ) k = cd.ireal - 1;
 		else k = 0;
@@ -1103,6 +1131,7 @@ int main( int argn, char *argv[] )
 					for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
 				}
 				if( success_all ) success_global++;
+				if( op.phi < op.cd->phi_cutoff ) phi_global++;
 				for( i = 0; i < pd.nParam; i++ )
 					if( pd.var_opt[i] >= 1 )
 					{
@@ -1158,6 +1187,7 @@ int main( int argn, char *argv[] )
 					for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
 				}
 				if( success_all ) success_global++;
+				if( op.phi < op.cd->phi_cutoff ) phi_global++;
 				for( i = 0; i < pd.nParam; i++ )
 					if( pd.var_opt[i] >= 1 )
 					{
@@ -1192,6 +1222,11 @@ int main( int argn, char *argv[] )
 		printf( "\nMinimum objective function: %g\n", phi_min );
 		if( success_global == 0 ) printf( "None of the Monte-Carlo runs produced predictions within calibration ranges!\n" );
 		else printf( "Number of Monte-Carlo runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
+		if( op.cd->phi_cutoff > DBL_EPSILON )
+		{
+			if( phi_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions below predefined OF cutoff %g!\n", cd.nreal, op.cd->phi_cutoff );
+			else printf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op.cd->phi_cutoff, phi_global, cd.nreal, ( double ) phi_global / cd.nreal );
+		}
 		free( opt_params );
 		save_results( "", &op, &gd );
 		cd.compute_phi = 0;
@@ -1269,7 +1304,7 @@ int main( int argn, char *argv[] )
 		printf( "\nGlobal sensitivity analysis using random sampling:\n" );
 		// Create samples
 		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
-		else if( cd.seed == 0 ) { printf( "New " ); cd.seed = get_seed(); }
+		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
 		else printf( "Current seed: %d\n", cd.seed );
 		printf( "Random sampling set 1 (variables %d; realizations %d) using ", pd.nOptParam, cd.nreal );
 		sampling( pd.nOptParam, n_sub, &cd.seed, var_a_lhs, &op );
@@ -1691,6 +1726,7 @@ int main( int argn, char *argv[] )
 		else if( c < ( ( double ) 1 / 60 ) ) printf( "Functional evaluations per minute = %g\n", c * 60 );
 		else printf( "Functional evaluations per second = %g\n", c );
 	}
+	printf( "Seed = %d\n", op.cd->seed_init );
 	ptr_ts = localtime( &time_start );
 	printf( "Execution  started  on %s", asctime( ptr_ts ) );
 	ptr_ts = localtime( &time_end );
@@ -1758,7 +1794,7 @@ int optimize_lm( struct opt_data *op )
 		if( ( var_lhs = ( double * ) malloc( npar * op->cd->nretries * sizeof( double ) ) ) == NULL )
 			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 		if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-		else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed = get_seed(); }
+		else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
 		else printf( "Current seed: %d\n", op->cd->seed );
 		printf( "Random sampling for paranoid optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
 		if( op->cd->paran_method[0] != 0 ) { strcpy( buf, op->cd->smp_method ); strcpy( op->cd->smp_method, op->cd->paran_method ); }
@@ -2443,31 +2479,34 @@ void print_results( struct opt_data *op )
 		if( op->pd->var_log[k] == 0 ) printf( "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
 		else printf( "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
-	if( op->od->nObs > 0 ) printf( "\nCalibration targets:\n" );
-	if( op->cd->solution_type == EXTERNAL )
-		for( i = 0; i < op->od->nObs; i++ )
-		{
-			if( op->od->obs_weight[i] == 0 ) continue;
-			c = op->od->obs_current[i];
-			err = op->od->obs_target[i] - c;
-			if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
-			else success = 1;
-			if( op->od->nObs < 50 || ( i < 20 || i > op->od->nObs - 20 ) )
-				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
-			if( op->od->nObs > 50 && i == 21 ) printf( "...\n" );
-		}
-	else if( op->cd->solution_type != TEST )
+	if( op->cd->solution_type != TEST && op->od->nObs > 0 )
 	{
-		for( k = 0, i = 0; i < op->wd->nW; i++ )
-			for( j = 0; j < op->wd->nWellObs[i]; j++ )
+		printf( "\nModel predictions:\n" );
+		if( op->cd->solution_type == EXTERNAL )
+			for( i = 0; i < op->od->nObs; i++ )
 			{
-				if( op->wd->obs_weight[i][j] == 0 ) continue;
-				c = op->od->obs_current[k++];
-				err = op->wd->obs_target[i][j] - c;
-				if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { success_all = 0; success = 0; }
+				if( op->od->obs_weight[i] == 0 ) continue;
+				c = op->od->obs_current[i];
+				err = op->od->obs_target[i] - c;
+				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
 				else success = 1;
-				printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
+				if( op->od->nObs < 50 || ( i < 20 || i > op->od->nObs - 20 ) )
+					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
+				if( op->od->nObs > 50 && i == 21 ) printf( "...\n" );
 			}
+		else
+		{
+			for( k = 0, i = 0; i < op->wd->nW; i++ )
+				for( j = 0; j < op->wd->nWellObs[i]; j++ )
+				{
+					if( op->wd->obs_weight[i][j] == 0 ) continue;
+					c = op->od->obs_current[k++];
+					err = op->wd->obs_target[i][j] - c;
+					if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { success_all = 0; success = 0; }
+					else success = 1;
+					printf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
+				}
+		}
 	}
 	op->success = success_all;
 	printf( "Objective function: %g Success: %d \n", op->phi, op->success );
@@ -2492,12 +2531,6 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	strcpy( f, filename );
 	strcat( filename, ".results" );
 	out = Fwrite( filename );
-	if( op->cd->solution_type != TEST && op->od->nObs > 0 )
-	{
-		strcpy( filename, f );
-		strcat( filename, ".residuals" );
-		out2 = Fwrite( filename );
-	}
 	fprintf( out, "Model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
@@ -2505,37 +2538,44 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		if( op->pd->var_log[k] == 0 ) fprintf( out, "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
 		else fprintf( out, "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
-	if( op->od->nObs > 0 && op->cd->solution_type != TEST ) fprintf( out, "\nModel predictions:\n" );
-	if( op->cd->solution_type == EXTERNAL )
-		for( i = 0; i < op->od->nObs; i++ )
-		{
-			if( op->od->obs_weight[i] != 0 )
-			{
-				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
-				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
-				else success = 1;
-			}
-			else success = 0;
-			fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
-			fprintf( out2, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
-		}
-	else if( op->cd->solution_type != TEST )
+	if( op->cd->solution_type != TEST && op->od->nObs > 0 )
 	{
-		for( k = 0, i = 0; i < op->wd->nW; i++ )
-			for( j = 0; j < op->wd->nWellObs[i]; j++ )
+		fprintf( out, "\nModel predictions:\n" );
+		strcpy( filename, f );
+		strcat( filename, ".residuals" );
+		out2 = Fwrite( filename );
+		if( op->cd->solution_type == EXTERNAL )
+			for( i = 0; i < op->od->nObs; i++ )
 			{
-				if( op->wd->obs_weight[i][j] != 0 )
+				if( op->od->obs_weight[i] != 0 )
 				{
-					c = op->od->obs_current[k++];
-					err = op->wd->obs_target[i][j] - c;
-					if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { success_all = 0; success = 0; }
+					c = op->od->obs_current[i];
+					err = op->od->obs_target[i] - c;
+					if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
 					else success = 1;
 				}
 				else success = 0;
-				fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
-				fprintf( out2, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
+				fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
+				fprintf( out2, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
 			}
+		else
+		{
+			for( k = 0, i = 0; i < op->wd->nW; i++ )
+				for( j = 0; j < op->wd->nWellObs[i]; j++ )
+				{
+					if( op->wd->obs_weight[i][j] != 0 )
+					{
+						c = op->od->obs_current[k++];
+						err = op->wd->obs_target[i][j] - c;
+						if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { success_all = 0; success = 0; }
+						else success = 1;
+					}
+					else success = 0;
+					fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
+					fprintf( out2, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
+				}
+		}
+		fclose( out2 );
 	}
 	if( op->od->nObs == 0 ) op->success = success_all = 0;
 	else
@@ -2545,7 +2585,6 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		{
 			if( success_all ) fprintf( out, "All the predictions are within calibration ranges!\n" );
 			else fprintf( out, "At least one of the predictions is outside calibration ranges!\n" );
-			fclose( out2 );
 		}
 	}
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->neval );

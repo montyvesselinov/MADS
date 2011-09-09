@@ -158,7 +158,7 @@ int pso_tribes( struct opt_data *op )
 	pb.nPhi = 1;
 	gop = op;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed = get_seed(); }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
 	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
 	if( op->counter == 0 ) { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
 	overSizeSwarm = 0;
@@ -513,7 +513,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 		}
 	if(( *pb ).nPhi > MAXPHI - 1 )
 	{
-		fprintf( stderr, "Too many functions: %i (max %i) \n", ( *pb ).nPhi, MAXPHI );
+		printf( "MADS Quits: Too many functions: %i (max %i) \n", ( *pb ).nPhi, MAXPHI );
 		exit( 1 );
 	}
 	( *pb ).code[0] = -1;
@@ -526,7 +526,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	op->cd->standalone = 0;
 	if(( *pb ).repeat > MAXRUNS )
 	{
-		fprintf( stderr, "Too many runs (max %i) \n", MAXRUNS );
+		printf( "MADS Quits: Too many retries (max %i < %i) \n", MAXRUNS, ( *pb ).repeat );
 		exit( 1 );
 	}
 	debug_level = op->cd->pdebug;

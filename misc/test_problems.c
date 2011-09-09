@@ -45,8 +45,7 @@ int set_test_problems( struct opt_data *op )
 	od = op->od;
 	// cd->sintrans = 0; // No sin transformations
 	cd->compute_phi = 1;
-//	cd->check_success = 1;
-	if( cd->test_func >= 40 ) pd->nParam = pd->nOptParam = 2;
+	if( cd->test_func >= 40 ) pd->nParam = pd->nOptParam = cd->test_func_npar;
 	else pd->nParam = pd->nOptParam = cd->test_func_dim;
 	pd->nFlgParam = 0;
 	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
@@ -60,6 +59,7 @@ int set_test_problems( struct opt_data *op )
 	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
 	pd->var_current = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
+	pd->var_truth = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
 	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
 	od->nObs = 0; // assume no observations ...
 	for( d = 0; d < pd->nParam; d++ )
@@ -98,15 +98,15 @@ int set_test_problems( struct opt_data *op )
 			printf( "Griewank" );
 			od->nObs = cd->test_func_dim;
 			if( cd->problem_type == ABAGUS )
-				for( d = 0; d < cd->test_func_dim; d++ )
-					pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
+				for( d = 0; d < pd->nOptParam; d++ )
+					pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
 			break;
 		case 3: // Rosenbrock
 			printf( "Rosenbrock" );
 			od->nObs = cd->test_func_dim;
 			if( cd->problem_type == ABAGUS )
-				for( d = 0; d < cd->test_func_dim; d++ )
-					pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
+				for( d = 0; d < pd->nOptParam; d++ )
+					pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
 			break;
 		case 4: // Step
 			printf( "Step" );
@@ -135,7 +135,7 @@ int set_test_problems( struct opt_data *op )
 			printf( "2D Tripod function" );
 			if( cd->test_func_dim != 2 ) cd->test_func_dim = 2;
 			break;
-		case 17: // KrishnaKumar
+		case 17: // Krishna Kumar
 			printf( "Krishna Kumar" );
 			od->nObs = ( cd->test_func_dim - 1 ) * 2;
 			break;
@@ -147,14 +147,14 @@ int set_test_problems( struct opt_data *op )
 			printf( "Rosenbrock (with observations = (d-1)*2)" );
 			od->nObs = ( cd->test_func_dim - 1 ) * 2;
 			if( cd->problem_type == ABAGUS )
-				for( d = 0; d < cd->test_func_dim; d++ )
-					pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
+				for( d = 0; d < pd->nOptParam; d++ )
+					pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
 			break;
 		case 40: // sin/cos
-			a = 100;
-			b = 102;
+			pd->var_truth[0] = a = 100;
+			pd->var_truth[1] = b = 102;
 			printf( "Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
-			od->nObs = cd->test_func_dim;
+			od->nObs = cd->test_func_nobs;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
@@ -166,10 +166,10 @@ int set_test_problems( struct opt_data *op )
 			oddefined = 1;
 			break;
 		case 41: // sin/cos
-			a = 93;
-			b = 95;
+			pd->var_truth[0] = a = 93;
+			pd->var_truth[1] = b = 95;
 			printf( "Simplified Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
-			od->nObs = cd->test_func_dim;
+			od->nObs = cd->test_func_nobs;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
@@ -257,10 +257,10 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			t0 = x[0];
 			for( d = 1; d < D; d++ )
 			{
-				t1 = x[d];
-				tt = ( double ) 1 - t0;
+				tt = ( double ) 1.0 - t0;
 				f += o[d] = tt * tt;
 				if( d == 1 ) { o[0] = o[1]; o[1] = 0; } // first element
+				t1 = x[d];
 				tt = t1 - t0 * t0;
 				f += x1 = tt * tt * 100;
 				o[d] += x1;
@@ -274,7 +274,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			for( d = 0; d < D; d++ )
 				f += o[d] = x[d];
 			break;
-		case 6: //Foxholes 2D
+		case 6: // Foxholes 2D
 			f = 0;
 			for( j = 0; j < 25; j++ )
 			{
@@ -311,7 +311,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				f += o[d] = fabs( xd * sin( xd ) + 0.1 * xd );
 			}
 			break;
-		case 9: // Rastrigin. Minimum value 0. Solution (0,0 ...0)
+		case 9: // Rastrigin Minimum value 0. Solution (0,0 ...0)
 			k = 10;
 			f = 0;
 			for( d = 0; d < D; d++ )
@@ -344,7 +344,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 					f = 2 + fabs( x1 - 50 ) + fabs( x2 - 50 );
 			}
 			break;
-		case 17: // KrishnaKumar
+		case 17: // Krishna Kumar
 			f = 0;
 			for( d = 0; d < D - 1; d++ )
 			{
@@ -360,13 +360,15 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 		case 33: // Rosenbrock (with more observations)
 			f = 0;
 			t0 = x[0];
-			for( i = 0, d = 1; d < D; d++ )
+			for( i = 1, d = 1; d < D; d++ )
 			{
-				t1 = x[d];
 				tt = ( double ) 1.0 - t0;
 				f += o[i++] = tt * tt;
+				if( d == 1 ) { o[0] = o[1]; i = 1; } // first element
+				t1 = x[d];
 				tt = t1 - t0 * t0;
-				f += o[i++] = tt * tt * 100;
+				f += x1 = tt * tt * 100;
+				o[i++] = x1;
 				t0 = t1;
 			}
 			break;
@@ -385,7 +387,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 	}
 	if( function < 40 )
 	{
-		for( d = 0; d < D; d++ )
+		for( d = 0; d < nObs; d++ )
 			if( o[d] < 0.0 ) o[d] = -sqrt( fabs( o[d] ) );
 			else o[d] = sqrt( o[d] );
 	}

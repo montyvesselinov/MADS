@@ -456,14 +456,13 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	if( p->cd->solution_type == TEST )
 	{
-		status_all = 0;
 		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var, p->od->nObs, f );
 		if( p->cd->test_func >= 40 )
 		{
 			phi = 0;
+			status_all = 1;
 			for( k = 0; k < p->od->nObs; k++ )
 			{
-				status_all = 1;
 				c = f[k];
 				f[k] = err = c - p->od->obs_target[k];
 				if( p->cd->compute_phi || p->cd->check_success )
@@ -477,6 +476,9 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		}
 		else
 		{
+			status_all = 1;
+			for( k = 0; k < p->pd->nOptParam; k++ )
+				if( fabs( p->cd->var[k] - p->pd->var_truth[k] ) > 1e-1 ) status_all = 0;
 			if( p->cd->fdebug >= 4 ) printf( "\nTest OF %g\n", phi );
 			if( p->cd->fdebug >= 5 )
 			{
@@ -486,7 +488,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 					printf( "%s %g\n", p->od->obs_id[k], f[k] );
 					c += f[k] * f[k];
 				}
-				printf( "Test OF %g\n", c );
+				printf( "Test OF ? %g\n", c );
 			}
 		}
 	}
@@ -564,8 +566,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		}
 	}
 	if( p->cd->fdebug >= 2 ) { printf( "Objective function %g\n", phi ); p->phi = phi; p->success = status_all; }
-	if( p->cd->compute_phi ) { p->phi = phi; p->success = status_all; if( p->cd->fdebug >= 1 && status_all ) printf( "Success: Predictions are within the predefined calibration ranges (within func_intrn)!\n" ); }
-	if( p->cd->check_success ) { p->success = status_all; if( p->cd->fdebug >= 1 && status_all ) printf( "Success: Predictions are within the predefined calibration ranges (within func_intrn)!\n" ); }
+	if( p->cd->compute_phi ) { p->phi = phi; p->success = status_all; if( p->cd->fdebug && status_all ) printf( "Success: Predictions are within the predefined calibration ranges (within func_intrn)!\n" ); }
+	if( p->cd->check_success ) { p->success = status_all; if( p->cd->fdebug && status_all ) printf( "Success: Predictions are within the predefined calibration ranges (within func_intrn)!\n" ); }
 	return GSL_SUCCESS;
 }
 
@@ -609,7 +611,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
-			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->dx; }
+			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
 			func_extrn_write( ++ieval, x, data );
@@ -641,7 +643,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
-			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->dx; }
+			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
 			func( x, data, f_xpdx );
