@@ -1327,7 +1327,15 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 	nLocalSearchIter = 0; // Prepare local search (for multiobjective)
 	if( gop->cd->check_success ) gop->success = 0;
 	swarm_init( pb, compare_type, S ); //Initialisation of the swarm
-	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+//	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+	if( gop->cd->odebug ) 
+	{ 
+		fprintf( gop->f_ofe, "%d %g", eval, ( *S ).best.f.f[0] ); 
+			for( n = 0; n  < ( *S ).best.size; n++ )
+				fprintf( gop->f_ofe, " %g", ( *S ).best.x[n] ); 
+		fprintf( gop->f_ofe, "\n" ); 
+		fflush( gop->f_ofe ); 
+	}
 	if( debug_level ) swarm_print( S );
 	if( gop->cd->check_success && gop->success )
 	{
@@ -1352,7 +1360,15 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 				printf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
 			printf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 		}
-		if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+//		if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+		if( gop->cd->odebug ) 
+		{ 
+			fprintf( gop->f_ofe, "%d %g", eval, ( *S ).best.f.f[0] ); 
+				for( n = 0; n  < ( *S ).best.size; n++ )
+					fprintf( gop->f_ofe, " %g", ( *S ).best.x[n] ); 
+			fprintf( gop->f_ofe, "\n" ); 
+			fflush( gop->f_ofe ); 
+		}
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
 		if( debug_level > 2 ) printf( "Swarm adapt ...\n" );
@@ -1364,7 +1380,15 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 				printf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
 			printf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 		}
-		if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+//		if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+		if( gop->cd->odebug ) 
+		{ 
+			fprintf( gop->f_ofe, "%d %g", eval, ( *S ).best.f.f[0] ); 
+				for( n = 0; n  < ( *S ).best.size; n++ )
+					fprintf( gop->f_ofe, " %g", ( *S ).best.x[n] ); 
+			fprintf( gop->f_ofe, "\n" ); 
+			fflush( gop->f_ofe ); 
+		}
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
 		if( gop->od->nObs > 0 && lmo_flag )
@@ -1379,7 +1403,15 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 				printf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 			}
 		}
-		if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+//		if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+		if( gop->cd->odebug ) 
+		{ 
+			fprintf( gop->f_ofe, "%d %g", eval, ( *S ).best.f.f[0] ); 
+				for( n = 0; n  < ( *S ).best.size; n++ )
+					fprintf( gop->f_ofe, " %g", ( *S ).best.x[n] ); 
+			fprintf( gop->f_ofe, "\n" ); 
+			fflush( gop->f_ofe ); 
+		}
 		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
@@ -1393,8 +1425,16 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 			printf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 		}
 		//if( restart ) break; // For future automatic restart
-		if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
-		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
+//		if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+		if( gop->cd->odebug ) 
+			{ 
+				fprintf( gop->f_ofe, "%d %g", eval, ( *S ).best.f.f[0] ); 
+					for( n = 0; n  < ( *S ).best.size; n++ )
+						fprintf( gop->f_ofe, " %g", ( *S ).best.x[n] ); 
+				fprintf( gop->f_ofe, "\n" ); 
+				fflush( gop->f_ofe ); 
+			}
+			if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
 		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
 		iter++;
@@ -1434,6 +1474,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 	int i, tr;
 	int nTribe;
 	int tribe_worst;
+	int n;
 	nTribe = ( *S ).size;
 	for( tr = 0; tr < ( *S ).size; tr++ )
 	{
@@ -1630,7 +1671,14 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 		}
 	}
 	if(( add_part_count > 0 || add_tribe_count > 0 ) && gop->cd->odebug )
-		{ fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
+	{
+		fprintf( gop->f_ofe, "%d %g", eval, ( *S ).best.f.f[0] ); 
+			for( n = 0; n  < ( *S ).best.size; n++ )
+				fprintf( gop->f_ofe, " %g", ( *S ).best.x[n] ); 
+		fprintf( gop->f_ofe, "\n" ); 
+		fflush( gop->f_ofe ); 
+	}
+//fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
 	if( debug_level )
 	{
 		if( add_part_count > 0 || add_tribe_count > 0 ) swarm_print( S );

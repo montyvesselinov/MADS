@@ -318,7 +318,17 @@ init:
 	best = 0;
 	for( s = 1; s < S; s++ )
 		if( P[s].f < P[best].f ) best = s;
-	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", gop->cd->neval, P[best].f ); fflush( gop->f_ofe ); }
+	if( gop->cd->odebug ) 
+	{ 
+		fprintf( gop->f_ofe, "%d %g", gop->cd->neval, P[best].f ); 
+		for( d = 0; d < D; d++ ) 
+			fprintf( gop->f_ofe, " %g", P[best].x[d] ); 
+		fprintf( gop->f_ofe, "\n" ); 
+		fflush( gop->f_ofe ); 
+	}
+
+
+
 	error =  P[best].f ; // Current min error
 	if( n_exec == 1 ) min = error;
 	error_prev = error; // Previous min error
@@ -383,8 +393,15 @@ loop:
 	}
 	if( lmo_flag && ( loop_count > D * 10 || nb_eval * 2 > eval_max ) ) position_lm_std( op, &P[best] );
 	if( gop->cd->pdebug ) printf( "OF %g E %d\n", P[best].f, gop->cd->neval );
-	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", gop->cd->neval, P[best].f ); fflush( gop->f_ofe ); }
-	// Check if finished
+//	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", gop->cd->neval, P[best].f ); fflush( gop->f_ofe ); }
+	if( gop->cd->odebug ) 
+	{ 
+		fprintf( gop->f_ofe, "%d %g", gop->cd->neval, P[best].f ); 
+		for( d = 0; d < D; d++ ) 
+			fprintf( gop->f_ofe, " %g", P[best].x[d] ); 
+		fprintf( gop->f_ofe, "\n" ); 
+		fflush( gop->f_ofe ); 
+	}	// Check if finished
 	// If no improvement, information links will be reinitialized
 	error = P[best].f;
 	if( error >= error_prev ) init_links = 1;

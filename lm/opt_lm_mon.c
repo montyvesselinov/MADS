@@ -276,8 +276,22 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 			if( debug ) printf( "OF: last %g current best %g all-over best %g initial %g (evaluations %d)\n", *phi, phi_old, phi_best, phi_init, ieval );
 			if( func_data->cd->odebug )
 			{
-				if( func_data->cd->standalone ) fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->neval, phi_best ); // Print current best
-				else fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->neval, ( func_data->phi < phi_best ) ? func_data->phi : phi_best ); // Print overall best
+				if( func_data->cd->standalone ) 
+				{
+					fprintf( func_data->f_ofe, "%d %g", func_data->cd->neval, phi_best ); // Print current best
+					for( i = 0; i < func_data->pd->nOptParam; i++ ) 
+						fprintf( func_data->f_ofe, " %g", func_data->cd->var[func_data->pd->var_index[i]] ); 
+					fprintf( func_data->f_ofe, "\n" ); 
+				}
+				else 
+				{
+					fprintf( func_data->f_ofe, "%d %g", func_data->cd->neval, ( func_data->phi < phi_best ) ? func_data->phi : phi_best ); // Print overall best
+					for( i = 0; i < func_data->pd->nOptParam; i++ ) 
+						fprintf( func_data->f_ofe, " %g", func_data->cd->var[func_data->pd->var_index[i]] ); 
+					fprintf( func_data->f_ofe, "\n" ); 
+				}
+//				if( func_data->cd->standalone ) fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->neval, phi_best ); // Print current best
+//				else fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->neval, ( func_data->phi < phi_best ) ? func_data->phi : phi_best ); // Print overall best
 				fflush( func_data->f_ofe );
 			}
 			if( fabs( phi_ibest - *phi ) / phi_ibest < phi_range ) iter_best++;
