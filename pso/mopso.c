@@ -30,7 +30,6 @@
 #define almostInfinite 100000000
 #define archiveMax 100 // Maximum number of archived positions in the case of multiobjective optimization
 
-void problem_init( struct opt_data *op, struct problem *pr );
 // Structures
 struct fitness
 {
@@ -88,6 +87,7 @@ struct swarm
 	struct fitness fBestStag;
 };
 // Specific to multiobjective
+void problem_init( struct opt_data *op, struct problem *pr );
 struct archived { struct position x; double crowD; };
 struct distRank { double dist; int rank; };
 

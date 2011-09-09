@@ -49,7 +49,7 @@ void Transform( double *v, void *data, double *vt );
 void DeTransform( double *v, void *data, double *vt );
 int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
-double test_problems( int D, int function, double *x, int nObs, double *f );
+double test_problems( int D, int function, double *x, int nObs, double *o );
 double point_source( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
 double rectangle_source_vz( double x, double y, double z, double t, void *params );
@@ -187,9 +187,9 @@ int func_extrn( double *x, void *data, double *f )
 			if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
-		else if(( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
+		else if( ( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
 		{
-			if(( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { status_all = status = 0; }
+			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { status_all = status = 0; }
 			else status = 1;
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
@@ -317,7 +317,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 		}
 	}
 	if( bad_data ) return( 0 );
-	if(( p->cd->time_infile - Fdatetime_t( buf, 0 ) ) > 0 )
+	if( ( p->cd->time_infile - Fdatetime_t( buf, 0 ) ) > 0 )
 	{
 		if( p->cd->pardebug ) printf( "File %s is older than the MADS input file.\n", buf );
 		if( p->cd->restart == -1 ) return( 1 ); else return( 0 );
@@ -402,7 +402,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
-		else if(( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
+		else if( ( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
 		{
 			if( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) { status_all = status = 0; }
 			else status = 1;
@@ -458,16 +458,36 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	{
 		status_all = 0;
 		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var, p->od->nObs, f );
-		if( p->cd->fdebug >= 4 ) printf( "Test OF %g\n", phi );
-		if( p->cd->fdebug >= 3 )
+		if( p->cd->test_func >= 40 )
 		{
-			c = 0;
+			phi = 0;
 			for( k = 0; k < p->od->nObs; k++ )
 			{
-				printf( "%s %g\n", p->od->obs_id[k], f[k] );
-				c += f[k];
+				status_all = 1;
+				c = f[k];
+				f[k] = err = c - p->od->obs_target[k];
+				if( p->cd->compute_phi || p->cd->check_success )
+				{
+					if( c < p->od->obs_min[k] || c > p->od->obs_max[k] ) { status_all = status = 0; }
+					else status = 1;
+				}
+				phi += err * err;
 			}
-			printf( "Test OF %g\n", c );
+			p->phi = phi;
+		}
+		else
+		{
+			if( p->cd->fdebug >= 4 ) printf( "\nTest OF %g\n", phi );
+			if( p->cd->fdebug >= 5 )
+			{
+				c = 0;
+				for( k = 0; k < p->od->nObs; k++ )
+				{
+					printf( "%s %g\n", p->od->obs_id[k], f[k] );
+					c += f[k] * f[k];
+				}
+				printf( "Test OF %g\n", c );
+			}
 		}
 	}
 	else
@@ -535,7 +555,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 				if( !p->cd->compute_phi ) phi += f[k] * f[k];
 			}
-			else if(( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
+			else if( ( p->cd->compute_phi || p->cd->check_success ) && ( p->od->obs_weight[i] > 0.0 ) )
 			{
 				if( c < p->wd->obs_min[i][j] || c > p->wd->obs_max[i][j] ) { status_all = status = 0; }
 				else status = 1;
@@ -559,12 +579,12 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	struct opt_data *p = ( struct opt_data * )data;
 	double *jacobian;
 	int i, j, k;
-	if(( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nObs ) ) == NULL )
+	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nObs ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	func_dx( x, f, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
 		for( i = 0; i < p->od->nObs; i++, k++ )
-			jac[i *p->pd->nOptParam + j] = jacobian[k];
+			jac[i * p->pd->nOptParam + j] = jacobian[k];
 	free( jacobian );
 }
 
@@ -575,14 +595,14 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	double x_old, dx;
 	int i, j, k, compute_center = 0, bad_data = 0, ieval;
 	ieval = p->cd->neval;
-	if(( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
+	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
 	if( p->cd->num_proc > 1 && p->cd->solution_type == EXTERNAL ) // Parallel execution of external runs
 	{
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
 		{
 			compute_center = 1;
-			if(( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
+			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
 				{ printf( "Not enough memory!\n" ); return( 1 ); }
 			func_extrn_write( ++ieval, x, data );
 		}
@@ -614,7 +634,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
 		{
 			compute_center = 1;
-			if(( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
+			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
 				{ printf( "Not enough memory!\n" ); return( 1 ); }
 			func( x, data, f_x );
 		}
@@ -680,7 +700,7 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 			c1 = box_source( x, y, z1, t, ( void * ) p );
 			c2 = box_source( x, y, z2, t, ( void * ) p );
 	}
-	return(( c1 + c2 ) / 2 );
+	return( ( c1 + c2 ) / 2 );
 }
 
 void Transform( double *v, void *data, double *vt )
@@ -696,7 +716,7 @@ void Transform( double *v, void *data, double *vt )
 			k = p->pd->var_index[i];
 //			printf( "trans %s %g %g %g -> ", p->pd->var_id[p->pd->var_index[i]], v[i], p->pd->var_range[k], p->pd->var_min[k] );
 			vt[i] = ( v[i] - p->pd->var_min[k] ) / p->pd->var_range[k];
-			vt[i] = asin(( double ) vt[i] * 2.0 - 1.0 );
+			vt[i] = asin( ( double ) vt[i] * 2.0 - 1.0 );
 //			printf( "%g\n", vt[i] );
 		}
 }
@@ -715,7 +735,7 @@ void DeTransform( double *v, void *data, double *vt )
 		for( i = 0; i < p->pd->nOptParam; i++ )
 		{
 			k = p->pd->var_index[i];
-			vt[i] = (( double ) sin( v[i] ) + 1.0 ) / 2.0;
+			vt[i] = ( ( double ) sin( v[i] ) + 1.0 ) / 2.0;
 			vt[i] = p->pd->var_min[k] + vt[i] * p->pd->var_range[k];
 //			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
 		}

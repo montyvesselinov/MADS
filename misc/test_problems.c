@@ -35,39 +35,54 @@ char **char_matrix( int maxCols, int maxRows );
 
 int set_test_problems( struct opt_data *op )
 {
-	int d;
+	int d, oddefined = 0;
+	double a, b, dx;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct obs_data *od;
 	cd = op->cd;
 	pd = op->pd;
 	od = op->od;
-	cd->sintrans = 0; // No sin transformations
-	pd->nParam = pd->nOptParam = cd->test_func_dim;
+	// cd->sintrans = 0; // No sin transformations
+	cd->compute_phi = 1;
+//	cd->check_success = 1;
+	if( cd->test_func >= 40 ) pd->nParam = pd->nOptParam = 2;
+	else pd->nParam = pd->nOptParam = cd->test_func_dim;
 	pd->nFlgParam = 0;
-	pd->var_id = char_matrix(( *pd ).nParam, 50 );
-	pd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	cd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_opt = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
-	pd->var_log = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
-	pd->var_dx = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_min = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_max = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_range = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_index = ( int * ) malloc(( *pd ).nOptParam * sizeof( int ) );
-	pd->var_current = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
-	pd->var_best = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
+	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
+	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_opt = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
+	pd->var_log = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
+	pd->var_dx = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
+	pd->var_current = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
+	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
 	od->nObs = 0; // assume no observations ...
-	for( d = 0; d < cd->test_func_dim; d++ )
+	for( d = 0; d < pd->nParam; d++ )
 	{
 		sprintf( pd->var_id[d], "Parameter #%d", d + 1 );
 		pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0;
-		pd->var_max[d] = 100; pd->var_min[d] = -100; pd->var_log[d] = 0; pd->var_opt[d] = 1;
+		pd->var_min[d] = -100; pd->var_max[d] = 100; pd->var_log[d] = 0; pd->var_opt[d] = 1;
 		if( cd->problem_type == ABAGUS ) pd->var_dx[d] = .1;
 		else pd->var_dx[d] = 0; // if not zero will force PSO/TRIBES/SQUADS to use discretized parameter space; if SQUADS/LM is called, dx = sindx is assumed for LM
 		pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 		pd->var_index[d] = d;
 	}
+#if 1
+	if( cd->test_func == 40 )
+	{
+		pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 100.5;
+		pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 102.5;
+		pd->var_min[0] = 98; pd->var_max[0] = 102;
+		pd->var_min[1] = 100; pd->var_max[1] = 104;
+		pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
+		pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
+	}
+#endif
 	od->nObs = 0; // modified for test problems with observations below
 	switch( cd->test_func )
 	{
@@ -135,23 +150,54 @@ int set_test_problems( struct opt_data *op )
 				for( d = 0; d < cd->test_func_dim; d++ )
 					pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
 			break;
+		case 40: // sin/cos
+			a = 100;
+			b = 102;
+			printf( "Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
+			od->nObs = cd->test_func_dim;
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			for( d = 0; d < od->nObs; d++ )
+			{
+				od->obs_target[d] = a * cos( b * d * dx ) + b * sin( a * d * dx );
+				// printf( "o %g %g\n", d * dx, od->obs_target[d] );
+			}
+			oddefined = 1;
+			break;
+		case 41: // sin/cos
+			a = 93;
+			b = 95;
+			printf( "Simplified Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
+			od->nObs = cd->test_func_dim;
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			for( d = 0; d < od->nObs; d++ )
+			{
+				od->obs_target[d] = a * cos( d * dx ) + b * sin( d * dx );
+				// printf( "o %g %g\n", d * dx, od->obs_target[d] );
+			}
+			oddefined = 1;
+			break;
 	}
 	if( od->nObs > 1 )
 	{
-		od->obs_id = char_matrix(( *od ).nObs, 50 );
-		od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-		od->obs_weight = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-		od->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-		od->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-		od->obs_current = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-		od->obs_best = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-		od->res = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-		od->obs_log = ( int * ) malloc(( *od ).nObs * sizeof( int ) );
+		od->obs_id = char_matrix( ( *od ).nObs, 50 );
+		if( !oddefined ) od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 	}
 	for( d = 0; d < od->nObs; d++ )
 	{
 		sprintf( od->obs_id[d], "Observation #%d", d + 1 );
-		od->obs_target[d] = od->obs_max[d] = od->obs_min[d] = 0;
+		if( oddefined ) { od->obs_max[d] = od->obs_target[d] + 0.1; od->obs_min[d] = od->obs_target[d] - 0.1; }
+		else od->obs_target[d] = od->obs_max[d] = od->obs_min[d] = 0;
 		od->obs_weight[d] = 1;
 		od->obs_log[d] = 0;
 	}
@@ -160,9 +206,7 @@ int set_test_problems( struct opt_data *op )
 
 double test_problems( int D, int function, double *x, int nObs, double *o )
 {
-	// Evaluate the fitness value for the particle of rank s
-	int d;
-	int i, j, k;
+	int d, i, j, k;
 	double f, p, xd, x1, x2;
 	double sum1, sum2;
 	double t0, tt, t1, E, pi;
@@ -202,7 +246,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			{
 				xd = x[d];
 				f += o[d] = xd * xd / 4000;
-				p *= cos( xd / sqrt(( double ) d + 1 ) );
+				p *= cos( xd / sqrt( ( double ) d + 1 ) );
 			}
 			for( d = 0; d < D; d++ )
 				o[d] += ( -p + 1 ) / D;
@@ -311,7 +355,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			break;
 		case 18: // Eason 2D (usually on [-100,100] Minimum -1 on (pi,pi)
 			x1 = x[0]; x2 = x[1];
-			f = -cos( x1 ) * cos( x2 ) / exp(( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
+			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
 		case 33: // Rosenbrock (with more observations)
 			f = 0;
@@ -326,9 +370,24 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				t0 = t1;
 			}
 			break;
+		case 40: // Sin/Cos
+			f = 0;
+			dx = ( double ) M_PI * 2 / ( nObs - 1 );
+			for( d = 0; d < nObs; d++ )
+				o[d] = x[0] * cos( x[1] * d * dx ) + x[1] * sin( x[0] * d * dx );
+			break;
+		case 41: // Sin/Cos
+			f = 0;
+			dx = ( double ) M_PI * 2  / ( nObs - 1 );
+			for( d = 0; d < nObs; d++ )
+				o[d] = x[0] * cos( d * dx ) + x[1] * sin( d * dx );
+			break;
 	}
-	for( d = 0; d < D; d++ )
-		if( o[d] < 0.0 ) o[d] = -sqrt( fabs( o[d] ) );
-		else o[d] = sqrt( o[d] );
+	if( function < 40 )
+	{
+		for( d = 0; d < D; d++ )
+			if( o[d] < 0.0 ) o[d] = -sqrt( fabs( o[d] ) );
+			else o[d] = sqrt( o[d] );
+	}
 	return f;
 }

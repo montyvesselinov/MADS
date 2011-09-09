@@ -109,7 +109,7 @@ extern int dlevmar_dif(
 /* box-constrained minimization */
 extern int dlevmar_bc_der(
        void (*func)(double *p, double *hx, int m, int n, void *adata),
-       void (*jacf)(double *p, double *j, int m, int n, void *adata),  
+       void (*jacf)(double *p, double *j, int m, int n, void *adata),
        double *p, double *x, int m, int n, double *lb, double *ub,
        int itmax, double *opts, double *info, double *work, double *covar, void *adata);
 
@@ -214,7 +214,7 @@ extern int slevmar_dif(
 /* box-constrained minimization */
 extern int slevmar_bc_der(
        void (*func)(float *p, float *hx, int m, int n, void *adata),
-       void (*jacf)(float *p, float *j, int m, int n, void *adata),  
+       void (*jacf)(float *p, float *j, int m, int n, void *adata),
        float *p, float *x, int m, int n, float *lb, float *ub,
        int itmax, float *opts, float *info, float *work, float *covar, void *adata);
 

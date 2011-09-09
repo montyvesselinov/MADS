@@ -231,7 +231,7 @@ int LEVMAR_DER(
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if(( updp && nu > 16 ) || updjac == K || mu_big || phi_decline ) /* compute difference approximation to J */
+		if( ( updp && nu > 16 ) || updjac == K || mu_big || phi_decline ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug && k != 0 )
 			{
@@ -319,14 +319,14 @@ int LEVMAR_DER(
 						im = i * m;
 						alpha = jaclm[i]; //jac[l*m+i];
 						for( j = i + 1; j-- > 0; ) /* j<=i computes lower triangular part only */
-							jacTjac[im+j] += jaclm[j] * alpha; //jac[l*m+j]
+							jacTjac[im + j] += jaclm[j] * alpha; //jac[l*m+j]
 						/* J^T e */
 						jacTe[i] += alpha * e[l];
 					}
 				}
 				for( i = m; i-- > 0; ) /* copy to upper part */
 					for( j = i + 1; j < m; ++j )
-						jacTjac[i *m+j] = jacTjac[j*m+i];
+						jacTjac[i * m + j] = jacTjac[j * m + i];
 			}
 			else  // this is a large problem
 			{
@@ -347,7 +347,7 @@ int LEVMAR_DER(
 			for( i = 0, p_L2 = jacTe_inf = 0.0; i < m; ++i )
 			{
 				if( jacTe_inf < ( tmp = FABS( jacTe[i] ) ) ) jacTe_inf = tmp;
-				diag_jacTjac[i] = jacTjac[i*m+i]; /* save diagonal entries so that augmentation can be later canceled */
+				diag_jacTjac[i] = jacTjac[i * m + i]; /* save diagonal entries so that augmentation can be later canceled */
 				p_L2 += p[i] * p[i];
 			}
 			//p_L2=sqrt(p_L2);
@@ -360,7 +360,7 @@ int LEVMAR_DER(
 			printf( "-- errors %g %g\n", jacTe_inf, p_eL2 );
 		}
 		/* check for convergence */
-		if(( jacTe_inf <= eps1 ) )
+		if( ( jacTe_inf <= eps1 ) )
 		{
 			Dp_L2 = 0.0; /* no increment for p in this case */
 			if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
@@ -382,7 +382,7 @@ int LEVMAR_DER(
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
 		for( i = 0; i < m; ++i )
-			jacTjac[i *m + i] += mu;   // Add lambda to the matrix diaganol
+			jacTjac[i * m + i] += mu;  // Add lambda to the matrix diaganol
 		/* solve augmented equations */
 		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
 		if( issolved )
@@ -425,10 +425,10 @@ int LEVMAR_DER(
 #if 1
 				pDp_eL2 += tmp * tmp;
 #else
-			if( op->cd->solution_type == TEST ) // this is a test; not needed in general
-				pDp_eL2 += wrk[i];
-			else
-				pDp_eL2 += tmp * tmp;
+				if( op->cd->solution_type == TEST ) // this is a test; not needed in general
+					pDp_eL2 += wrk[i];
+				else
+					pDp_eL2 += tmp * tmp;
 #endif
 			}
 #endif
@@ -457,10 +457,10 @@ int LEVMAR_DER(
 				for( i = 0; i < n; ++i )
 				{
 					for( l = 0, tmp = 0.0; l < m; ++l )
-						tmp += jac[i*m+l] * Dp[l]; /* (J * Dp)[i] */
+						tmp += jac[i * m + l] * Dp[l]; /* (J * Dp)[i] */
 					tmp = ( wrk[i] - hx[i] - tmp ) / Dp_L2; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
 					for( j = 0; j < m; ++j )
-						jac[i *m+j] += tmp * Dp[j];
+						jac[i * m + j] += tmp * Dp[j];
 				}
 				++updjac;
 				newjac = 1;
@@ -471,7 +471,7 @@ int LEVMAR_DER(
 			{
 				tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
 				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
-				tmp = (( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
+				tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				mu = mu * tmp; // change lambda
 				if( mu > 1e3 )
 				{
@@ -537,11 +537,11 @@ int LEVMAR_DER(
 		}
 		nu = nu2;
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-			jacTjac[i *m+i] = diag_jacTjac[i];
+			jacTjac[i * m + i] = diag_jacTjac[i];
 	}
 	if( k >= itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-		jacTjac[i *m+i] = diag_jacTjac[i];
+		jacTjac[i * m + i] = diag_jacTjac[i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
@@ -549,7 +549,7 @@ int LEVMAR_DER(
 		info[2] = jacTe_inf;
 		info[3] = Dp_L2;
 		for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
-			if( tmp < jacTjac[i*m+i] ) tmp = jacTjac[i*m+i];
+			if( tmp < jacTjac[i * m + i] ) tmp = jacTjac[i * m + i];
 		info[4] = mu / tmp;
 		info[5] = ( LM_REAL )k;
 		info[6] = ( LM_REAL )stop;
@@ -776,7 +776,7 @@ int LEVMAR_DIF(
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if(( updp && nu > 16 ) || updjac == K ) /* compute difference approximation to J */
+		if( ( updp && nu > 16 ) || updjac == K ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug )
 			{
@@ -859,14 +859,14 @@ int LEVMAR_DIF(
 						im = i * m;
 						alpha = jaclm[i]; //jac[l*m+i];
 						for( j = i + 1; j-- > 0; ) /* j<=i computes lower triangular part only */
-							jacTjac[im+j] += jaclm[j] * alpha; //jac[l*m+j]
+							jacTjac[im + j] += jaclm[j] * alpha; //jac[l*m+j]
 						/* J^T e */
 						jacTe[i] += alpha * e[l];
 					}
 				}
 				for( i = m; i-- > 0; ) /* copy to upper part */
 					for( j = i + 1; j < m; ++j )
-						jacTjac[i *m+j] = jacTjac[j*m+i];
+						jacTjac[i * m + j] = jacTjac[j * m + i];
 			}
 			else  // this is a large problem
 			{
@@ -887,7 +887,7 @@ int LEVMAR_DIF(
 			for( i = 0, p_L2 = jacTe_inf = 0.0; i < m; ++i )
 			{
 				if( jacTe_inf < ( tmp = FABS( jacTe[i] ) ) ) jacTe_inf = tmp;
-				diag_jacTjac[i] = jacTjac[i*m+i]; /* save diagonal entries so that augmentation can be later canceled */
+				diag_jacTjac[i] = jacTjac[i * m + i]; /* save diagonal entries so that augmentation can be later canceled */
 				p_L2 += p[i] * p[i];
 			}
 			//p_L2=sqrt(p_L2);
@@ -900,7 +900,7 @@ int LEVMAR_DIF(
 			printf( "-- errors %g %g\n", jacTe_inf, p_eL2 );
 		}
 		/* check for convergence */
-		if(( jacTe_inf <= eps1 ) )
+		if( ( jacTe_inf <= eps1 ) )
 		{
 			Dp_L2 = 0.0; /* no increment for p in this case */
 			if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
@@ -918,7 +918,7 @@ int LEVMAR_DIF(
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
 		for( i = 0; i < m; ++i )
-			jacTjac[i *m + i] += mu;  // Add lambda to the matrix diaganol
+			jacTjac[i * m + i] += mu; // Add lambda to the matrix diaganol
 		/* solve augmented equations */
 		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
 		if( issolved )
@@ -979,10 +979,10 @@ int LEVMAR_DIF(
 				for( i = 0; i < n; ++i )
 				{
 					for( l = 0, tmp = 0.0; l < m; ++l )
-						tmp += jac[i*m+l] * Dp[l]; /* (J * Dp)[i] */
+						tmp += jac[i * m + l] * Dp[l]; /* (J * Dp)[i] */
 					tmp = ( wrk[i] - hx[i] - tmp ) / Dp_L2; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
 					for( j = 0; j < m; ++j )
-						jac[i *m+j] += tmp * Dp[j];
+						jac[i * m + j] += tmp * Dp[j];
 				}
 				++updjac;
 				newjac = 1;
@@ -993,7 +993,7 @@ int LEVMAR_DIF(
 			{
 				tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
 				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
-				tmp = (( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
+				tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				mu = mu * tmp; // change lambda
 				if( op->cd->ldebug > 1 ) printf( "change factor (tmp) %g\n", tmp );
 				else if( op->cd->ldebug ) printf( "\n" );
@@ -1025,11 +1025,11 @@ int LEVMAR_DIF(
 		}
 		nu = nu2;
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-			jacTjac[i *m+i] = diag_jacTjac[i];
+			jacTjac[i * m + i] = diag_jacTjac[i];
 	}
 	if( k >= itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-		jacTjac[i *m+i] = diag_jacTjac[i];
+		jacTjac[i * m + i] = diag_jacTjac[i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
@@ -1037,7 +1037,7 @@ int LEVMAR_DIF(
 		info[2] = jacTe_inf;
 		info[3] = Dp_L2;
 		for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
-			if( tmp < jacTjac[i*m+i] ) tmp = jacTjac[i*m+i];
+			if( tmp < jacTjac[i * m + i] ) tmp = jacTjac[i * m + i];
 		info[4] = mu / tmp;
 		info[5] = ( LM_REAL )k;
 		info[6] = ( LM_REAL )stop;

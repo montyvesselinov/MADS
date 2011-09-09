@@ -275,7 +275,7 @@ int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 void compute_btc( char *filename, struct opt_data *op );
-// pesting/pesting.c
+// mads_io_external.c
 int load_pst( char *filename, struct opt_data *op );
 int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
 int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
