@@ -37,8 +37,8 @@
 #define FALSE 0
 #define MAXPHI 4+1 // Maximum number of objective functions Note: number of "real" objective functions +1
 #define MAXRUNS 500 // Maximum number of runs
-#define MAXPART 20
-#define MAXTRIBE 40 //Maximum number of tribes
+#define MAXPART 100
+#define MAXTRIBE 60 //Maximum number of tribes
 #define MAXVALUES 11 // Maximum number of acceptable values on a dimension
 #define MAXARCHIVE 100 // Maximum number of archived positions in the case of multiobjective optimization
 
@@ -140,6 +140,8 @@ int overSizeTribe; // Number of times a tribe tends to generate too many particl
 int restart;
 int nRestarts;
 int debug_level;
+int lm_wait = 0;
+double phi_lm_wait = HUGE_VAL;
 double phi_weights[MAXPHI+1]; // Dynamic penalties
 
 struct opt_data *gop;
@@ -1668,7 +1670,7 @@ void swarm_init( struct problem *pb, int compare_type, struct swarm *S )
 {
 	int nPart, nTribe, i;
 	if( gop->cd->init_particles > 0 ) nTribe = gop->cd->init_particles; // Imported number of tribe
-	else  nTribe = 10 + (int) 2 * sqrt( (double) ( *pb ).D );  // Initial number of tribes
+	else { nTribe = 10 + (int) 2 * sqrt( (double) ( *pb ).D ); if( nTribe < ( *pb ).D ) nTribe = ( *pb ).D; } // Initial number of tribes
 	if( nTribe > MAXTRIBE ) nTribe = MAXTRIBE;
 	( *S ).size = nTribe; // Number of tribes
 	nPart = 1; // Initial number of particles in each tribe
@@ -1694,14 +1696,29 @@ void swarm_init( struct problem *pb, int compare_type, struct swarm *S )
 void swarm_lm( struct problem *pb, struct swarm( *S ) )
 {
 	struct particle best = {0};
-	double z;
+	double phi_current_best;
 	int pa, nTotPart = 0;
-	int shaman;
+	int shaman, count_bad_tribes = 0;
 	int tr, tr_best;
+	if( lm_wait == 1 )
+	{
+		phi_current_best = ( *S ).best.f.f[0];
+		if( phi_lm_wait > phi_current_best )
+		{
+			if( debug_level ) printf( "Restart LM search since OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
+			lm_wait = 0;
+		}
+		else
+		{
+			if( debug_level ) printf( "Skip LM search till OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
+			return;
+		}
+	}
 	set_particle( pb, &best );
 	for( tr = 0; tr < ( *S ).size; tr++ )
 		nTotPart += ( *S ).trib[tr].size;
-	if((nTotPart > ( double ) ( *pb ).lmfactor * ( *pb ).D || ( *pb ).maxEval < ( double ) 10 * eval ) )
+//	if((nTotPart > ( double ) ( *pb ).lmfactor * ( *pb ).D || ( double ) ( *pb ).lmfactor * ( *pb ).maxEval < ( double ) 10 * eval ) )
+	if( nTotPart > ( *pb ).D )
 	{
 		if( debug_level )
 		{
@@ -1711,11 +1728,12 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 		}
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimizaiton cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 		lmo_count++;
-		z = ( *S ).best.f.f[0];
+		phi_current_best = ( *S ).best.f.f[0];
 		tr_best = ( *S ).tr_best;
 		position_lm( gop, pb, &( *S ).best );
+		if(( *S ).best.f.f[0] * 1.5 > phi_current_best ) count_bad_tribes++;
 		gop->phi = ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0] = ( *S ).best.f.f[0];
-		if( debug_level ) printf( "OF %g -> %g\n", z, ( *S ).best.f.f[0] );
+		if( debug_level ) printf( "OF %g -> %g\n", phi_current_best, ( *S ).best.f.f[0] );
 		if( debug_level > 1 ) { printf( "new " ); position_print( &( *S ).best ); }
 		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); return; }
 		if( gop->cd->check_success && gop->success ) { copy_position( &( *S ).best, &( *pb ).pos_success ); if( debug_level ) printf( "LM Success: Predictions are within the predefined bounds!\n" ); return; }
@@ -1737,9 +1755,9 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			}
 			if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimizaiton cannot be performed; the maximum number of evaluations is achieved!\n" ); break; }
 			lmo_count++;
-			z = ( *S ).trib[tr].part[shaman].xBest.f.f[0];
+			phi_current_best = ( *S ).trib[tr].part[shaman].xBest.f.f[0];
 			position_lm( gop, pb, &( *S ).trib[tr].part[shaman].xBest );
-			if( debug_level ) printf( " OF %g -> %g ", z, ( *S ).trib[tr].part[shaman].xBest.f.f[0] );
+			if( debug_level ) printf( " OF %g -> %g ", phi_current_best, ( *S ).trib[tr].part[shaman].xBest.f.f[0] );
 			if( debug_level > 1 ) { printf(  "new " ); position_print( &( *S ).trib[tr].part[shaman].xBest ); }
 			copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).trib[tr].part[shaman].x );
 			if( gop->cd->check_success && gop->success )
@@ -1757,8 +1775,9 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				( *S ).tr_best = tr;
 			}
 			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
-			if(( *S ).trib[tr].part[shaman].xBest.f.f[0] * 1.5 > z )
+			if(( *S ).trib[tr].part[shaman].xBest.f.f[0] * 1.5 > phi_current_best )
 			{
+				count_bad_tribes++;
 				if( debug_level ) printf( " Bad shaman!\n" );
 				( *S ).trib[tr].status = -1; // Bad tribe
 				particle_init( pb, 3, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] ); // reset shaman
@@ -1778,13 +1797,20 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				}
 			}
 			else if( debug_level ) printf( " Not very good shaman!\n" );
+			if( count_bad_tribes == ( *S ).size )
+			{
+				lm_wait = 1;
+				phi_lm_wait = ( *S ).best.f.f[0] / ( *pb ).lmfactor;
+				if( debug_level ) printf( "Skip LM search till OF %g is less than %g!\n", ( *S ).best.f.f[0], phi_lm_wait );
+			}
 			gop->phi = ( *S ).best.f.f[0];
 		}
 		nSwarmAdaptIter = ( *S ).size * ( *S ).size;
 		( *S ).status = -1; // LM not happy with the swarm; try to add a tribe
 	}
-	else if( ( nTotPart > ( double ) 0.9 * ( *pb ).lmfactor * ( *pb ).D || ( *pb ).maxEval < ( double ) 2.0 * eval ) )  // EXPLORE DIFFERENT
-//	else if(( *S ).size > ( *pb ).D )   // EXPLORE DIFFERENT
+	// else if(( *S ).size > ( *pb ).D )   // EXPLORE DIFFERENT
+	// else if( ( nTotPart > ( double ) 0.9 * ( *pb ).lmfactor * ( *pb ).D || ( double ) ( *pb ).lmfactor * ( *pb ).maxEval < ( double ) 2.0 * eval ) )  // EXPLORE DIFFERENT
+	else if( nTotPart > ( double ) 100 * ( *pb ).D  ) // CURRENTLY NOT USED
 	{
 		if( debug_level )
 		{
@@ -1795,9 +1821,9 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 		}
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimizaiton cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 		lmo_count++;
-		z = ( *S ).best.f.f[0];
+		phi_current_best = ( *S ).best.f.f[0];
 		position_lm( gop, pb, &( *S ).best );
-		if( debug_level ) printf( "OF %g -> %g\n", z, ( *S ).best.f.f[0] );
+		if( debug_level ) printf( "OF %g -> %g\n", phi_current_best, ( *S ).best.f.f[0] );
 		if( debug_level > 1 ) { printf( "new " ); position_print( &( *S ).best ); }
 		tr = ( *S ).tr_best;
 		shaman = ( *S ).trib[tr].best;

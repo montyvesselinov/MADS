@@ -77,8 +77,8 @@ int set_test_problems( struct opt_data *op )
 	{
 		pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 100.5;
 		pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 102.5;
-		pd->var_min[0] = 98; pd->var_max[0] = 102;
-		pd->var_min[1] = 100; pd->var_max[1] = 104;
+		pd->var_min[0] = 50; pd->var_max[0] = 150;
+		pd->var_min[1] = 50; pd->var_max[1] = 150;
 		pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
 		pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
 	}
@@ -86,12 +86,8 @@ int set_test_problems( struct opt_data *op )
 	od->nObs = 0; // modified for test problems with observations below
 	switch( cd->test_func )
 	{
-		case 0: // Parabola (Sphere)
+		case 1: // Parabola (Sphere)
 			printf( "Parabola (Sphere)" );
-			od->nObs = cd->test_func_dim;
-			break;
-		case 1: // De Jong's Function 4
-			printf( "De Jong's Function #4" );
 			od->nObs = cd->test_func_dim;
 			break;
 		case 2: // Griewank
@@ -130,6 +126,10 @@ int set_test_problems( struct opt_data *op )
 			break;
 		case 10: // Ackley
 			printf( "Ackley" );
+			break;
+		case 11: // De Jong's Function 4
+			printf( "De Jong's Function #4" );
+			od->nObs = cd->test_func_dim;
 			break;
 		case 13: // 2D Tripod function (Louis Gacogne) Search [-100, 100] min 0 on (0  -50)
 			printf( "2D Tripod function" );
@@ -221,22 +221,13 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 	pi = acos( -1 );
 	switch( function )
 	{
-		case 0: // Parabola (Sphere)
+		case 1: // Parabola (Sphere)
 			f = 0;
 			p = 0; // Shift
 			for( d = 0; d < D; d++ )
 			{
 				xd = x[d] - p;
 				f += o[d] = xd * xd;
-			}
-			break;
-		case 1: // De Jong's f4
-			f = 0;
-			p = 0; // Shift
-			for( d = 0; d < D; d++ )
-			{
-				xd = x[d] - p;
-				f += o[d] = ( d + 1 ) * xd * xd * xd * xd;
 			}
 			break;
 		case 2: // Griewank
@@ -330,6 +321,15 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			y = D;
 			f = ( -20 * exp( -0.2 * sqrt( sum1 / y ) ) - exp( sum2 / y ) + 20 + E );
+			break;
+		case 11: // De Jong's f4
+			f = 0;
+			p = 0; // Shift
+			for( d = 0; d < D; d++ )
+			{
+				xd = x[d] - p;
+				f += o[d] = ( d + 1 ) * xd * xd * xd * xd;
+			}
 			break;
 		case 13: // 2D Tripod function (Louis Gacogne) Search [-100, 100] min 0 on (0  -50)
 			x1 = x[0];

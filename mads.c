@@ -54,7 +54,7 @@
 int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
 int optimize_pso( struct opt_data *op ); // PSO optimization
 int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
-void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op ); // Random sampling
+void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op ); // Print final results
 void save_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
@@ -141,7 +141,8 @@ char *dir_hosts( void *data, char *timedate_stamp );
 int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
-	int i, j, k, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, neval_total, bad_data;
+	int i, j, k, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data;
+	unsigned long neval_total;
 	double c, err, phi, phi_min, *orig_params, *opt_params, *var_lhs, *var_a_lhs, *var_b_lhs;
 	struct calc_data cd;
 	struct param_data pd;
@@ -207,6 +208,7 @@ int main( int argn, char *argv[] )
 		printf( "   cutoff=[real]      - terminate calibration if the objective function is below the cutoff value [default cutoff=0]\n" );
 		printf( "   success            - terminate calibration if model predictions are within predefined calibration ranges\n" );
 		printf( "\ncalibration options:\n" );
+		printf( "   paranoid           - Paranoid Levenberg-Marquardt optimization using multiple retries\n" );
 		printf( "   retry=[integer]    - number of optimization retries [default retry=0]\n" );
 		printf( "   iter=[integer]     - number of Levenberg-Marquardt iterations [default iter=50]\n" );
 		printf( "   particles=[integer]- number of initial particles or tribes [default particles=10+2*sqrt(Number_of_parameters)]\n" );
@@ -216,12 +218,13 @@ int main( int argn, char *argv[] )
 		printf( "   opt=lm             - Local Levenberg-Marquardt optimization [default]\n" );
 		printf( "   opt=lm_levmar      - Local Levenberg-Marquardt optimization using LEVMAR library\n" );
 		printf( "   opt=lm_gsl         - Local Levenberg-Marquardt optimization using GSL library\n" );
+		printf( "   opt=lm_paran       - Local Paranoid Levenberg-Marquardt optimization using multiple retries\n" );
 		printf( "   opt=pso            - Global Particle Swarm optimization (default Standard2006)\n" );
 		printf( "   opt=apso           - Global Adaptive Particle Swarm optimization (default TRIBES)\n" );
 		printf( "   opt=swarm          - Global Particle Swarm optimization Standard2006 (also opt=pso_std)\n" );
 		printf( "   opt=tribes         - Global Particle Swarm optimization TRIBES\n" );
 		printf( "   opt=squads         - SQUADS: Adaptive hybrid optimization using coupled local and global optimization techniques\n" );
-		printf( "\nsampling method (smp=[string] OR paran=[string] for paranoid LM analysis using multiple retries):\n" );
+		printf( "\nsampling method (smp=[string] OR paran=[string] for Paranoid LM analysis using multiple retries):\n" );
 		printf( "   smp=olhs           - Optimal Latin Hyper Cube sampling [default] (if real = 1 RANDOM; if real > IDLHS; if real > 500 LHS)\n" );
 		printf( "   smp=lhs            - Latin Hyper Cube sampling (LHS)\n" );
 		printf( "   smp=idlhs          - Improved Distance Latin Hyper Cube sampling (IDLHS)\n" );
@@ -259,9 +262,8 @@ int main( int argn, char *argv[] )
 		printf( "   plane              - areal contaminant source in 3D flow domain\n" );
 		printf( "   box                - brick contaminant source in 3D flow domain\n" );
 		printf( "\nbuild-in test problems for optimization / uncertainty-quantification techniques (local and global methods):\n" );
-		printf( "   test=[integer]     - test problem ID [default=0]:\n" );
-		printf( "                           0: Parabola (Sphere) \n" );
-		printf( "                           1: De Jong's Function #4\n" );
+		printf( "   test=[integer]     - test problem ID [default=1]:\n" );
+		printf( "                           1: Parabola (Sphere) \n" );
 		printf( "                           2: Griewank\n" );
 		printf( "                           3: Rosenbrock\n" );
 		printf( "                           4: Step\n" );
@@ -270,6 +272,7 @@ int main( int argn, char *argv[] )
 		printf( "                           8: Alpine function (Clerc's Function #1)\n" );
 		printf( "                           9: Rastrigin\n" );
 		printf( "                          10: Ackley (note: global methods only)\n" );
+		printf( "                          11: De Jong's Function #4\n" );
 		printf( "                          13: 2D Tripod function\n" );
 		printf( "                          17: Krishna Kumar\n" );
 		printf( "                          18: Eason 2D (note: global methods only)\n" );
@@ -600,7 +603,7 @@ int main( int argn, char *argv[] )
 		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
 		else printf( "Current seed: %d\n", cd.seed );
 		printf( "Random sampling (variables %d; realizations %d) using ", npar, cd.nreal );
-		sampling( npar, cd.nreal, &cd.seed, var_lhs, &op );
+		sampling( npar, cd.nreal, &cd.seed, var_lhs, &op, 1 );
 		printf( "done.\n" );
 		if( cd.mdebug )
 		{
@@ -704,7 +707,7 @@ int main( int argn, char *argv[] )
 		op.counter = 0;
 		free( var_lhs );
 		cd.neval = neval_total; // provide the correct number of total evaluations
-		printf( "\nTotal number of evaluations = %d\n", neval_total );
+		printf( "\nTotal number of evaluations = %lu\n", neval_total );
 		op.phi = phi_min; // get the best phi
 		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = od.obs_best[i] ; // get the best observations
@@ -735,8 +738,8 @@ int main( int argn, char *argv[] )
 		fprintf( out2, "min %g\n", phi_min );
 		fprintf( out2, "success %d\n", success_global );
 		fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d\n", success_global );
-		fprintf( out2, "eval %d\n", neval_total );
-		fprintf( out, "Total number of evaluations = %d\n", neval_total );
+		fprintf( out2, "eval %lu\n", neval_total );
+		fprintf( out, "Total number of evaluations = %lu\n", neval_total );
 		fclose( out ); fclose( out2 );
 		printf( "Results are saved in %s.igrnd.results and %s.igrnd-opt=%s_eval=%d_real=%d\n", op.root, op.root, cd.opt_method, cd.maxeval, cd.nreal );
 		free( opt_params );
@@ -857,7 +860,7 @@ int main( int argn, char *argv[] )
 		while( 1 );
 		op.counter = 0;
 		cd.neval = neval_total; // provide the correct number of total evaluations
-		printf( "\nTotal number of evaluations = %d\n", neval_total );
+		printf( "\nTotal number of evaluations = %lu\n", neval_total );
 		op.phi = phi_min; // get the best phi
 		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = od.obs_best[i] ; // get the best observations
@@ -887,8 +890,8 @@ int main( int argn, char *argv[] )
 		fprintf( out2, "min %g\n", phi_min );
 		fprintf( out2, "success %d\n", success_global );
 		fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d\n", success_global );
-		fprintf( out2, "eval %d\n", neval_total );
-		fprintf( out, "Number of evaluations = %d\n", neval_total );
+		fprintf( out2, "eval %lu\n", neval_total );
+		fprintf( out, "Number of evaluations = %lu\n", neval_total );
 		fclose( out ); fclose( out2 );
 		printf( "Results are saved in %s.igpd.results\n", op.root );
 		free( opt_params );
@@ -1006,7 +1009,7 @@ int main( int argn, char *argv[] )
 		while( 1 );
 		fclose( out );
 		cd.neval = neval_total; // provide the correct number of total evaluations
-		printf( "\nTotal number of evaluations = %d\n", neval_total );
+		printf( "\nTotal number of evaluations = %lu\n", neval_total );
 		if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", cd.nreal );
 		else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
 		if( op.cd->phi_cutoff > DBL_EPSILON )
@@ -1033,7 +1036,7 @@ int main( int argn, char *argv[] )
 		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
 		else printf( "Current seed: %d\n", cd.seed );
 		printf( "Random sampling (variables %d; realizations %d) using ", npar, cd.nreal );
-		sampling( npar, cd.nreal, &cd.seed, var_lhs, &op );
+		sampling( npar, cd.nreal, &cd.seed, var_lhs, &op, 1 );
 		printf( "done.\n" );
 		if( cd.mdebug )
 		{
@@ -1307,10 +1310,10 @@ int main( int argn, char *argv[] )
 		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
 		else printf( "Current seed: %d\n", cd.seed );
 		printf( "Random sampling set 1 (variables %d; realizations %d) using ", pd.nOptParam, cd.nreal );
-		sampling( pd.nOptParam, n_sub, &cd.seed, var_a_lhs, &op );
+		sampling( pd.nOptParam, n_sub, &cd.seed, var_a_lhs, &op, 1 );
 		printf( "done.\n" );
 		printf( "Random sampling set 2 (variables %d; realizations %d) using ", pd.nOptParam, cd.nreal );
-		sampling( pd.nOptParam, n_sub, &cd.seed, var_b_lhs, &op );
+		sampling( pd.nOptParam, n_sub, &cd.seed, var_b_lhs, &op, 1 );
 		printf( "done.\n" );
 		// Create samples using Sobol's quasi-random sequence
 		/*		for( count = 0; count < n_sub; count++ )
@@ -1767,7 +1770,7 @@ int optimize_lm( struct opt_data *op )
 {
 	double phi, phi_min;
 	double *opt_params, *res, *x_c;
-	int   nsig, maxfn, maxiter, iopt, infer, ier, debug, standalone;
+	int   nsig, maxfn, maxiter, maxiter_levmar, iopt, infer, ier, debug, standalone;
 	int   i, j, k, debug_level, count, count_set, npar;
 	double opt_parm[4], *jacobian, *jacTjac, *covar, *work, eps, delta, *var_lhs;
 	double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
@@ -1785,24 +1788,34 @@ int optimize_lm( struct opt_data *op )
 		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 	debug = op->cd->debug;
 	standalone = op->cd->standalone;
-	if( standalone && !debug ) { printf( "Levenberg-Marquardt Optimization ... " ); fflush( stdout ); }
+	if( op->cd->niter <= 0 )
+	{
+		if( strcasestr( op->cd->opt_method, "lm" ) ) maxiter = 50;
+		if( strcasestr( op->cd->opt_method, "squad" ) ) maxiter = 8;
+	}
+	else maxiter = op->cd->niter;
+	if( debug ) printf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
 	if( op->cd->paranoid )
 	{
+		printf( "Paranoid Levenberg-Marquardt Optimization ... " ); fflush( stdout );
 		npar = op->pd->nOptParam;
+		if( op->cd->nretries <= 0 ) op->cd->nretries = (double) (op->cd->maxeval - op->cd->neval) / ( maxiter * npar );
+		if( debug ) printf( "Random sampling for paranoid optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
 		if( ( var_lhs = ( double * ) malloc( npar * op->cd->nretries * sizeof( double ) ) ) == NULL )
 			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
-		if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-		else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
-		else printf( "Current seed: %d\n", op->cd->seed );
-		printf( "Random sampling for paranoid optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
+		if( op->cd->seed < 0 ) { op->cd->seed *= -1; if( debug ) printf( "Imported seed: %d\n", op->cd->seed ); }
+		else if( op->cd->seed == 0 ) { if( debug ) printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
+		else if( debug ) printf( "Current seed: %d\n", op->cd->seed );
 		if( op->cd->paran_method[0] != 0 ) { strcpy( buf, op->cd->smp_method ); strcpy( op->cd->smp_method, op->cd->paran_method ); }
-		sampling( npar, op->cd->nretries, &op->cd->seed, var_lhs, op );
+		sampling( npar, op->cd->nretries, &op->cd->seed, var_lhs, op, debug );
 		if( op->cd->paran_method[0] != 0 ) strcpy( op->cd->smp_method, buf );
-		printf( "done.\n" );
+		if( debug ) printf( "done.\n" );
 		op->cd->retry_ind = count = count_set = 0;
 	}
+	else
+		{ printf( "Levenberg-Marquardt Optimization ... " ); fflush( stdout ); }
 	phi_min = HUGE_VAL;
 	do // BEGIN Paranoid loop
 	{
@@ -1812,16 +1825,16 @@ int optimize_lm( struct opt_data *op )
 		{
 			count++;
 			op->cd->retry_ind = count;
-			if( op->cd->calib_type == IGRND && count == 1 )
+			if( op->cd->calib_type == IGRND && count == 1 && debug )
 				printf( "CALIBRATION %d: initial guesses from IGRND random set: ", count );
 			else if( count > 1 )
 			{
-				printf( "CALIBRATION %d: initial guesses from internal paranoid random set #%d: ", count, count_set + 1 );
+				if( debug ) printf( "CALIBRATION %d: initial guesses from internal paranoid random set #%d: ", count, count_set + 1 );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					k = op->pd->var_index[i];
 					opt_params[i] = var_lhs[i + count_set * npar] * op->pd->var_range[k] + op->pd->var_min[k];
-					if( debug )
+					if( debug > 1 )
 					{
 						if( op->pd->var_log[k] ) printf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
 						else printf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
@@ -1831,22 +1844,22 @@ int optimize_lm( struct opt_data *op )
 			}
 			else
 			{
-				printf( "CALIBRATION %d: initial guesses from mads input file #: ", count );
+				if( debug ) printf( "CALIBRATION %d: initial guesses from MADS input file #: ", count );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					opt_params[i] = op->pd->var[op->pd->var_index[i]];
-					if( debug )
+					if( debug > 1 )
 					{
 						if( op->pd->var_log[k] ) printf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
 						else printf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
 					}
 				}
 			}
-			if( debug ) printf( "\n" );
+			if( debug > 1 ) printf( "\n" );
 			fflush( stdout );
 		}
 		if( standalone ) Transform( opt_params, op, opt_params ); // Transform if standalone; do not tranform is part of PSO run
-		if( debug && standalone )
+		if( debug > 1 && standalone )
 		{
 			printf( "\n-------------------- Initial state:\n" );
 			op->cd->pderiv = op->cd->oderiv = -1;
@@ -1859,7 +1872,8 @@ int optimize_lm( struct opt_data *op )
 		// LM optimization ...
 		if( strcasestr( op->cd->opt_method, "mon" ) != NULL || strcasestr( op->cd->opt_method, "chav" ) != NULL ) // Monty/Chavo versions
 		{
-			if( debug && standalone ) printf( "\nLevenberg-Marquardt Optimization:\n" );
+			if( debug > 1 && standalone ) printf( "\nLevenberg-Marquardt Optimization:\n" );
+			else if( op->cd->ldebug ) printf( "\n" );
 			if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL )
 				{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 			if( ( jacTjac = ( double * ) malloc( sizeof( double ) * ( ( op->pd->nOptParam + 1 ) * op->pd->nOptParam / 2 ) ) ) == NULL )
@@ -1878,7 +1892,6 @@ int optimize_lm( struct opt_data *op )
 			/* Third convergence criterion */
 			delta = 0; /* norm of the approximate gradient is less than or equal to delta */
 			maxfn = op->cd->maxeval - op->cd->neval; /* maximum number of function evaluations; remove the number of evaluation already performed */
-			maxiter = op->cd->niter; /* maximum number of iterations */
 			if( strcasestr( op->cd->opt_method, "chav" ) != NULL ) ier = zxssqch( func, op, op->od->nObs, op->pd->nOptParam, nsig, eps, delta, maxfn, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nObs, jacTjac, &infer ); // Chavo's version
 			else ier = lm_opt( func, func_dx, op, op->od->nObs, op->pd->nOptParam, nsig, eps, delta, maxfn, maxiter, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nObs, jacTjac, &infer ); // Monty's version
 			for( k = i = 0; i < op->pd->nOptParam; i++ )
@@ -1890,7 +1903,8 @@ int optimize_lm( struct opt_data *op )
 		}
 		else if( strcasestr( op->cd->opt_method, "gsl" ) != NULL ) // GSL version of LM
 		{
-			if( debug && standalone ) printf( "\nLevenberg-Marquardt Optimization using GSL library:\n" );
+			if( debug > 1 && standalone ) printf( "\nLevenberg-Marquardt Optimization using GSL library:\n" );
+			else if( op->cd->ldebug ) printf( "\n" );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 				gsl_vector_set( gsl_opt_params, i, opt_params[i] );
 			lm_gsl( gsl_opt_params, op, gsl_jacobian, gsl_covar );
@@ -1900,6 +1914,8 @@ int optimize_lm( struct opt_data *op )
 		}
 		else // DEFAULT LevMar version of LM
 		{
+			if( debug > 1 && standalone ) printf( "\nLevenberg-Marquardt Optimization using LevMar library:\n" );
+			else if( op->cd->ldebug ) printf( "\n" );
 			if( ( covar = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->pd->nOptParam ) ) == NULL )
 				{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 			// LM_DIF_WORKSZ(m,n) = 4*n+4*m + n*m + m*m
@@ -1907,21 +1923,19 @@ int optimize_lm( struct opt_data *op )
 				{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 			for( i = 0; i < op->od->nObs; i++ ) res[i] = 0;
 			jacobian = work + op->pd->nOptParam + 2 * op->od->nObs;
-			if( debug && standalone ) printf( "\nLevenberg-Marquardt Optimization using LevMar library:\n" );
-			else if( op->cd->ldebug ) printf( "\n" );
 			opts[0] = 1e-3; opts[1] = 1E-5; opts[2] = 1E-5;
 			opts[3] = op->cd->phi_cutoff;
-			if( op->cd->sintrans == 0 ) opts[4] = 0.1; // Forward difference; Central difference if negative; DO NOT USE CENTRAL DIFFERENCE
+			if( op->cd->sintrans == 0 ) opts[4] = op->cd->lindx; // Forward difference; Central difference if negative; DO NOT USE CENTRAL DIFFERENCE
 			else opts[4] = op->cd->sindx;
 			while( op->cd->maxeval > op->cd->neval )
 			{
 				// Levmar has no termination creteria based on the number of functional evaluations or number of jacobian evaluations
-				if( opts[4] > 0 ) maxiter = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 10 ) + 1 ); // Forward derivatives
-				else              maxiter = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 10 ) + 1 ); // Central derivatives
-				if( maxiter > op->cd->niter ) maxiter = op->cd->niter;
-				maxiter *= 10; // Assuming about 10 lambda searches per iteration
-				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter, opts, info, work, covar, op );
-				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter, opts, info, work, covar, op );
+				if( opts[4] > 0 ) maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 10 ) + 1 ); // Forward derivatives
+				else              maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 10 ) + 1 ); // Central derivatives
+				if( maxiter_levmar > maxiter ) maxiter_levmar = maxiter;
+				maxiter_levmar *= 10; // Assuming about 10 lambda searches per iteration
+				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter_levmar, opts, info, work, covar, op );
+				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter_levmar, opts, info, work, covar, op );
 				if( info[6] == 4 || info[6] == 5 ) { opts[0] *= 10; if( op->cd->ldebug ) printf( "Rerun with larger initial lambda (%g)\n", opts[0] ); }
 				else break;
 			}
@@ -1942,7 +1956,7 @@ int optimize_lm( struct opt_data *op )
 		}
 		if( standalone ) // if LM is stand alone (not part of PSO run)
 		{
-			if( debug )
+			if( debug > 1 )
 			{
 				printf( "\n------------------------- Final state:\n" );
 				op->cd->pderiv = op->cd->oderiv = -1;
@@ -1962,7 +1976,7 @@ int optimize_lm( struct opt_data *op )
 			DeTransform( opt_params, op, x_c );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 				op->pd->var[op->pd->var_index[i]] = x_c[i]; // Save the obtained results
-			if( debug )
+			if( debug > 1 )
 			{
 				printf( "\n------------------------- LM Optimization Results:\n" );
 				print_results( op );
@@ -1974,19 +1988,22 @@ int optimize_lm( struct opt_data *op )
 		if( op->cd->paranoid )
 		{
 			if( op->phi < phi_min ) { phi_min = op->phi; for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]]; }
-			if( debug == 0 ) printf( "Objective function: %g Success %d\n", op->phi, op->success );
+			if( debug ) printf( "Objective function: %g Success %d\n", op->phi, op->success );
 			if( phi_min < op->cd->phi_cutoff )
-				{ printf( "Calibration objective function is below the cutoff value after %d random initial guess runs\n", count ); break; }
+				{ if( debug ) printf( "Paranoid calibration objective function is below the cutoff value after %d random initial guess attempts\n", count ); break; }
 			if( op->cd->check_success && op->success )
-				{ printf( "Calibration within calibration ranges after %d random initial guess runs\n", count ); break; }
-			else if( count == op->cd->nretries )
-				{ printf( "Calibration attempts terminated after %d random initial guess runs\n", count ); break; }
+				{ if( debug ) printf( "Paranoid calibration within calibration ranges after %d random initial guess attempts\n", count ); break; }
+			if( op->cd->maxeval <= op->cd->neval )
+				{ if( debug ) printf( "Paranoid calibration terminated after evaluations %d (max evaluations %d)\n", op->cd->neval, op->cd->maxeval ); break; }
+			if( count == op->cd->nretries )
+				{ if( debug ) printf( "Paranoid calibration terminated after %d attempts (evaluations %d; max evaluations %d)\n", count, op->cd->neval, op->cd->maxeval ); break; }
 		}
 		else break; // Quit if not Paranoid run
 	}
 	while( 1 ); // END Paranoid loop
 	if( op->cd->paranoid ) // Recompute for the best results
 	{
+		if( !debug ) printf( "(evaluations %d) ", op->cd->neval );
 		op->phi = phi_min;
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			op->pd->var[op->pd->var_index[i]] = op->pd->var_best[i];
@@ -1995,11 +2012,11 @@ int optimize_lm( struct opt_data *op )
 		func( opt_params, op, op->od->res );
 		op->cd->compute_phi = 0;
 	}
-	if( ( op->cd->leigen || debug ) && standalone ) eigen( op, gsl_jacobian, gsl_covar ); // Eigen analysis
+	if( ( op->cd->leigen || debug > 1 ) && standalone ) eigen( op, gsl_jacobian, gsl_covar ); // Eigen analysis
 	if( op->cd->paranoid ) free( var_lhs );
 	free( opt_params ); free( x_c ); free( res );
 	gsl_matrix_free( gsl_jacobian ); gsl_matrix_free( gsl_covar ); gsl_vector_free( gsl_opt_params );
-	if( standalone && !debug && op->cd->problem_type != CALIBRATE ) printf( "\n" );
+	if( standalone && !debug && op->cd->calib_type == SIMPLE ) printf( "\n" );
 	return( 1 );
 }
 
@@ -2440,29 +2457,38 @@ void ave_sorted( double data[], int n, double *ave, double *ep )
 		*ep += dev[j];
 }
 
-void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op )
+void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug )
 {
-	printf( "%s\n", op->cd->smp_method );
+	if( debug ) printf( "%s\n", op->cd->smp_method );
 	if( nreal == 1 || strncasecmp( op->cd->smp_method, "random", 6 ) == 0 )
 	{
-		printf( "Pure random sampling method ... " );
-		fflush( stdout );
+		if( debug )
+		{
+			printf( "Pure random sampling method ... " );
+			fflush( stdout );
+		}
 		smp_random( npar, nreal, seed, var_lhs );
 	}
 	else if( ( nreal <= 500 && op->cd->smp_method[0] == 0 ) || strncasecmp( op->cd->smp_method, "idlhs", 5 ) == 0 )
 	{
-		printf( "Improved Distances LHS method " );
-		if( strncasecmp( op->cd->smp_method, "idlhs", 5 ) != 0 ) printf( "( real < 500 ) " );
-		printf( "... " );
-		fflush( stdout );
+		if( debug )
+		{
+			printf( "Improved Distances LHS method " );
+			if( strncasecmp( op->cd->smp_method, "idlhs", 5 ) != 0 ) printf( "( real < 500 ) " );
+			printf( "... " );
+			fflush( stdout );
+		}
 		lhs_imp_dist( npar, nreal, 5, seed, var_lhs );
 	}
 	else if( ( nreal > 500 && op->cd->smp_method[0] == 0 ) || strncasecmp( op->cd->smp_method, "lhs", 3 ) == 0 )
 	{
+		if( debug )
+		{
 		printf( "Standard LHS method " );
 		if( strncasecmp( op->cd->smp_method, "lhs", 3 ) != 0 ) printf( "( real > 500 ) " );
 		printf( "... " );
 		fflush( stdout );
+		}
 		lhs_random( npar, nreal, seed, var_lhs );
 	}
 }

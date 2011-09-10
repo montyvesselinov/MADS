@@ -242,7 +242,7 @@ struct gsens_data // global sensitivity analysis data structure
 int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
 int optimize_pso( struct opt_data *op ); // PSO optimization
 int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
-void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op ); // Random sampling
+void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op ); // Print final results
 void save_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
