@@ -142,6 +142,7 @@ int nRestarts;
 int debug_level;
 int lm_wait = 0;
 double phi_lm_wait = HUGE_VAL;
+double phi_lm_init;
 double phi_weights[MAXPHI+1]; // Dynamic penalties
 
 struct opt_data *gop;
@@ -1324,11 +1325,31 @@ void problem_print( struct problem *pb )
 
 void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S )
 {
-	int n, tr;
+	int n, tr, shaman;
+	double phi_current_best, min, max;
 	for( n = 0; n < ( *pb ).nPhi; n++ ) phi_weights[n] = 1; // Initials penalties (for multiobjective)
 	nLocalSearchIter = 0; // Prepare local search (for multiobjective)
 	if( gop->cd->check_success ) gop->success = 0;
-	swarm_init( pb, compare_type, S ); //Initialisation of the swarm
+	swarm_init( pb, compare_type, S ); //Initialization of the swarm
+	phi_lm_init = ( *S ).best.f.f[0]; // Store the first best phi
+	if( lmo_flag )
+	{
+		min = HUGE_VAL; max = 0;
+		for( tr = 0; tr < ( *S ).size; tr++ )
+		{
+			shaman = ( *S ).trib[tr].best;
+			phi_current_best = ( *S ).trib[tr].part[shaman].xBest.f.f[0];
+			if( phi_current_best > max ) max = phi_current_best;
+			else if ( phi_current_best < min ) min = phi_current_best;
+		}
+		if( ( max - min ) / min < 2 )
+		{
+			if( debug_level ) printf( "Skip LM search because OF range of tribes' shamans is small (min %g max %g ratio %g)!\n", min, max, ( max - min ) / min );
+			lm_wait = 1;
+			phi_lm_wait = min / 5;
+		}
+		else if( debug_level ) printf( "Do LM search because OF range of tribes' shamans is sufficient (min %g max %g ratio %g)!\n", min, max,  ( max - min ) / min );
+	}
 	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", eval, ( *S ).best.f.f[0] ); fflush( gop->f_ofe ); }
 	if( debug_level ) swarm_print( S );
 	if( gop->cd->check_success && gop->success )
@@ -1705,18 +1726,18 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 		phi_current_best = ( *S ).best.f.f[0];
 		if( phi_lm_wait > phi_current_best )
 		{
-			if( debug_level ) printf( "Restart LM search since OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
+			if( debug_level ) printf( "Restart LM search because OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
 			lm_wait = 0;
 		}
 		else
 		{
-			if( debug_level ) printf( "Skip LM search till OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
+			if( debug_level ) printf( "Skip LM search until OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
 			return;
 		}
 	}
-	set_particle( pb, &best );
 	for( tr = 0; tr < ( *S ).size; tr++ )
-		nTotPart += ( *S ).trib[tr].size;
+		nTotPart += ( *S ).trib[tr].size; // Total number of particles
+	set_particle( pb, &best );
 //	if((nTotPart > ( double ) ( *pb ).lmfactor * ( *pb ).D || ( double ) ( *pb ).lmfactor * ( *pb ).maxEval < ( double ) 10 * eval ) )
 	if( nTotPart > ( *pb ).D )
 	{

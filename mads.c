@@ -266,16 +266,16 @@ int main( int argn, char *argv[] )
 		printf( "                           1: Parabola (Sphere) \n" );
 		printf( "                           2: Griewank\n" );
 		printf( "                           3: Rosenbrock\n" );
-		printf( "                           4: Step\n" );
+		printf( "                           4: De Jong's Function #4\n" );
+		printf( "                           5: Step\n" );
 		printf( "                           6: Foxholes 2D\n" );
 		printf( "                           7: Polynomial fitting\n" );
 		printf( "                           8: Alpine function (Clerc's Function #1)\n" );
 		printf( "                           9: Rastrigin\n" );
 		printf( "                          10: Ackley (note: global methods only)\n" );
-		printf( "                          11: De Jong's Function #4\n" );
-		printf( "                          13: 2D Tripod function\n" );
-		printf( "                          17: Krishna Kumar\n" );
-		printf( "                          18: Eason 2D (note: global methods only)\n" );
+		printf( "                          11: 2D Tripod function\n" );
+		printf( "                          12: Krishna Kumar\n" );
+		printf( "                          13: Eason 2D (note: global methods only)\n" );
 		printf( "                          40: Sin/Cos test function\n" );
 		printf( "                          41: Sin/Cos test function (simplified)\n" );
 		printf( "   dim=[integer]      - dimensionality of parameter space for the test problem (fixed for some of the problems) [default=2]\n" );
@@ -1799,7 +1799,7 @@ int optimize_lm( struct opt_data *op )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
 	if( op->cd->paranoid )
 	{
-		printf( "Paranoid Levenberg-Marquardt Optimization ... " ); fflush( stdout );
+		if( standalone ) printf( "Paranoid Levenberg-Marquardt Optimization ... " ); fflush( stdout );
 		npar = op->pd->nOptParam;
 		if( op->cd->nretries <= 0 ) op->cd->nretries = (double) (op->cd->maxeval - op->cd->neval) / ( maxiter * npar );
 		if( debug ) printf( "Random sampling for paranoid optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
@@ -1815,7 +1815,7 @@ int optimize_lm( struct opt_data *op )
 		op->cd->retry_ind = count = count_set = 0;
 	}
 	else
-		{ printf( "Levenberg-Marquardt Optimization ... " ); fflush( stdout ); }
+		{ if( standalone ) printf( "Levenberg-Marquardt Optimization ... " ); fflush( stdout ); }
 	phi_min = HUGE_VAL;
 	do // BEGIN Paranoid loop
 	{
