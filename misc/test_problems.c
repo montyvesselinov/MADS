@@ -134,20 +134,20 @@ int set_test_problems( struct opt_data *op )
 			pd->var_truth[1] = -50;
 			od->nObs = cd->test_func_dim = 2;
 			break;
-		case 10: // Shekel’s Foxholes 2D (alternative)
-			printf( "Shekel’s Foxholes 2D (alternative)" );
+		case 10: // Shekel's Foxholes 2D (alternative)
+			printf( "Shekel's Foxholes 2D" );
 			od->nObs = 30;
 			break;
-		case 11: // Shekel’s Foxholes 5D (alternative)
-			printf( "Shekel’s Foxholes 10D" );
+		case 11: // Shekel's Foxholes 5D (alternative)
+			printf( "Shekel's Foxholes 10D" );
 			od->nObs = 30;
 			break;
-		case 12: // Shekel’s Foxholes 10D (alternative)
-			printf( "Shekel’s Foxholes 10D" );
+		case 12: // Shekel's Foxholes 10D
+			printf( "Shekel's Foxholes 10D" );
 			od->nObs = 30;
 			break;
-		case 20: // Foxholes 2D
-			printf( "Shekel’s Foxholes 2D" );
+		case 20: // Shekel's Foxholes 2D (alternative)
+			printf( "Shekel's Foxholes 2D (alternative)" );
 			if( cd->test_func_dim != 2 ) cd->test_func_dim = 2;
 			break;
 		case 21: // Polynomial fitting problem on [-100 100]
@@ -393,7 +393,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				}
 			}
 			break;
-		case 10: // Shekel’s Foxholes 2D (alternative)
+		case 10: // Shekel's Foxholes 2D (alternative)
 			f = 0;
 			for( j = 0; j < 30; j++ )
 			{
@@ -403,7 +403,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				f += o[j] = ( double ) - 1.0 / ( sum1 + c[j] );
 			}
 			break;
-		case 11: // Shekel’s Foxholes 5D
+		case 11: // Shekel's Foxholes 5D
 			f = 0;
 			for( j = 0; j < 30; j++ )
 			{
@@ -413,7 +413,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				f += o[j] = ( double ) - 1.0 / ( sum1 + c[j] );
 			}
 			break;
-		case 12: // Shekel’s Foxholes 10D
+		case 12: // Shekel's Foxholes 10D
 			f = 0;
 			for( j = 0; j < 30; j++ )
 			{
@@ -423,7 +423,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				f += o[j] = ( double ) - 1.0 / ( sum1 + c[j] );
 			}
 			break;
-		case 20: // Shekel’s Foxholes 2D
+		case 20: // Shekel's Foxholes 2D
 			f = 0;
 			for( j = 0; j < 25; j++ )
 			{
