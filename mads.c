@@ -1801,7 +1801,7 @@ int optimize_lm( struct opt_data *op )
 	{
 		if( standalone ) printf( "Paranoid Levenberg-Marquardt Optimization ... " ); fflush( stdout );
 		npar = op->pd->nOptParam;
-		if( op->cd->nretries <= 0 ) op->cd->nretries = (double) (op->cd->maxeval - op->cd->neval) / ( maxiter * npar );
+		if( op->cd->nretries <= 0 ) op->cd->nretries = ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * npar );
 		if( debug ) printf( "Random sampling for paranoid optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
 		if( ( var_lhs = ( double * ) malloc( npar * op->cd->nretries * sizeof( double ) ) ) == NULL )
 			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
@@ -2484,10 +2484,10 @@ void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data
 	{
 		if( debug )
 		{
-		printf( "Standard LHS method " );
-		if( strncasecmp( op->cd->smp_method, "lhs", 3 ) != 0 ) printf( "( real > 500 ) " );
-		printf( "... " );
-		fflush( stdout );
+			printf( "Standard LHS method " );
+			if( strncasecmp( op->cd->smp_method, "lhs", 3 ) != 0 ) printf( "( real > 500 ) " );
+			printf( "... " );
+			fflush( stdout );
 		}
 		lhs_random( npar, nreal, seed, var_lhs );
 	}
