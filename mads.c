@@ -1791,13 +1791,14 @@ int optimize_lm( struct opt_data *op )
 		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 	debug = op->cd->debug;
 	standalone = op->cd->standalone;
+	if( !standalone ) op->cd->paranoid = 0;
 	if( op->cd->niter <= 0 )
 	{
 		if( strcasestr( op->cd->opt_method, "lm" ) ) maxiter = 50;
 		if( strcasestr( op->cd->opt_method, "squad" ) ) maxiter = 8;
 	}
 	else maxiter = op->cd->niter;
-	if( debug ) printf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
+	if( debug && standalone ) printf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
 	if( op->cd->paranoid )
