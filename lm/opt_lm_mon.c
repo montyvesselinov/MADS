@@ -174,27 +174,27 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 	max_iter_best = max_iter / 2; // max number of interations since the current best one
 	max_phi_range = max_iter / 4; // number of iterations to evaluate phi decline
 	max_bad_count = MAX( 10, ( int ) nParam / 3 ); // maximum number of iterations to avoid Jacobian singuliarity
-	if( ( vphi = ( double * ) malloc( sizeof( double ) * max_eval ) ) == NULL )
+	if(( vphi = ( double * ) malloc( sizeof( double ) * max_eval ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( hessian = ( double * ) malloc( sizeof( double ) * ( nParam + 1 ) * nParam / 2 ) ) == NULL )
+	if(( hessian = ( double * ) malloc( sizeof( double ) * ( nParam + 1 ) * nParam / 2 ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( grad = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
+	if(( grad = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( x_update = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
+	if(( x_update = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( scale = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
+	if(( scale = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( x_new = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
+	if(( x_new = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( x_cur_best = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
+	if(( x_cur_best = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( x_best = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
+	if(( x_best = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( x_bad = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
+	if(( x_bad = ( double * ) malloc( sizeof( double ) * nParam ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * nObs ) ) == NULL )
+	if(( f_xpdx = ( double * ) malloc( sizeof( double ) * nObs ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
-	if( ( f_xmdx = ( double * ) malloc( sizeof( double ) * nObs ) ) == NULL )
+	if(( f_xmdx = ( double * ) malloc( sizeof( double ) * nObs ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); return( 1 ); }
 //	imjc = nJacobian - nObs;
 	if( iopt )                                      /* INITIALIZE VARIABLES */
@@ -276,19 +276,19 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 			if( debug ) printf( "OF: last %g current best %g all-over best %g initial %g (evaluations %d)\n", *phi, phi_old, phi_best, phi_init, ieval );
 			if( func_data->cd->odebug )
 			{
-				if( func_data->cd->standalone ) 
+				if( func_data->cd->standalone )
 				{
 					fprintf( func_data->f_ofe, "%d %g", func_data->cd->neval, phi_best ); // Print current best
-					for( i = 0; i < func_data->pd->nOptParam; i++ ) 
-						fprintf( func_data->f_ofe, " %g", func_data->cd->var[func_data->pd->var_index[i]] ); 
-					fprintf( func_data->f_ofe, "\n" ); 
+					for( i = 0; i < func_data->pd->nOptParam; i++ )
+						fprintf( func_data->f_ofe, " %g", func_data->cd->var[func_data->pd->var_index[i]] );
+					fprintf( func_data->f_ofe, "\n" );
 				}
-				else 
+				else
 				{
 					fprintf( func_data->f_ofe, "%d %g", func_data->cd->neval, ( func_data->phi < phi_best ) ? func_data->phi : phi_best ); // Print overall best
-					for( i = 0; i < func_data->pd->nOptParam; i++ ) 
-						fprintf( func_data->f_ofe, " %g", func_data->cd->var[func_data->pd->var_index[i]] ); 
-					fprintf( func_data->f_ofe, "\n" ); 
+					for( i = 0; i < func_data->pd->nOptParam; i++ )
+						fprintf( func_data->f_ofe, " %g", func_data->cd->var[func_data->pd->var_index[i]] );
+					fprintf( func_data->f_ofe, "\n" );
 				}
 //				if( func_data->cd->standalone ) fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->neval, phi_best ); // Print current best
 //				else fprintf( func_data->f_ofe, "%d %g\n", func_data->cd->neval, ( func_data->phi < phi_best ) ? func_data->phi : phi_best ); // Print overall best

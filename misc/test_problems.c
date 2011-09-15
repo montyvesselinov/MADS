@@ -46,22 +46,22 @@ int set_test_problems( struct opt_data *op )
 	// cd->sintrans = 0; // No sin transformations
 	cd->compute_phi = 1;
 	if( cd->test_func >= 40 ) pd->nParam = pd->nOptParam = cd->test_func_npar;
-	if( cd->test_func == 9 || cd->test_func == 10 || cd->test_func == 20 || cd->test_func == 23 ) pd->nParam = pd->nOptParam = cd->test_func_dim = 2;
+	if( cd->test_func == 9 || cd->test_func == 10 || cd->test_func == 20 || cd->test_func == 23 || cd->test_func == 35 ) pd->nParam = pd->nOptParam = cd->test_func_dim = 2;
 	else pd->nParam = pd->nOptParam = cd->test_func_dim;
 	pd->nFlgParam = 0;
-	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
-	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_opt = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_log = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_dx = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
-	pd->var_current = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
-	pd->var_truth = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
-	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
+	pd->var_id = char_matrix(( *pd ).nParam, 50 );
+	pd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	cd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_opt = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
+	pd->var_log = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
+	pd->var_dx = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_min = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_max = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_range = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_index = ( int * ) malloc(( *pd ).nOptParam * sizeof( int ) );
+	pd->var_current = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
+	pd->var_truth = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
+	pd->var_best = ( double * ) malloc(( *pd ).nOptParam * sizeof( double ) );
 	for( d = 0; d < pd->nParam; d++ )
 	{
 		sprintf( pd->var_id[d], "Parameter #%d", d + 1 );
@@ -72,17 +72,6 @@ int set_test_problems( struct opt_data *op )
 		pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 		pd->var_index[d] = d;
 	}
-#if 1
-	if( cd->test_func == 40 )
-	{
-		pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 100.5;
-		pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 102.5;
-		pd->var_min[0] = 50; pd->var_max[0] = 150;
-		pd->var_min[1] = 50; pd->var_max[1] = 150;
-		pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
-		pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
-	}
-#endif
 	od->nObs = 0; // modified for test problems with observations below
 	switch( cd->test_func )
 	{
@@ -166,14 +155,31 @@ int set_test_problems( struct opt_data *op )
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
 			break;
+		case 35: // camel back
+			printf( "3-hump camel back (with observations = (d-1)*2)" );
+			pd->var_min[0] = -5; pd->var_max[0] = 5;
+			pd->var_min[1] = -5; pd->var_max[1] = 5;
+			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
+			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
+			od->nObs = 5;
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
+			/* Note: function also has local minima at (-1.74755, 0.87378), (-1.07054, 0.53527), (1.07054, -0.53527), and (1.74755, -0.87378) */
+			break;
 		case 40: // sin/cos
+			pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 100.5;
+			pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 102.5;
+			pd->var_min[0] = 50; pd->var_max[0] = 150;
+			pd->var_min[1] = 50; pd->var_max[1] = 150;
+			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
+			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
 			pd->var_truth[0] = a = 100;
 			pd->var_truth[1] = b = 102;
 			printf( "Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
 			od->nObs = cd->test_func_nobs;
-			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
-			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 			for( d = 0; d < od->nObs; d++ )
 			{
 				od->obs_target[d] = a * cos( b * d * dx ) + b * sin( a * d * dx );
@@ -186,9 +192,9 @@ int set_test_problems( struct opt_data *op )
 			pd->var_truth[1] = b = 95;
 			printf( "Simplified Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
 			od->nObs = cd->test_func_nobs;
-			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
-			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
 			for( d = 0; d < od->nObs; d++ )
 			{
 				od->obs_target[d] = a * cos( d * dx ) + b * sin( d * dx );
@@ -199,15 +205,15 @@ int set_test_problems( struct opt_data *op )
 	}
 	if( od->nObs > 1 )
 	{
-		od->obs_id = char_matrix( ( *od ).nObs, 50 );
-		if( !oddefined ) od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+		od->obs_id = char_matrix(( *od ).nObs, 50 );
+		if( !oddefined ) od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_weight = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_current = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_best = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->res = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
+		od->obs_log = ( int * ) malloc(( *od ).nObs * sizeof( int ) );
 	}
 	for( d = 0; d < od->nObs; d++ )
 	{
@@ -233,7 +239,7 @@ int set_test_problems( struct opt_data *op )
 float
 Function1( float x, float y )
 {
-	float z = -( ( x * x + y - 11 ) * ( x * x + y - 11 ) + ( x + y * y - 7 ) * ( x + y * y - 7 ) ) / 200 + 10;
+	float z = -(( x * x + y - 11 ) * ( x * x + y - 11 ) + ( x + y * y - 7 ) * ( x + y * y - 7 ) ) / 200 + 10;
 	return z;
 }
 
@@ -307,7 +313,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			{
 				xd = x[d];
 				f += o[d] = xd * xd / 4000;
-				p *= cos( xd / sqrt( ( double ) d + 1 ) );
+				p *= cos( xd / sqrt(( double ) d + 1 ) );
 			}
 			for( d = 0; d < D; d++ )
 				o[d] += ( -p + 1 ) / D;
@@ -327,6 +333,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				o[d] += x1;
 				t0 = t1;
 			}
+			printf( "\n\n%g\n\n", f );
 			break;
 		case 4: // De Jong's f4
 			f = 0;
@@ -465,7 +472,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			break;
 		case 23: // Eason 2D (usually on [-100,100] Minimum -1 on (pi,pi)
 			x1 = x[0]; x2 = x[1];
-			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
+			f = -cos( x1 ) * cos( x2 ) / exp(( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
 		case 33: // Rosenbrock (with more observations)
 			f = 0;
@@ -481,6 +488,16 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				o[i++] = x1;
 				t0 = t1;
 			}
+			break;
+		case 35: // Camel back
+			f = 0;
+			o[0] = ( double ) 2.0 * x[0] * x[0];
+			o[1] = ( double ) - 1.05 * x[0] * x[0] * x[0] * x[0];
+			o[2] = ( double ) 1.0 / 6.0 * x[0] * x[0] * x[0] * x[0] * x[0] * x[0];
+			o[3] = x[0] * x[1];
+			o[4] = x[1] * x[1];
+			for( d = 0; d < nObs; d++ )
+				f += o[d];
 			break;
 		case 40: // Sin/Cos
 			f = 0;
