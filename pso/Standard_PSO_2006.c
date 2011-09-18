@@ -169,7 +169,7 @@ int pso_std( struct opt_data *op )
 	char filename[80];
 	int ofe_close, lmo_flag, loop_count;
 	op->cd->compute_phi = 1;
-	if(( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
@@ -318,17 +318,14 @@ init:
 	best = 0;
 	for( s = 1; s < S; s++ )
 		if( P[s].f < P[best].f ) best = s;
-	if( gop->cd->odebug ) 
-	{ 
-		fprintf( gop->f_ofe, "%d %g", gop->cd->neval, P[best].f ); 
-		for( d = 0; d < D; d++ ) 
-			fprintf( gop->f_ofe, " %g", P[best].x[d] ); 
-		fprintf( gop->f_ofe, "\n" ); 
-		fflush( gop->f_ofe ); 
+	if( gop->cd->odebug )
+	{
+		fprintf( gop->f_ofe, "%d %g", gop->cd->neval, P[best].f );
+		for( d = 0; d < D; d++ )
+			fprintf( gop->f_ofe, " %g", P[best].x[d] );
+		fprintf( gop->f_ofe, "\n" );
+		fflush( gop->f_ofe );
 	}
-
-
-
 	error =  P[best].f ; // Current min error
 	if( n_exec == 1 ) min = error;
 	error_prev = error; // Previous min error
@@ -394,13 +391,13 @@ loop:
 	if( lmo_flag && ( loop_count > D * 10 || nb_eval * 2 > eval_max ) ) position_lm_std( op, &P[best] );
 	if( gop->cd->pdebug ) printf( "OF %g E %d\n", P[best].f, gop->cd->neval );
 //	if( gop->cd->odebug ) { fprintf( gop->f_ofe, "%d %g\n", gop->cd->neval, P[best].f ); fflush( gop->f_ofe ); }
-	if( gop->cd->odebug ) 
-	{ 
-		fprintf( gop->f_ofe, "%d %g", gop->cd->neval, P[best].f ); 
-		for( d = 0; d < D; d++ ) 
-			fprintf( gop->f_ofe, " %g", P[best].x[d] ); 
-		fprintf( gop->f_ofe, "\n" ); 
-		fflush( gop->f_ofe ); 
+	if( gop->cd->odebug )
+	{
+		fprintf( gop->f_ofe, "%d %g", gop->cd->neval, P[best].f );
+		for( d = 0; d < D; d++ )
+			fprintf( gop->f_ofe, " %g", P[best].x[d] );
+		fprintf( gop->f_ofe, "\n" );
+		fflush( gop->f_ofe );
 	}	// Check if finished
 	// If no improvement, information links will be reinitialized
 	error = P[best].f;
@@ -445,7 +442,7 @@ loop:
 	// Success rate and minimum value
 	if( op->cd->pdebug )
 	{
-		printf( "\n Success rate = %.2f%%", 100 *( 1 - n_failure / ( double )n_exec ) );
+		printf( "\n Success rate = %.2f%%", 100 * ( 1 - n_failure / ( double )n_exec ) );
 		if( n_exec > 1 ) printf( "\n Best min value = %f", min );
 	}
 // end: LABEL THAT IS NOT USED
@@ -648,7 +645,7 @@ double perf( int s, int function )
 		case 18: // Eason 2D (usually on [-100,100]
 			// Minimum -1  on (pi,pi)
 			x1 = xs.x[0]; x2 = xs.x[1];
-			f = -cos( x1 ) * cos( x2 ) / exp(( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
+			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
 		case 19: // mads contaminant transport model
 			func( xs.x, gop, res );

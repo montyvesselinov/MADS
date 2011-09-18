@@ -86,7 +86,7 @@ int LEVMAR_DER(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, ofe_close;
+	int worksz, freework = 0, issolved, ofe_close, success;
 	char filename[80];
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
@@ -167,7 +167,7 @@ int LEVMAR_DER(
 	( *func )( p, hx, m, n, adata ); nfev = 1;
 	if( op->cd->check_success && op->success )
 	{
-		if( op->cd->ldebug ) printf( "SUCCESS: Model predictions are within predifined calibration ranges\n" );
+		if( op->cd->ldebug ) printf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
 		stop = 8;
 	}
 #ifdef HAVE_LAPACK
@@ -225,6 +225,7 @@ int LEVMAR_DER(
 		}
 		fflush( op->f_ofe );
 	}
+	if( op->cd->check_success ) success = 1; else success = 0;
 	for( k = 0; k < itmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
@@ -234,16 +235,10 @@ int LEVMAR_DER(
 			stop = 6;
 			break;
 		}
-		if( op->cd->check_success && op->success )
-		{
-			if( op->cd->ldebug ) printf( "CONVERGED: Model predictions are within predifined calibration ranges\n" );
-			stop = 8;
-			break;
-		}
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if(( updp && nu > 16 ) || updjac == K || mu_big || phi_decline )  /* compute difference approximation to J */
+		if( ( updp && nu > 16 ) || updjac == K || mu_big || phi_decline ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug && k != 0 )
 			{
@@ -257,16 +252,16 @@ int LEVMAR_DER(
 			mu_big = 0;
 			phi_decline = 0;
 			p_eL2_old = p_eL2;
+			if( success ) op->cd->check_success = 0;
 			if( using_ffdif ) /* use forward differences */
-			{
 				jacf( p, hx, jac, m, n, adata );
-			}
 			else  /* use central differences */
 			{
 				if( op->cd->ldebug ) printf( "Central Differences\n" );
 				LEVMAR_FDIF_CENT_JAC_APPROX( func, p, wrk, wrk2, delta, jac, m, n, adata );
 				++njap; nfev += 2 * m;
 			}
+			if( success ) op->cd->check_success = 1;
 			++njap; nfev += m;
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
@@ -274,7 +269,7 @@ int LEVMAR_DER(
 				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
 				else printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
 			}
-			if( op->cd->ldebug > 2 )
+			if( op->cd->ldebug > 3 )
 			{
 				printf( "Jacobian matrix:\n" );
 				for( l = j = 0; j < op->od->nObs; j++ )
@@ -352,7 +347,7 @@ int LEVMAR_DER(
 				}
 				for( i = m; i-- > 0; ) /* copy to upper part */
 					for( j = i + 1; j < m; ++j )
-						jacTjac[i *m + j] = jacTjac[j * m + i];
+						jacTjac[i * m + j] = jacTjac[j * m + i];
 			}
 			else  // this is a large problem
 			{
@@ -378,15 +373,8 @@ int LEVMAR_DER(
 			}
 			//p_L2=sqrt(p_L2);
 		}
-		if( op->cd->ldebug > 3 )
-		{
-			printf( "Current estimate: " );
-			for( i = 0; i < m; ++i )
-				printf( "%g ", p[i] );
-			printf( "-- errors %g %g\n", jacTe_inf, p_eL2 );
-		}
 		/* check for convergence */
-		if(( jacTe_inf <= eps1 ) )
+		if( ( jacTe_inf <= eps1 ) )
 		{
 			Dp_L2 = 0.0; /* no increment for p in this case */
 			if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
@@ -408,7 +396,7 @@ int LEVMAR_DER(
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
 		for( i = 0; i < m; ++i )
-			jacTjac[i *m + i] += mu;   // Add lambda to the matrix diaganol
+			jacTjac[i * m + i] += mu;  // Add lambda to the matrix diaganol
 		/* solve augmented equations */
 		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
 		if( issolved )
@@ -451,10 +439,10 @@ int LEVMAR_DER(
 #if 1
 				pDp_eL2 += tmp * tmp;
 #else
-			if( op->cd->solution_type == TEST ) // this is a test; not needed in general
-				pDp_eL2 += wrk[i];
-			else
-				pDp_eL2 += tmp * tmp;
+				if( op->cd->solution_type == TEST ) // this is a test; not needed in general
+					pDp_eL2 += wrk[i];
+				else
+					pDp_eL2 += tmp * tmp;
 #endif
 			}
 #endif
@@ -479,6 +467,15 @@ int LEVMAR_DER(
 //				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
 				fflush( op->f_ofe );
 			}
+			if( op->cd->check_success && op->success )
+			{
+				if( op->cd->ldebug ) printf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
+				for( i = 0; i < m; i++ )
+					p[i] = pDp[i];
+				p_eL2 = pDp_eL2;
+				stop = 8;
+				break;
+			}
 			if( !LM_FINITE( pDp_eL2 ) )
 			{
 				/* sum of squares is not finite, most probably due to a user error.
@@ -500,7 +497,7 @@ int LEVMAR_DER(
 						tmp += jac[i * m + l] * Dp[l]; /* (J * Dp)[i] */
 					tmp = ( wrk[i] - hx[i] - tmp ) / Dp_L2; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
 					for( j = 0; j < m; ++j )
-						jac[i *m + j] += tmp * Dp[j];
+						jac[i * m + j] += tmp * Dp[j];
 				}
 				++updjac;
 				newjac = 1;
@@ -511,7 +508,7 @@ int LEVMAR_DER(
 			{
 				tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
 				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
-				tmp = (( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
+				tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				mu = mu * tmp; // change lambda
 				if( mu > 1e3 )
 				{
@@ -577,11 +574,11 @@ int LEVMAR_DER(
 		}
 		nu = nu2;
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-			jacTjac[i *m + i] = diag_jacTjac[i];
+			jacTjac[i * m + i] = diag_jacTjac[i];
 	}
 	if( k >= itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-		jacTjac[i *m + i] = diag_jacTjac[i];
+		jacTjac[i * m + i] = diag_jacTjac[i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
@@ -672,7 +669,7 @@ int LEVMAR_DIF(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, ofe_close;
+	int worksz, freework = 0, issolved, ofe_close, success;
 	char filename[80];
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
@@ -752,7 +749,7 @@ int LEVMAR_DIF(
 	( *func )( p, hx, m, n, adata ); nfev = 1;
 	if( op->cd->check_success && op->success )
 	{
-		if( op->cd->ldebug ) printf( "SUCCESS: Model predictions are within predifined calibration ranges\n" );
+		if( op->cd->ldebug ) printf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
 		stop = 8;
 	}
 #ifdef HAVE_LAPACK
@@ -812,6 +809,7 @@ int LEVMAR_DIF(
 //		else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
 		fflush( op->f_ofe );
 	}
+	if( op->cd->check_success ) success = 1; else success = 0;
 	for( k = 0; k < itmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
@@ -821,16 +819,10 @@ int LEVMAR_DIF(
 			stop = 6;
 			break;
 		}
-		if( op->cd->check_success && op->success )
-		{
-			if( op->cd->ldebug ) printf( "CONVERGED: Model predictions are within predifined calibration ranges\n" );
-			stop = 8;
-			break;
-		}
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if(( updp && nu > 16 ) || updjac == K )  /* compute difference approximation to J */
+		if( ( updp && nu > 16 ) || updjac == K ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug )
 			{
@@ -839,6 +831,7 @@ int LEVMAR_DIF(
 				if( updjac == K ) printf( "Maximum number of lambda iteration is reached (%d); ", K );
 				printf( "\n\n" );
 			}
+			if( success ) op->cd->check_success = 0;
 			if( using_ffdif ) /* use forward differences */
 			{
 				LEVMAR_FDIF_FORW_JAC_APPROX( func, p, hx, wrk, delta, jac, m, n, adata );
@@ -850,13 +843,14 @@ int LEVMAR_DIF(
 				LEVMAR_FDIF_CENT_JAC_APPROX( func, p, wrk, wrk2, delta, jac, m, n, adata );
 				++njap; nfev += 2 * m;
 			}
+			if( success ) op->cd->check_success = 1;
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
 				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
 				else printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
 			}
-			if( op->cd->ldebug > 2 )
+			if( op->cd->ldebug > 3 )
 			{
 				printf( "Jacobian matrix:\n" );
 				for( l = j = 0; j < op->od->nObs; j++ )
@@ -934,7 +928,7 @@ int LEVMAR_DIF(
 				}
 				for( i = m; i-- > 0; ) /* copy to upper part */
 					for( j = i + 1; j < m; ++j )
-						jacTjac[i *m + j] = jacTjac[j * m + i];
+						jacTjac[i * m + j] = jacTjac[j * m + i];
 			}
 			else  // this is a large problem
 			{
@@ -960,15 +954,8 @@ int LEVMAR_DIF(
 			}
 			//p_L2=sqrt(p_L2);
 		}
-		if( op->cd->ldebug > 3 )
-		{
-			printf( "Current estimate: " );
-			for( i = 0; i < m; ++i )
-				printf( "%g ", p[i] );
-			printf( "-- errors %g %g\n", jacTe_inf, p_eL2 );
-		}
 		/* check for convergence */
-		if(( jacTe_inf <= eps1 ) )
+		if( ( jacTe_inf <= eps1 ) )
 		{
 			Dp_L2 = 0.0; /* no increment for p in this case */
 			if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
@@ -986,7 +973,7 @@ int LEVMAR_DIF(
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
 		for( i = 0; i < m; ++i )
-			jacTjac[i *m + i] += mu;  // Add lambda to the matrix diaganol
+			jacTjac[i * m + i] += mu; // Add lambda to the matrix diaganol
 		/* solve augmented equations */
 		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
 		if( issolved )
@@ -1045,6 +1032,15 @@ int LEVMAR_DIF(
 //				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
 				fflush( op->f_ofe );
 			}
+			if( op->cd->check_success && op->success )
+			{
+				if( op->cd->ldebug ) printf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
+				for( i = 0; i < m; i++ )
+					p[i] = pDp[i];
+				p_eL2 = pDp_eL2;
+				stop = 8;
+				break;
+			}
 			if( !LM_FINITE( pDp_eL2 ) )
 			{
 				/* sum of squares is not finite, most probably due to a user error.
@@ -1064,7 +1060,7 @@ int LEVMAR_DIF(
 						tmp += jac[i * m + l] * Dp[l]; /* (J * Dp)[i] */
 					tmp = ( wrk[i] - hx[i] - tmp ) / Dp_L2; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
 					for( j = 0; j < m; ++j )
-						jac[i *m + j] += tmp * Dp[j];
+						jac[i * m + j] += tmp * Dp[j];
 				}
 				++updjac;
 				newjac = 1;
@@ -1075,7 +1071,7 @@ int LEVMAR_DIF(
 			{
 				tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
 				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
-				tmp = (( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
+				tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				mu = mu * tmp; // change lambda
 				if( op->cd->ldebug > 1 ) printf( "change factor (tmp) %g\n", tmp );
 				else if( op->cd->ldebug ) printf( "\n" );
@@ -1107,11 +1103,11 @@ int LEVMAR_DIF(
 		}
 		nu = nu2;
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-			jacTjac[i *m + i] = diag_jacTjac[i];
+			jacTjac[i * m + i] = diag_jacTjac[i];
 	}
 	if( k >= itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-		jacTjac[i *m + i] = diag_jacTjac[i];
+		jacTjac[i * m + i] = diag_jacTjac[i];
 	if( info )
 	{
 		info[0] = init_p_eL2;

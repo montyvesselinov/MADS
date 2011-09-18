@@ -143,7 +143,7 @@ static void modify_weights( int fNb, int run );
 //----------------------------------------- Global variables
 int lmo_count;
 int lmo_flag;
-struct archived archiv[archiveMax+1];
+struct archived archiv[archiveMax + 1];
 int arch;
 int archiveNb;
 struct fitness archiveVar;
@@ -167,7 +167,7 @@ int overSizeTribe;// Nb of times a tribe tends to generate too many particles
 int restart;
 int restartNb;
 int debug_level; // Read on the problem file. The higher it is, the more debug_level is the program
-double wF[fMax+1]; // Dynamic penalties
+double wF[fMax + 1]; // Dynamic penalties
 
 static struct position position_lm( struct opt_data *op, struct problem pb, struct position pos );
 void Transform( double *x, void *data, double *f );
@@ -196,7 +196,7 @@ int mopso( struct opt_data *op )
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	pb.fNb = 1;
-	if(( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->odebug )
 	{
@@ -320,7 +320,7 @@ int mopso( struct opt_data *op )
 	printf( "Total number of functional evaluations %d\n", eval_total );
 	printf( "Total number of Leverberg-Marquardt optimizations %d\n", lmo_count );
 	if( pb.repeat > 1 ) printf( "Number of Particle-Swarm Optimizations %d\n", pb.repeat );
-	if( pb.repeat > 1 ) printf( "Average number of evaluations for each Particle-Swarm Optimization %g\n", (( double ) eval_total / pb.repeat ) );
+	if( pb.repeat > 1 ) printf( "Average number of evaluations for each Particle-Swarm Optimization %g\n", ( ( double ) eval_total / pb.repeat ) );
 	if( overSizeTribe > 0 ) printf( "WARNING: Tribe size has been constrained %i times\n", overSizeTribe );
 	if( overSizeSwarm > 0 ) printf( "WARNING: Swarm size has been constrained %i times\n", overSizeSwarm );
 	if( multiObj ) archive_save( archiv, archiveNb, fArchive );
@@ -344,7 +344,7 @@ static struct fitness position_eval( struct problem pb, struct position x )
 	fit.size = pb.fNb;
 	func( x.x, gop, res ); // evaluation ... either internal of external
 	f = 0;
-	for( i = 0; i < gop->od->nObs; i++ ) f += res[i]*res[i];
+	for( i = 0; i < gop->od->nObs; i++ ) f += res[i] *res[i];
 	fit.f[0] = fabs( f - pb.objective[0] );
 	for( i = 0; i < pb.fNb; i++ ) // Save the min and the max fitness ever found
 	{
@@ -380,8 +380,8 @@ static struct problem problemset( struct opt_data *op )
 		fprintf( stderr, "\nYou may increase DMax (%i)\n", DMax );
 		exit( 1 );
 	}
-	if(( opt_var = ( double * ) malloc(pb.D * sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if(( tr_var = ( double * ) malloc(pb.D * sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
+	if( ( opt_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
+	if( ( tr_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
 	for( d = 0; d < pb.D; d++ )
 		opt_var[d] = op->pd->var[ op->pd->var_index[d] ];
 	Transform( opt_var, op, tr_var );
@@ -489,8 +489,8 @@ static void archive_crowding_dist() // Compute the crowding distances in archive
 		qsort( archiv, archiveNb, sizeof( archiv[0] ), compare_fit ); // Sort archive according to f[fn]  NOTE: fn is a global variable
 		for( n = 0; n < archiveNb - 1; n++ ) // For each position find the distance to the nearest one
 		{
-			if( n == 0 ) min = phi_min[fn]; else min = archiv[n-1].x.f.f[fn];
-			if( n == archiveNb - 2 ) max = phi_max[fn]; else max = archiv[n+1].x.f.f[fn];
+			if( n == 0 ) min = phi_min[fn]; else min = archiv[n - 1].x.f.f[fn];
+			if( n == archiveNb - 2 ) max = phi_max[fn]; else max = archiv[n + 1].x.f.f[fn];
 			dist = max - min;
 			if( dist < epsilon_vector[fn] ) epsilon_vector[fn] = dist; // Prepare epsilon-dominance
 			archiv[n].crowD = archiv[n].crowD * dist; // Contribution to the hypervolume
@@ -555,8 +555,8 @@ static void archive_local_search( struct problem pb )
 	 or
 	 Find a point "outside". Check if it is a good one
 	 */
-	struct distRank dR[archiveMax-1];
-	struct position simplex[fMax+1];
+	struct distRank dR[archiveMax - 1];
+	struct position simplex[fMax + 1];
 	struct position xIn, xOut;
 	int fNb, m, n, r, d, out;
 	fNb = archiv[0].x.f.size; // Dimension of the fitness space
@@ -584,7 +584,7 @@ static void archive_local_search( struct problem pb )
 		fNb = archiv[0].x.f.size;
 		qsort( dR, archiveNb - 1, sizeof( dR[0] ), compare_dist_rank );
 		for( m = 0; m < fNb; m++ )
-			simplex[m+1] = archiv[dR[m].rank].x;
+			simplex[m + 1] = archiv[dR[m].rank].x;
 		// Define a new point
 		//out=aleaInteger(0,1); // TO TRY
 		//out=1;
@@ -701,10 +701,10 @@ static double archive_spread()
 	noSpread = sqrt( noSpread2 ); // Initial value
 	// Take distances (in the fitness space) into account
 	// Distance between the new position and the first archived
-	d = fitness_dist( archiv[0].x.f, archiv[archiveNb-1].x.f );
+	d = fitness_dist( archiv[0].x.f, archiv[archiveNb - 1].x.f );
 	for( n = 1; n < archiveNb - 1; n++ ) // Distance min to the others
 	{
-		z = fitness_dist( archiv[n].x.f, archiv[archiveNb-1].x.f );
+		z = fitness_dist( archiv[n].x.f, archiv[archiveNb - 1].x.f );
 		if( z < d ) d = z;
 	}
 	if( d < dMean1 ) noSpread += dMean1; // Penalty
@@ -769,8 +769,8 @@ static int compare_adapt_f( struct fitness f1[], int runs, int fCompare )
 
 static int compare_crowding_dist( void const *a, void const *b ) // QSORT: compare crowding distances in the archive
 {
-	struct archived const *pa = (struct archived const *) a;
-	struct archived const *pb = (struct archived const *) b;
+	struct archived const *pa = ( struct archived const * ) a;
+	struct archived const *pb = ( struct archived const * ) b;
 	if( pa->crowD > pb->crowD ) return 1;
 	if( pa->crowD < pb->crowD ) return -1;
 	return 0;
@@ -778,8 +778,8 @@ static int compare_crowding_dist( void const *a, void const *b ) // QSORT: compa
 
 static int compare_dist_rank( void const *a, void const *b ) // QSORT: compare distancences
 {
-	struct distRank const *pa = (struct distRank const *) a;
-	struct distRank const *pb = (struct distRank const *) b;
+	struct distRank const *pa = ( struct distRank const * ) a;
+	struct distRank const *pb = ( struct distRank const * ) b;
 	if( pa->dist > pb->dist ) return 1;
 	if( pa->dist < pb->dist ) return -1;
 	return 0;
@@ -787,8 +787,8 @@ static int compare_dist_rank( void const *a, void const *b ) // QSORT: compare d
 
 static int compare_fit( void const *a, void const *b ) // QSORT: compare f[fn] in archive
 {
-	struct archived const *pa = (struct archived const *) a;
-	struct archived const *pb = (struct archived const *) b;
+	struct archived const *pa = ( struct archived const * ) a;
+	struct archived const *pb = ( struct archived const * ) b;
 	if( pa->x.f.f[fn] > pb->x.f.f[fn] ) return 1; // NOTE: needs the global variable fn
 	if( pa->x.f.f[fn] < pb->x.f.f[fn] ) return -1;
 	return 0;
@@ -796,8 +796,8 @@ static int compare_fit( void const *a, void const *b ) // QSORT: compare f[fn] i
 
 static int compare_double( void const *a, void const *b ) // QSORT: compare double numbers
 {
-	double const *pa = (double const *) a;
-	double const *pb = (double const *) b;
+	double const *pa = ( double const * ) a;
+	double const *pb = ( double const * ) b;
 	if( *pa > *pb ) return 1;
 	if( *pa < *pb ) return -1;
 	return 0;
@@ -952,7 +952,7 @@ static double minXY( double x, double y )
 static struct particle particle_init( struct problem pb, int initOption, struct position guide1, struct position guide2, struct swarm S )
 {
 	struct particle part = {0};
-	double mean, range, sort_vec[2*tribMax *partMax];
+	double mean, range, sort_vec[2 * tribMax *partMax];
 	int i, ip, it, k, count, rank;
 
 	part.x.size = pb.D; // Initial number of particles equal number of dimensions (optimized variables)
@@ -997,14 +997,14 @@ static struct particle particle_init( struct problem pb, int initOption, struct 
 						for( ip = 0; ip < S.trib[it].size; ip++ )
 						{
 							sort_vec[count] = S.trib[it].part[ip].x.x[k]; // List of known coordinates
-							sort_vec[count+1] = S.trib[it].part[ip].xBest.x[k];
+							sort_vec[count + 1] = S.trib[it].part[ip].xBest.x[k];
 							count += 2;
 						}
 				if( count > 1 ) qsort( sort_vec, count, sizeof( double ), compare_double ); // Sort the list of known coordinates
 				rank = 1;
 				for( i = 2; i < count; i++ )
-					if( sort_vec[i] - sort_vec[i-1] > sort_vec[rank] - sort_vec[rank-1] ) rank = i; // Find the biggest empty interval
-				part.x.x[k] = random_double( sort_vec[rank-1], sort_vec[rank] ); // Select a random position "centered" on the interval
+					if( sort_vec[i] - sort_vec[i - 1] > sort_vec[rank] - sort_vec[rank - 1] ) rank = i; // Find the biggest empty interval
+				part.x.x[k] = random_double( sort_vec[rank - 1], sort_vec[rank] ); // Select a random position "centered" on the interval
 			}
 			break;
 		case 4: // Centered EXPERIMENT
@@ -1061,7 +1061,7 @@ static void position_archive( struct position pos )
 				{
 					if( i < archiveNb - 1 )
 						for( j = i; j < archiveNb - 1; j++ )
-							archiv[j] = archiv[j+1];
+							archiv[j] = archiv[j + 1];
 					archiveNb = archiveNb - 1;
 				}
 			}
@@ -1380,7 +1380,7 @@ static struct swarm swarm_adapt( struct problem pb, struct swarm S0, int compare
 				if( partWorst == St.trib[tr].best ) break; // It might be also the best. In that case, don't remove it
 				if( partWorst < St.trib[tr].size - 1 ) // Remove it from the tribe
 					for( pa = partWorst; pa < St.trib[tr].size - 1; pa++ )
-						St.trib[tr].part[pa] = St.trib[tr].part[pa+1];
+						St.trib[tr].part[pa] = St.trib[tr].part[pa + 1];
 				St.trib[tr].size--;
 				break;
 		}
@@ -1433,7 +1433,7 @@ static struct swarm swarm_adapt( struct problem pb, struct swarm S0, int compare
 					if( trWorst < St.size - 1 ) // Remove the worst tribe
 					{
 						for( tr = trWorst; tr < St.size - 1; tr++ )
-							St.trib[tr] = St.trib[tr+1];
+							St.trib[tr] = St.trib[tr + 1];
 					}
 					St.size--;
 					if( debug_level > 3 ) printf( "remove tribe %i\n", trWorst );
@@ -1544,7 +1544,7 @@ static struct swarm swarm_local_search( struct problem pb, struct swarm S )
 	int out;
 	int pa, nTotPart = 0;
 	int shaman;
-	struct position simplex[fMax+1];
+	struct position simplex[fMax + 1];
 	int tr;
 	struct position xNew;
 	//	double w2=0.74;

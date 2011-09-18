@@ -60,7 +60,7 @@ int load_pst( char *filename, struct opt_data *op )
 	od = op->od;
 	ed = op->ed;
 	op->gd->min_t = op-> gd->time = 0;
-	if(( in = fopen( filename, "r" ) ) == NULL )
+	if( ( in = fopen( filename, "r" ) ) == NULL )
 	{
 		printf( "PEST control file %s cannot be opened to read problem data!\n", filename );
 		return( -1 );
@@ -77,16 +77,16 @@ int load_pst( char *filename, struct opt_data *op )
 	fgets( buf, 1000, in );
 	sscanf( buf, "%d %d", &( *ed ).ntpl, &( *ed ).nins );
 	printf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *ed ).ntpl, ( *ed ).nins );
-	pd->var_id = char_matrix(( *pd ).nParam, 50 );
-	pd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_current = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	cd->var = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_opt = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
-	pd->var_log = ( int * ) malloc(( *pd ).nParam * sizeof( int ) );
-	pd->var_dx = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_min = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_max = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
-	pd->var_range = ( double * ) malloc(( *pd ).nParam * sizeof( double ) );
+	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
+	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_current = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_opt = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
+	pd->var_log = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
+	pd->var_dx = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	printf( "Parameters = %d:\n", pd->nParam );
 	for( i = 0; i < 6; i++ ) // skip 6 lines
 		fgets( buf, 1000, in );
@@ -100,7 +100,7 @@ int load_pst( char *filename, struct opt_data *op )
 		printf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], pd->var[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 		if( strcmp( code, "fixed" ) == 0 ) pd->var_opt[i] = 0; else { pd->nOptParam++; pd->var_opt[i] = 1; }
 		if( strcmp( code, "log" ) == 0 ) pd->var_log[i] = 1; else pd->var_log[i] = 0;
-		if(( *pd ).var_log[i] == 1 )
+		if( ( *pd ).var_log[i] == 1 )
 		{
 			pd->var[i] = log10( pd->var[i] );
 			pd->var_min[i] = log10( pd->var_min[i] );
@@ -109,12 +109,12 @@ int load_pst( char *filename, struct opt_data *op )
 		pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
 		pd->var_dx[i] = pd->var_range[i] / 10;
 	}
-	pd->var_index = ( int * ) malloc(( *pd ).nOptParam * sizeof( int ) );
+	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
 	printf( "Optimized parameters = %d\n", pd->nOptParam );
 	for( k = i = 0; i < ( *pd ).nParam; i++ )
-		if(( *pd ).var_opt[i] == 1 )
+		if( ( *pd ).var_opt[i] == 1 )
 		{
-			if(( *pd ).var_log[i] == 1 ) d = log10( pd->var[i] ); else d = pd->var[i];
+			if( ( *pd ).var_log[i] == 1 ) d = log10( pd->var[i] ); else d = pd->var[i];
 			printf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, ( *pd ).var_min[i], ( *pd ).var_max[i] );
 			( *pd ).var_index[k++] = i;
 		}
@@ -122,14 +122,14 @@ int load_pst( char *filename, struct opt_data *op )
 	for( i = 0; i < nobs_groups; i++ )
 		fgets( buf, 1000, in );
 	fgets( buf, 1000, in ); // skip line
-	od->obs_id = char_matrix(( *od ).nObs, 50 );
-	od->obs_target = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-	od->obs_weight = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-	od->obs_min = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-	od->obs_max = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-	od->obs_current = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-	od->res = ( double * ) malloc(( *od ).nObs * sizeof( double ) );
-	od->obs_log = ( int * ) malloc(( *od ).nObs * sizeof( int ) );
+	od->obs_id = char_matrix( ( *od ).nObs, 50 );
+	od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+	od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+	od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+	od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+	od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+	od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+	od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 	for( i = 0; i < od->nObs; i++ )
 		fscanf( in, "%s %lf %lf %*s\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i] );
 	printf( "Calibration targets = %d\n", ( *od ).nObs );
@@ -173,7 +173,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	char *separator = " \t\n";
 	char *word_inst, *word_search, token_obs[2], token_search[2], dummy_var[6], buf_inst[1000], *pnt_inst;
 	int i, c, bad_data = 0;
-	if(( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
+	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
 		return( -1 );
@@ -308,12 +308,12 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	char *word_inst, *word_data, *word_search, token_search[2], token_obs[2], dummy_var[6], buf_data[1000], buf_inst[1000], *pnt_inst, *pnt_data;
 	int i, c, bad_data = 0;
 	double v;
-	if(( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
+	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
 		return( -1 );
 	}
-	if(( infile_data = fopen( fn_in_d, "r" ) ) == NULL )
+	if( ( infile_data = fopen( fn_in_d, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read the model-predicted observations!\n", fn_in_d );
 		return( -1 );
@@ -416,7 +416,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				bad_data = 1;
 				while( !feof( infile_data ) )
 				{
-					if(( pnt_data = strstr( pnt_data, word_search ) ) != NULL )
+					if( ( pnt_data = strstr( pnt_data, word_search ) ) != NULL )
 					{
 						if( debug ) printf( "Matching line found in the data file: \'%s\' Location \'%s\'\n", buf_data, pnt_data );
 						bad_data = 0;
@@ -495,7 +495,7 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 	char *sep = " \t\n"; // White spaces
 	char *word, token[2], buf[1000];
 	int i, l, c, start = 0, bad_data = 0;
-	if(( in = fopen( fn_in_t, "r" ) ) == NULL )
+	if( ( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
@@ -581,13 +581,13 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	char *sep = " \t\n";
 	char *word, token[2], number[80], buf[1000];
 	int i, l, l2, c, start, space = 0, bad_data = 0;
-	if(( in = fopen( fn_in_t, "r" ) ) == NULL )
+	if( ( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
 	}
 	sprintf( buf, "rm %s >& /dev/null", fn_out ); system( buf );
-	if(( out = fopen( fn_out, "w" ) ) == NULL )
+	if( ( out = fopen( fn_out, "w" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to write data!\n", fn_out );
 		return( -1 );
