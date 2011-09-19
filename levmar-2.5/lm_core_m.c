@@ -86,8 +86,7 @@ int LEVMAR_DER(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, ofe_close, success, odebug;
-	char filename[80];
+	int worksz, freework = 0, issolved, success, odebug;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -198,33 +197,6 @@ int LEVMAR_DER(
 	init_p_eL2 = p_eL2_old = p_eL2;
 	if( !LM_FINITE( p_eL2 ) ) stop = 7;
 	nu = 20; /* force computation of J */
-	if( op->cd->odebug )
-	{
-		if( op->f_ofe == NULL )
-		{
-			if( op->counter > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->counter );
-			else sprintf( filename, "%s.ofe", op->root );
-			if( op->cd->nretries > 1 && op->cd->retry_ind > 1 ) op->f_ofe = fopen( filename, "a" );
-			else op->f_ofe = fopen( filename, "w" );
-			ofe_close = 1;
-		}
-		else ofe_close = 0;
-		if( op->cd->standalone )
-		{
-			fprintf( op->f_ofe, "%d %g", op->cd->neval, p_eL2 ); // Print current best
-			for( i = 0; i < op->pd->nOptParam; i++ )
-				fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-			fprintf( op->f_ofe, "\n" );
-		}
-		else
-		{
-			fprintf( op->f_ofe, "%d %g", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
-			for( i = 0; i < op->pd->nOptParam; i++ )
-				fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-			fprintf( op->f_ofe, "\n" );
-		}
-		fflush( op->f_ofe );
-	}
 	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	for( k = 0; k < itmax && !stop; ++k )
@@ -239,7 +211,7 @@ int LEVMAR_DER(
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if( ( updp && nu > 16 ) || updjac == K || mu_big || phi_decline ) /* compute difference approximation to J */
+		if(( updp && nu > 16 ) || updjac == K || mu_big || phi_decline )  /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug && k != 0 )
 			{
@@ -282,26 +254,6 @@ int LEVMAR_DER(
 						printf( " %g", jac[l] );
 					printf( "\n" );
 				}
-			}
-			if( op->cd->odebug )
-			{
-				if( op->cd->standalone )
-				{
-					fprintf( op->f_ofe, "%d %g", op->cd->neval, p_eL2 ); // Print current best
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-					fprintf( op->f_ofe, "\n" );
-				}
-				else
-				{
-					fprintf( op->f_ofe, "%d %g", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-					fprintf( op->f_ofe, "\n" );
-				}
-//				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, p_eL2 ); // Print current best
-//				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
-				fflush( op->f_ofe );
 			}
 		}
 		if( newjac ) /* Jacobian has changed, recompute J^T J, J^t e, etc */
@@ -350,7 +302,7 @@ int LEVMAR_DER(
 				}
 				for( i = m; i-- > 0; ) /* copy to upper part */
 					for( j = i + 1; j < m; ++j )
-						jacTjac[i * m + j] = jacTjac[j * m + i];
+						jacTjac[i *m + j] = jacTjac[j * m + i];
 			}
 			else  // this is a large problem
 			{
@@ -377,7 +329,7 @@ int LEVMAR_DER(
 			//p_L2=sqrt(p_L2);
 		}
 		/* check for convergence */
-		if( ( jacTe_inf <= eps1 ) )
+		if(( jacTe_inf <= eps1 ) )
 		{
 			Dp_L2 = 0.0; /* no increment for p in this case */
 			if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
@@ -399,7 +351,7 @@ int LEVMAR_DER(
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
 		for( i = 0; i < m; ++i )
-			jacTjac[i * m + i] += mu;  // Add lambda to the matrix diaganol
+			jacTjac[i *m + i] += mu;   // Add lambda to the matrix diaganol
 		/* solve augmented equations */
 		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
 		if( issolved )
@@ -442,34 +394,14 @@ int LEVMAR_DER(
 #if 1
 				pDp_eL2 += tmp * tmp;
 #else
-				if( op->cd->solution_type == TEST ) // this is a test; not needed in general
-					pDp_eL2 += wrk[i];
-				else
-					pDp_eL2 += tmp * tmp;
+			if( op->cd->solution_type == TEST ) // this is a test; not needed in general
+				pDp_eL2 += wrk[i];
+			else
+				pDp_eL2 += tmp * tmp;
 #endif
 			}
 #endif
 			if( op->cd->ldebug ) printf( "OF %g lambda %g ", pDp_eL2, mu );
-			if( op->cd->odebug )
-			{
-				if( op->cd->standalone )
-				{
-					fprintf( op->f_ofe, "%d %g", op->cd->neval, p_eL2 ); // Print current best
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-					fprintf( op->f_ofe, "\n" );
-				}
-				else
-				{
-					fprintf( op->f_ofe, "%d %g", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-					fprintf( op->f_ofe, "\n" );
-				}
-//				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, pDp_eL2 ); // Print current best
-//				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
-				fflush( op->f_ofe );
-			}
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
@@ -507,7 +439,7 @@ int LEVMAR_DER(
 						tmp += jac[i * m + l] * Dp[l]; /* (J * Dp)[i] */
 					tmp = ( wrk[i] - hx[i] - tmp ) / Dp_L2; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
 					for( j = 0; j < m; ++j )
-						jac[i * m + j] += tmp * Dp[j];
+						jac[i *m + j] += tmp * Dp[j];
 				}
 				++updjac;
 				newjac = 1;
@@ -518,7 +450,7 @@ int LEVMAR_DER(
 			{
 				tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
 				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
-				tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
+				tmp = (( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				mu = mu * tmp; // change lambda
 				if( mu > 1e3 )
 				{
@@ -584,11 +516,11 @@ int LEVMAR_DER(
 		}
 		nu = nu2;
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-			jacTjac[i * m + i] = diag_jacTjac[i];
+			jacTjac[i *m + i] = diag_jacTjac[i];
 	}
 	if( k >= itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-		jacTjac[i * m + i] = diag_jacTjac[i];
+		jacTjac[i *m + i] = diag_jacTjac[i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
@@ -635,7 +567,6 @@ int LEVMAR_DER(
 #ifdef LINSOLVERS_RETAIN_MEMORY
 	if( linsolver )( *linsolver )( NULL, NULL, NULL, 0 );
 #endif
-	if( op->cd->odebug == 1 && ofe_close == 1 ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 	return ( stop != 4 && stop != 7 ) ?  k : LM_ERROR;
 }
 
@@ -679,8 +610,7 @@ int LEVMAR_DIF(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, ofe_close, success, odebug;
-	char filename[80];
+	int worksz, freework = 0, issolved, success, odebug;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -790,35 +720,6 @@ int LEVMAR_DIF(
 	init_p_eL2 = p_eL2;
 	if( !LM_FINITE( p_eL2 ) ) stop = 7;
 	nu = 20; /* force computation of J */
-	if( op->cd->odebug )
-	{
-		if( op->f_ofe == NULL )
-		{
-			if( op->counter > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->counter );
-			else sprintf( filename, "%s.ofe", op->root );
-			if( op->cd->nretries > 1 && op->cd->retry_ind > 1 ) op->f_ofe = fopen( filename, "a" );
-			else op->f_ofe = fopen( filename, "w" );
-			ofe_close = 1;
-		}
-		else ofe_close = 0;
-		if( op->cd->standalone )
-		{
-			fprintf( op->f_ofe, "%d %g", op->cd->neval, p_eL2 ); // Print current best
-			for( i = 0; i < op->pd->nOptParam; i++ )
-				fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-			fprintf( op->f_ofe, "\n" );
-		}
-		else
-		{
-			fprintf( op->f_ofe, "%d %g", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
-			for( i = 0; i < op->pd->nOptParam; i++ )
-				fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-			fprintf( op->f_ofe, "\n" );
-		}
-//		if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, p_eL2 ); // Print current best
-//		else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
-		fflush( op->f_ofe );
-	}
 	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	for( k = 0; k < itmax && !stop; ++k )
@@ -826,7 +727,7 @@ int LEVMAR_DIF(
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if( ( updp && nu > 16 ) || updjac == K ) /* compute difference approximation to J */
+		if(( updp && nu > 16 ) || updjac == K )  /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug )
 			{
@@ -866,26 +767,6 @@ int LEVMAR_DIF(
 						printf( " %g", jac[l] );
 					printf( "\n" );
 				}
-			}
-			if( op->cd->odebug )
-			{
-				if( op->cd->standalone )
-				{
-					fprintf( op->f_ofe, "%d %g", op->cd->neval, p_eL2 ); // Print current best
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-					fprintf( op->f_ofe, "\n" );
-				}
-				else
-				{
-					fprintf( op->f_ofe, "%d %g", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-					fprintf( op->f_ofe, "\n" );
-				}
-//				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, p_eL2 ); // Print current best
-//				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : p_eL2 ); // Print overall best
-				fflush( op->f_ofe );
 			}
 		}
 		if( newjac ) /* Jacobian has changed, recompute J^T J, J^t e, etc */
@@ -934,7 +815,7 @@ int LEVMAR_DIF(
 				}
 				for( i = m; i-- > 0; ) /* copy to upper part */
 					for( j = i + 1; j < m; ++j )
-						jacTjac[i * m + j] = jacTjac[j * m + i];
+						jacTjac[i *m + j] = jacTjac[j * m + i];
 			}
 			else  // this is a large problem
 			{
@@ -961,7 +842,7 @@ int LEVMAR_DIF(
 			//p_L2=sqrt(p_L2);
 		}
 		/* check for convergence */
-		if( ( jacTe_inf <= eps1 ) )
+		if(( jacTe_inf <= eps1 ) )
 		{
 			Dp_L2 = 0.0; /* no increment for p in this case */
 			if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
@@ -979,7 +860,7 @@ int LEVMAR_DIF(
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
 		for( i = 0; i < m; ++i )
-			jacTjac[i * m + i] += mu; // Add lambda to the matrix diaganol
+			jacTjac[i *m + i] += mu;  // Add lambda to the matrix diaganol
 		/* solve augmented equations */
 		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
 		if( issolved )
@@ -1018,26 +899,6 @@ int LEVMAR_DIF(
 			}
 #endif
 			if( op->cd->ldebug ) printf( "OF %g lambda %g ", pDp_eL2, mu );
-			if( op->cd->odebug )
-			{
-				if( op->cd->standalone )
-				{
-					fprintf( op->f_ofe, "%d %g", op->cd->neval, pDp_eL2 ); // Print current best
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-					fprintf( op->f_ofe, "\n" );
-				}
-				else
-				{
-					fprintf( op->f_ofe, "%d %g", op->cd->neval, ( op->phi < p_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						fprintf( op->f_ofe, " %g", op->cd->var[op->pd->var_index[i]] );
-					fprintf( op->f_ofe, "\n" );
-				}
-//				if( op->cd->standalone ) fprintf( op->f_ofe, "%d %g\n", op->cd->neval, pDp_eL2 ); // Print current best
-//				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
-				fflush( op->f_ofe );
-			}
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
@@ -1073,7 +934,7 @@ int LEVMAR_DIF(
 						tmp += jac[i * m + l] * Dp[l]; /* (J * Dp)[i] */
 					tmp = ( wrk[i] - hx[i] - tmp ) / Dp_L2; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
 					for( j = 0; j < m; ++j )
-						jac[i * m + j] += tmp * Dp[j];
+						jac[i *m + j] += tmp * Dp[j];
 				}
 				++updjac;
 				newjac = 1;
@@ -1084,7 +945,7 @@ int LEVMAR_DIF(
 			{
 				tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
 				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
-				tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
+				tmp = (( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				mu = mu * tmp; // change lambda
 				if( op->cd->ldebug > 1 ) printf( "change factor (tmp) %g\n", tmp );
 				else if( op->cd->ldebug ) printf( "\n" );
@@ -1116,11 +977,11 @@ int LEVMAR_DIF(
 		}
 		nu = nu2;
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-			jacTjac[i * m + i] = diag_jacTjac[i];
+			jacTjac[i *m + i] = diag_jacTjac[i];
 	}
 	if( k >= itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
-		jacTjac[i * m + i] = diag_jacTjac[i];
+		jacTjac[i *m + i] = diag_jacTjac[i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
@@ -1167,7 +1028,6 @@ int LEVMAR_DIF(
 #ifdef LINSOLVERS_RETAIN_MEMORY
 	if( linsolver )( *linsolver )( NULL, NULL, NULL, 0 );
 #endif
-	if( op->cd->odebug == 1 && ofe_close == 1 ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 	return ( stop != 4 && stop != 7 ) ?  k : LM_ERROR;
 }
 
