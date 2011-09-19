@@ -207,6 +207,7 @@ int main( int argn, char *argv[] )
 		printf( "   eval=[integer]     - terminate calibration if functional evaluations exceed the predefined value [default eval=5000]\n" );
 		printf( "   cutoff=[real]      - terminate calibration if the objective function is below the cutoff value [default cutoff=0]\n" );
 		printf( "   success            - terminate calibration if model predictions are within predefined calibration ranges\n" );
+		printf( "   truth=[real]       - terminate calibration if parameter estimates within within predefined absolute error [default truth=0.1]\n" );
 		printf( "\ncalibration options:\n" );
 		printf( "   paranoid           - Paranoid Levenberg-Marquardt optimization using multiple retries\n" );
 		printf( "   retry=[integer]    - number of optimization retries [default retry=0]\n" );
@@ -1805,7 +1806,7 @@ int optimize_lm( struct opt_data *op )
 	{
 		if( standalone ) printf( "Paranoid Levenberg-Marquardt Optimization ... " ); fflush( stdout );
 		npar = op->pd->nOptParam;
-		if( op->cd->nretries <= 0 ) op->cd->nretries = ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * npar / 5 );
+		if( op->cd->nretries <= 0 ) op->cd->nretries = ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * npar / 10 );
 		if( debug ) printf( "\nRandom sampling for paranoid optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
 		if( ( var_lhs = ( double * ) malloc( npar * op->cd->nretries * sizeof( double ) ) ) == NULL )
 			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
@@ -1933,7 +1934,7 @@ int optimize_lm( struct opt_data *op )
 			else opts[4] = op->cd->sindx;
 			while( op->cd->maxeval > op->cd->neval )
 			{
-				// Levmar has no termination creteria based on the number of functional evaluations or number of jacobian evaluations
+				// Levmar has no termination criteria based on the number of functional evaluations or number of jacobian evaluations
 				if( opts[4] > 0 ) maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 10 ) + 1 ); // Forward derivatives
 				else              maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 10 ) + 1 ); // Central derivatives
 				if( maxiter_levmar > maxiter ) maxiter_levmar = maxiter;
@@ -1996,7 +1997,12 @@ int optimize_lm( struct opt_data *op )
 			if( phi_min < op->cd->phi_cutoff )
 				{ if( debug ) printf( "Paranoid calibration objective function is below the cutoff value after %d random initial guess attempts\n", count ); break; }
 			if( op->cd->check_success && op->success )
-				{ if( debug ) printf( "Paranoid calibration within calibration ranges after %d random initial guess attempts\n", count ); break; }
+			{
+				if( debug ) printf( "Paranoid calibration within calibration ranges after %d random initial guess attempts\n", count );
+				phi_min = op->phi;
+				for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
+				break;
+			}
 			if( op->cd->maxeval <= op->cd->neval )
 				{ if( debug ) printf( "Paranoid calibration terminated after evaluations %d (max evaluations %d)\n", op->cd->neval, op->cd->maxeval ); break; }
 			if( count == op->cd->nretries )
@@ -2007,6 +2013,7 @@ int optimize_lm( struct opt_data *op )
 	while( 1 ); // END Paranoid loop
 	if( op->cd->paranoid ) // Recompute for the best results
 	{
+		if( !debug ) printf( "(retries=%d) ", count );
 		op->phi = phi_min;
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			op->pd->var[op->pd->var_index[i]] = op->pd->var_best[i];
@@ -2549,8 +2556,8 @@ void print_results( struct opt_data *op )
 	}
 	else
 	{
-		if( success_all ) printf( "All the estimated model parameters have an absolute error from the true parameters less than 0.1!\n" );
-		else printf( "At least one of the estimated model parameters has an absolute error from the true parameters greater than 0.1!\n" );
+		if( success_all ) printf( "All the estimated model parameters have an absolute error from the true parameters (<%g)!\n", op->cd->truth );
+		else printf( "At least one of the estimated model parameters has an absolute error from the true parameters (>%g)!\n", op->cd->truth );
 	}
 	printf( "Number of function evaluations = %d\n", op->cd->neval );
 }
@@ -2626,8 +2633,8 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	}
 	else
 	{
-		if( success_all ) fprintf( out, "All the estimated model parameters have an absolute error from the true parameters less than 0.1!\n" );
-		else fprintf( out, "At least one of the estimated model parameters has an absolute error from the true parameters greater than 0.1!\n" );
+		if( success_all ) fprintf( out, "All the estimated model parameters have an absolute error from the true parameters (<%g)!\n", op->cd->truth );
+		else fprintf( out, "At least one of the estimated model parameters has an absolute error from the true parameters (>%g)!\n", op->cd->truth );
 	}
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->neval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed );

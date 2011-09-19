@@ -46,7 +46,7 @@ int set_test_problems( struct opt_data *op )
 	// cd->sintrans = 0; // No sin transformations
 	cd->compute_phi = 1;
 	if( cd->test_func >= 40 ) pd->nParam = pd->nOptParam = cd->test_func_npar;
-	if( cd->test_func == 9 || cd->test_func == 10 || cd->test_func == 20 || cd->test_func == 23 || cd->test_func == 35 ) pd->nParam = pd->nOptParam = cd->test_func_dim = 2;
+	else if( cd->test_func == 9 || cd->test_func == 10 || cd->test_func == 20 || cd->test_func == 23 || cd->test_func == 35 ) pd->nParam = pd->nOptParam = cd->test_func_dim = 2;
 	else pd->nParam = pd->nOptParam = cd->test_func_dim;
 	pd->nFlgParam = 0;
 	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
@@ -188,6 +188,32 @@ int set_test_problems( struct opt_data *op )
 			oddefined = 1;
 			break;
 		case 41: // sin/cos
+			pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 100.5;
+			pd->var[1] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 101.5;
+			pd->var[2] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 102.5;
+			pd->var[3] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 103.5;
+			for( d = 0; d < pd->nOptParam; d++ )
+			{
+				pd->var_min[d] = 50; pd->var_max[d] = 150;
+				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
+			}
+			pd->var_truth[0] = 100;
+			pd->var_truth[1] = 101;
+			pd->var_truth[2] = 102;
+			pd->var_truth[3] = 103;
+			printf( "Sin/Cos test function with %i observations (", cd->test_func_dim );
+			for( d = 0; d < pd->nOptParam; d++ )
+				printf( "%g/", pd->var_truth[d] );
+			printf( ")" );
+			od->nObs = cd->test_func_nobs;
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			for( d = 0; d < od->nObs; d++ )
+				od->obs_target[d] = pd->var_truth[0] * cos( pd->var_truth[1] * d * dx ) + pd->var_truth[2] * sin( pd->var_truth[3] * d * dx );
+			oddefined = 1;
+			break;
+		case 42: // sin/cos
 			pd->var_truth[0] = a = 93;
 			pd->var_truth[1] = b = 95;
 			printf( "Simplified Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
@@ -505,6 +531,12 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				o[d] = x[0] * cos( x[1] * d * dx ) + x[1] * sin( x[0] * d * dx );
 			break;
 		case 41: // Sin/Cos
+			f = 0;
+			dx = ( double ) M_PI * 2 / ( nObs - 1 );
+			for( d = 0; d < nObs; d++ )
+				o[d] = x[0] * cos( x[1] * d * dx ) + x[2] * sin( x[3] * d * dx );
+			break;
+		case 42: // Sin/Cos
 			f = 0;
 			dx = ( double ) M_PI * 2  / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )

@@ -98,6 +98,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->maxeval = 5000;
 	cd->paranoid = 0;
 	cd->phi_cutoff = 0;
+	cd->truth = 0.1;
 	cd->test_func = -1;
 	cd->test_func_dim = 0;
 	cd->energy = 0;
@@ -141,6 +142,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
 		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; }
 		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); }
+		if( strcasestr( word, "truth=" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->truth ); }
 		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0001; }
 		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.0001; }
 		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
@@ -178,7 +180,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( cd->test_func < 40 ) printf( "Test Function #%d Dimensionality %d\n", cd->test_func, cd->test_func_dim );
 		else
 		{
-			cd->test_func_npar = 2;
+			if( cd->test_func == 41 ) cd->test_func_npar = 4;
+			else cd->test_func_npar = 2;
 			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 2;
 			printf( "Test Function #%d Parameters %d Observations %d\n", cd->test_func, cd->test_func_npar, cd->test_func_nobs );
 		}
@@ -247,6 +250,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		printf( "\n" );
 	}
 	if( cd->sintrans == 0 ) printf( "\nSin transformation of the model parameters is not applied!\n" );
+	else printf( "\nSin transformation of the model parameters is applied!\n" );
 	if( cd->plogtrans == 1 ) printf( "\nLog transformation enforced on all parameters!\n" );
 	else if( cd->plogtrans == 0 ) printf( "\nLog transformation is not applied to any parameters!\n" );
 	if( cd->ologtrans == 1 ) printf( "\nLog transformation enforced on all calibration targets!\n" );

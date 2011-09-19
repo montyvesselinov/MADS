@@ -86,7 +86,7 @@ int LEVMAR_DER(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, ofe_close, success;
+	int worksz, freework = 0, issolved, ofe_close, success, odebug;
 	char filename[80];
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
@@ -226,6 +226,7 @@ int LEVMAR_DER(
 		fflush( op->f_ofe );
 	}
 	if( op->cd->check_success ) success = 1; else success = 0;
+	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	for( k = 0; k < itmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
@@ -253,6 +254,7 @@ int LEVMAR_DER(
 			phi_decline = 0;
 			p_eL2_old = p_eL2;
 			if( success ) op->cd->check_success = 0;
+			if( odebug ) op->cd->odebug = 0;
 			if( using_ffdif ) /* use forward differences */
 				jacf( p, hx, jac, m, n, adata );
 			else  /* use central differences */
@@ -262,6 +264,7 @@ int LEVMAR_DER(
 				++njap; nfev += 2 * m;
 			}
 			if( success ) op->cd->check_success = 1;
+			if( odebug ) op->cd->odebug = 1;
 			++njap; nfev += m;
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
@@ -430,7 +433,7 @@ int LEVMAR_DER(
 #endif
 			/* compute ||e(pDp)||_2 */
 			/* ### wrk2=x-wrk, pDp_eL2=||wrk2|| */
-#if 1
+#if 0
 			pDp_eL2 = LEVMAR_L2NRMXMY( wrk2, x, wrk, n );
 #else
 			for( i = 0, pDp_eL2 = 0.0; i < n; ++i )
@@ -467,11 +470,18 @@ int LEVMAR_DER(
 //				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
 				fflush( op->f_ofe );
 			}
+			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
+			{
+				if( op->cd->ldebug ) printf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
+				for( i = 0; i < m; i++ ) p[i] = pDp[i];
+				p_eL2 = pDp_eL2;
+				stop = 6;
+				break;
+			}
 			if( op->cd->check_success && op->success )
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
-				for( i = 0; i < m; i++ )
-					p[i] = pDp[i];
+				for( i = 0; i < m; i++ ) p[i] = pDp[i];
 				p_eL2 = pDp_eL2;
 				stop = 8;
 				break;
@@ -669,7 +679,7 @@ int LEVMAR_DIF(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, ofe_close, success;
+	int worksz, freework = 0, issolved, ofe_close, success, odebug;
 	char filename[80];
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
@@ -810,15 +820,9 @@ int LEVMAR_DIF(
 		fflush( op->f_ofe );
 	}
 	if( op->cd->check_success ) success = 1; else success = 0;
+	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	for( k = 0; k < itmax && !stop; ++k )
 	{
-		/* Note that p and e have been updated at a previous iteration */
-		if( p_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
-		{
-			if( op->cd->ldebug ) printf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
-			stop = 6;
-			break;
-		}
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
@@ -832,6 +836,7 @@ int LEVMAR_DIF(
 				printf( "\n\n" );
 			}
 			if( success ) op->cd->check_success = 0;
+			if( op->cd->odebug ) odebug = 1; else odebug = 0;
 			if( using_ffdif ) /* use forward differences */
 			{
 				LEVMAR_FDIF_FORW_JAC_APPROX( func, p, hx, wrk, delta, jac, m, n, adata );
@@ -844,6 +849,7 @@ int LEVMAR_DIF(
 				++njap; nfev += 2 * m;
 			}
 			if( success ) op->cd->check_success = 1;
+			if( op->cd->odebug ) odebug = 1; else odebug = 1;
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
@@ -1032,11 +1038,18 @@ int LEVMAR_DIF(
 //				else fprintf( op->f_ofe, "%d %g\n", op->cd->neval, ( op->phi < pDp_eL2 ) ? op->phi : pDp_eL2 ); // Print overall best
 				fflush( op->f_ofe );
 			}
+			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
+			{
+				if( op->cd->ldebug ) printf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
+				for( i = 0; i < m; i++ ) p[i] = pDp[i];
+				p_eL2 = pDp_eL2;
+				stop = 6;
+				break;
+			}
 			if( op->cd->check_success && op->success )
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
-				for( i = 0; i < m; i++ )
-					p[i] = pDp[i];
+				for( i = 0; i < m; i++ ) p[i] = pDp[i];
 				p_eL2 = pDp_eL2;
 				stop = 8;
 				break;
