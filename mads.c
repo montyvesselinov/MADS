@@ -714,6 +714,7 @@ int main( int argn, char *argv[] )
 		cd.neval = neval_total; // provide the correct number of total evaluations
 		printf( "\nTotal number of evaluations = %lu\n", neval_total );
 		op.phi = phi_min; // get the best phi
+		for( i = 0; i < pd.nOptParam; i++ ) printf( "d %g\n", pd.var_best[i] );
 		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = od.obs_best[i] ; // get the best observations
 		fprintf( out, "Minimum objective function: %g\n", phi_min );
@@ -1778,7 +1779,7 @@ int optimize_pso( struct opt_data *op )
 int optimize_lm( struct opt_data *op )
 {
 	double phi, phi_min;
-	double *opt_params, *res, *x_c;
+	double *opt_params, *opt_params_best, *res, *x_c;
 	int   nsig, maxfn, maxiter, maxiter_levmar, iopt, infer, ier, debug, standalone;
 	int   i, j, k, debug_level, count, count_set, npar;
 	double opt_parm[4], *jacobian, *jacTjac, *covar, *work, eps, delta, *var_lhs;
@@ -1790,6 +1791,8 @@ int optimize_lm( struct opt_data *op )
 	gsl_matrix *gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
 	if(( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	if(( opt_params_best = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 	if(( x_c = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
@@ -1997,15 +2000,18 @@ int optimize_lm( struct opt_data *op )
 				op->pd->var[op->pd->var_index[i]] = opt_params[i];
 		if( op->cd->paranoid )
 		{
-			if( op->phi < phi_min ) { phi_min = op->phi; for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]]; }
+			if( op->phi < phi_min ) { phi_min = op->phi; for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]]; }
 			if( debug ) printf( "Objective function: %g Success %d\n", op->phi, op->success );
 			if( phi_min < op->cd->phi_cutoff )
-				{ if( debug ) printf( "Paranoid calibration objective function is below the cutoff value after %d random initial guess attempts\n", count ); break; }
+			{
+				if( debug ) printf( "Paranoid calibration objective function is below the cutoff value after %d random initial guess attempts\n", count );
+				break;
+			}
 			if( op->cd->check_success && op->success )
 			{
 				if( debug ) printf( "Paranoid calibration within calibration ranges after %d random initial guess attempts\n", count );
 				phi_min = op->phi;
-				for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
+				for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]];
 				break;
 			}
 			if( op->cd->maxeval <= op->cd->neval )
@@ -2021,8 +2027,8 @@ int optimize_lm( struct opt_data *op )
 		if( !debug ) printf( "(retries=%d) ", count );
 		op->phi = phi_min;
 		for( i = 0; i < op->pd->nOptParam; i++ )
-			op->pd->var[op->pd->var_index[i]] = op->pd->var_best[i];
-		Transform( op->pd->var_best, op, opt_params );
+			op->pd->var[op->pd->var_index[i]] = opt_params_best[i];
+		Transform( opt_params_best, op, opt_params );
 		op->cd->compute_phi = 1;
 		func( opt_params, op, op->od->res );
 		op->cd->compute_phi = 0;
