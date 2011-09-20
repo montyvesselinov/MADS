@@ -2035,7 +2035,7 @@ int optimize_lm( struct opt_data *op )
 	}
 	if(( op->cd->leigen || debug > 1 ) && standalone ) eigen( op, gsl_jacobian, gsl_covar );  // Eigen analysis
 	if( op->cd->paranoid ) free( var_lhs );
-	free( opt_params ); free( x_c ); free( res );
+	free( opt_params ); free( opt_params_best ); free( x_c ); free( res );
 	gsl_matrix_free( gsl_jacobian ); gsl_matrix_free( gsl_covar ); gsl_vector_free( gsl_opt_params );
 	if( standalone && !debug && op->cd->calib_type == SIMPLE ) printf( "\n" );
 	return( 1 );
