@@ -99,9 +99,9 @@ int mprun( int nJob, void *data )
 		free( skip_job );
 		return( -1 );
 	}
-	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset( ( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
-	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset( ( int * ) kidstatus, ( int ) - 1, nProc * sizeof( int ) ); // Status of external jobs
-	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset( ( int * ) kidattempt, ( int ) - 1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
+	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset(( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) );  // ID's of external jobs
+	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidstatus, ( int ) - 1, nProc * sizeof( int ) );  // Status of external jobs
+	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset(( int * ) kidattempt, ( int ) - 1, nProc * sizeof( int ) );  // Number of attempts to execute each external job
 	kiddir = char_matrix( nProc, 95 ); // Directories for external jobs
 	rerundir = char_matrix( nProc, 95 ); // Rerun directories for external jobs
 	if( type == 0 )
@@ -116,9 +116,9 @@ int mprun( int nJob, void *data )
 		if( rJob > nJob || nProc <= 0 )
 		{
 			printf( "None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
-			free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
+			free(( void * ) kidids ); free(( void * ) kidstatus ); free(( void * ) kidattempt );
 			free( skip_job );
-			free_matrix( ( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
+			free_matrix(( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix(( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -275,7 +275,7 @@ int mprun( int nJob, void *data )
 		if( refork )
 		{
 			if( kidhost[child][0] == 0 ) continue;
-			if( ( return_fork = fork() ) == 0 )
+			if(( return_fork = fork() ) == 0 )
 			{
 				pid = getpid();
 				setpgid( pid, pid );
@@ -306,9 +306,9 @@ int mprun( int nJob, void *data )
 		}
 	}
 	printf( "Done.\n" );
-	free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
+	free(( void * ) kidids ); free(( void * ) kidstatus ); free(( void * ) kidattempt );
 	free( skip_job );
-	free_matrix( ( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
+	free_matrix(( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix(( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }
@@ -317,7 +317,7 @@ static void handler( int sig )
 {
 	pid_t pid;
 	int status, i, child, child1;
-	while( ( pid = waitpid( ( pid_t ) - 1, &status, WNOHANG ) ) > 0 )
+	while(( pid = waitpid(( pid_t ) - 1, &status, WNOHANG ) ) > 0 )
 	{
 		for( i = 0; i < nHosts; )
 			if( kidids[i++] == pid )

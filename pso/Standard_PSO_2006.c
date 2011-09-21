@@ -169,7 +169,7 @@ int pso_std( struct opt_data *op )
 	char filename[255];
 	int lmo_flag, loop_count;
 	op->cd->compute_phi = 1;
-	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if(( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
@@ -414,7 +414,7 @@ loop:
 	// Success rate and minimum value
 	if( op->cd->pdebug )
 	{
-		printf( "\n Success rate = %.2f%%", 100 * ( 1 - n_failure / ( double )n_exec ) );
+		printf( "\n Success rate = %.2f%%", 100 *( 1 - n_failure / ( double )n_exec ) );
 		if( n_exec > 1 ) printf( "\n Best min value = %f", min );
 	}
 // end: LABEL THAT IS NOT USED
@@ -616,7 +616,7 @@ double perf( int s, int function )
 		case 18: // Eason 2D (usually on [-100,100]
 			// Minimum -1  on (pi,pi)
 			x1 = xs.x[0]; x2 = xs.x[1];
-			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
+			f = -cos( x1 ) * cos( x2 ) / exp(( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
 		case 19: // mads contaminant transport model
 			func( xs.x, gop, res );
