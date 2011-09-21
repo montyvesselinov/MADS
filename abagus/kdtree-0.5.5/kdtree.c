@@ -500,7 +500,7 @@ struct kdres *kd_nearest_range( struct kdtree *kd, const double *pos, double ran
 	rset->rlist->next = 0;
 	rset->tree = kd;
 
-	if(( ret = find_nearest( kd->root, pos, range, rset->rlist, 0, kd->dim ) ) == -1 )
+	if( ( ret = find_nearest( kd->root, pos, range, rset->rlist, 0, kd->dim ) ) == -1 )
 	{
 		kd_res_free( rset );
 		return 0;

@@ -219,7 +219,7 @@ int pssa( struct opt_data *op )
 	//double expl_rate, old_expl_rate = 1; // rate of new to old positions
 	int mflag; // indicates if particles are actually moving
 	op->cd->compute_phi = 1;
-	if(( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed = get_seed(); }
@@ -271,7 +271,7 @@ int pssa( struct opt_data *op )
 			j = op->od->time_index[k];
 			if( op->wd->obs_log[i][j] == 0 )
 			{
-				if(( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
+				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
 					err =  op->wd->obs_target[i][j] - op->wd->obs_min[i][j];
 				else err = op->wd->obs_max[i][j] - op->wd->obs_target[i][j];
 				if( op->cd->objfunc_type != SSR )
@@ -283,7 +283,7 @@ int pssa( struct opt_data *op )
 			}
 			else
 			{
-				if(( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
+				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )
 					err = log10( op->wd->obs_target[i][j] ) - log10( op->wd->obs_min[i][j] );
 				else err = log10( op->wd->obs_max[i][j] ) - log10( op->wd->obs_target[i][j] );
 			}
@@ -305,7 +305,7 @@ int pssa( struct opt_data *op )
 	// Write accepted locations from input file to output file
 	// Open output file
 	sprintf( filename, "%s.pssa", op->root );
-	if(( f_run = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+	if( ( f_run = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
 	fprintf( f_run, "Number OF parameters...\n" ); // Write header
 	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] ); // Determine center parameter space for search
 	if( op->cd->infile[0] != 0 )
@@ -392,7 +392,7 @@ int pssa( struct opt_data *op )
 		// invert OF values if below eps
 		//for( s = 0; s < S; s++ )
 		//{
-		if(( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
+		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f );
 			kd_insert( kd, X[s].x, &finv[f_ind] );
@@ -490,7 +490,7 @@ loop:
 		else { X[s].f = fabs( perf_pssa( s, function ) - f_min ); new_pos++; }
 		// if below eps, insert into kdtree
 		//if( X[s].f < eps )
-		if(( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
+		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f ); // invert f
 			kd_insert( kd, X[s].x, &finv[f_ind] );
@@ -846,7 +846,7 @@ double perf_pssa( int s, int function )
 		case 18: // Eason 2D (usually on [-100,100]
 			// Minimum -1  on (pi,pi)
 			x1 = xs.x[0]; x2 = xs.x[1];
-			f = -cos( x1 ) * cos( x2 ) / exp(( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
+			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
 		case 19: // mads contaminant transport model
 			//Transform( xs.x, gop, xs.x );

@@ -78,7 +78,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 	op->pd->var_current_gsl = gsl_vector_alloc( op->pd->nOptParam );
 	op->od->obs_current_gsl = gsl_vector_alloc( op->od->nObs );
 	opt_gradient = gsl_vector_alloc( op->pd->nOptParam );
-	if(( x_c = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL )
+	if( ( x_c = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	f.f = &func_gsl; /* forward run only */
 	if( strstr( op->cd->opt_method, "deriv" ) == NULL )
@@ -153,7 +153,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 		status_d = gsl_multifit_test_delta( solver->dx, solver->x, 1e-3, 1e-2 );
 		gsl_multifit_gradient( solver->J, solver->f, opt_gradient );
 		status_g = gsl_multifit_test_gradient( opt_gradient, 1e-1 );
-		if(( status_d == GSL_SUCCESS || status_g == GSL_SUCCESS ) )
+		if( ( status_d == GSL_SUCCESS || status_g == GSL_SUCCESS ) )
 		{
 			f.df = &func_gsl_deriv_dx; // Numerical derivatives for GSL using GSL functions
 			f.fdf = &func_gsl_deriv_xdx; // Numerical derivatives for GSL using GSL functions

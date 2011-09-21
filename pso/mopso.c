@@ -196,7 +196,7 @@ int mopso( struct opt_data *op )
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	pb.fNb = 1;
-	if(( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->odebug )
 	{
@@ -320,7 +320,7 @@ int mopso( struct opt_data *op )
 	printf( "Total number of functional evaluations %d\n", eval_total );
 	printf( "Total number of Leverberg-Marquardt optimizations %d\n", lmo_count );
 	if( pb.repeat > 1 ) printf( "Number of Particle-Swarm Optimizations %d\n", pb.repeat );
-	if( pb.repeat > 1 ) printf( "Average number of evaluations for each Particle-Swarm Optimization %g\n", (( double ) eval_total / pb.repeat ) );
+	if( pb.repeat > 1 ) printf( "Average number of evaluations for each Particle-Swarm Optimization %g\n", ( ( double ) eval_total / pb.repeat ) );
 	if( overSizeTribe > 0 ) printf( "WARNING: Tribe size has been constrained %i times\n", overSizeTribe );
 	if( overSizeSwarm > 0 ) printf( "WARNING: Swarm size has been constrained %i times\n", overSizeSwarm );
 	if( multiObj ) archive_save( archiv, archiveNb, fArchive );
@@ -380,8 +380,8 @@ static struct problem problemset( struct opt_data *op )
 		fprintf( stderr, "\nYou may increase DMax (%i)\n", DMax );
 		exit( 1 );
 	}
-	if(( opt_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if(( tr_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
+	if( ( opt_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
+	if( ( tr_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
 	for( d = 0; d < pb.D; d++ )
 		opt_var[d] = op->pd->var[ op->pd->var_index[d] ];
 	Transform( opt_var, op, tr_var );
