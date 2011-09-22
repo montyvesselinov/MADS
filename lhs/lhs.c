@@ -162,8 +162,7 @@ void lhs_edge( int nvar, int npoint, int *seed, double x[] )
 int *perm_uniform( int n, int base, int *seed )
 {
 	int i, j, k, *p;
-	if( ( p = ( int * ) malloc( n * sizeof( int ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); return( NULL ); }
+	if( ( p = ( int * ) malloc( n * sizeof( int ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( NULL ); }
 	for( i = 0; i < n; i++ )
 		p[i] = i + base;
 	for( i = 0; i < n; i++ )
@@ -187,7 +186,7 @@ int nint( float x )
 double float_uniform( int *seed )
 {
 	int k;
-	if( *seed == 0 ) exit( 1 );
+	if( *seed <= 0 ) { printf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *seed / 127773;
 	*seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
 	if( *seed < 0 ) *seed += 2147483647;
@@ -199,7 +198,7 @@ int int_uniform( int a, int b, int *seed )
 	int k;
 	float r;
 	int value;
-	if( *seed == 0 ) exit( 1 );
+	if( *seed <= 0 ) { printf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *seed / 127773;
 	*seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
 	if( *seed < 0 ) *seed += 2147483647;
@@ -212,7 +211,6 @@ int int_uniform( int a, int b, int *seed )
 	value = int_min( value, int_max( a, b ) );
 	return( value );
 }
-
 
 int get_seed( )
 {

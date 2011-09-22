@@ -125,7 +125,7 @@ static struct fitness position_eval( struct problem pb, struct position x );
 static void position_save( FILE *fRun, struct position pos, int run );
 static struct position position_update( struct problem pb, struct particle par, struct particle informer );
 static void problem_print( struct problem pb );
-static struct problem problemRead( FILE *fProblem );
+// static struct problem problemRead( FILE *fProblem );
 static struct swarm pso_solver( struct problem pb, int compare_type, int run );
 static int sign( double x );
 static struct swarm swarm_adapt( struct problem pb, struct swarm S, int compare_type );
@@ -139,7 +139,7 @@ static void tribe_print( struct tribe T );
 static struct tribe tribe_init( struct problem pb, int partNb, int compare_type, struct swarm S );
 static int tribe_varmin_dimension( struct tribe T );
 static void modify_weights( int fNb, int run );
-
+double irand();
 //----------------------------------------- Global variables
 int lmo_count;
 int lmo_flag;
@@ -178,6 +178,17 @@ static struct problem problemset( struct opt_data *op );
 struct opt_data *gop;
 double *res;
 
+//--------Kiss variables
+static unsigned int kiss_x = 1;
+static unsigned int kiss_y = 2;
+static unsigned int kiss_z = 4;
+static unsigned int kiss_w = 8;
+static unsigned int kiss_carry = 0;
+static unsigned int kiss_k;
+static unsigned int kiss_m;
+//--------Internal random generator
+static int irand_seed;
+
 int mopso( struct opt_data *op )
 {
 	FILE *fRun; // To save the run
@@ -189,10 +200,9 @@ int mopso( struct opt_data *op )
 	char filename[80];
 	int debug, i, n, r, eval_total, ofe_close;
 	gop = op;
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
-	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
-	if( op->counter == 1 ) { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; }
+	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	pb.fNb = 1;
@@ -435,7 +445,8 @@ static double random_double( double a, double b )
 	// Normally, RAND_MAX = 32767 = 2^15-1
 	// Not very good. Replaced it by KISS
 	// r = ( double )rand_kiss() / RAND_MAX_KISS;
-	r = ( double ) rand() / RAND_MAX;
+	// r = ( double ) rand() / RAND_MAX;
+	r = irand();
 	r = a + r * ( b - a );
 	return r; /* Random real  number between a and b */
 }
@@ -1858,14 +1869,6 @@ static void modify_weights( int fNb, int run )
  2^63+2^32-1.  The period of KISS is thus
  2^32*(2^32-1)*(2^63+2^32-1) > 2^127
  */
-
-static unsigned long kiss_x = 1;
-static unsigned long kiss_y = 2;
-static unsigned long kiss_z = 4;
-static unsigned long kiss_w = 8;
-static unsigned long kiss_carry = 0;
-static unsigned long kiss_k;
-static unsigned long kiss_m;
 
 static void seed_rand_kiss( unsigned long seed )
 {

@@ -1,0 +1,16 @@
+--delete-empty-lines
+--keep-one-line-blocks
+--keep-one-line-statements
+--style=allman
+--indent=tab=#4
+--indent=force-tab=#4
+--indent-classes
+--indent-switches
+--indent-preprocessor
+--indent-namespaces
+--min-conditional-indent=1
+--unpad-paren
+--pad-oper
+--pad-paren-in
+--align-pointer=name
+--lineend=linux

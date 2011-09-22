@@ -107,6 +107,7 @@ void free_swarm( struct swarm *S );
 void free_particle( struct particle *P );
 void free_position( struct position *pos );
 void free_objfunc( struct objfunc *phi );
+double irand();
 // Elsewhere ...
 void Transform( double *x, void *data, double *f );
 void DeTransform( double *x, void *data, double *f );
@@ -148,6 +149,17 @@ double phi_weights[MAXPHI + 1]; // Dynamic penalties
 struct opt_data *gop;
 double *res;
 
+//--------Kiss variables
+static unsigned int kiss_x = 1;
+static unsigned int kiss_y = 2;
+static unsigned int kiss_z = 4;
+static unsigned int kiss_w = 8;
+static unsigned int kiss_carry = 0;
+static unsigned int kiss_k;
+static unsigned int kiss_m;
+//--------Internal random generator
+static int irand_seed;
+
 int pso_tribes( struct opt_data *op )
 {
 	FILE *fRun; // To save the run
@@ -160,10 +172,9 @@ int pso_tribes( struct opt_data *op )
 	char filename[255];
 	pb.nPhi = 1;
 	gop = op;
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
-	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
-	if( op->counter == 0 ) { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; }
+	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	op->cd->compute_phi = 1;
@@ -527,9 +538,10 @@ void problem_init( struct opt_data *op, struct problem *pb )
 
 double random_double( double a, double b )
 {
-	double  r;
+	double r;
 //	r = ( double ) rand_kiss() / UINT32_MAX;
-	r = ( double ) rand() / RAND_MAX;
+//	r = ( double ) rand() / RAND_MAX;
+	r = irand();
 	r = a + r * ( b - a );
 	return r;
 }
@@ -2193,14 +2205,6 @@ The z's are a simple multiply-with-carry sequence with period
 2^63+2^32-1.  The period of KISS is thus
 2^32*(2^32-1)*(2^63+2^32-1) > 2^127*/
 
-static unsigned int kiss_x = 1;
-static unsigned int kiss_y = 2;
-static unsigned int kiss_z = 4;
-static unsigned int kiss_w = 8;
-static unsigned int kiss_carry = 0;
-static unsigned int kiss_k;
-static unsigned int kiss_m;
-
 void seed_rand_kiss( unsigned int seed )
 {
 	kiss_x = seed | 1;
@@ -2222,4 +2226,14 @@ unsigned int rand_kiss()
 	kiss_w = kiss_m;
 	kiss_carry = kiss_k >> 30;
 	return kiss_x + kiss_y + kiss_w;
+}
+
+double irand()
+{
+	int k;
+	if( irand_seed <= 0 ) { printf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
+	k = irand_seed / 127773;
+	irand_seed = 16807 * ( irand_seed - k * 127773 ) - k * 2836;
+	if( irand_seed < 0 ) irand_seed += 2147483647;
+	return( ( float )( irand_seed ) * 4.656612875E-10 );
 }
