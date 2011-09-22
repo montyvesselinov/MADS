@@ -114,6 +114,7 @@ struct position
 double alea( double a, double b );
 int alea_integer( int a, int b );
 double perf( int s, int function ); // Fitness evaluation
+double irand();
 
 // Functions elsewhere
 void Transform( double *x, void *data, double *f );
@@ -121,6 +122,8 @@ void DeTransform( double *x, void *data, double *f );
 int get_seed( );
 void position_lm_std( struct opt_data *op, struct position *P );
 int optimize_lm( struct opt_data *op );
+void seed_rand_kiss( unsigned int seed );
+unsigned int rand_kiss();
 
 // Global variables
 int best; // Best of the best position (rank in the swarm)
@@ -140,6 +143,9 @@ double *res;
 
 // File(s)
 FILE *f_run;
+
+//--------Internal random generator
+static int *irand_seed;
 
 // =================================================
 int pso_std( struct opt_data *op )
@@ -171,10 +177,10 @@ int pso_std( struct opt_data *op )
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); exit( 1 ); }
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
-	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
-	if( op->counter == 1 ) srand( op->cd->seed );
+	irand_seed = &op->cd->seed;
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
 	lmo_flag = 0;
 	if( strstr( op->cd->opt_method, "lm" ) != NULL || strncmp( op->cd->opt_method, "squad", 5 ) == 0 ) lmo_flag = 1;
 	if( lmo_flag )
@@ -440,7 +446,8 @@ double alea( double a, double b )
 {
 	// random number (uniform distribution) in [a b]
 	double r;
-	r = ( double )rand(); r = r / RAND_MAX;
+//	r = ( double )rand(); r = r / RAND_MAX;
+	r = irand();
 	return a + r * ( b - a );
 }
 //===========================================================

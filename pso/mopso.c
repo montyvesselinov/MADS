@@ -187,7 +187,7 @@ static unsigned int kiss_carry = 0;
 static unsigned int kiss_k;
 static unsigned int kiss_m;
 //--------Internal random generator
-static int irand_seed;
+static int *irand_seed;
 
 int mopso( struct opt_data *op )
 {
@@ -200,9 +200,10 @@ int mopso( struct opt_data *op )
 	char filename[80];
 	int debug, i, n, r, eval_total, ofe_close;
 	gop = op;
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; }
-	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); irand_seed = op->cd->seed; if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
+	irand_seed = &op->cd->seed;
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	pb.fNb = 1;
