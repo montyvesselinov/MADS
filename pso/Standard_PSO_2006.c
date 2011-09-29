@@ -466,7 +466,8 @@ int alea_integer( int a, int b )
 	// Integer random number in [a b]
 	int ir;
 	double r;
-	r = alea( 0, 1 ); ir = ( int )( a + r * ( b + 1 - a ) );
+	r = irand();
+	ir = ( int )( a + r * ( b + 1 - a ) );
 	if( ir > b ) ir = b;
 	return ir;
 }
