@@ -145,7 +145,7 @@ double *res;
 FILE *f_run;
 
 //--------Internal random generator
-static int *irand_seed;
+int *irand_seed;
 
 // =================================================
 int pso_std( struct opt_data *op )
@@ -240,21 +240,21 @@ int pso_std( struct opt_data *op )
 	if( S > S_max ) S = S_max;
 	K = 3;
 	w = 1 / ( 2 * log( 2 ) ); c = 0.5 + log( 2 );
-	if( op->cd->pdebug ) printf( "\n Swarm size %i", S );
-	if( op->cd->pdebug ) printf( "\n coefficients %f %f \n", w, c );
+	if( op->cd->pdebug ) printf( "Swarm size %i\n", S );
+	if( op->cd->pdebug ) printf( "PSO coefficients %f %f\n\n", w, c );
 	//----------------------------------------------------- INITIALISATION
 	t1 = clock(); // Init time
-	// Initialisation of information variables
+	// Initialization of information variables
 	n_exec = 0; eval_mean = 0; eps_mean = 0; n_failure = 0;
 init:
 	loop_count = 0;
 	n_exec = n_exec + 1;
 	// Set first particle to IVs from mads input file
 	for( d = 0; d < D; d++ )
-		X[0].x[d] = op->pd->var[op->pd->var_index[d]];
+		X[0].x[d] = op->pd->var[op->pd->var_index[d]]; // Location of the first particle
 	if( op->cd->pdebug )
 	{
-		for( s = 0; s < S; s++ )
+		for( s = 0; s < 1; s++ ) // First particle only
 		{
 			printf( "Particle %i ", s + 1 );
 			for( d = 0; d < D; d++ )
@@ -265,7 +265,7 @@ init:
 	Transform( X[0].x, op, X[0].x );
 	if( op->cd->pdebug )
 	{
-		for( s = 0; s < S; s++ )
+		for( s = 0; s < 1; s++ ) // First particle only
 		{
 			printf( "Particle %i ", s + 1 );
 			for( d = 0; d < D; d++ )
@@ -274,7 +274,17 @@ init:
 		}
 	}
 	for( d = 0; d < D; d++ )
-		V[0].v[d] = ( alea( xmin[d], xmax[d] ) - X[0].x[d] ) / 2; // Non uniform
+		V[0].v[d] = ( alea( xmin[d], xmax[d] ) - X[0].x[d] ) / 2; // Velocity of the first particle -- Non uniform
+	if( op->cd->pdebug )
+	{
+		for( s = 0; s < S; s++ )
+		{
+			printf( "Particle %i ", s + 1 );
+			for( d = 0; d < D; d++ )
+				printf( "x%d = %g v%d = %g", d + 1, X[s].x[d], d + 1, V[0].v[d] );
+			printf( "\n" );
+		}
+	}
 	for( s = 1; s < S; s++ )   // Positions and velocities
 	{
 		X[s].size = D; V[s].size = D;
@@ -291,7 +301,7 @@ init:
 		{
 			printf( "Particle %i ", s + 1 );
 			for( d = 0; d < D; d++ )
-				printf( "%g ", X[s].x[d] );
+				printf( "x%d = %g v%d = %g", d + 1, X[s].x[d], d + 1, V[0].v[d] );
 			printf( "\n" );
 		}
 	}

@@ -149,6 +149,12 @@ int set_test_problems( struct opt_data *op )
 			printf( "Eason 2D " );
 			if( cd->test_func_dim != 2 ) cd->test_func_dim = 2;
 			break;
+		case 32: // Griewank modified after Locatelli (2003)
+			printf( "Griewank modified after Locatelli (2003)" );
+			od->nObs = cd->test_func_dim;
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
+			break;
 		case 33: // Rosenbrock
 			printf( "Rosenbrock (with observations = (d-1)*2)" );
 			od->nObs = ( cd->test_func_dim - 1 ) * 2;
@@ -498,6 +504,16 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 		case 23: // Eason 2D (usually on [-100,100] Minimum -1 on (pi,pi)
 			x1 = x[0]; x2 = x[1];
 			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
+			break;
+		case 32: // Griewank
+			f = 0;
+			p = 0;
+			t0 = log( ( double ) 3 );
+			for( d = 0; d < D; d++ )
+			{
+				xd = x[d];
+				f += o[d] = xd * xd / 4000 - log( cos( xd / sqrt( ( double ) d + 1 ) ) + 2 ) + t0;
+			}
 			break;
 		case 33: // Rosenbrock (with more observations)
 			f = 0;

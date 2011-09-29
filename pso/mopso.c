@@ -187,7 +187,7 @@ static unsigned int kiss_carry = 0;
 static unsigned int kiss_k;
 static unsigned int kiss_m;
 //--------Internal random generator
-static int *irand_seed;
+int *irand_seed;
 
 int mopso( struct opt_data *op )
 {
@@ -198,7 +198,7 @@ int mopso( struct opt_data *op )
 	struct swarm S;
 	double successRate[fMax], errorMean[fMax], errorTot;
 	char filename[80];
-	int debug, i, n, r, eval_total, ofe_close;
+	int debug, i, n, r, eval_total;
 	gop = op;
 	irand_seed = &op->cd->seed;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
@@ -209,17 +209,6 @@ int mopso( struct opt_data *op )
 	pb.fNb = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); exit( 1 ); }
-	if( op->cd->odebug )
-	{
-		if( op->f_ofe == NULL )
-		{
-			if( op->counter > 0 ) sprintf( filename, "%s.%08d.ofe", op->root, op->counter );
-			else sprintf( filename, "%s.ofe", op->root );
-			op->f_ofe = fopen( filename, "w" );
-			ofe_close = 1;
-		}
-		else ofe_close = 0;
-	}
 	if( op->cd->pdebug )
 	{
 		sprintf( filename, "%s.runs", op->root );

@@ -154,7 +154,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "ldebug" ) ) { w = 1; sscanf( word, "ldebug=%d", &cd->ldebug ); if( cd->ldebug == 0 ) cd->ldebug = 1; }
 		if( strcasestr( word, "pdebug" ) ) { w = 1; sscanf( word, "pdebug=%d", &cd->pdebug ); if( cd->pdebug == 0 ) cd->pdebug = 1; }
 		if( strcasestr( word, "mdebug" ) ) { w = 1; sscanf( word, "mdebug=%d", &cd->mdebug ); if( cd->mdebug == 0 ) cd->mdebug = 1; }
-		if( strcasestr( word, "odebug" ) ) { w = 1; sscanf( word, "odebug=%d", &cd->odebug ); if( cd->odebug == 0 ) cd->odebug = 1; }
+		if( strcasestr( word, "odebug" ) ) { w = 1; sscanf( word, "odebug=%d", &cd->odebug ); if( cd->odebug != 1 ) cd->odebug = 1; }
 		if( strcasestr( word, "insdebug" ) ) { w = 1; sscanf( word, "insdebug=%d", &cd->insdebug ); if( cd->insdebug == 0 ) cd->insdebug = 1; }
 		if( strcasestr( word, "tpldebug" ) ) { w = 1; sscanf( word, "tpldebug=%d", &cd->tpldebug ); if( cd->tpldebug == 0 ) cd->tpldebug = 1; }
 		if( strcasestr( word, "pardebug" ) ) { w = 1; sscanf( word, "pardebug=%d", &cd->pardebug ); if( cd->pardebug == 0 ) cd->pardebug = 1; }

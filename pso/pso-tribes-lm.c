@@ -158,7 +158,7 @@ static unsigned int kiss_carry = 0;
 static unsigned int kiss_k;
 static unsigned int kiss_m;
 //--------Internal random generator
-static int *irand_seed;
+int *irand_seed;
 
 int pso_tribes( struct opt_data *op )
 {
@@ -1836,36 +1836,36 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 	}
 	// else if(( *S ).size > ( *pb ).D )   // EXPLORE DIFFERENT
 	// else if( ( nTotPart > ( double ) 0.9 * ( *pb ).lmfactor * ( *pb ).D || ( double ) ( *pb ).lmfactor * ( *pb ).maxEval < ( double ) 2.0 * eval ) )  // EXPLORE DIFFERENT
-/*
-	else if( nTotPart > ( double ) 100 * ( *pb ).D )
-	{
-		if( debug_level )
+	/*
+		else if( nTotPart > ( double ) 100 * ( *pb ).D )
 		{
-			printf( "Best particle move using LM ... (particles %d > %f * dimension %d) ", nTotPart, ( *pb ).lmfactor / 2, ( *pb ).D );
-			fflush( stdout );
-			if( debug_level > 1 ) { printf( "\nold " ); position_print( &( *S ).best ); }
+			if( debug_level )
+			{
+				printf( "Best particle move using LM ... (particles %d > %f * dimension %d) ", nTotPart, ( *pb ).lmfactor / 2, ( *pb ).D );
+				fflush( stdout );
+				if( debug_level > 1 ) { printf( "\nold " ); position_print( &( *S ).best ); }
+			}
+			if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimizaiton cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
+			lmo_count++;
+			phi_current_best = ( *S ).best.f.f[0];
+			position_lm( gop, pb, &( *S ).best );
+			if( debug_level ) printf( "OF %g -> %g\n", phi_current_best, ( *S ).best.f.f[0] );
+			if( debug_level > 1 ) { printf( "new " ); position_print( &( *S ).best ); }
+			tr = ( *S ).tr_best;
+			shaman = ( *S ).trib[tr].best;
+			if( debug_level > 1 ) printf( "BEST Shaman moved (particle #%d in tribe #%d consisting of %d particles OF %g -> %g)!\n", shaman + 1, tr + 1, ( *S ).trib[tr].size, ( *S ).trib[tr].part[shaman].xBest.f.f[0], ( *S ).best.f.f[0] );
+			gop->phi = ( *S ).trib[tr].part[shaman].xBest.f.f[0] = ( *S ).best.f.f[0];
+			copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).trib[tr].part[shaman].xLast );
+			copy_position( &( *S ).best, &( *S ).trib[tr].part[shaman].xBest );
+			if( gop->cd->check_success && gop->success ) { copy_position( &( *S ).best, &( *pb ).pos_success ); if( debug_level ) printf( "LM Success: Predictions are within the predefined calibration bounds!\n" ); return; }
+			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); return; }
+			else
+			{
+				nSwarmAdaptIter = ( *S ).size * ( *S ).size;
+				( *S ).status = -1; // LM not happy with the swarm; try to add a tribe
+			}
 		}
-		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimizaiton cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
-		lmo_count++;
-		phi_current_best = ( *S ).best.f.f[0];
-		position_lm( gop, pb, &( *S ).best );
-		if( debug_level ) printf( "OF %g -> %g\n", phi_current_best, ( *S ).best.f.f[0] );
-		if( debug_level > 1 ) { printf( "new " ); position_print( &( *S ).best ); }
-		tr = ( *S ).tr_best;
-		shaman = ( *S ).trib[tr].best;
-		if( debug_level > 1 ) printf( "BEST Shaman moved (particle #%d in tribe #%d consisting of %d particles OF %g -> %g)!\n", shaman + 1, tr + 1, ( *S ).trib[tr].size, ( *S ).trib[tr].part[shaman].xBest.f.f[0], ( *S ).best.f.f[0] );
-		gop->phi = ( *S ).trib[tr].part[shaman].xBest.f.f[0] = ( *S ).best.f.f[0];
-		copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).trib[tr].part[shaman].xLast );
-		copy_position( &( *S ).best, &( *S ).trib[tr].part[shaman].xBest );
-		if( gop->cd->check_success && gop->success ) { copy_position( &( *S ).best, &( *pb ).pos_success ); if( debug_level ) printf( "LM Success: Predictions are within the predefined calibration bounds!\n" ); return; }
-		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); return; }
-		else
-		{
-			nSwarmAdaptIter = ( *S ).size * ( *S ).size;
-			( *S ).status = -1; // LM not happy with the swarm; try to add a tribe
-		}
-	}
-*/
+	*/
 }
 
 void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not add particles; adjusts the best ones only

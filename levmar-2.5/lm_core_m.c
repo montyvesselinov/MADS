@@ -737,7 +737,7 @@ int LEVMAR_DIF(
 				printf( "\n\n" );
 			}
 			if( success ) op->cd->check_success = 0;
-			if( op->cd->odebug ) odebug = 1; else odebug = 0;
+			if( odebug ) op->cd->odebug = 0;
 			if( using_ffdif ) /* use forward differences */
 			{
 				LEVMAR_FDIF_FORW_JAC_APPROX( func, p, hx, wrk, delta, jac, m, n, adata );
@@ -750,7 +750,7 @@ int LEVMAR_DIF(
 				++njap; nfev += 2 * m;
 			}
 			if( success ) op->cd->check_success = 1;
-			if( op->cd->odebug ) odebug = 1; else odebug = 1;
+			if( odebug ) op->cd->odebug = 1;
 			nu = 2; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
