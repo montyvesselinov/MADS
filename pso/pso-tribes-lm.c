@@ -132,7 +132,7 @@ double phi_min[MAXPHI]; // Minimum objfunc value found during the process
 int iter = 0;
 int nLocalSearchIter = 0;
 int nSwarmAdaptIter = 0; // Number of iterations between two swarm adaptations
-int nStagnantLMiterations = 0;
+int count_not_good_tribes = 0;
 int nTribeAdaptIter[MAXTRIBE]; // The same, but for each tribe
 int id_global = 0; // id (integer number) of the last generated particle
 int multiObj = FALSE; // Flag for multi-objective problem
@@ -1054,8 +1054,8 @@ double minXY( double x, double y )
 
 void particle_init( struct problem *pb, int initOption, struct position *guide1, struct position *guide2, struct swarm *S, struct particle *P )
 {
-	double mean, range, sort_vec[2 * MAXTRIBE * MAXPART];
-	int i, ip, it, k, count, rank;
+	double mean, range, sort_vec[2 * MAXTRIBE * MAXPART], min, max, x;
+	int i, ip, it, k, count, rank, tr_best;
 	( *P ).x.size = ( *pb ).D; // Initial number of particles equal number of dimensions (optimized variables)
 	switch( initOption )
 	{
@@ -1090,16 +1090,15 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 			// TODO: TO TRY for multi-objective, one may use the archive instead of (*S) as the list of known positions
 			for( k = 0; k < ( *pb ).D; k++ )
 			{
-				sort_vec[0] = ( *pb ).min[k];
-				sort_vec[1] = ( *pb ).max[k];
+				sort_vec[0] = ( *pb ).min[k]; // List of known coordinates
+				sort_vec[1] = ( *pb ).max[k]; // List of known coordinates
 				count = 2;
 				for( it = 0; it < ( *S ).size; it++ )
-					if( ( *S ).trib[it].size > 0 )
-						for( ip = 0; ip < ( *S ).trib[it].size; ip++ ) // List of known coordinates
-						{
-							sort_vec[count++] = ( *S ).trib[it].part[ip].x.x[k];
-							sort_vec[count++] = ( *S ).trib[it].part[ip].xBest.x[k];
-						}
+					for( ip = 0; ip < ( *S ).trib[it].size; ip++ )
+					{
+						sort_vec[count++] = ( *S ).trib[it].part[ip].x.x[k]; // List of known coordinates
+						sort_vec[count++] = ( *S ).trib[it].part[ip].xBest.x[k]; // List of known coordinates
+					}
 				if( count > 1 ) qsort( sort_vec, count, sizeof( double ), compare_double ); // Sort the list of known coordinates
 				rank = 1;
 				for( i = 2; i < count; i++ ) // Find the biggest empty interval
@@ -1107,7 +1106,7 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 				( *P ).x.x[k] = random_double( sort_vec[rank - 1], sort_vec[rank] ); // Select a random position "centered" on the interval
 			}
 			break;
-		case 4: // Centered EXPERIMENT
+		case 4: // Centered in the model domain EXPERIMENT NOT USED AT THE MOMENT
 			for( k = 0; k < ( *pb ).D; k++ )
 			{
 				mean = random_double( ( *pb ).min[k], ( *pb ).max[k] );
@@ -1118,6 +1117,25 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 		case 5: // User supplied initial values
 			for( k = 0; k < ( *pb ).D; k ++ )
 				( *P ).x.x[k] = ( *pb ).ival[k];
+			break;
+		case 6: // Centered to all the shamans in the swarm (applied by LM speedup to reset bad shamans)
+			for( k = 0; k < ( *pb ).D; k++ )
+			{
+				mean = 0;
+				min = HUGE_VAL;
+				max = 0;
+				count = 0;
+				for( it = 0; it < ( *S ).size; it++ )
+					for( ip = 0; ip < ( *S ).trib[it].size; ip++ )
+					{
+						tr_best = ( *S ).trib[it].best;
+						x = ( *S ).trib[it].part[tr_best].x.x[k]; // List of known coordinates
+						mean += x;
+						count++;
+					}
+				if( count > 1 ) mean /= count;
+				( *P ).x.x[k] = mean;
+			}
 			break;
 	}
 	position_check( pb, &( *P ).x );
@@ -1567,9 +1585,9 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				break;
 		}
 	}
-	if( ( *S ).size > 1 ) adaptSwarm = nSwarmAdaptIter >= ( *S ).size * ( ( *S ).size - 1 ) / 4;
+	if( ( *S ).size > 1 ) adaptSwarm = ( nSwarmAdaptIter >= ( *S ).size * ( ( *S ).size - 1 ) / 4 );
 	else                  adaptSwarm = TRUE; // Always true if there is just one tribe
-	if( nStagnantLMiterations > ( *S ).size / 3 ) { ( *S ).status = 0; adaptSwarm = TRUE; } // Bad swarm after nStagnantLMiterations LM attempts
+	if( count_not_good_tribes > ( *S ).size / 3 ) { ( *S ).status = 0; adaptSwarm = TRUE; } // Bad swarm after nStagnantLMiterations LM attempts
 	if( adaptSwarm ) // Reinitialize the previous best, and the iteration counter
 	{
 //		Original TRIBES algorithm is updating the previous best before the test; the swarm is always bad!
@@ -1741,48 +1759,12 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 	for( tr = 0; tr < ( *S ).size; tr++ )
 		nTotPart += ( *S ).trib[tr].size; // Total number of particles
 	set_particle( pb, &best );
-//	if((nTotPart > ( double ) ( *pb ).lmfactor * ( *pb ).D || ( double ) ( *pb ).lmfactor * ( *pb ).maxEval < ( double ) 10 * eval ) )
 	if( nTotPart > ( *pb ).D )
 	{
-		/*
-				if( debug_level )
-				{
-					printf( "Best particle move using LM ... (particles %d > %f * dimension %d) ", nTotPart, ( *pb ).lmfactor, ( *pb ).D );
-					fflush( stdout );
-					if( debug_level > 1 ) { printf( "\nold " ); position_print( &( *S ).best ); }
-				}
-				lmo_count++;
-				phi_current_best = ( *S ).best.f.f[0];
-				tr_best = ( *S ).tr_best;
-				position_lm( gop, pb, &( *S ).best );
-				if(( *S ).best.f.f[0] * 1.5 > phi_current_best ) count_bad_tribes++;
-				gop->phi = ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0] = ( *S ).best.f.f[0];
-				if( debug_level ) printf( "OF %g -> %g\n", phi_current_best, ( *S ).best.f.f[0] );
-				if( debug_level > 1 ) { printf( "new " ); position_print( &( *S ).best ); }
-				if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); return; }
-				if( gop->cd->check_success && gop->success )
-				{
-					if( debug_level ) printf( "LM Success: Predictions are within the predefined bounds!\n" );
-					func(( *pb ).pos_success.x, gop, res );  // evaluate the best BEST result
-					copy_position( &( *S ).best, &( *pb ).pos_success );
-					gop->phi = ( *S ).best.f.f[0];
-					return;
-				}
-				tr_best = -1;
-		*/
-		nStagnantLMiterations = 0; // Counter for not very successful LM iterations
+		count_not_good_tribes = 0; // Counter for not very successful LM iterations
 		for( tr = 0; tr < ( *S ).size; tr++ )
 		{
 			shaman = ( *S ).trib[tr].best;
-			/*
-						if( tr == tr_best )
-						{
-							if( debug_level ) printf( "Shaman already moved (particle #%d in tribe #%d consisting of %d particles OF %g)!\n", shaman + 1, tr + 1, ( *S ).trib[tr].size, ( *S ).trib[tr].part[shaman].xBest.f.f[0] );
-							copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).trib[tr].part[shaman].xLast );
-							copy_position( &( *S ).best, &( *S ).trib[tr].part[shaman].xBest );
-							continue;
-						}
-			*/
 			if( debug_level )
 			{
 				printf( "Shaman move using LM (particle #%d in tribe #%d consisting of %d particles) ... ", shaman + 1, tr + 1, ( *S ).trib[tr].size );
@@ -1798,19 +1780,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			if( gop->cd->check_success && gop->success )
 			{
 				if( debug_level ) printf( "LM Success: Predictions are within the predefined calibration bounds!\n" );
-				/*
-								printf( "lllll %g\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0] );
-								for( i = 0; i < ( *S ).trib[tr].part[shaman].xBest.size; i++ )
-									printf( "%g\n", ( *S ).trib[tr].part[shaman].xBest.x[i] );
-				*/
-//				func( ( *S ).trib[tr].part[shaman].xBest.x, gop, res ); // evaluate the best BEST result
 				copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *pb ).pos_success );
-//				func( ( *pb ).pos_success.x, gop, res ); // evaluate the best BEST result
-				/*
-								printf( "lllll %g\n", ( *pb ).pos_success.f.f[0] );
-								for( i = 0; i < ( *pb ).pos_success.size; i++ )
-									printf( "%g\n", ( *pb ).pos_success.x[i] );
-				*/
 				gop->phi = ( *pb ).pos_success.f.f[0];
 				break;
 			}
@@ -1821,7 +1791,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			}
 			if( compare_particles( &( *S ).trib[tr].part[shaman].xBest.f, &( *S ).best.f, 0 ) == 1 )
 			{
-				nStagnantLMiterations = -( *S ).size;
+				count_not_good_tribes = -( *S ).size;
 				copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).best ); // BEST COPY
 				gop->phi = ( *S ).best.f.f[0];
 				( *S ).tr_best = tr;
@@ -1831,16 +1801,15 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			{
 				count_bad_tribes++;
 				if( debug_level ) printf( " Bad shaman!\n" );
-				( *S ).trib[tr].status = -1; // Bad tribe
-				particle_init( pb, 3, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] ); // reset shaman
-				// position_check( pb, &( *S ).trib[tr].part[shaman].x );
-				// position_eval( pb, &( *S ).trib[tr].part[shaman].x );
+				// ( *S ).trib[tr].status = -1; // Bad tribe IF LABELED BAD TRIBE PERFORMANCE DIMINISHES
+				particle_init( pb, 6, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] ); // reset shaman based on current shamans
 				if( debug_level > 1 ) position_print( &( *S ).trib[tr].part[shaman].x );
 				for( pa = 0; pa < ( *S ).trib[tr].size; pa++ ) // Possibly update tribe best
 					if( compare_particles( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, &( *S ).trib[tr].part[pa].xBest.f, 0 ) == 1 )
 					{
 						copy_position( &( *S ).trib[tr].part[pa].x, &( *S ).trib[tr].part[pa].xBest );
 						( *S ).trib[tr].best = pa;
+						count_bad_tribes--;
 					}
 				if( compare_particles( &( *S ).trib[tr].part[( *S ).trib[tr].best].x.f, &( *S ).best.f, 0 ) == 1 )
 				{
@@ -1850,29 +1819,29 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			}
 			else
 			{
-				nStagnantLMiterations++;
+				count_not_good_tribes++;
 				if( debug_level ) printf( " Not very good shaman!\n" );
 			}
 			if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 		}
-		if( count_bad_tribes == ( *S ).size )
+		if( count_bad_tribes >= ( *S ).size )
 		{
 			lm_wait = 1;
 			phi_lm_wait = ( *S ).best.f.f[0] / ( *pb ).lmfactor;
 			if( debug_level ) printf( "Skip LM search till OF %g is less than %g!\n", ( *S ).best.f.f[0], phi_lm_wait );
+			( *S ).status = -1; // Bad swarm --- LM not happy with the swarm; try to add a tribe
+			nSwarmAdaptIter = ( *S ).size * ( *S ).size; // Force swarm adaption
 		}
 		gop->phi = ( *S ).best.f.f[0];
-		nSwarmAdaptIter = ( *S ).size * ( *S ).size;
-		( *S ).status = -1; // Bad swarm --- LM not happy with the swarm; try to add a tribe
 	}
 	// else if(( *S ).size > ( *pb ).D )   // EXPLORE DIFFERENT
 	// else if( ( nTotPart > ( double ) 0.9 * ( *pb ).lmfactor * ( *pb ).D || ( double ) ( *pb ).lmfactor * ( *pb ).maxEval < ( double ) 2.0 * eval ) )  // EXPLORE DIFFERENT
-	else if( nTotPart > ( double ) 100 * ( *pb ).D )  // CURRENTLY NOT USED
+/*
+	else if( nTotPart > ( double ) 100 * ( *pb ).D )
 	{
 		if( debug_level )
 		{
 			printf( "Best particle move using LM ... (particles %d > %f * dimension %d) ", nTotPart, ( *pb ).lmfactor / 2, ( *pb ).D );
-//			printf( "Best particle move using LM (tribes %d > dimension %d) ... ", ( *S ).size, ( *pb ).D );
 			fflush( stdout );
 			if( debug_level > 1 ) { printf( "\nold " ); position_print( &( *S ).best ); }
 		}
@@ -1896,6 +1865,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			( *S ).status = -1; // LM not happy with the swarm; try to add a tribe
 		}
 	}
+*/
 }
 
 void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not add particles; adjusts the best ones only
