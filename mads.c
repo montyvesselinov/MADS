@@ -61,6 +61,7 @@ void var_sorted( double data[], double datb[], int n, double ave, double ep, dou
 void ave_sorted( double data[], int n, double *ave, double *ep );
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
+int sort_int( const void *x, const void *y );
 
 /* Functions elsewhere */
 // Model analyses
@@ -141,7 +142,8 @@ char *dir_hosts( void *data, char *timedate_stamp );
 int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
-	int i, j, k, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data;
+	int i, j, k, m, q1, q2, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data;
+	int *eval_success, *eval_total;
 	unsigned long neval_total;
 	double c, err, phi, phi_min, *orig_params, *opt_params, *var_lhs, *var_a_lhs, *var_b_lhs;
 	struct calc_data cd;
@@ -156,6 +158,7 @@ int main( int argn, char *argv[] )
 	char filename[255], filename2[255], root[255], extension[255], buf[255], *dot, *cwd;
 	int ( *optimize )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
+	char ESC = 27; // Escape
 	FILE *in, *out, *out2;
 	time_t time_start, time_end, time_elapsed;
 	pid_t pid;
@@ -604,6 +607,20 @@ int main( int argn, char *argv[] )
 			system( buf );
 			exit( 1 );
 		}
+		if( ( eval_success = ( int * ) malloc( cd.nreal * sizeof( double ) ) ) == NULL )
+		{
+			printf( "Not enough memory!\n" );
+			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+			system( buf );
+			exit( 1 );
+		}
+		if( ( eval_total = ( int * ) malloc( cd.nreal * sizeof( double ) ) ) == NULL )
+		{
+			printf( "Not enough memory!\n" );
+			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+			system( buf );
+			exit( 1 );
+		}
 		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
 		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
 		else printf( "Current seed: %d\n", cd.seed );
@@ -686,6 +703,8 @@ int main( int argn, char *argv[] )
 				print_results( &op );
 			}
 			else printf( "Evaluations: %d Objective function: %g Success: %d", cd.neval, op.phi, op.success );
+			neval_total += eval_total[count] = cd.neval;
+			if( op.success ) eval_success[success_global] = cd.neval;
 			success_global += op.success;
 			if( op.phi < phi_min )
 			{
@@ -705,8 +724,7 @@ int main( int argn, char *argv[] )
 			}
 			fprintf( out, "\n" );
 			fflush( out );
-			if( op.success && cd.nreal > 1 ) save_results( "igrnd", &op, &gd );
-			neval_total += cd.neval;
+			if( op.success && cd.nreal > 1 && cd.odebug > 1 ) save_results( "igrnd", &op, &gd );
 			if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
 			if( cd.ireal != 0 ) break;
 		}
@@ -739,6 +757,19 @@ int main( int argn, char *argv[] )
 				if( phi_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions below predefined OF cutoff %g!\n", cd.nreal, op.cd->phi_cutoff );
 				else printf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op.cd->phi_cutoff, phi_global, cd.nreal, ( double ) phi_global / cd.nreal );
 			}
+			qsort( eval_success, success_global, sizeof( int ), sort_int );
+			qsort( eval_total, cd.nreal, sizeof( int ), sort_int );
+			q1 = ( double ) success_global / 4 - 0.25;
+			m = ( double ) success_global / 2 - 0.5;
+			q2 = ( double ) success_global * 3 / 4 - 0.25;
+			printf( "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
+			fprintf( out2, "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
+			q1 = ( double ) cd.nreal / 4 - 0.25;
+			m = ( double ) cd.nreal / 2 - 0.5;
+			q2 = ( double ) cd.nreal * 3 / 4 - 0.25;
+			if( cd.nreal > success_global )
+				printf( "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[cd.nreal - 1], cd.nreal );
+			fprintf( out2, "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[cd.nreal - 1], cd.nreal );
 		}
 		fprintf( out, "Total number of evaluations = %lu\n", neval_total );
 		if( cd.nreal > 1 )
@@ -746,12 +777,12 @@ int main( int argn, char *argv[] )
 			fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
 			if( op.cd->phi_cutoff > DBL_EPSILON ) fprintf( out, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op.cd->phi_cutoff, phi_global, cd.nreal, ( double ) phi_global / cd.nreal );
 		}
-		fprintf( out2, "OF min %g\n", phi_min );
-		fprintf( out2, "eval %lu\n", neval_total );
-		fprintf( out2, "success %d\n", success_global );
+		fprintf( out2, "OF min: %g\n", phi_min );
+		fprintf( out2, "Total number of evaluations: %lu\n", neval_total );
+		fprintf( out2, "Success rate %g\n", ( double ) success_global / cd.nreal );
 		fclose( out ); fclose( out2 );
 		printf( "Results are saved in %s.igrnd.results and %s.igrnd-opt=%s_eval=%d_real=%d\n", op.root, op.root, cd.opt_method, cd.maxeval, cd.nreal );
-		free( opt_params );
+		free( opt_params ); free( eval_success ); free( eval_total );
 		save_results( "", &op, &gd );
 	}
 //
@@ -850,7 +881,7 @@ int main( int argn, char *argv[] )
 				fprintf( out, "\n" );
 				fflush( out );
 				if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
-				if( op.success && cd.nreal > 1 ) save_results( "igpd", &op, &gd );
+				if( op.success && cd.nreal > 1 && cd.odebug > 1 ) save_results( "igpd", &op, &gd );
 				if( cd.ireal != 0 ) break;
 			}
 			if( pd.nFlgParam == 0 || pd.nOptParam == 0 ) break;
@@ -1005,7 +1036,7 @@ int main( int argn, char *argv[] )
 					fprintf( out, " : OF %g Success %d\n", op.phi, op.success );
 				fflush( out );
 				if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
-				if( op.success ) save_results( "ppsd", &op, &gd );
+				if( op.success && cd.odebug > 1 ) save_results( "ppsd", &op, &gd );
 				if( cd.ireal != 0 ) break;
 			}
 			for( i = 0; i < pd.nParam; i++ )
@@ -1158,7 +1189,7 @@ int main( int argn, char *argv[] )
 					}
 				if( od.nObs > 0 ) fprintf( out, " OF %g success %d\n", op.phi, success_all );
 				fflush( out );
-				if( success_all || od.nObs == 0 ) save_results( "mcrnd", &op, &gd );
+				if( ( success_all || od.nObs == 0 ) && cd.odebug > 1 ) save_results( "mcrnd", &op, &gd );
 			}
 		}
 		else // Serial job
@@ -1214,7 +1245,7 @@ int main( int argn, char *argv[] )
 					}
 				if( od.nObs > 0 ) fprintf( out, " OF %g success %d\n", op.phi, success_all );
 				fflush( out );
-				if( success_all || od.nObs == 0 ) save_results( "mcrnd", &op, &gd );
+				if( ( success_all || od.nObs == 0 ) && cd.odebug > 1 ) save_results( "mcrnd", &op, &gd );
 				if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
 				if( cd.ireal != 0 ) break;
 			}
@@ -2564,7 +2595,7 @@ void print_results( struct opt_data *op )
 	}
 	else
 		for( i = 0; i < op->pd->nOptParam; i++ )
-			if( fabs( op->pd->var[k] - op->pd->var_truth[k] ) > 1e-1 ) success_all = 0;
+			if( fabs( op->pd->var[i] - op->pd->var_truth[i] ) > op->cd->truth ) success_all = 0;
 	op->success = success_all;
 	printf( "Objective function: %g Success: %d \n", op->phi, op->success );
 	if( op->cd->solution_type != TEST )
@@ -2641,7 +2672,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	}
 	else
 		for( i = 0; i < op->pd->nOptParam; i++ )
-			if( fabs( op->pd->var[k] - op->pd->var_truth[k] ) > 1e-1 ) success_all = 0;
+			if( fabs( op->pd->var[i] - op->pd->var_truth[i] ) > op->cd->truth ) success_all = 0;
 	op->success = success_all;
 	fprintf( out, "Objective function: %g Success: %d \n", op->phi, op->success );
 	if( op->cd->solution_type != TEST )
@@ -2698,4 +2729,9 @@ char *datestamp()
 //	printf( "%s\n", asctime( ptr_ts ) );
 	sprintf( datetime, "%4d%02d%02d-%02d%02d%02d", ptr_ts->tm_year + 1900, ptr_ts->tm_mon + 1, ptr_ts->tm_mday, ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
 	return( datetime );
+}
+
+int sort_int( const void *x, const void *y )
+{
+	return ( *( int * )x - * ( int * )y );
 }

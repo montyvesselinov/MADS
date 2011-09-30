@@ -283,10 +283,11 @@ int pso_tribes( struct opt_data *op )
 	if( op->cd->pdebug > 1 )
 	{
 		printf( "\nOptimization results:\n\n" );
-		debug = op->cd->fdebug; op->cd->fdebug = 3;
+		if( op->cd->fdebug < 3 ) { debug = op->cd->fdebug; op->cd->fdebug = 3; }
+		else debug = 0;
 	}
 	func( bestBest.x, gop, res ); // evaluate the best BEST result
-	if( op->cd->pdebug > 1 ) op->cd->fdebug = debug;
+	if( op->cd->pdebug > 1 && debug ) op->cd->fdebug = debug;
 	for( n = 0; n < pb.nPhi; n++ )
 	{
 		errorMean[n] /= pb.repeat;
@@ -1311,6 +1312,9 @@ void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 	if( gop->cd->sintrans )
 		for( d = 0; d < ( *pb ).D; d++ )
 			( *P ).x[d] = asin( sin( op->pd->var[op->pd->var_index[d]] ) ); // keep the estimates within the initial range ...
+	else
+		for( d = 0; d < ( *pb ).D; d++ )
+			( *P ).x[d] = op->pd->var[op->pd->var_index[d]]; // keep the estimates within the initial range ...
 	( *P ).f.f[0] = op->phi;
 }
 
@@ -1366,7 +1370,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 		{
 			if( debug_level ) printf( "Skip LM search because OF range of tribes' shamans is small (min %g max %g ratio %g)!\n", min, max, ( max - min ) / min );
 			lm_wait = 1;
-			phi_lm_wait = min / 5;
+			phi_lm_wait = min / ( *pb ).lmfactor * 2;
 		}
 		else if( debug_level ) printf( "Do LM search because OF range of tribes' shamans is sufficient (min %g max %g ratio %g)!\n", min, max, ( max - min ) / min );
 	}

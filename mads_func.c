@@ -487,7 +487,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			status_all = 1;
 			for( k = 0; k < p->pd->nOptParam; k++ )
 				if( fabs( p->cd->var[k] - p->pd->var_truth[k] ) > p->cd->truth ) status_all = 0;
-			if( p->cd->fdebug >= 4 ) printf( "\nTest OF %g\n", phi );
+			if( p->cd->fdebug >= 4 ) printf( "\nSuccess %d\nTest OF %g\n", status_all, phi );
 			if( p->cd->fdebug >= 5 )
 			{
 				c = 0;
