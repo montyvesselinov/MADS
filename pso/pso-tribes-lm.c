@@ -1360,7 +1360,7 @@ void problem_print( struct problem *pb )
 void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S )
 {
 	int n, tr, shaman;
-	double phi_current_best, min, max;
+	double phi_current_best, min, max, r1, r2;
 	for( n = 0; n < ( *pb ).nPhi; n++ ) phi_weights[n] = 1; // Initials penalties (for multiobjective)
 	nLocalSearchIter = 0; // Prepare local search (for multiobjective)
 	if( gop->cd->check_success ) gop->success = 0;
@@ -1376,13 +1376,15 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 			if( phi_current_best > max ) max = phi_current_best;
 			else if( phi_current_best < min ) min = phi_current_best;
 		}
-		if( ( max - min ) / min < ( *pb ).lmfactor / 5 )
+		r1 = ( max - min ) / min;
+		r2 = 1 + ( *pb ).lmfactor / 10;
+		if( r1 < r2 )
 		{
-			if( debug_level ) printf( "Skip LM search because OF range of tribes' shamans is small (min %g max %g ratio %g)!\n", min, max, ( max - min ) / min );
 			lm_wait = 1;
 			phi_lm_wait = min / ( *pb ).lmfactor * 2;
+			if( debug_level ) printf( "Skip LM search because OF range of tribes' shamans is small till OF %g is less than %g (min %g max %g ratio %g < %g)!\n", min, phi_lm_wait, min, max, r1, r2 );
 		}
-		else if( debug_level ) printf( "Do LM search because OF range of tribes' shamans is sufficient (min %g max %g ratio %g)!\n", min, max, ( max - min ) / min );
+		else if( debug_level ) printf( "Do LM search because OF range of tribes' shamans is sufficient (min %g max %g ratio %g >= %g)!\n", min, max, r1, r2 );
 	}
 	if( debug_level ) swarm_print( S );
 	if( gop->cd->check_success && gop->success )
@@ -1751,7 +1753,7 @@ void swarm_init( struct problem *pb, int compare_type, struct swarm *S )
 void swarm_lm( struct problem *pb, struct swarm( *S ) )
 {
 	struct particle best = {0};
-	double phi_current_best;
+	double phi_current_best, r1;
 	int pa, nTotPart = 0;
 	int shaman, count_bad_tribes = 0;
 	int i, tr, tr_best;
@@ -1811,10 +1813,11 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				( *S ).tr_best = tr;
 			}
 			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
-			if( ( *S ).trib[tr].part[shaman].xBest.f.f[0] * ( *pb ).lmfactor * 0.15 > phi_current_best )
+			r1 = ( double ) 1 + ( *pb ).lmfactor / 20;
+			if( ( *S ).trib[tr].part[shaman].xBest.f.f[0] > phi_current_best / r1 )
 			{
 				count_bad_tribes++;
-				if( debug_level ) printf( " Bad shaman!\n" );
+				if( debug_level ) printf( " Bad shaman (%g > %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
 				// ( *S ).trib[tr].status = -1; // Bad tribe IF LABELED BAD TRIBE PERFORMANCE DIMINISHES
 				particle_init( pb, 6, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] ); // reset shaman based on current shamans
 				if( debug_level > 1 ) position_print( &( *S ).trib[tr].part[shaman].x );
@@ -1834,7 +1837,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			else
 			{
 				count_not_good_tribes++;
-				if( debug_level ) printf( " Not very good shaman!\n" );
+				if( debug_level ) printf( " Not very good shaman (%g <= %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
 			}
 			if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 		}
