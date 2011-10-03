@@ -100,8 +100,9 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	char *infile; // old results file from pssa to be read in to initialize kdtree
 	double phi_cutoff; // objective function cutoff value (termination criteria)
 	double truth; // absolute error from the true solution (termination criteria for test functions)
-	double sindx; // discretization step / increments for model parameters in the sin transformed space
-	double lindx; // discretization step / increments for model parameters that are not sin transformed
+	double sindx; // increments to compute model parameter gradients in the sin transformed parameter space
+	double lindx; // increments to compute model parameter gradients in the linear (not sin) transformed parameter space
+	double pardx; // parameter space discretization step for pso, tribes, squads and abagus
 	int debug; // various debug / verbosity levels
 	int fdebug;
 	int ldebug;

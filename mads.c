@@ -244,8 +244,9 @@ int main( int argn, char *argv[] )
 		printf( "   ssdr               - sum of the squared discrepancies and squared residuals\n" );
 		printf( "\ntransformation of parameter space and observations:\n" );
 		printf( "   nosin              - Sin transformation of optimized parameters is not applied [parameters are sin transformed by default]\n" );
-		printf( "   sindx              - Parameter space step for numerical derivatives of sin transformed parameters [default sindx=0.001]\n" );
-		printf( "   dx                 - Parameter space step for numerical derivatives of not transformed parameters [default dx=0.1]\n" );
+		printf( "   sindx              - Parameter space step for numerical derivatives of sin transformed parameters [default sindx=0.0000001]\n" );
+		printf( "   lindx              - Parameter space step for numerical derivatives of not transformed parameters [default lindx=0.001]\n" );
+		printf( "   pardx              - Parameter space step for parameter space discretization [default pardx=0.1]\n" );
 		printf( "   plog=[-1,0,1]      - Log transformation of all optimized parameters is enforced (1) or disabled (0)\n" );
 		printf( "                        [default plog=-1; log transformation is explicitly defined for each parameter in the input file]\n" );
 		printf( "   olog=[-1,0,1]      - Log transformation of all the observations (simulated and measured) is enforced (1) or disabled (0)\n" );
@@ -1290,6 +1291,7 @@ int main( int argn, char *argv[] )
 //
 	if( cd.problem_type == ABAGUS ) // Agent-based global uncertainty and sensitivity analysis run
 	{
+		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = pssa( &op );
 	}
 //
@@ -1297,6 +1299,7 @@ int main( int argn, char *argv[] )
 //
 	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
 	{
+		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = infogap( &op );
 	}
 //
@@ -1304,6 +1307,7 @@ int main( int argn, char *argv[] )
 //
 	if( cd.problem_type == POSTPUA ) // Predictive uncertainty analysis of sampling results
 	{
+		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = postpua( &op );
 	}
 //

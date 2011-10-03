@@ -105,6 +105,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->ireal = 0;
 	cd->sindx = 0.0000001;
 	cd->lindx = 0.001;
+	cd->pardx = 0;
 	cd->lmfactor = 10.0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -143,8 +144,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; }
 		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); }
 		if( strcasestr( word, "truth=" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->truth ); }
-		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0001; }
-		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.0001; }
+		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
+		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
+		if( strcasestr( word, "pardx" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
 		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
 		if( strcasestr( word, "np" ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
@@ -425,8 +427,14 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			else if( cd->plogtrans == 0 )( *pd ).var_log[i] = 0;
 			if( ( *pd ).var_log[i] == 1 )
 			{
+				if( pd->var_min[i] < 0 || pd->var[i] < 0 )
+				{
+					printf( "ERROR: Parameter cannot be log transformed\n" );
+					printf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
+					if( cd->plogtrans ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; continue; }
+					else bad_data = 1;
+				}
 				if( pd->var_dx[i] < 2 ) d = ( pd->var_max[i] - pd->var_min[i] ) / pd->var_dx[i];
-				if( pd->var_min[i] < 0 || pd->var[i] < 0 ) { printf( "ERROR: Parameter cannot be log transformed\n" ); printf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] ); if( cd->plogtrans ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; continue; } else bad_data = 1; }
 				if( pd->var[i] < DBL_EPSILON ) pd->var[i] = DBL_EPSILON;
 				if( pd->var_min[i] < DBL_EPSILON ) pd->var_min[i] = DBL_EPSILON;
 				pd->var[i] = log10( pd->var[i] );
@@ -436,6 +444,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				else pd->var_dx[i] = log10( pd->var_dx[i] );
 			}
 			pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
+			if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretizations is ON
 		}
 	}
 	if( bad_data ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
@@ -835,6 +844,7 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
 	fprintf( outfile, " sindx=%g", cd->sindx );
 	fprintf( outfile, " lindx=%g", cd->lindx );
+	fprintf( outfile, " pardx=%g", cd->lindx );
 	if( cd->check_success ) fprintf( outfile, " success" );
 	fprintf( outfile, " " );
 	switch( cd->calib_type )

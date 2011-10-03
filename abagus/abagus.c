@@ -176,6 +176,8 @@ double *res;
 
 // File(s)
 FILE *f_run;
+//--------Internal random generator
+int *irand_seed;
 
 // =================================================
 int pssa( struct opt_data *op )
@@ -221,10 +223,10 @@ int pssa( struct opt_data *op )
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); exit( 1 ); }
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed = get_seed(); }
-	else if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
-	srand( op->cd->seed );
+	irand_seed = &op->cd->seed;
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
 	E = exp( 1 );
 	pi = acos( -1 );
 	//----------------------------------------------- PROBLEM

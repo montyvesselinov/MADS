@@ -1303,6 +1303,7 @@ void position_update( struct problem *pb, struct particle *P, struct particle in
 void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 {
 	int d;
+	long i;
 	for( d = 0; d < ( *pb ).D; d++ )
 		op->pd->var[op->pd->var_index[d]] = ( *P ).x[d];
 	d = gop->cd->neval;
@@ -1310,12 +1311,21 @@ void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 	optimize_lm( op );
 	eval += gop->cd->neval - d; // add the number of evaluations performed within LM
 	if( gop->cd->sintrans )
+	{
 		for( d = 0; d < ( *pb ).D; d++ )
 			( *P ).x[d] = asin( sin( op->pd->var[op->pd->var_index[d]] ) ); // keep the estimates within the initial range ...
+		( *P ).f.f[0] = op->phi;
+	}
 	else
+	{
 		for( d = 0; d < ( *pb ).D; d++ )
-			( *P ).x[d] = op->pd->var[op->pd->var_index[d]]; // keep the estimates within the initial range ...
-	( *P ).f.f[0] = op->phi;
+			( *P ).x[d] = op->pd->var[op->pd->var_index[d]]; // transfer back the values
+		if( op->cd->pardx > DBL_EPSILON )
+		{
+			position_check( pb, P );
+			position_eval( pb, P );
+		}
+	}
 }
 
 void problem_print( struct problem *pb )
@@ -1366,7 +1376,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 			if( phi_current_best > max ) max = phi_current_best;
 			else if( phi_current_best < min ) min = phi_current_best;
 		}
-		if( ( max - min ) / min < 2 )
+		if( ( max - min ) / min < ( *pb ).lmfactor / 5 )
 		{
 			if( debug_level ) printf( "Skip LM search because OF range of tribes' shamans is small (min %g max %g ratio %g)!\n", min, max, ( max - min ) / min );
 			lm_wait = 1;
@@ -1801,7 +1811,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				( *S ).tr_best = tr;
 			}
 			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
-			if( ( *S ).trib[tr].part[shaman].xBest.f.f[0] * 1.5 > phi_current_best )
+			if( ( *S ).trib[tr].part[shaman].xBest.f.f[0] * ( *pb ).lmfactor * 0.15 > phi_current_best )
 			{
 				count_bad_tribes++;
 				if( debug_level ) printf( " Bad shaman!\n" );
@@ -2210,5 +2220,5 @@ double irand()
 	k = *irand_seed / 127773;
 	*irand_seed = 16807 * ( *irand_seed - k * 127773 ) - k * 2836;
 	if( *irand_seed < 0 ) *irand_seed += 2147483647;
-	return( ( float )( *irand_seed ) * 4.656612875E-10 );
+	return( ( double )( *irand_seed ) * 4.656612875E-10 );
 }
