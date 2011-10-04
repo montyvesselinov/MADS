@@ -106,6 +106,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->sindx = 0.0000001;
 	cd->lindx = 0.001;
 	cd->pardx = 0;
+	cd->pardomain = 100;
 	cd->lmfactor = 10.0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -147,6 +148,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
 		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
 		if( strcasestr( word, "pardx" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
+		if( strcasestr( word, "pardomain=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardomain=%lf", &cd->pardomain ); if( cd->pardomain < DBL_EPSILON ) cd->pardomain = 100; }
 		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
 		if( strcasestr( word, "np" ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }

@@ -290,6 +290,7 @@ int main( int argn, char *argv[] )
 		printf( "   dim=[integer]      - dimensionality of parameter space for the test problem (fixed for some of the problems) [default=2]\n" );
 		printf( "   npar=[integer]     - number of model parameters for the test problem (fixed for some of the problems) [default=2]\n" );
 		printf( "   nobs=[integer]     - number of observations for the test problem (fixed for some of the problems) [default=2]\n" );
+		printf( "   pardomain=[float]  - parameter space domain size [default pardomain=100]\n" );
 		printf( "\ndebugging / verbose levels:\n" );
 		printf( "   debug=[0-5]        - general debugging [default debug=0]\n" );
 		printf( "   fdebug=[0-5]       - model evaluation debugging [default fdebug=0]\n" );

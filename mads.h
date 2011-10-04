@@ -103,6 +103,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	double sindx; // increments to compute model parameter gradients in the sin transformed parameter space
 	double lindx; // increments to compute model parameter gradients in the linear (not sin) transformed parameter space
 	double pardx; // parameter space discretization step for pso, tribes, squads and abagus
+	double pardomain; // parameter space domain size for test functions
 	int debug; // various debug / verbosity levels
 	int fdebug;
 	int ldebug;

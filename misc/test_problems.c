@@ -65,7 +65,7 @@ int set_test_problems( struct opt_data *op )
 	{
 		sprintf( pd->var_id[d], "Parameter #%d", d + 1 );
 		pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0;
-		pd->var_min[d] = -100; pd->var_max[d] = 100; pd->var_log[d] = 0; pd->var_opt[d] = 1;
+		pd->var_max[d] = cd->pardomain / 2; pd->var_min[d] = -pd->var_max[d]; pd->var_log[d] = 0; pd->var_opt[d] = 1;
 		pd->var_dx[d] = cd->pardx;
 		pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 		pd->var_index[d] = d;
