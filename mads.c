@@ -1283,34 +1283,6 @@ int main( int argn, char *argv[] )
 		cd.compute_phi = 0;
 	}
 //
-// ------------------------ EIGEN || LOCALSENS
-//
-	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS ) eigen( &op, NULL, NULL ); // Eigen or sensitivity analysis run
-//
-//------------------------- ABAGUS
-//
-	if( cd.problem_type == ABAGUS ) // Agent-based global uncertainty and sensitivity analysis run
-	{
-		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
-		status = pssa( &op );
-	}
-//
-//------------------------ INFOGAP
-//
-	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
-	{
-		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
-		status = infogap( &op );
-	}
-//
-//------------------------ POSTPUA
-//
-	if( cd.problem_type == POSTPUA ) // Predictive uncertainty analysis of sampling results
-	{
-		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
-		status = postpua( &op );
-	}
-//
 // ------------------------ GLOBALSENS
 //
 // TODO gsens needs to be a separate function
@@ -1637,12 +1609,26 @@ int main( int argn, char *argv[] )
 //------------------------- ABAGUS
 //
 	if( cd.problem_type == ABAGUS ) // Particle swarm sensitivity analysis run
-		status = pssa( &op ); // Optimize
+	{
+		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
+		status = pssa( &op );
+	}
 //
 //------------------------ POSTPUA
 //
 	if( cd.problem_type == POSTPUA ) // Predictive uncertainty analysis of sampling results
+	{
+		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = postpua( &op );
+	}
+//
+//------------------------ INFOGAP
+//
+	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
+	{
+		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
+		status = infogap( &op );
+	}
 //
 // ------------------------ FORWARD
 //
