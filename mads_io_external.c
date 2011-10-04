@@ -647,7 +647,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 				{
 					if( strcmp( word, par_id[i] ) == 0 )
 					{
-						sprintf( number, "%-30.25g", par[i] );
+						sprintf( number, "%-*g", l, par[i] );
 						l2 = strlen( number );
 						if( l2 > l ) number[l] = 0;
 						if( space ) fprintf( out, " %s", number );
