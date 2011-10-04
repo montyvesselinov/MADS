@@ -204,11 +204,13 @@ int pssa( struct opt_data *op )
 	//double t1, t2;
 	//double variance;
 	double w; // First confidence coefficient
-	int f_ind = 0, f_ind_old = 0; // finv index
+	int f_ind = 0, f_ind_bad = 0, f_ind_old = 0; // finv index
 	void *kd; // pointer to kdtree
+	void *kdbad; // pointer to kdtree of points not to keep
 	struct kdres *kdset; // nearest neighbor search results
+	struct kdres *kdsetbad; // nearest neighbor search results
 	double *pch; // retrieved phi from kd tree search
-	double f, finv[E_max]; // phi and adjusted phi value
+	double f, finv[E_max], finvbad[E_max]; // phi and adjusted phi value
 	struct position G; // Eaten positions
 	double dmax = 0; // maximum dimension length
 	double dxmin = 100000; // minimum parameter dx
@@ -216,10 +218,13 @@ int pssa( struct opt_data *op )
 	int enrgy_add; // energy to add for good position
 	int energy; // energy of swarm
 	int kdsize; // size of kdset
-	int old_pos = 0, new_pos = 0; // number of particles visiting old and new positions each iteration
-	int t_old_pos = 0, t_new_pos = 0; // total number of particles visiting old and new positions
+	int kdsizebad; // size of bad kdset
+	int old_pos = 0, old_bad_pos = 0, new_pos = 0; // number of particles visiting old and new positions each iteration
+	int t_old_pos = 0, t_old_bad_pos = 0, t_new_pos = 0; // total number of particles visiting old and new positions
 	//double expl_rate, old_expl_rate = 1; // rate of new to old positions
 	int mflag; // indicates if particles are actually moving
+	double domain_size=1;
+	double cell_size=1;
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); exit( 1 ); }
@@ -249,6 +254,7 @@ int pssa( struct opt_data *op )
 	D = op->pd->nOptParam; // Search space dimension
 	gop = op;
 	kd = kd_create( D ); // initialize kdtree
+	kdbad = kd_create( D ); // initialize kdtree
 	energy = op->cd->energy;
 	enrgy_add = energy * 0.1;
 	// D-cube data
@@ -262,6 +268,10 @@ int pssa( struct opt_data *op )
 		if( dmax < ( xmax[d] - xmin[d] ) ) dmax = xmax[d] - xmin[d];
 		// Find smallest dx among parameters
 		if( dxmin > dx[d] ) dxmin = dx[d];
+		// Calculate multi-dimensional size of domain
+		domain_size *= fabs( xmax[d] - xmin[d] );
+		// Calculate multi-dimensional size of cell of discretized domain
+		cell_size *= dx[d];
 	}
 	// Determine eps by max possible phi within success
 	if( op->cd->check_success )
@@ -376,18 +386,25 @@ int pssa( struct opt_data *op )
 	nb_eval = 0;
 	for( s = 0; s < S; s++ )
 	{
-		if( f_ind > 0 )
+		if( f_ind > 0 || f_ind_bad > 0 )
 		{
 			kdset = kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
-			if( kd_res_size( kdset ) == 0 )
+			kdsetbad = kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
+			if( kd_res_size( kdset ) == 0 && kd_res_size( kdsetbad) == 0 )
 				X[s].f = fabs( perf_pssa( s, function ) - f_min );
-			else if( kd_res_size( kdset ) == 1 )
+			else if( kd_res_size( kdset ) == 1 && kd_res_size( kdsetbad ) == 0 )
 			{
 				pch = ( double * ) kd_res_item( kdset, X[s].x );
 				X[s].f = *pch;
 			}
-			else	printf( "Warning: %d point(s) within grid resolution of proposal point!\n", kd_res_size( kdset ) );
+			else if( kd_res_size( kdsetbad ) == 1 && kd_res_size( kdset ) == 0 )
+			{
+				pch = ( double * ) kd_res_item( kdsetbad, X[s].x );
+				X[s].f = *pch;
+			}
+			else	printf( "Warning: Point(s) within grid resolution of proposal point!\n" );
 			kd_res_free( kdset );
+			kd_res_free( kdsetbad );
 		}
 		else X[s].f = fabs( perf_pssa( s, function ) - f_min );
 		//}
@@ -402,6 +419,12 @@ int pssa( struct opt_data *op )
 			write_loc( X[s].f, X[s].x, D, &f_ind );
 			energy += enrgy_add;
 		}
+		else if( kdsize == 0 && kdsizebad == 0 )
+		{
+			finvbad[f_ind_bad] = X[s].f;
+			kd_insert( kdbad, X[s].x, &finvbad[f_ind_bad] );
+			f_ind_bad++;
+		}
 		P[s] = X[s]; // Best position = current one
 	}
 	// Find the best
@@ -414,7 +437,7 @@ int pssa( struct opt_data *op )
 	init_links = 1; // So that information links will be initialized
 	//---------------------------------------------- ITERATIONS
 loop:
-	new_pos = old_pos = 0;
+	new_pos = old_pos = old_bad_pos = 0;
 	if( init_links == 1 )
 	{
 		// Who informs who, at random
@@ -470,24 +493,34 @@ loop:
 			if( X[s].x[d] > xmax[d] ) X[s].x[d] = xmax[d]; V[s].v[d] = 0;
 		}
 		// ... evaluate the new position
-		if( f_ind > 0 )
+		if( f_ind > 0 || f_ind_bad > 0 )
 		{
 			kdset = kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
+			kdsetbad = kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
 			kdsize = kd_res_size( kdset );
-			if( kdsize == 0 )
+			kdsizebad = kd_res_size( kdsetbad );
+			if( kdsize == 0 && kdsizebad == 0 )
 			{
 				X[s].f = fabs( perf_pssa( s, function ) - f_min );
 				new_pos++;
 			}
-			else if( kdsize == 1 )
+			else if( kdsize == 1 && kdsizebad == 0 )
 			{
 				pch = ( double * ) kd_res_item( kdset, X[s].x );
 				X[s].f = *pch;
 				old_pos++;
 				op->success = 0;
 			}
-			else	printf( "Warning: %d point(s) within grid resolution of proposal point! %f %f\n", kdsize, X[s].x[0], X[s].x[1] );
+			else if( kdsizebad == 1 && kdsize == 0 )
+			{
+				pch = ( double * ) kd_res_item( kdsetbad, X[s].x );
+				X[s].f = *pch;
+				old_bad_pos++;
+				//op->success = 0;
+			}
+			else	printf( "Warning: Multiple points within grid resolution of proposal point!\n" );
 			kd_res_free( kdset );
+			kd_res_free( kdsetbad );
 		}
 		else { X[s].f = fabs( perf_pssa( s, function ) - f_min ); new_pos++; }
 		// if below eps, insert into kdtree
@@ -500,6 +533,12 @@ loop:
 			write_loc( X[s].f, X[s].x, D, &f_ind );
 			energy += enrgy_add;
 			//X[s].f = finv[f_ind]; // set phi to inverted value
+		}
+		else if( kdsize == 0 && kdsizebad == 0 )
+		{
+			finvbad[f_ind_bad] = X[s].f;
+			kd_insert( kdbad, X[s].x, &finvbad[f_ind_bad] );
+			f_ind_bad++;
 		}
 		// ... check for the best previous position if greater than eps
 		if( X[s].f < P[s].f )
@@ -535,7 +574,7 @@ loop:
 		init_links = 0;
 	}
 	if( op->cd->pdebug > 1 ) printf( "evals: %d n_found: %d old_pos: %d new_pos: %d\n", nb_eval, f_ind, old_pos, new_pos );
-	t_new_pos += new_pos; t_old_pos += old_pos;
+	t_new_pos += new_pos; t_old_pos += old_pos; t_old_bad_pos += old_bad_pos;
 	// Check if finished
 	if( nb_eval < eval_max && energy > 0 ) goto loop;
 	if( error > eps ) n_failure = n_failure + 1;
@@ -546,9 +585,19 @@ loop:
 		printf( "\n%d solutions from %s\n", f_ind_old, op->cd->infile );
 		printf( "%d new solutions\n", f_ind - f_ind_old );
 	}
+	kdset = kd_nearest_range( kd, X[s].x, dmax );
+	kdsetbad = kd_nearest_range( kdbad, X[s].x, dmax );
+	kdsize = kd_res_size( kdset );
+	kdsizebad = kd_res_size( kdsetbad );
+	kd_res_free( kdset );
+	kd_res_free( kdsetbad );
 	printf( "%d total solutions collected\n", f_ind );
-	printf( "%d calculated solutions\n", t_new_pos );
-	printf( "%d revisits\n", t_old_pos );
+	printf( "%d total solutions rejected\n", f_ind_bad );
+	printf( "%d calculated solutions\n", nb_eval );
+	printf( "%d revisits to saved solutions\n", t_old_pos );
+	printf( "%d revisits to bad solutions\n", t_old_bad_pos );
+	printf( "Fraction of domain with collected solutions: %g\n", (double) f_ind * cell_size / domain_size );
+
 	/*	// Save result
 		for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
 		if( f_ind > 0 )
