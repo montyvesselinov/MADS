@@ -123,7 +123,7 @@ Last updates
 #define	D_max 100  // Max number of dimensions of the search space
 #define	S_max 100 // Max swarm size
 #define R_max 200 // Max number of runs
-#define E_max 100000// Max number of evaluations
+//#define E_max 100000// Max number of evaluations
 
 
 // Structures
@@ -210,7 +210,7 @@ int pssa( struct opt_data *op )
 	struct kdres *kdset; // nearest neighbor search results
 	struct kdres *kdsetbad; // nearest neighbor search results
 	double *pch; // retrieved phi from kd tree search
-	double f, finv[E_max], finvbad[E_max]; // phi and adjusted phi value
+	double f, *finv, *finvbad; // phi and adjusted phi value
 	struct position G; // Eaten positions
 	double dmax = 0; // maximum dimension length
 	double dxmin = 100000; // minimum parameter dx
@@ -227,7 +227,12 @@ int pssa( struct opt_data *op )
 	double cell_size=1;
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	eval_max = op->cd->maxeval; // Max number of evaluations for each run
+	if( ( finv = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
+		{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	if( ( finvbad = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
+		{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	irand_seed = &op->cd->seed;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
@@ -307,7 +312,6 @@ int pssa( struct opt_data *op )
 	if( eps < op->cd->phi_cutoff ) { printf( "phi_cutoff > Max OF within success (%lf > %lf), abagus will use phi_cutoff\n", op->cd->phi_cutoff, eps ); eps = op->cd->phi_cutoff;  } // If max eps within success is less than phi_cutoff
 	f_min = 0; // Objective value
 	n_exec_max = 1; // Numbers of runs
-	eval_max = op->cd->maxeval; // Max number of evaluations for each run
 	// Read in previous results
 	if( op->cd->infile[0] != 0 )
 	{
@@ -673,16 +677,16 @@ loop:
 //==========================================================
 double round_to_res( double x, double dx )
 {
-	double x_rnd, res;
+	double x_rnd, resol;
 	int n;
 	n = ( int )( x / dx );
-	res = x - n * dx ;
-	if( fabs( res ) <= dx / 2 )
-		x_rnd = x - res;
+	resol = x - n * dx ;
+	if( fabs( resol ) <= dx / 2 )
+		x_rnd = x - resol;
 	else if( x > 0 )
-		x_rnd = x + ( dx - res );
-	else // fabs(res) > dx && x < 0
-		x_rnd = x - ( dx - fabs( res ) );
+		x_rnd = x + ( dx - resol );
+	else // fabs(resol) > dx && x < 0
+		x_rnd = x - ( dx - fabs( resol ) );
 	return x_rnd;
 }
 //===========================================================
