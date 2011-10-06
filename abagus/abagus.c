@@ -225,6 +225,8 @@ int pssa( struct opt_data *op )
 	int mflag; // indicates if particles are actually moving
 	double domain_size=1;
 	double cell_size=1;
+	int nb_eval_left;
+	int reinvert_flag = 0;
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
@@ -486,19 +488,20 @@ loop:
 			for( d = 0; d < D; d++ )
 			{
 				X[s].x[d] = alea( xmin[d], xmax[d] );
-				X[s].x[d] = round_to_res( X[s].x[d], dx[d] );
 				V[s].v[d] = ( alea( xmin[d], xmax[d] ) - X[s].x[d] ) / 2; // Non uniform
 				// V[s].v[d] = ( xmin[d]-xmax[d] )*(0.5-alea(0,1)); //Uniform. 2006-02-24
 			}
 		// ... interval confinement (keep in the box)
 		for( d = 0; d < D; d++ )
 		{
-			if( X[s].x[d] < xmin[d] ) X[s].x[d] = xmin[d]; V[s].v[d] = 0;
-			if( X[s].x[d] > xmax[d] ) X[s].x[d] = xmax[d]; V[s].v[d] = 0;
+			if( X[s].x[d] < xmin[d] ) { X[s].x[d] = xmin[d]; V[s].v[d] = 0; } 
+			if( X[s].x[d] > xmax[d] ) { X[s].x[d] = xmax[d]; V[s].v[d] = 0; } 
+			X[s].x[d] = round_to_res( X[s].x[d], dx[d] );
 		}
 		// ... evaluate the new position
 		if( f_ind > 0 || f_ind_bad > 0 )
 		{
+			reinvert_flag = 1;
 			kdset = kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
 			kdsetbad = kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
 			kdsize = kd_res_size( kdset );
@@ -514,6 +517,13 @@ loop:
 				X[s].f = *pch;
 				old_pos++;
 				op->success = 0;
+				// Check if finv was set back to f during discretization interval reduction
+				if( X[s].f < eps )
+				{
+					reinvert_flag = 0;
+					*pch = eps + ( eps - X[s].f ); // invert f again
+					energy += enrgy_add;
+				}
 			}
 			else if( kdsizebad == 1 && kdsize == 0 )
 			{
@@ -529,7 +539,8 @@ loop:
 		else { X[s].f = fabs( perf_pssa( s, function ) - f_min ); new_pos++; }
 		// if below eps, insert into kdtree
 		//if( X[s].f < eps )
-		if( ( X[s].f < eps && ( ! op->cd->check_success ) ) || ( op->cd->check_success && op->success ) )
+		//TODO: success checking needs to be fixed
+		if( ( X[s].f < eps && ( ! op->cd->check_success ) && reinvert_flag ) || ( op->cd->check_success && op->success ) )
 		{
 			finv[f_ind] = eps + ( eps - X[s].f ); // invert f
 			kd_insert( kd, X[s].x, &finv[f_ind] );
@@ -577,10 +588,34 @@ loop:
 			if( P[s].f < P[best].f ) best = s;
 		init_links = 0;
 	}
-	if( op->cd->pdebug > 1 ) printf( "evals: %d n_found: %d old_pos: %d new_pos: %d\n", nb_eval, f_ind, old_pos, new_pos );
+	if( op->cd->pdebug > 1 ) printf( "evals: %d; n_found: %d; old_pos: %d; new_pos: %d; old_bad_pos: %d; energy: %d\n", nb_eval, f_ind, old_pos, new_pos, old_bad_pos, energy );
 	t_new_pos += new_pos; t_old_pos += old_pos; t_old_bad_pos += old_bad_pos;
+	// Check if dx is small enough
+	nb_eval_left = eval_max - nb_eval;
+	if( (nb_eval * pow(2,D) * 5) < nb_eval_left && energy <= 0 && f_ind > 0 ) // only do if an acceptable solution has been found	
+	{
+		cell_size = 1;
+		for( d = 0; d < D; d++ )
+		{
+			dx[d] /= 2;
+			cell_size *= dx[d];
+			if( dxmin > dx[d] ) dxmin = dx[d];
+		}
+		printf( "Decreasing discretization intervals by factor of 2.\n" );
+		printf( "dx = [" );
+		for( d=0; d<D; d++ ) printf( " %g", dx[d] );
+		printf( " ]\n" );
+		energy = 1;
+		// Reset finv to f for recollection
+		for( i=0; i<f_ind; i++)
+			finv[i] = eps + ( eps - finv[i] ); // return inverted (collected) OFs to f for recollection
+		// Set first particle to IVs from mads input file, presumably obtained by optimization
+		for( d = 0; d < D; d++ )
+			X[0].x[d] = op->pd->var[op->pd->var_index[d]];
+	}
 	// Check if finished
 	if( nb_eval < eval_max && energy > 0 ) goto loop;
+	//if( nb_eval < eval_max ) goto loop;
 	if( error > eps ) n_failure = n_failure + 1;
 	// Result display
 	if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
@@ -595,12 +630,18 @@ loop:
 	kdsizebad = kd_res_size( kdsetbad );
 	kd_res_free( kdset );
 	kd_res_free( kdsetbad );
-	printf( "%d total solutions collected\n", f_ind );
+	printf( "\n%d total solutions collected\n", f_ind );
 	printf( "%d total solutions rejected\n", f_ind_bad );
 	printf( "%d calculated solutions\n", nb_eval );
 	printf( "%d revisits to saved solutions\n", t_old_pos );
 	printf( "%d revisits to bad solutions\n", t_old_bad_pos );
-	printf( "Fraction of domain with collected solutions: %g\n", (double) f_ind * cell_size / domain_size );
+	printf( "\nFraction of domain with collected solutions: %g\n", (double) f_ind * cell_size / domain_size );
+	if( energy > 0 ) printf( "\nExploration may not be complete! Swarm energy still left (energy = %d)! Increase evals!\n\n", energy );
+	else 
+	{
+		printf( "cell_size / domain_size = %g\n", cell_size / domain_size );
+		printf( "Swarm energy used up: energy = %d\n\n", energy );
+	}
 
 	/*	// Save result
 		for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
