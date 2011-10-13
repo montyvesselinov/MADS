@@ -108,6 +108,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->pardx = 0;
 	cd->pardomain = 100;
 	cd->lmfactor = 10.0;
+	cd->lm_acc = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
@@ -128,6 +129,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "leig" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( strcasestr( word, "energy=" ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lmfactor ); }
+		if( strcasestr( word, "accel" ) ) { w = 1; sscanf( word, "accel=%d", &cd->lm_acc ); if( cd->lm_acc <= 0 ) cd->lm_acc = 1; }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
 		if( strcasestr( word, "iter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }

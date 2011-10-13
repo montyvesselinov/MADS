@@ -144,7 +144,7 @@ int main( int argn, char *argv[] )
 	// TODO return status of the function calls is not always checked; needs to be checked
 	int i, j, k, m, q1, q2, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data;
 	int *eval_success, *eval_total;
-	unsigned long neval_total;
+	unsigned long neval_total, njac_total;
 	double c, err, phi, phi_min, *orig_params, *opt_params, *var_lhs, *var_a_lhs, *var_b_lhs;
 	struct calc_data cd;
 	struct param_data pd;
@@ -173,6 +173,7 @@ int main( int argn, char *argv[] )
 	op.gd = &gd;
 	op.ed = &ed;
 	cd.neval = 0;
+	cd.njac = 0;
 	cd.nlmo = 0;
 	cd.standalone = 1; // LM variable; LM is stand-alone if not part of tribes optimization
 	cd.pderiv = cd.oderiv = -1; // internal flags; do not compute parameter and observation derivatives
@@ -659,13 +660,13 @@ int main( int argn, char *argv[] )
 		if( pd.nOptParam == 0 )
 			printf( "WARNING: No parameters to optimize! Forward runs performed instead (ie Monte Carlo analysis)\n" );
 		phi_min = HUGE_VAL;
-		phi_global = success_global = neval_total = 0;
+		phi_global = success_global = neval_total = njac_total = 0;
 		if( cd.ireal != 0 ) k = cd.ireal - 1; // applied if execution of a specific realization is requested (ncase)
 		else k = 0;
 		printf( "\n" );
 		for( count = k; count < cd.nreal; count++ )
 		{
-			cd.neval = 0;
+			cd.neval = cd.njac = 0;
 			fprintf( out, "%d : init var", count + 1 );
 			printf( "\nRandom set #%d: ", count + 1 );
 			if( cd.mdebug || cd.nreal == 1 ) printf( "\n" );
@@ -704,8 +705,9 @@ int main( int argn, char *argv[] )
 				printf( "\n" );
 				print_results( &op );
 			}
-			else printf( "Evaluations: %d Objective function: %g Success: %d", cd.neval, op.phi, op.success );
+			else printf( "Evaluations: %d Jacobians: %d Objective function: %g Success: %d", cd.neval, cd.njac, op.phi, op.success );
 			neval_total += eval_total[count] = cd.neval;
+			njac_total += cd.njac;
 			if( op.success ) eval_success[success_global] = cd.neval;
 			success_global += op.success;
 			if( op.phi < phi_min )
@@ -733,7 +735,9 @@ int main( int argn, char *argv[] )
 		op.counter = 0;
 		free( var_lhs );
 		cd.neval = neval_total; // provide the correct number of total evaluations
+		cd.njac = njac_total; // provide the correct number of total evaluations
 		printf( "\nTotal number of evaluations = %lu\n", neval_total );
+		printf( "Total number of jacobians = %lu\n", njac_total );
 		op.phi = phi_min; // get the best phi
 		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = od.obs_best[i] ; // get the best observations
@@ -1758,6 +1762,7 @@ int main( int argn, char *argv[] )
 	else if( time_elapsed > 60 ) printf( "Simulation time = %g minutes\n", ( ( double ) time_elapsed / 60 ) );
 	else printf( "Simulation time = %ld seconds\n", time_elapsed );
 	printf( "Functional evaluations = %d\n", cd.neval );
+	printf( "Jacobian evaluations = %d\n", cd.njac );
 	if( cd.problem_type == CALIBRATE ) printf( "Levenberg-Marquardt optimizations = %d\n", cd.nlmo );
 	if( time_elapsed > 0 )
 	{
@@ -1987,6 +1992,7 @@ int optimize_lm( struct opt_data *op )
 				printf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
 				printf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 			}
+			op->cd->njac += info[8];
 			for( k = j = 0; j < op->od->nObs; j++ )
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					gsl_matrix_set( gsl_jacobian, j, i, jacobian[k++] );

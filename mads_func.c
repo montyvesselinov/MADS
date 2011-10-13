@@ -196,7 +196,12 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	if( p->cd->fdebug >= 2 ) { printf( "Objective function %g\n", phi ); p->phi = phi; p->success = status_all; }
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = status_all; }
-	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff && p->cd->fdebug ) printf( "Success: OF is below predefined cutoff value (%g < %g; func_extrn)!\n", phi, p->cd->phi_cutoff );
+	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
+	{
+		p->success = 1;
+		if( p->cd->fdebug ) printf( "Success: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+	}
+	else p->success = 0;
 	if( p->cd->check_success ) { p->success = status_all; p->phi = phi; if( p->cd->fdebug && status_all ) printf( "Success: Predictions are within the predefined calibration ranges (func_extrn)!\n" ); }
 	return GSL_SUCCESS;
 }
@@ -411,7 +416,12 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
 	if( p->cd->fdebug >= 2 ) { printf( "Objective function %g\n", phi ); p->phi = phi; p->success = status_all; }
-	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff && p->cd->fdebug ) printf( "Success: OF is below predefined cutoff value (%g < %g; func_extrn)!\n", phi, p->cd->phi_cutoff );
+	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
+	{
+		p->success = 1;
+		if( p->cd->fdebug ) printf( "Success: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+	}
+	else p->success = 0;
 	if( p->cd->check_success ) { p->success = status_all; p->phi = phi; if( p->cd->fdebug && status_all ) printf( "Success: Predictions are within the predefined calibration ranges (func_extrn)!\n" ); }
 	return GSL_SUCCESS;
 }
@@ -582,7 +592,12 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		fflush( p->f_ofe );
 	}
 	if( p->cd->fdebug >= 2 ) { printf( "Objective function %g\n", phi ); p->phi = phi; p->success = status_all; }
-	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff && p->cd->fdebug ) printf( "Success: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
+	{
+		p->success = 1;
+		if( p->cd->fdebug ) printf( "Success: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+	}
+	else p->success = 0;
 	if( p->cd->check_success ) { p->success = status_all; p->phi = phi; if( p->cd->fdebug && status_all ) printf( "Success: Predictions are within the predefined calibration ranges (func_intrn)!\n" ); }
 	return GSL_SUCCESS;
 }

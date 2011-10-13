@@ -37,6 +37,8 @@ int set_test_problems( struct opt_data *op )
 {
 	int d, oddefined = 0;
 	double a, b, dx;
+	double pi;
+	pi = acos( -1 );
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct obs_data *od;
@@ -159,8 +161,40 @@ int set_test_problems( struct opt_data *op )
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
 			break;
-		case 35: // camel back
-			printf( "3-hump camel back (with observations = (d-1)*2)" );
+		case 34: // Powell's Quadratic
+			printf( "Powell's Quadratic" );
+			for( d = 0; d < pd->nOptParam; d++ )
+			{
+				pd->var_min[d] = -10; pd->var_max[d] = 10;
+				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
+				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0,0,0)
+			}
+			od->nObs = 4;
+			break;
+		case 35: // Booth
+			printf( "Booth function (with observations = (d-1)*2)" );
+			pd->var_min[0] = -10; pd->var_max[0] = 10;
+			pd->var_min[1] = -10; pd->var_max[1] = 10;
+			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
+			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
+			od->nObs = ( cd->test_func_dim - 1 ) * 2;
+			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 1; // global minimum at (1,3)
+			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 3;
+			/* Note: function also has local minima */
+			break;
+		case 36: // Beale
+			printf( "Beale" );
+			pd->var_min[0] = -4.5; pd->var_max[0] = 4.5;
+			pd->var_min[1] = -4.5; pd->var_max[1] = 4.5;
+			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
+			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
+			//od->nObs = ( cd->test_func_dim - 1 ) * 2;
+			od->nObs = 3;
+			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 3.0; // global minimum at (3,0.5)
+			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 0.5;
+			break;
+		case 37: // Parsopoulos
+			printf( "Parsopoulos" );
 			pd->var_min[0] = -5; pd->var_max[0] = 5;
 			pd->var_min[1] = -5; pd->var_max[1] = 5;
 			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
@@ -528,15 +562,32 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				t0 = t1;
 			}
 			break;
-		case 35: // Camel back
+		case 34: // Powell's Quadratic
+			o[0] = ( double ) 121 * x[0] * x[0];
+			o[1] = ( double ) 5 * ( x[2] - x[3] ) * ( x[2] - x[3] );
+			o[2] = ( double )( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] );
+			o[3] = ( double ) 10 * ( x[0] - x[3] ) * ( x[0] - x[3] ) * ( x[0] - x[3] ) * ( x[0] - x[3] );
+			f = o[0] + o[1] + o[2] + o[3];
+			break;
+		case 35: // Booth
 			f = 0;
-			o[0] = ( double ) 2.0 * x[0] * x[0];
-			o[1] = ( double ) - 1.05 * x[0] * x[0] * x[0] * x[0];
-			o[2] = ( double ) 1.0 / 6.0 * x[0] * x[0] * x[0] * x[0] * x[0] * x[0];
-			o[3] = x[0] * x[1];
-			o[4] = x[1] * x[1];
-			for( d = 0; d < nObs; d++ )
-				f += o[d];
+			o[0] = ( double )( x[0] + 2 * x[1] - 7.0 ) * ( x[0] + 2 * x[1] - 7.0 );
+			o[1] = ( double )( 2 * x[0] + x[1] - 5.0 ) * ( 2 * x[0] + x[1] - 5.0 );
+			f = o[0] + o[1];
+			printf( "\nx0: %g x1: %g\n", x[0], x[1] );
+			break;
+		case 36: // Beale
+			f = 0;
+			o[0] = ( double )( 1.5 - x[0] + x[0] * x[1] ) * ( 1.5 - x[0] + x[0] * x[1] );
+			o[1] = ( double )( 2.5 - x[0] + x[0] * x[1] * x[1] ) * ( 2.5 - x[0] + x[0] * x[1] * x[1] );
+			o[2] = ( double )( 2.625 - x[0] + x[0] * x[1] * x[1] * x[1] ) * ( 2.625 - x[0] + x[0] * x[1] * x[1] * x[1] );
+			f = o[0] + o[1] + o[2];
+			break;
+		case 37: // Parsopoulos
+			f = 0;
+			o[0] = cos( x[0] ) * cos( x[0] );
+			o[1] = sin( x[1] ) * sin( x[1] );
+			f = o[0] + o[1];
 			break;
 		case 40: // Sin/Cos
 			f = 0;

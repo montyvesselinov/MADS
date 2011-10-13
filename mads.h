@@ -74,6 +74,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int init_particles; // number of tribes (squads, tribes)
 	int niter; // number of iterations
 	int neval; // current number of evaluations (can be applied as termination criteria)
+	int njac; // current number of jacobian evaluations
 	int maxeval; // maximum number of evaluations (termination criteria)
 	int standalone; // flag standalone LM run (yes/no)
 	int seed; //random seed
@@ -87,6 +88,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int njob; // number of parallel jobs
 	int energy; // starting energy for pssa particles
 	double lmfactor;
+	int lm_acc; // to accelerate or npt LM
 	char *solution_id; // solution identifier (name)
 	char *opt_method; // optimization method identifier
 	char *smp_method; // sampling method identifier
