@@ -147,6 +147,8 @@ double round_to_res( double x, double dx );
 int compare_pos( double x[], double y[], int size );
 void read_in( void *kdtree, int size, double eps, int check_success, double *finv, int *ind, char *file );
 void write_loc( double of, double *x, int x_size, int *ind );
+void print_collected( void *kd, double *eps, double *dmax, double *dxmin, FILE *fid ); 	// Save result
+void print_particles( struct position *X, FILE *fid );
 // in Standard_PSO_2006.c
 double alea( double a, double b );
 int alea_integer( int a, int b );
@@ -227,6 +229,8 @@ int pssa( struct opt_data *op )
 	double cell_size=1;
 	int nb_eval_left;
 	int reinvert_flag = 0;
+	FILE *f_out;
+	int iter = 0;
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 		{ printf( "Not enough memory!\n" ); exit( 1 ); }
@@ -265,7 +269,6 @@ int pssa( struct opt_data *op )
 	energy = op->cd->energy;
 	enrgy_add = energy * 0.1;
 	// D-cube data
-	dmax = 0;
 	for( d = 0; d < D; d++ )
 	{
 		xmin[d] = op->pd->var_min[op->pd->var_index[d]];
@@ -355,8 +358,9 @@ int pssa( struct opt_data *op )
 	//-----------------------------------------------------  PARAMETERS
 	S = 10 + ( int )( 2 * sqrt( D ) ); if( S > S_max ) S = S_max;
 	K = 3;
-	w = 1 / ( 2 * log( 2 ) ); c = 0.5 + log( 2 );
+	//w = 1 / ( 2 * log( 2 ) ); c = 0.5 + log( 2 );
 	//w = 1.2; c = 1.7;
+	w = 0.5; c = 0.7;
 	if( op->cd->pdebug ) printf( "\n Swarm size %i", S );
 	if( op->cd->pdebug ) printf( "\n coefficients %f %f \n", w, c );
 	//----------------------------------------------------- INITIALISATION
@@ -443,6 +447,7 @@ int pssa( struct opt_data *op )
 	init_links = 1; // So that information links will be initialized
 	//---------------------------------------------- ITERATIONS
 loop:
+	iter++;
 	new_pos = old_pos = old_bad_pos = 0;
 	if( init_links == 1 )
 	{
@@ -580,7 +585,8 @@ loop:
 			else if( expl_rate > old_expl_rate ) {w *= 0.99999; c *= 0.99999;}
 		}*/
 	// Reset best location if expl_rate is too low
-	if( 2 * old_pos > new_pos )
+	//if( 2 * old_pos > new_pos )
+	if( energy <=0 )
 	{
 		for( s = 0; s < S; s++ ) P[s] = X[s];
 		best = 0;
@@ -590,7 +596,7 @@ loop:
 	}
 	if( op->cd->pdebug > 1 ) printf( "evals: %d; n_found: %d; old_pos: %d; new_pos: %d; old_bad_pos: %d; energy: %d\n", nb_eval, f_ind, old_pos, new_pos, old_bad_pos, energy );
 	t_new_pos += new_pos; t_old_pos += old_pos; t_old_bad_pos += old_bad_pos;
-	// Check if dx is small enough
+	// Check if dx can be reduced
 	nb_eval_left = eval_max - nb_eval;
 	if( (nb_eval * pow(2,D) * 5) < nb_eval_left && energy <= 0 && f_ind > 0 ) // only do if an acceptable solution has been found	
 	{
@@ -613,6 +619,18 @@ loop:
 		for( d = 0; d < D; d++ )
 			X[0].x[d] = op->pd->var[op->pd->var_index[d]];
 	}
+	// Print out collected positions
+	if( op->cd->pdebug == 10 )
+	{
+		sprintf( filename, "%s-%08d.collected", op->root, iter );
+		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+		print_collected( kd, &eps, &dmax, &dxmin, f_out );
+		fclose( f_out );
+		sprintf( filename, "%s-%08d.particles", op->root, iter );
+		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+		print_particles( X, f_out );
+		fclose( f_out );
+	}	
 	// Check if finished
 	if( nb_eval < eval_max && energy > 0 ) goto loop;
 	//if( nb_eval < eval_max ) goto loop;
@@ -777,6 +795,50 @@ void write_loc( double of, double *x, int x_size, int *ind )
 	fprintf( f_run, "\n" );
 	fflush( f_run );
 }
+
+void print_collected( void *kd, double *eps, double *dmax, double *dxmin, FILE *fid ) 	// Save result
+{	
+	int d;
+	struct kdres *kdset; // nearest neighbor search results
+	double *pch;
+	struct position G;
+
+	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
+//	if( f_ind > 0 )
+//	{
+		kdset = kd_nearest_range( kd, G.x, *dmax );
+		fprintf( fid, "OF parameters... dxmin = %g\n", *dxmin );
+		while( !kd_res_end( kdset ) )
+		{
+			pch = ( double * ) kd_res_item( kdset, G.x );
+			//fprintf( fid, "%d ", i + 1 );
+			//f = eps - ( *pch - eps );
+			fprintf( fid, "%lf", *pch );
+			for( d = 0; d < D; d++ )
+				fprintf( fid, " %lf", G.x[d] );
+			fprintf( fid, "\n" );
+			//i++;
+			kd_res_next( kdset );
+		}
+		kd_res_free( kdset );
+		//printf( "\nResults written to %s\n\n", filename );
+//	}
+}
+
+void print_particles( struct position *X, FILE *fid )
+{
+	int s, d;
+
+	fprintf( fid, "OF parameters...\n" );
+	for( s = 0; s < S; s++ )
+	{
+		fprintf( fid, "%lf", X[s].f );
+		for( d = 0; d < D; d++ )
+			fprintf( fid, " %lf", X[s].x[d] );
+		fprintf( fid, "\n" );
+	}
+}
+		
 //===========================================================
 double perf_pssa( int s, int function )
 {
