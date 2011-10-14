@@ -219,6 +219,7 @@ int pssa( struct opt_data *op )
 	char filename[80]; // output filename
 	int enrgy_add; // energy to add for good position
 	int energy; // energy of swarm
+	int energy_prev; // energy from previous iteration
 	int kdsize; // size of kdset
 	int kdsizebad; // size of bad kdset
 	int old_pos = 0, old_bad_pos = 0, new_pos = 0; // number of particles visiting old and new positions each iteration
@@ -444,6 +445,7 @@ int pssa( struct opt_data *op )
 	error =  P[best].f ; // Current min error
 	if( n_exec == 1 ) min = error;
 	error_prev = error; // Previous min error
+	energy_prev = energy; // Previous energy
 	init_links = 1; // So that information links will be initialized
 	//---------------------------------------------- ITERATIONS
 loop:
@@ -586,7 +588,7 @@ loop:
 		}*/
 	// Reset best location if expl_rate is too low
 	//if( 2 * old_pos > new_pos )
-	if( energy <=0 )
+	if( energy < energy_prev )
 	{
 		for( s = 0; s < S; s++ ) P[s] = X[s];
 		best = 0;
@@ -594,6 +596,7 @@ loop:
 			if( P[s].f < P[best].f ) best = s;
 		init_links = 0;
 	}
+	energy_prev = energy;
 	if( op->cd->pdebug > 1 ) printf( "evals: %d; n_found: %d; old_pos: %d; new_pos: %d; old_bad_pos: %d; energy: %d\n", nb_eval, f_ind, old_pos, new_pos, old_bad_pos, energy );
 	t_new_pos += new_pos; t_old_pos += old_pos; t_old_bad_pos += old_bad_pos;
 	// Check if dx can be reduced
