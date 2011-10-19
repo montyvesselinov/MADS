@@ -2326,25 +2326,28 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 		bic = sml + ( double ) op->pd->nOptParam * log( op->od->nObs );
 		cic = sml + ( double ) 2 * op->pd->nOptParam * log( log( op->od->nObs ) );
 		kic = sml + ( double ) op->pd->nOptParam * log( op->od->nObs * 0.159154943 ) - log( dopt );
-		printf( "\nNumber of parameters           : %d\n", op->pd->nOptParam );
-		printf( "Number of observations         : %d\n", op->od->nObs );
-		printf( "Number of degrees of freedom   : %d\n", dof );
-		printf( "Objective function             : %g\n", phi );
-		printf( "Posterior measurement variance : %g\n", gf );
-		printf( "\nOptimality metrics based on covariance matrix of observation errors:\n" );
-		printf( "A-optimality (matrix trace)               : %g\n", aopt );
-		printf( "C-optimality (matrix conditioning number) : %g\n", copt );
-		printf( "E-optimality (matrix maximum eigenvalue)  : %g\n", eopt );
-		printf( "D-optimality (matrix determinant)         : %g\n", dopt );
-		printf( "\nDeterminant of covariance matrix of observation errors : %-15g ( ln(det S) = %g )\n", dopt, log( dopt ) );
-		printf( "Determinant of observation weight matrix               : %-15g ( ln(det W) = %g )\n", exp( ln_det_weight ) , ln_det_weight );
-		printf( "Determinant of covariance matrix of measurement errors : %-15g ( ln(det V) = %g )\n", exp( ln_det_v ), ln_det_v );
-		printf( "\nLog likelihood function             : %g\n", -sml / 2 );
-		printf( "Maximum likelihood                  : %g\n", sml );
-		printf( "AIC (Akaike information criterion)  : %g\n", aic );
-		printf( "BIC                                 : %g\n", bic );
-		printf( "CIC                                 : %g\n", cic );
-		printf( "KIC (Kashyap Information Criterion) : %g\n", kic );
+		if( op->cd->problem_type == EIGEN || debug )
+		{
+			printf( "\nNumber of parameters           : %d\n", op->pd->nOptParam );
+			printf( "Number of observations         : %d\n", op->od->nObs );
+			printf( "Number of degrees of freedom   : %d\n", dof );
+			printf( "Objective function             : %g\n", phi );
+			printf( "Posterior measurement variance : %g\n", gf );
+			printf( "\nOptimality metrics based on covariance matrix of observation errors:\n" );
+			printf( "A-optimality (matrix trace)               : %g\n", aopt );
+			printf( "C-optimality (matrix conditioning number) : %g\n", copt );
+			printf( "E-optimality (matrix maximum eigenvalue)  : %g\n", eopt );
+			printf( "D-optimality (matrix determinant)         : %g\n", dopt );
+			printf( "\nDeterminant of covariance matrix of observation errors : %-15g ( ln(det S) = %g )\n", dopt, log( dopt ) );
+			printf( "Determinant of observation weight matrix               : %-15g ( ln(det W) = %g )\n", exp( ln_det_weight ) , ln_det_weight );
+			printf( "Determinant of covariance matrix of measurement errors : %-15g ( ln(det V) = %g )\n", exp( ln_det_v ), ln_det_v );
+			printf( "\nLog likelihood function             : %g\n", -sml / 2 );
+			printf( "Maximum likelihood                  : %g\n", sml );
+			printf( "AIC (Akaike information criterion)  : %g\n", aic );
+			printf( "BIC                                 : %g\n", bic );
+			printf( "CIC                                 : %g\n", cic );
+			printf( "KIC (Kashyap Information Criterion) : %g\n", kic );
+		}
 		if( dof < 0 ) tt = 1;
 		else if( dof < 30 )  tt = student_dist[dof];
 		else if( dof < 40 )  tt = student_dist[30] + ( dof - 30 ) * ( student_dist[31] - student_dist[30] ) / 10;

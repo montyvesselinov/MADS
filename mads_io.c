@@ -109,6 +109,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->pardomain = 100;
 	cd->lmfactor = 10.0;
 	cd->lm_acc = 0;
+	cd->test_func_npar = cd->test_func_nobs = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
@@ -186,10 +187,10 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( cd->test_func < 40 ) printf( "Test Function #%d Dimensionality %d\n", cd->test_func, cd->test_func_dim );
 		else
 		{
-			if( cd->test_func == 41 ) cd->test_func_npar = 4;
-			else cd->test_func_npar = 2;
-			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
-			printf( "Test Function #%d Parameters %d Observations %d\n", cd->test_func, cd->test_func_npar, cd->test_func_nobs );
+			printf( "Test Function #%d " );
+			if( cd->test_func_npar > 0 ) printf( "Parameters %d ", cd->test_func_npar );
+			if( cd->test_func_nobs > 0 ) printf( "Observations %d\n", cd->test_func_nobs );
+			printf( "\n" );
 		}
 	}
 	printf( "Problem type: " );
