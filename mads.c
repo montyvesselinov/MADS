@@ -74,7 +74,7 @@ int mopso( struct opt_data *op );
 int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double *x, double *f_x, void *data, double *jacobian ), void *data,
 			int nObs, int nParam, int nsig, double eps, double delta, int max_eval, int max_iter,
 			int iopt, double parm[], double x[], double *phi, double f[],
-			double jacobian[], int nJacobian, double jacTjac[], int *infer );
+			double jacobian[], int nian, double jacTjac[], int *infer );
 int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 			 int m, int n, int nsig, double eps, double delta, int maxfn,
 			 int iopt, double parm[], double x[], double *phi, double f[],
@@ -705,7 +705,12 @@ int main( int argn, char *argv[] )
 				printf( "\n" );
 				print_results( &op );
 			}
-			else printf( "Evaluations: %d Jacobians: %d Objective function: %g Success: %d", cd.neval, cd.njac, op.phi, op.success );
+			else
+			{
+				printf( "Evaluations: %d ", cd.neval );
+				if( cd.njac > 0 ) printf( "Jacobians: %d ", cd.njac );
+				printf( "Objective function: %g Success: %d", op.phi, op.success );
+			}
 			neval_total += eval_total[count] = cd.neval;
 			njac_total += cd.njac;
 			if( op.success ) eval_success[success_global] = cd.neval;
@@ -1762,7 +1767,7 @@ int main( int argn, char *argv[] )
 	else if( time_elapsed > 60 ) printf( "Simulation time = %g minutes\n", ( ( double ) time_elapsed / 60 ) );
 	else printf( "Simulation time = %ld seconds\n", time_elapsed );
 	printf( "Functional evaluations = %d\n", cd.neval );
-	printf( "Jacobian evaluations = %d\n", cd.njac );
+	if( cd.njac > 0 ) printf( "Jacobian evaluations = %d\n", cd.njac );
 	if( cd.problem_type == CALIBRATE ) printf( "Levenberg-Marquardt optimizations = %d\n", cd.nlmo );
 	if( time_elapsed > 0 )
 	{
@@ -2079,12 +2084,14 @@ int optimize_lm( struct opt_data *op )
 int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar )
 {
 	FILE *out;
-	double phi, dof, stddev_scale, gf;
+	double phi, stddev_scale, gf;
 	double *opt_params, *x_u, *x_d, *stddev, *jacobian;
+	double aopt, copt, eopt, dopt, aic, bic, cic, kic, ln_det_v, ln_det_weight, sml, tt;
 	int   debug, compute_covar, compute_jacobian;
-	int   i, j, k, ier, debug_level, status;
+	int   i, j, k, ier, debug_level, status, dof;
 	double eps;
 	char filename[200], buf[20];
+	static double student_dist[34] = {12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042, 2.021, 2.000, 1.980, 1.960 };
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
 	gsl_matrix *eigenvec = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *eigenval = gsl_vector_alloc( op->pd->nOptParam );
@@ -2130,7 +2137,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	phi = op->phi;
 	if( debug )
 	{
-		printf( "\nJacobian matrix\n" ); // Print Jacobian
+		printf( "\nJacobian matrix\n" ); // Print ian
 		printf( "%-25s :", "Observations" );
 		for( k = 0; k < op->od->nObs; k++ )
 		{
@@ -2182,6 +2189,8 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	}
 	fclose( out );
 	printf( "Jacobian matrix stored (%s)\n", filename );
+	for( i = 0; i < op->pd->nOptParam; i++ )
+		aopt = gsl_matrix_get( gsl_covar, i, i );
 	if( op->cd->problem_type == EIGEN || op->cd->leigen )
 	{
 		if( gsl_covar == NULL ) { gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam ); compute_covar = 1; }
@@ -2265,6 +2274,11 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					printf( " %6.0e", gsl_vector_get( eigenval, i ) );
 				printf( "\n" );
+				copt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) ) / fabs( gsl_vector_get( eigenval, 0 ) );
+				eopt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) );
+				dopt = 1;
+				for( i = op->pd->nOptParam - 1; i >= 0; i-- )
+					dopt *= fabs( gsl_vector_get( eigenval, i ) );
 				printf( "\nEigenvectors (sorted by eigenvalues)\n" );
 				gsl_eigen_symmv_sort( eigenval, eigenvec, GSL_EIGEN_SORT_VAL_ASC );
 				for( i = 0; i < op->pd->nOptParam; i++ )
@@ -2303,18 +2317,52 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 		dof = op->od->nObs - op->pd->nOptParam;
 		stddev_scale = sqrt( phi / dof );
 		gf = phi / dof;
+		for( i = 0; i < op->od->nObs; i++ )
+			if( op->od->obs_weight[i] > 0 )
+				ln_det_weight += log( op->od->obs_weight[i] );
+		ln_det_v = ln_det_weight + op->pd->nOptParam * log( gf );
+		sml = ( double ) dof + ln_det_v + op->od->nObs * 1.837877;
+		aic = sml + ( double ) 2 * op->pd->nOptParam;
+		bic = sml + ( double ) op->pd->nOptParam * log( op->od->nObs );
+		cic = sml + ( double ) 2 * op->pd->nOptParam * log( log( op->od->nObs ) );
+		kic = sml + ( double ) op->pd->nOptParam * log( op->od->nObs * 0.159154943 ) - log( dopt );
+		printf( "\nNumber of parameters           : %d\n", op->pd->nOptParam );
+		printf( "Number of observations         : %d\n", op->od->nObs );
+		printf( "Number of degrees of freedom   : %d\n", dof );
+		printf( "Objective function             : %g\n", phi );
+		printf( "Posterior measurement variance : %g\n", gf );
+		printf( "\nOptimality metrics based on covariance matrix of observation errors:\n" );
+		printf( "A-optimality (matrix trace)               : %g\n", aopt );
+		printf( "C-optimality (matrix conditioning number) : %g\n", copt );
+		printf( "E-optimality (matrix maximum eigenvalue)  : %g\n", eopt );
+		printf( "D-optimality (matrix determinant)         : %g\n", dopt );
+		printf( "\nDeterminant of covariance matrix of observation errors : %-15g ( ln(det S) = %g )\n", dopt, log( dopt ) );
+		printf( "Determinant of observation weight matrix               : %-15g ( ln(det W) = %g )\n", exp( ln_det_weight ) , ln_det_weight );
+		printf( "Determinant of covariance matrix of measurement errors : %-15g ( ln(det V) = %g )\n", exp( ln_det_v ), ln_det_v );
+		printf( "\nLog likelihood function             : %g\n", -sml / 2 );
+		printf( "Maximum likelihood                  : %g\n", sml );
+		printf( "AIC (Akaike information criterion)  : %g\n", aic );
+		printf( "BIC                                 : %g\n", bic );
+		printf( "CIC                                 : %g\n", cic );
+		printf( "KIC (Kashyap Information Criterion) : %g\n", kic );
+		if( dof < 0 ) tt = 1;
+		else if( dof < 30 )  tt = student_dist[dof];
+		else if( dof < 40 )  tt = student_dist[30] + ( dof - 30 ) * ( student_dist[31] - student_dist[30] ) / 10;
+		else if( dof < 60 )  tt = student_dist[31] + ( dof - 40 ) * ( student_dist[32] - student_dist[31] ) / 20;
+		else if( dof < 120 ) tt = student_dist[32] + ( dof - 60 ) * ( student_dist[33] - student_dist[32] ) / 60;
+		else tt = student_dist[34];
 		printf( "\nObtained fit is " );
 		if( gf > 200 ) printf( "not very good (chi^2/dof = %g > 200)\n", gf );
 		else printf( "relatively good (chi^2/dof = %g < 200)\n", gf );
 		printf( "\nOptimized parameters:\n" );
-		if( debug ) printf( "Transformed space (applied during optimization):\n" );
+		if( debug && op->cd->sintrans == 1 ) printf( "Transformed space (applied during optimization):\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
 			k = op->pd->var_index[i];
 			if( op->cd->sintrans == 1 ) opt_params[i] = asin( sin( opt_params[i] ) );
 			stddev[i] *= stddev_scale;
-			x_u[i] = opt_params[i] + ( double ) 3 * stddev[i];
-			x_d[i] = opt_params[i] - ( double ) 3 * stddev[i];
+			x_u[i] = opt_params[i] + ( double ) tt * stddev[i];
+			x_d[i] = opt_params[i] - ( double ) tt * stddev[i];
 			status = 0;
 			if( op->cd->sintrans == 1 )
 			{
@@ -2335,18 +2383,21 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 		}
 		DeTransform( x_u, op, x_u );
 		DeTransform( x_d, op, x_d );
-		if( debug ) printf( "Untransformed space:\n" );
-		for( i = 0; i < op->pd->nOptParam; i++ )
+		if( op->cd->sintrans == 1 )
 		{
-			k = op->pd->var_index[i];
-			printf( "%-40s : ", op->pd->var_id[k] );
-			if( op->pd->var_log[k] == 0 ) printf( "%12g stddev %12g (%12g - %12g)", op->pd->var[k], stddev[i], x_d[i], x_u[i] );
-			else printf( "%12g stddev %12g (%12g - %12g)", pow( 10, op->pd->var[k] ), stddev[k], pow( 10, x_d[i] ), pow( 10, x_u[i] ) );
-			status = 0;
-			if( x_d[i] <= op->pd->var_min[k] ) { status = 1; x_d[i] = op->pd->var_min[k]; }
-			if( x_u[i] >= op->pd->var_max[k] ) { status = 1; x_u[i] = op->pd->var_max[k]; }
-			if( status ) printf( " Estimated ranges are constrained by prior uncertainty bounds\n" );
-			else printf( "\n" );
+			if( debug ) printf( "Untransformed space:\n" );
+			for( i = 0; i < op->pd->nOptParam; i++ )
+			{
+				k = op->pd->var_index[i];
+				printf( "%-40s : ", op->pd->var_id[k] );
+				if( op->pd->var_log[k] == 0 ) printf( "%12g stddev %12g (%12g - %12g)", op->pd->var[k], stddev[i], x_d[i], x_u[i] );
+				else printf( "%12g stddev %12g (%12g - %12g)", pow( 10, op->pd->var[k] ), stddev[k], pow( 10, x_d[i] ), pow( 10, x_u[i] ) );
+				status = 0;
+				if( x_d[i] <= op->pd->var_min[k] ) { status = 1; x_d[i] = op->pd->var_min[k]; }
+				if( x_u[i] >= op->pd->var_max[k] ) { status = 1; x_u[i] = op->pd->var_max[k]; }
+				if( status ) printf( " Estimated ranges are constrained by prior uncertainty bounds\n" );
+				else printf( "\n" );
+			}
 		}
 	}
 	free( opt_params ); free( stddev ); free( x_u ); free( x_d ); free( jacobian );
