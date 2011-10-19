@@ -187,7 +187,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( cd->test_func < 40 ) printf( "Test Function #%d Dimensionality %d\n", cd->test_func, cd->test_func_dim );
 		else
 		{
-			printf( "Test Function #%d " );
+			printf( "Test Function %d ", cd->test_func );
 			if( cd->test_func_npar > 0 ) printf( "Parameters %d ", cd->test_func_npar );
 			if( cd->test_func_nobs > 0 ) printf( "Observations %d\n", cd->test_func_nobs );
 			printf( "\n" );
