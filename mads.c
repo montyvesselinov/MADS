@@ -212,7 +212,7 @@ int main( int argn, char *argv[] )
 		printf( "   eval=[integer]     - terminate calibration if functional evaluations exceed the predefined value [default eval=5000]\n" );
 		printf( "   cutoff=[real]      - terminate calibration if the objective function is below the cutoff value [default cutoff=0]\n" );
 		printf( "   success            - terminate calibration if model predictions are within predefined calibration ranges\n" );
-		printf( "   truth=[real]       - terminate calibration if parameter estimates within within predefined absolute error [default truth=0.1]\n" );
+		printf( "   truth=[real]       - terminate calibration if estimated parameters or observations are within within predefined absolute error [default truth=0.1]\n" );
 		printf( "\ncalibration options:\n" );
 		printf( "   paranoid           - Paranoid Levenberg-Marquardt optimization using multiple retries\n" );
 		printf( "   retry=[integer]    - number of optimization retries [default retry=0]\n" );

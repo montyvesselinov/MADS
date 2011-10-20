@@ -350,7 +350,7 @@ int set_test_problems( struct opt_data *op )
 	for( d = 0; d < od->nObs; d++ )
 	{
 		sprintf( od->obs_id[d], "Observation #%d", d + 1 );
-		if( oddefined ) { od->obs_max[d] = od->obs_target[d] + 0.1; od->obs_min[d] = od->obs_target[d] - 0.1; }
+		if( oddefined ) { od->obs_max[d] = od->obs_target[d] + cd->truth; od->obs_min[d] = od->obs_target[d] - cd->truth; }
 		else od->obs_target[d] = od->obs_max[d] = od->obs_min[d] = 0;
 		od->obs_weight[d] = 1;
 		od->obs_log[d] = 0;

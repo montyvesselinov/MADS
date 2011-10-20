@@ -147,7 +147,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
 		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; }
 		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); }
-		if( strcasestr( word, "truth=" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->truth ); cd->check_success = 1; }
+		if( strcasestr( word, "truth" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->truth ); cd->check_success = 1; }
 		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
 		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
 		if( strcasestr( word, "pardx" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
@@ -182,7 +182,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 	if( ( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) && cd->nreal == 0 ) cd->nreal = 100;
 	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { strcat( cd->opt_method, "_paran" ); cd->paranoid = 1; }
-	if( cd->test_func )
+	if( cd->test_func > 0 )
 	{
 		if( cd->test_func < 40 ) printf( "Test Function #%d Dimensionality %d\n", cd->test_func, cd->test_func_dim );
 		else
