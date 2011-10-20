@@ -401,10 +401,12 @@ int LEVMAR_DER(
 					phDp_plus[i] = p[i] + h * Dp[i];
 					phDp_minus[i] = p[i] - h * Dp[i];
 				}
+				op->cd->compute_phi = 0;
 				( *func )( phDp_plus, hx1, m, n, adata ); nfev++;
 				for( i = 0; i < n; ++i )
 					ephdp_plus[i] = x[i] - hx1[i];
 				( *func )( phDp_minus, hx2, m, n, adata ); nfev++;
+				op->cd->compute_phi = 1;
 				for( i = 0; i < n; ++i )
 					ephdp_minus[i] = x[i] - hx2[i];
 				for( i = 0; i < n; ++i )

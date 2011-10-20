@@ -45,7 +45,7 @@ int set_test_problems( struct opt_data *op )
 	cd = op->cd;
 	pd = op->pd;
 	od = op->od;
-	cd->compute_phi = 1;
+	cd->test_func_npar = cd->test_func_dim;
 	switch( cd->test_func )
 	{
 			// All the 2D problems -- 2 parameters fixed
@@ -60,7 +60,8 @@ int set_test_problems( struct opt_data *op )
 		case 40: cd->test_func_npar = 2; break; // 2 parameters fixed
 		case 41: cd->test_func_npar = 4; break; // 2 parameters fixed
 		case 42: cd->test_func_npar = 2; break; // 2 parameters fixed
-		case 43: cd->test_func_npar = 11; break; // 11 parameters fixed
+		case 43: cd->test_func_npar = 5; break; // 5 parameters fixed
+		case 44: cd->test_func_npar = 11; break; // 11 parameters fixed
 	}
 	pd->nParam = pd->nOptParam = cd->test_func_npar;
 	pd->nFlgParam = 0;
@@ -260,11 +261,11 @@ int set_test_problems( struct opt_data *op )
 				printf( "/%g", pd->var_truth[d] );
 			printf( ")" );
 			od->nObs = cd->test_func_nobs;
+			oddefined = 1;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
 			for( d = 0; d < od->nObs; d++ )
 				od->obs_target[d] = pd->var_truth[0] * cos( pd->var_truth[1] * d * dx ) + pd->var_truth[2] * sin( pd->var_truth[3] * d * dx );
-			oddefined = 1;
 			break;
 		case 42: // sin/cos
 			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
@@ -272,6 +273,7 @@ int set_test_problems( struct opt_data *op )
 			pd->var_truth[1] = b = 95;
 			printf( "Simplified Sin/Cos test function with %d parameters and %d observations (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
 			od->nObs = cd->test_func_nobs;
+			oddefined = 1;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
 			for( d = 0; d < od->nObs; d++ )
@@ -279,9 +281,33 @@ int set_test_problems( struct opt_data *op )
 				od->obs_target[d] = a * cos( d * dx ) + b * sin( d * dx );
 				// printf( "o %g %g\n", d * dx, od->obs_target[d] );
 			}
-			oddefined = 1;
 			break;
-		case 43: // Exponential Data Fitting II
+		case 43: // Exponential Data Fitting I
+			od->nObs = cd->test_func_nobs = 33;
+			printf( "Exponential Data Fitting I function with %d parameters and %d observations (", pd->nOptParam, cd->test_func_nobs );
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var_truth[d] = ( double ) 1 + d * 0.5;
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d]  = ( double ) 1 + d * 0.5 - 0.01;
+			printf( "%g", pd->var_truth[0] );
+			for( d = 1; d < pd->nOptParam; d++ )
+				printf( "/%g", pd->var_truth[d] );
+			printf( ")" );
+			for( d = 0; d < pd->nOptParam; d++ )
+			{
+				pd->var_min[d] = -10; pd->var_max[d] = 10;
+				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
+			}
+			oddefined = 1;
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			for( d = 0; d < od->nObs; d++ )
+			{
+				dx = ( double ) d / 10;
+				od->obs_target[d] = pd->var_truth[0] + pd->var_truth[1] * exp( -dx * pd->var_truth[3] ) +
+									pd->var_truth[2] * exp( -dx * pd->var_truth[4] );
+			}
+			break;
+		case 44: // Exponential Data Fitting II
 			od->nObs = cd->test_func_nobs = 65;
 			printf( "Exponential Data Fitting II function with %d parameters and %d observations (", pd->nOptParam, cd->test_func_nobs );
 			for( d = 0; d < pd->nOptParam; d++ )
@@ -297,6 +323,7 @@ int set_test_problems( struct opt_data *op )
 				pd->var_min[d] = 0; pd->var_max[d] = 10;
 				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 			}
+			oddefined = 1;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			for( d = 0; d < od->nObs; d++ )
 			{
@@ -306,6 +333,7 @@ int set_test_problems( struct opt_data *op )
 									+ pd->var_truth[2] * exp( -( dx - pd->var_truth[9] ) * ( dx - pd->var_truth[9] ) * pd->var_truth[6] )
 									+ pd->var_truth[3] * exp( -( dx - pd->var_truth[10] ) * ( dx - pd->var_truth[10] ) * pd->var_truth[7] );
 			}
+			break;
 	}
 	if( od->nObs > 1 )
 	{
@@ -630,40 +658,50 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			f = o[0] + o[1];
 			break;
 		case 40: // Sin/Cos
-			f = 0;
 			dx = ( double ) M_PI * 2 / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )
-				f += o[d] = x[0] * cos( x[1] * d * dx ) + x[1] * sin( x[0] * d * dx );
+				o[d] = x[0] * cos( x[1] * d * dx ) + x[1] * sin( x[0] * d * dx );
+			f = 0;
 			break;
 		case 41: // Sin/Cos
 			f = 0;
 			dx = ( double ) M_PI * 2 / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )
-				f += o[d] = x[0] * cos( x[1] * d * dx ) + x[2] * sin( x[3] * d * dx );
+				o[d] = x[0] * cos( x[1] * d * dx ) + x[2] * sin( x[3] * d * dx );
 			break;
 		case 42: // Sin/Cos
-			f = 0;
 			dx = ( double ) M_PI * 2  / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )
-				f += o[d] = x[0] * cos( d * dx ) + x[1] * sin( d * dx );
-			break;
-		case 43: // Exponential Data Fitting II
+				o[d] = x[0] * cos( d * dx ) + x[1] * sin( d * dx );
 			f = 0;
+			break;
+		case 43: // Exponential Data Fitting I
 			for( d = 0; d < nObs; d++ )
 			{
 				dx = ( double ) d / 10;
-				f += o[d] = x[0] * exp( -dx * x[4] )
-							+ x[1] * exp( -( dx - x[8] ) * ( dx - x[8] ) * x[5] )
-							+ x[2] * exp( -( dx - x[9] ) * ( dx - x[9] ) * x[6] )
-							+ x[3] * exp( -( dx - x[10] ) * ( dx - x[10] ) * x[7] );
+				o[d] = x[0] + x[1] * exp( -dx * x[3] ) + x[2] * exp( -dx * x[4] );
 			}
+			f = 0;
+			break;
+		case 44: // Exponential Data Fitting II
+			for( d = 0; d < nObs; d++ )
+			{
+				dx = ( double ) d / 10;
+				o[d] = x[0] * exp( -dx * x[4] )
+					   + x[1] * exp( -( dx - x[8] ) * ( dx - x[8] ) * x[5] )
+					   + x[2] * exp( -( dx - x[9] ) * ( dx - x[9] ) * x[6] )
+					   + x[3] * exp( -( dx - x[10] ) * ( dx - x[10] ) * x[7] );
+			}
+			f = 0;
 			break;
 	}
 	if( function < 40 )
 	{
 		for( d = 0; d < nObs; d++ )
+		{
 			if( o[d] < 0.0 ) o[d] = -sqrt( fabs( o[d] ) );
 			else o[d] = sqrt( o[d] );
+		}
 	}
 	return f;
 }

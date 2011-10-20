@@ -416,6 +416,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
 	if( p->cd->fdebug >= 2 ) { printf( "Objective function %g\n", phi ); p->phi = phi; p->success = status_all; }
+	if( p->cd->compute_phi ) { p->phi = phi; p->success = status_all; }
 	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
 	{
 		p->success = 1;
@@ -471,7 +472,10 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			case SSD0: printf( "sum of squared discrepancies" ); break;
 			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 		}
+		if( p->cd->compute_phi ) printf( " --- computed!" );
 	}
+	// p->cd->compute_phi = 1;
+	// if( p->cd->compute_phi ) printf( " --- computed!!!!\n" );
 	if( p->cd->solution_type == TEST )
 	{
 		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var, p->od->nObs, f );
@@ -488,6 +492,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 					if( c < p->od->obs_min[k] || c > p->od->obs_max[k] ) { status_all = status = 0; }
 					else status = 1;
 				}
+				// printf( "e %g %g\n", err, p->od->obs_target[k] );
 				phi += err * err;
 			}
 			p->phi = phi;
@@ -592,6 +597,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		fflush( p->f_ofe );
 	}
 	if( p->cd->fdebug >= 2 ) { printf( "Objective function %g\n", phi ); p->phi = phi; p->success = status_all; }
+	if( p->cd->compute_phi ) { p->phi = phi; p->success = status_all; }
 	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
 	{
 		p->success = 1;
@@ -630,6 +636,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	ieval = p->cd->neval;
 	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); return( 1 ); }
+	p->cd->compute_phi = 0;
 	if( p->cd->num_proc > 1 && p->cd->solution_type == EXTERNAL ) // Parallel execution of external runs
 	{
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
@@ -684,6 +691,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	}
 	if( compute_center ) free( f_x );
 	free( f_xpdx );
+	p->cd->compute_phi = 1;
 	return GSL_SUCCESS;
 }
 

@@ -176,6 +176,7 @@ int main( int argn, char *argv[] )
 	cd.njac = 0;
 	cd.nlmo = 0;
 	cd.standalone = 1; // LM variable; LM is stand-alone if not part of tribes optimization
+	cd.compute_phi = 1; // function calls compute OF (phi); turned off only when the jacobians are computed for LM
 	cd.pderiv = cd.oderiv = -1; // internal flags; do not compute parameter and observation derivatives
 	op.phi = HUGE_VAL;
 	op.success = 0;
@@ -694,9 +695,7 @@ int main( int argn, char *argv[] )
 				for( i = 0; i < pd.nParam; i++ )
 					pd.var[i] = var_lhs[i + count * npar] * pd.var_range[i] + pd.var_min[i];
 				if( cd.mdebug ) { printf( "Forward run ... \n" ); debug_level = cd.fdebug; cd.fdebug = 3; }
-				cd.compute_phi = 1;
 				func( pd.var, &op, od.res ); // pd.var is a dummy variable because pd.nOptParam == 0
-				cd.compute_phi = 0;
 				if( cd.mdebug ) cd.fdebug = debug_level;
 			}
 			if( op.phi < op.cd->phi_cutoff ) phi_global++;
@@ -754,9 +753,7 @@ int main( int argn, char *argv[] )
 			printf( "Repeat the run producing the best results ...\n" );
 			debug_level = cd.fdebug; cd.fdebug = 1;
 			Transform( opt_params, &op, opt_params );
-			cd.compute_phi = 1;
 			func( opt_params, &op, od.res );
-			cd.compute_phi = 0;
 			cd.fdebug = debug_level;
 		}
 		if( cd.nreal > 1 )
@@ -862,9 +859,7 @@ int main( int argn, char *argv[] )
 				else
 				{
 					if( cd.debug ) { printf( "Forward run ... \n" ); debug_level = cd.fdebug; cd.fdebug = 3; }
-					cd.compute_phi = 1;
 					func( pd.var, &op, od.res ); // pd.var is dummy because pd.nOptParam == 0
-					cd.compute_phi = 0;
 					if( cd.debug ) cd.fdebug = debug_level;
 				}
 				neval_total += cd.neval;
@@ -923,9 +918,7 @@ int main( int argn, char *argv[] )
 			printf( "Repeat the run producing the best results ...\n" );
 			debug_level = cd.fdebug; cd.fdebug = 3;
 			Transform( opt_params, &op, opt_params );
-			cd.compute_phi = 1;
 			func( opt_params, &op, od.res );
-			cd.compute_phi = 0;
 			cd.fdebug = debug_level;
 		}
 		fprintf( out, "Minimum objective function: %g\n", phi_min );
@@ -1012,9 +1005,7 @@ int main( int argn, char *argv[] )
 				else
 				{
 					if( cd.debug ) { printf( "Forward run ... \n" ); debug_level = cd.fdebug; cd.fdebug = 3; }
-					cd.compute_phi = 1;
 					func( pd.var, &op, od.res ); // pd.var is dummy because pd.nOptParam == 0
-					cd.compute_phi = 0;
 					if( cd.debug ) cd.fdebug = debug_level;
 				}
 				if( op.phi < op.cd->phi_cutoff ) phi_global++;
@@ -1115,7 +1106,6 @@ int main( int argn, char *argv[] )
 		sprintf( filename, "%s.mcrnd.results", op.root );
 		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.mcrnd_%s.results >& /dev/null", filename, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
 		out = Fwrite( filename );
-		cd.compute_phi = 1;
 		phi_global = success_global = 0;
 		phi_min = HUGE_VAL;
 		if( cd.ireal != 0 ) k = cd.ireal - 1;
@@ -1274,9 +1264,7 @@ int main( int argn, char *argv[] )
 			printf( "Repeat the run producing the best results ...\n" );
 			debug_level = cd.fdebug; cd.fdebug = 3;
 			Transform( opt_params, &op, opt_params );
-			cd.compute_phi = 1;
 			func( opt_params, &op, od.res );
-			cd.compute_phi = 0;
 			cd.fdebug = debug_level;
 		}
 		printf( "Results are saved in %s.mcrnd.results\n", op.root );
@@ -1290,7 +1278,6 @@ int main( int argn, char *argv[] )
 		}
 		free( opt_params );
 		save_results( "", &op, &gd );
-		cd.compute_phi = 0;
 	}
 //
 // ------------------------ GLOBALSENS
@@ -1408,7 +1395,6 @@ int main( int argn, char *argv[] )
 		out = Fwrite( filename );
 		// Accumulate phis into fhat and fhat2 for total output mean and variance
 		fhat = fhat2 = 0;
-		cd.compute_phi = 1;
 		printf( "Computing phis to calculate total output mean and variance...\n" );
 		// Compute sample a phis
 		for( count = 0; count < n_sub; count ++ )
@@ -1916,9 +1902,7 @@ int optimize_lm( struct opt_data *op )
 			printf( "\n-------------------- Initial state:\n" );
 			op->cd->pderiv = op->cd->oderiv = -1;
 			debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-			op->cd->compute_phi = 1;
 			func( opt_params, op, res );
-			op->cd->compute_phi = 0;
 			op->cd->fdebug = debug_level;
 		}
 		// LM optimization ...
@@ -2014,17 +1998,13 @@ int optimize_lm( struct opt_data *op )
 				printf( "\n------------------------- Final state:\n" );
 				op->cd->pderiv = op->cd->oderiv = -1;
 				debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-				op->cd->compute_phi = 1;
 				func( opt_params, op, op->od->res ); // opt_params are already transformed
-				op->cd->compute_phi = 0;
 				op->cd->fdebug = debug_level;
 			}
 			else
 			{
 				// Make a Forward run with the best results
-				op->cd->compute_phi = 1;
 				func( opt_params, op, op->od->res ); // opt_params are already transformed
-				op->cd->compute_phi = 0;
 			}
 			DeTransform( opt_params, op, x_c );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -2069,9 +2049,7 @@ int optimize_lm( struct opt_data *op )
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			op->pd->var[op->pd->var_index[i]] = opt_params_best[i];
 		Transform( opt_params_best, op, opt_params );
-		op->cd->compute_phi = 1;
 		func( opt_params, op, op->od->res );
-		op->cd->compute_phi = 0;
 	}
 	if( ( op->cd->leigen || debug > 1 ) && standalone ) eigen( op, gsl_jacobian, gsl_covar ); // Eigen analysis
 	if( op->cd->paranoid ) free( var_lhs );
@@ -2131,9 +2109,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 		printf( "Analyzed state:\n" );
 		debug_level = op->cd->fdebug; op->cd->fdebug = 3;
 	}
-	op->cd->compute_phi = 1;
 	func( opt_params, op, op->od->res );
-	op->cd->compute_phi = 0;
 	phi = op->phi;
 	if( debug )
 	{

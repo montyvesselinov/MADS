@@ -178,7 +178,6 @@ int pso_tribes( struct opt_data *op )
 	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
-	op->cd->compute_phi = 1;
 	pb.lmfactor = op->cd->lmfactor;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); exit( 1 ); }
@@ -324,7 +323,6 @@ int pso_tribes( struct opt_data *op )
 	for( i = 0; i < MAXRUNS; i++ )
 		free_objfunc( &phi_list[i] );
 	op->cd->standalone = 1;
-	op->cd->compute_phi = 0;
 	return EXIT_SUCCESS;
 }
 
