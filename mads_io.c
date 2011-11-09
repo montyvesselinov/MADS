@@ -108,6 +108,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->pardx = 0;
 	cd->pardomain = 100;
 	cd->lmfactor = 10.0;
+	cd->lm_acc = 0;
+	cd->test_func_npar = cd->test_func_nobs = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
@@ -128,6 +130,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "leig" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( strcasestr( word, "energy=" ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lmfactor ); }
+		if( strcasestr( word, "accel" ) ) { w = 1; sscanf( word, "accel=%d", &cd->lm_acc ); if( cd->lm_acc <= 0 ) cd->lm_acc = 1; }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
 		if( strcasestr( word, "iter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }
@@ -144,7 +147,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
 		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; }
 		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); }
-		if( strcasestr( word, "truth=" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->truth ); }
+		if( strcasestr( word, "truth" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->truth ); cd->check_success = 1; }
 		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
 		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
 		if( strcasestr( word, "pardx" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
@@ -179,15 +182,15 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 	if( ( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) && cd->nreal == 0 ) cd->nreal = 100;
 	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { strcat( cd->opt_method, "_paran" ); cd->paranoid = 1; }
-	if( cd->test_func )
+	if( cd->test_func > 0 )
 	{
 		if( cd->test_func < 40 ) printf( "Test Function #%d Dimensionality %d\n", cd->test_func, cd->test_func_dim );
 		else
 		{
-			if( cd->test_func == 41 ) cd->test_func_npar = 4;
-			else cd->test_func_npar = 2;
-			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
-			printf( "Test Function #%d Parameters %d Observations %d\n", cd->test_func, cd->test_func_npar, cd->test_func_nobs );
+			printf( "Test Function %d ", cd->test_func );
+			if( cd->test_func_npar > 0 ) printf( "Parameters %d ", cd->test_func_npar );
+			if( cd->test_func_nobs > 0 ) printf( "Observations %d\n", cd->test_func_nobs );
+			printf( "\n" );
 		}
 	}
 	printf( "Problem type: " );

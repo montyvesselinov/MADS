@@ -174,7 +174,6 @@ int pso_std( struct opt_data *op )
 	double w; // First confidence coefficient
 	char filename[255];
 	int lmo_flag, loop_count;
-	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	irand_seed = &op->cd->seed;
@@ -434,9 +433,7 @@ loop:
 		if( n_exec > 1 ) printf( "\n Best min value = %f", min );
 	}
 // end: LABEL THAT IS NOT USED
-	op->cd->compute_phi = 1;
 	func( P[best].x, gop, res );
-	op->cd->compute_phi = 0;
 	DeTransform( P[best].x, op, P[best].x );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		op->pd->var[op->pd->var_index[i]] = P[best].x[i];
@@ -446,7 +443,6 @@ loop:
 		for( d = 0; d < D; d++ ) printf( " %f", P[best].x[d] );
 	}
 	if( op->cd->pdebug > 2 ) fclose( f_run );
-	op->cd->compute_phi = 0;
 	free( res );
 	return 0;
 }

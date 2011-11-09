@@ -226,20 +226,20 @@ int pssa( struct opt_data *op )
 	int t_old_pos = 0, t_old_bad_pos = 0, t_new_pos = 0; // total number of particles visiting old and new positions
 	//double expl_rate, old_expl_rate = 1; // rate of new to old positions
 	int mflag; // indicates if particles are actually moving
-	double domain_size=1;
-	double cell_size=1;
+	double domain_size = 1;
+	double cell_size = 1;
 	int nb_eval_left;
 	int reinvert_flag = 0;
 	FILE *f_out;
 	int iter = 0;
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	eval_max = op->cd->maxeval; // Max number of evaluations for each run
 	if( ( finv = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( ( finvbad = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	irand_seed = &op->cd->seed;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
@@ -401,7 +401,7 @@ int pssa( struct opt_data *op )
 		{
 			kdset = kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
 			kdsetbad = kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
-			if( kd_res_size( kdset ) == 0 && kd_res_size( kdsetbad) == 0 )
+			if( kd_res_size( kdset ) == 0 && kd_res_size( kdsetbad ) == 0 )
 				X[s].f = fabs( perf_pssa( s, function ) - f_min );
 			else if( kd_res_size( kdset ) == 1 && kd_res_size( kdsetbad ) == 0 )
 			{
@@ -501,8 +501,8 @@ loop:
 		// ... interval confinement (keep in the box)
 		for( d = 0; d < D; d++ )
 		{
-			if( X[s].x[d] < xmin[d] ) { X[s].x[d] = xmin[d]; V[s].v[d] = 0; } 
-			if( X[s].x[d] > xmax[d] ) { X[s].x[d] = xmax[d]; V[s].v[d] = 0; } 
+			if( X[s].x[d] < xmin[d] ) { X[s].x[d] = xmin[d]; V[s].v[d] = 0; }
+			if( X[s].x[d] > xmax[d] ) { X[s].x[d] = xmax[d]; V[s].v[d] = 0; }
 			X[s].x[d] = round_to_res( X[s].x[d], dx[d] );
 		}
 		// ... evaluate the new position
@@ -601,7 +601,7 @@ loop:
 	t_new_pos += new_pos; t_old_pos += old_pos; t_old_bad_pos += old_bad_pos;
 	// Check if dx can be reduced
 	nb_eval_left = eval_max - nb_eval;
-	if( (nb_eval * pow(2,D) * 5) < nb_eval_left && energy <= 0 && f_ind > 0 ) // only do if an acceptable solution has been found	
+	if( ( nb_eval * pow( 2, D ) * 5 ) < nb_eval_left && energy <= 0 && f_ind > 0 ) // only do if an acceptable solution has been found
 	{
 		cell_size = 1;
 		for( d = 0; d < D; d++ )
@@ -612,11 +612,11 @@ loop:
 		}
 		printf( "Decreasing discretization intervals by factor of 2.\n" );
 		printf( "dx = [" );
-		for( d=0; d<D; d++ ) printf( " %g", dx[d] );
+		for( d = 0; d < D; d++ ) printf( " %g", dx[d] );
 		printf( " ]\n" );
 		energy = 1;
 		// Reset finv to f for recollection
-		for( i=0; i<f_ind; i++)
+		for( i = 0; i < f_ind; i++ )
 			finv[i] = eps + ( eps - finv[i] ); // return inverted (collected) OFs to f for recollection
 		// Set first particle to IVs from mads input file, presumably obtained by optimization
 		for( d = 0; d < D; d++ )
@@ -633,7 +633,7 @@ loop:
 		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
 		print_particles( X, f_out );
 		fclose( f_out );
-	}	
+	}
 	// Check if finished
 	if( nb_eval < eval_max && energy > 0 ) goto loop;
 	//if( nb_eval < eval_max ) goto loop;
@@ -656,9 +656,9 @@ loop:
 	printf( "%d calculated solutions\n", nb_eval );
 	printf( "%d revisits to saved solutions\n", t_old_pos );
 	printf( "%d revisits to bad solutions\n", t_old_bad_pos );
-	printf( "\nFraction of domain with collected solutions: %g\n", (double) f_ind * cell_size / domain_size );
+	printf( "\nFraction of domain with collected solutions: %g\n", ( double ) f_ind * cell_size / domain_size );
 	if( energy > 0 ) printf( "\nExploration may not be complete! Swarm energy still left (energy = %d)! Increase evals!\n\n", energy );
-	else 
+	else
 	{
 		printf( "cell_size / domain_size = %g\n", cell_size / domain_size );
 		printf( "Swarm energy used up: energy = %d\n\n", energy );
@@ -800,7 +800,7 @@ void write_loc( double of, double *x, int x_size, int *ind )
 }
 
 void print_collected( void *kd, double *eps, double *dmax, double *dxmin, FILE *fid ) 	// Save result
-{	
+{
 	int d;
 	struct kdres *kdset; // nearest neighbor search results
 	double *pch;
@@ -809,22 +809,22 @@ void print_collected( void *kd, double *eps, double *dmax, double *dxmin, FILE *
 	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
 //	if( f_ind > 0 )
 //	{
-		kdset = kd_nearest_range( kd, G.x, *dmax );
-		fprintf( fid, "OF parameters... dxmin = %g\n", *dxmin );
-		while( !kd_res_end( kdset ) )
-		{
-			pch = ( double * ) kd_res_item( kdset, G.x );
-			//fprintf( fid, "%d ", i + 1 );
-			//f = eps - ( *pch - eps );
-			fprintf( fid, "%lf", *pch );
-			for( d = 0; d < D; d++ )
-				fprintf( fid, " %lf", G.x[d] );
-			fprintf( fid, "\n" );
-			//i++;
-			kd_res_next( kdset );
-		}
-		kd_res_free( kdset );
-		//printf( "\nResults written to %s\n\n", filename );
+	kdset = kd_nearest_range( kd, G.x, *dmax );
+	fprintf( fid, "OF parameters... dxmin = %g\n", *dxmin );
+	while( !kd_res_end( kdset ) )
+	{
+		pch = ( double * ) kd_res_item( kdset, G.x );
+		//fprintf( fid, "%d ", i + 1 );
+		//f = eps - ( *pch - eps );
+		fprintf( fid, "%lf", *pch );
+		for( d = 0; d < D; d++ )
+			fprintf( fid, " %lf", G.x[d] );
+		fprintf( fid, "\n" );
+		//i++;
+		kd_res_next( kdset );
+	}
+	kd_res_free( kdset );
+	//printf( "\nResults written to %s\n\n", filename );
 //	}
 }
 
@@ -841,7 +841,7 @@ void print_particles( struct position *X, FILE *fid )
 		fprintf( fid, "\n" );
 	}
 }
-		
+
 //===========================================================
 double perf_pssa( int s, int function )
 {

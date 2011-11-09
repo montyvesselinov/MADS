@@ -37,16 +37,33 @@ int set_test_problems( struct opt_data *op )
 {
 	int d, oddefined = 0;
 	double a, b, dx;
+	double pi;
+	pi = acos( -1 );
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct obs_data *od;
 	cd = op->cd;
 	pd = op->pd;
 	od = op->od;
-	cd->compute_phi = 1;
-	if( cd->test_func >= 40 ) pd->nParam = pd->nOptParam = cd->test_func_npar;
-	else if( cd->test_func == 9 || cd->test_func == 10 || cd->test_func == 20 || cd->test_func == 23 || cd->test_func == 35 ) pd->nParam = pd->nOptParam = cd->test_func_dim = 2;
-	else pd->nParam = pd->nOptParam = cd->test_func_dim;
+	cd->test_func_npar = cd->test_func_dim;
+	switch( cd->test_func )
+	{
+			// All the 2D problems -- 2 parameters fixed
+		case 9:
+		case 10:
+		case 20:
+		case 23:
+		case 35:
+			cd->test_func_npar = cd->test_func_dim = 2;
+			break;
+			// Fitting problems
+		case 40: cd->test_func_npar = 2; break; // 2 parameters fixed
+		case 41: cd->test_func_npar = 4; break; // 2 parameters fixed
+		case 42: cd->test_func_npar = 2; break; // 2 parameters fixed
+		case 43: cd->test_func_npar = 5; break; // 5 parameters fixed
+		case 44: cd->test_func_npar = 11; break; // 11 parameters fixed
+	}
+	pd->nParam = pd->nOptParam = cd->test_func_npar;
 	pd->nFlgParam = 0;
 	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
 	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
@@ -159,8 +176,40 @@ int set_test_problems( struct opt_data *op )
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
 			break;
-		case 35: // camel back
-			printf( "3-hump camel back (with observations = (d-1)*2)" );
+		case 34: // Powell's Quadratic
+			printf( "Powell's Quadratic" );
+			for( d = 0; d < pd->nOptParam; d++ )
+			{
+				pd->var_min[d] = -10; pd->var_max[d] = 10;
+				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
+				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0,0,0)
+			}
+			od->nObs = 4;
+			break;
+		case 35: // Booth
+			printf( "Booth function (with observations = (d-1)*2)" );
+			pd->var_min[0] = -10; pd->var_max[0] = 10;
+			pd->var_min[1] = -10; pd->var_max[1] = 10;
+			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
+			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
+			od->nObs = ( cd->test_func_dim - 1 ) * 2;
+			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 1; // global minimum at (1,3)
+			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 3;
+			/* Note: function also has local minima */
+			break;
+		case 36: // Beale
+			printf( "Beale" );
+			pd->var_min[0] = -4.5; pd->var_max[0] = 4.5;
+			pd->var_min[1] = -4.5; pd->var_max[1] = 4.5;
+			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
+			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
+			//od->nObs = ( cd->test_func_dim - 1 ) * 2;
+			od->nObs = 3;
+			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 3.0; // global minimum at (3,0.5)
+			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 0.5;
+			break;
+		case 37: // Parsopoulos
+			printf( "Parsopoulos" );
 			pd->var_min[0] = -5; pd->var_max[0] = 5;
 			pd->var_min[1] = -5; pd->var_max[1] = 5;
 			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
@@ -171,6 +220,7 @@ int set_test_problems( struct opt_data *op )
 			/* Note: function also has local minima at (-1.74755, 0.87378), (-1.07054, 0.53527), (1.07054, -0.53527), and (1.74755, -0.87378) */
 			break;
 		case 40: // sin/cos
+			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
 			pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 100.5;
 			pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 102.5;
 			pd->var_min[0] = 50; pd->var_max[0] = 150;
@@ -179,11 +229,10 @@ int set_test_problems( struct opt_data *op )
 			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
 			pd->var_truth[0] = a = 100;
 			pd->var_truth[1] = b = 102;
-			printf( "Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
+			printf( "Sin/Cos test function with %d parameters and %d observations (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
 			od->nObs = cd->test_func_nobs;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
-			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			for( d = 0; d < od->nObs; d++ )
 			{
 				od->obs_target[d] = a * cos( b * d * dx ) + b * sin( a * d * dx );
@@ -192,6 +241,7 @@ int set_test_problems( struct opt_data *op )
 			oddefined = 1;
 			break;
 		case 41: // sin/cos
+			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
 			pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 100.5;
 			pd->var[1] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 101.5;
 			pd->var[2] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 102.5;
@@ -205,32 +255,84 @@ int set_test_problems( struct opt_data *op )
 			pd->var_truth[1] = 101;
 			pd->var_truth[2] = 102;
 			pd->var_truth[3] = 103;
-			printf( "Sin/Cos test function with %i observations (", cd->test_func_dim );
-			for( d = 0; d < pd->nOptParam; d++ )
-				printf( "%g/", pd->var_truth[d] );
+			printf( "Sin/Cos test function with %d parameters and %d observations (", pd->nOptParam, cd->test_func_nobs );
+			printf( "%g", pd->var_truth[0] );
+			for( d = 1; d < pd->nOptParam; d++ )
+				printf( "/%g", pd->var_truth[d] );
 			printf( ")" );
 			od->nObs = cd->test_func_nobs;
+			oddefined = 1;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
-			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			for( d = 0; d < od->nObs; d++ )
 				od->obs_target[d] = pd->var_truth[0] * cos( pd->var_truth[1] * d * dx ) + pd->var_truth[2] * sin( pd->var_truth[3] * d * dx );
-			oddefined = 1;
 			break;
 		case 42: // sin/cos
+			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
 			pd->var_truth[0] = a = 93;
 			pd->var_truth[1] = b = 95;
-			printf( "Simplified Sin/Cos test function with %i observations (%g/%g)", cd->test_func_dim, a, b );
+			printf( "Simplified Sin/Cos test function with %d parameters and %d observations (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
 			od->nObs = cd->test_func_nobs;
+			oddefined = 1;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
-			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			for( d = 0; d < od->nObs; d++ )
 			{
 				od->obs_target[d] = a * cos( d * dx ) + b * sin( d * dx );
 				// printf( "o %g %g\n", d * dx, od->obs_target[d] );
 			}
+			break;
+		case 43: // Exponential Data Fitting I
+			od->nObs = cd->test_func_nobs = 33;
+			printf( "Exponential Data Fitting I function with %d parameters and %d observations (", pd->nOptParam, cd->test_func_nobs );
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var_truth[d] = ( double ) 1 + d * 0.5;
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d]  = ( double ) 1 + d * 0.5 - 0.01;
+			printf( "%g", pd->var_truth[0] );
+			for( d = 1; d < pd->nOptParam; d++ )
+				printf( "/%g", pd->var_truth[d] );
+			printf( ")" );
+			for( d = 0; d < pd->nOptParam; d++ )
+			{
+				pd->var_min[d] = -10; pd->var_max[d] = 10;
+				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
+			}
 			oddefined = 1;
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			for( d = 0; d < od->nObs; d++ )
+			{
+				dx = ( double ) d / 10;
+				od->obs_target[d] = pd->var_truth[0] + pd->var_truth[1] * exp( -dx * pd->var_truth[3] ) +
+									pd->var_truth[2] * exp( -dx * pd->var_truth[4] );
+			}
+			break;
+		case 44: // Exponential Data Fitting II
+			od->nObs = cd->test_func_nobs = 65;
+			printf( "Exponential Data Fitting II function with %d parameters and %d observations (", pd->nOptParam, cd->test_func_nobs );
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var_truth[d] = ( double ) 1 + d * 0.5;
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d]  = ( double ) 1 + d * 0.5 - 0.01;
+			printf( "%g", pd->var_truth[0] );
+			for( d = 1; d < pd->nOptParam; d++ )
+				printf( "/%g", pd->var_truth[d] );
+			printf( ")" );
+			for( d = 0; d < pd->nOptParam; d++ )
+			{
+				pd->var_min[d] = 0; pd->var_max[d] = 10;
+				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
+			}
+			oddefined = 1;
+			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+			for( d = 0; d < od->nObs; d++ )
+			{
+				dx = ( double ) d / 10;
+				od->obs_target[d] = pd->var_truth[0] * exp( -dx * pd->var_truth[4] )
+									+ pd->var_truth[1] * exp( -( dx - pd->var_truth[8] ) * ( dx - pd->var_truth[8] ) * pd->var_truth[5] )
+									+ pd->var_truth[2] * exp( -( dx - pd->var_truth[9] ) * ( dx - pd->var_truth[9] ) * pd->var_truth[6] )
+									+ pd->var_truth[3] * exp( -( dx - pd->var_truth[10] ) * ( dx - pd->var_truth[10] ) * pd->var_truth[7] );
+			}
 			break;
 	}
 	if( od->nObs > 1 )
@@ -248,7 +350,7 @@ int set_test_problems( struct opt_data *op )
 	for( d = 0; d < od->nObs; d++ )
 	{
 		sprintf( od->obs_id[d], "Observation #%d", d + 1 );
-		if( oddefined ) { od->obs_max[d] = od->obs_target[d] + 0.1; od->obs_min[d] = od->obs_target[d] - 0.1; }
+		if( oddefined ) { od->obs_max[d] = od->obs_target[d] + cd->truth; od->obs_min[d] = od->obs_target[d] - cd->truth; }
 		else od->obs_target[d] = od->obs_max[d] = od->obs_min[d] = 0;
 		od->obs_weight[d] = 1;
 		od->obs_log[d] = 0;
@@ -528,21 +630,38 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				t0 = t1;
 			}
 			break;
-		case 35: // Camel back
+		case 34: // Powell's Quadratic
+			o[0] = ( double ) 121 * x[0] * x[0];
+			o[1] = ( double ) 5 * ( x[2] - x[3] ) * ( x[2] - x[3] );
+			o[2] = ( double )( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] );
+			o[3] = ( double ) 10 * ( x[0] - x[3] ) * ( x[0] - x[3] ) * ( x[0] - x[3] ) * ( x[0] - x[3] );
+			f = o[0] + o[1] + o[2] + o[3];
+			break;
+		case 35: // Booth
 			f = 0;
-			o[0] = ( double ) 2.0 * x[0] * x[0];
-			o[1] = ( double ) - 1.05 * x[0] * x[0] * x[0] * x[0];
-			o[2] = ( double ) 1.0 / 6.0 * x[0] * x[0] * x[0] * x[0] * x[0] * x[0];
-			o[3] = x[0] * x[1];
-			o[4] = x[1] * x[1];
-			for( d = 0; d < nObs; d++ )
-				f += o[d];
+			o[0] = ( double )( x[0] + 2 * x[1] - 7.0 ) * ( x[0] + 2 * x[1] - 7.0 );
+			o[1] = ( double )( 2 * x[0] + x[1] - 5.0 ) * ( 2 * x[0] + x[1] - 5.0 );
+			f = o[0] + o[1];
+			printf( "\nx0: %g x1: %g\n", x[0], x[1] );
+			break;
+		case 36: // Beale
+			f = 0;
+			o[0] = ( double )( 1.5 - x[0] + x[0] * x[1] ) * ( 1.5 - x[0] + x[0] * x[1] );
+			o[1] = ( double )( 2.5 - x[0] + x[0] * x[1] * x[1] ) * ( 2.5 - x[0] + x[0] * x[1] * x[1] );
+			o[2] = ( double )( 2.625 - x[0] + x[0] * x[1] * x[1] * x[1] ) * ( 2.625 - x[0] + x[0] * x[1] * x[1] * x[1] );
+			f = o[0] + o[1] + o[2];
+			break;
+		case 37: // Parsopoulos
+			f = 0;
+			o[0] = cos( x[0] ) * cos( x[0] );
+			o[1] = sin( x[1] ) * sin( x[1] );
+			f = o[0] + o[1];
 			break;
 		case 40: // Sin/Cos
-			f = 0;
 			dx = ( double ) M_PI * 2 / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )
 				o[d] = x[0] * cos( x[1] * d * dx ) + x[1] * sin( x[0] * d * dx );
+			f = 0;
 			break;
 		case 41: // Sin/Cos
 			f = 0;
@@ -551,17 +670,38 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				o[d] = x[0] * cos( x[1] * d * dx ) + x[2] * sin( x[3] * d * dx );
 			break;
 		case 42: // Sin/Cos
-			f = 0;
 			dx = ( double ) M_PI * 2  / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )
 				o[d] = x[0] * cos( d * dx ) + x[1] * sin( d * dx );
+			f = 0;
+			break;
+		case 43: // Exponential Data Fitting I
+			for( d = 0; d < nObs; d++ )
+			{
+				dx = ( double ) d / 10;
+				o[d] = x[0] + x[1] * exp( -dx * x[3] ) + x[2] * exp( -dx * x[4] );
+			}
+			f = 0;
+			break;
+		case 44: // Exponential Data Fitting II
+			for( d = 0; d < nObs; d++ )
+			{
+				dx = ( double ) d / 10;
+				o[d] = x[0] * exp( -dx * x[4] )
+					   + x[1] * exp( -( dx - x[8] ) * ( dx - x[8] ) * x[5] )
+					   + x[2] * exp( -( dx - x[9] ) * ( dx - x[9] ) * x[6] )
+					   + x[3] * exp( -( dx - x[10] ) * ( dx - x[10] ) * x[7] );
+			}
+			f = 0;
 			break;
 	}
 	if( function < 40 )
 	{
 		for( d = 0; d < nObs; d++ )
+		{
 			if( o[d] < 0.0 ) o[d] = -sqrt( fabs( o[d] ) );
 			else o[d] = sqrt( o[d] );
+		}
 	}
 	return f;
 }
