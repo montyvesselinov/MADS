@@ -96,7 +96,6 @@ int LEVMAR_DER(
 			*jacTe,      /* J^T e_i mx1 */
 			*jac,        /* nxm */
 			*jacTjac,    /* mxm */
-			//*jacDp,       /* jac*Dp, used in acc comp (nx1) */
 			*Dp,         /* mx1 (=v) */
 			*ephdp_plus,     /* residual used in acceleration computation (nx1) */
 			*ephdp_minus,     /* residual used in acceleration computation (nx1) */
@@ -110,10 +109,10 @@ int LEVMAR_DER(
 			*wrk,        /* nx1 */
 			*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
 	int using_ffdif = 1;
-	double h = 0.1;
+	double h = op->cd->lm_h;
+	double alpha = op->cd->lm_ratio;
 	register LM_REAL mu,  /* damping constant */
 			 tmp, /* mainly used in matrix & vector multiplications */
-			 //tmp1, /* used in acceleration-velocity ratio */
 			 avRatio = 0.0; /* acceleration/velocity */
 	LM_REAL p_eL2, p_eL2_old, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
 	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, a_L2, dF, Dpa_L2, dL;
@@ -177,7 +176,6 @@ int LEVMAR_DER(
 	wrk2 = wrk + n;
 	hx1 = ( LM_REAL * )malloc( n * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
 	hx2 = ( LM_REAL * )malloc( n * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
-	//jacDp = ( LM_REAL * )malloc( n * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
 	phDp_plus = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
 	phDp_minus = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
 	ephdp_plus = ( LM_REAL * )malloc( n * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
@@ -222,7 +220,7 @@ int LEVMAR_DER(
 	nu = 20; /* force computation of J */
 	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
-	for( k = 0; k < itmax && !stop; ++k )
+	for( k = 0; k < 10*itmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
 		if( p_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
@@ -231,9 +229,10 @@ int LEVMAR_DER(
 			stop = 6;
 			break;
 		}
+
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
-		 */
+ 		*/
 		if( ( updp && nu > 16 ) || updjac == K || mu_big || phi_decline ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug && k != 0 )
@@ -250,6 +249,7 @@ int LEVMAR_DER(
 			p_eL2_old = p_eL2;
 			if( success ) op->cd->check_success = 0;
 			if( odebug ) op->cd->odebug = 0;
+
 			if( using_ffdif ) /* use forward differences */
 				jacf( p, hx, jac, m, n, adata );
 			else  /* use central differences */
@@ -261,7 +261,7 @@ int LEVMAR_DER(
 			if( success ) op->cd->check_success = 1;
 			if( odebug ) op->cd->odebug = 1;
 			++njap; nfev += m;
-			nu = 2; updjac = 0; updp = 0; newjac = 1;
+			nu = op->cd->lm_nu; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
 				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
@@ -349,8 +349,8 @@ int LEVMAR_DER(
 				diag_jacTjac[i] = jacTjac[i * m + i]; /* save diagonal entries so that augmentation can be later canceled */
 				p_L2 += p[i] * p[i];
 			}
-			//p_L2=sqrt(p_L2);
 		}
+
 		if( op->cd->ldebug > 3 )
 		{
 			printf( "Current estimate: " );
@@ -389,24 +389,17 @@ int LEVMAR_DER(
 			if( op->cd->lm_acc )
 			{
 				register LM_REAL beta, *jacT;
-				//for( i = 0; i < n; ++i )          /* reset vectors for each new step */
-				//jacDp[i] = 0.0;
 				for( i = 0; i < m; ++i )
 					jacTvv[i] = 0.0;
-				//for( j = 0; j < n; ++j )
-				//	for( i = 0; i < m; ++i )
-				//		jacDp[j] += jac[i + m*j]*Dp[i];
 				for( i = 0; i < m; ++i )
 				{
 					phDp_plus[i] = p[i] + h * Dp[i];
 					phDp_minus[i] = p[i] - h * Dp[i];
 				}
-				op->cd->compute_phi = 0;
 				( *func )( phDp_plus, hx1, m, n, adata ); nfev++;
 				for( i = 0; i < n; ++i )
 					ephdp_plus[i] = x[i] - hx1[i];
 				( *func )( phDp_minus, hx2, m, n, adata ); nfev++;
-				op->cd->compute_phi = 1;
 				for( i = 0; i < n; ++i )
 					ephdp_minus[i] = x[i] - hx2[i];
 				for( i = 0; i < n; ++i )
@@ -421,57 +414,47 @@ int LEVMAR_DER(
 						jacTvv[i] += beta * vvddr[j];
 					}
 				}
-				/*printf("\nDp[0] = %g Dp[1] = %g\n", Dp[0], Dp[1]);
-				printf("\nphDp[0] = %g phDp[1] = %g\n", phDp[0], phDp[1]);
-				printf("\njacDp[0] = %g jacDp[1] = %g\n", jacDp[0], jacDp[1]);
-				printf("\ne[0] = %g e[1] = %g\n", e[0], e[1]);
-				printf("\nephdp[0] = %g ephdp[1] = %g\n", ephdp[0], ephdp[1]);
-				printf("\nvvddr[0] = %g vvddr[1] = %g\n", vvddr[0], vvddr[1]);*/
-				//printf("\njacTjac[0] = %g jacTjac[1] = %g jacTjac[2] = %g jacTjac[3] = %g\n", jacTjac[0], jacTjac[1], jacTjac[2], jacTjac[3]);
 				issolved1 = linsolver( jacTjac, jacTvv, a, m ); ++nlss;
 			}
+
 			/* compute p's new estimate and ||Dp||^2 */
 			for( i = 0, Dp_L2 = 0.0; i < m; ++i )
 			{
 				pDp[i] = p[i] + ( tmp = Dp[i] );
-				//printf("\np:%g\n", p[i]);
-				//printf("\npdp:%g\n", pDp[i]);
 				Dp_L2 += tmp * tmp;
 			}
-			//printf("\nDp[0] = %g Dp[1] = %g\n", Dp[0], Dp[1]);
 			if( op->cd->lm_acc && issolved1 )
 			{
 				for( i = 0, a_L2 = 0.0; i < m; ++i )
-				{
+				{	
 					pDp[i] += 0.5 * ( tmp = a[i] );
 					a_L2 += tmp * tmp;
 				}
 				avRatio = a_L2 / Dp_L2;
-				//printf("\na[0] = %g a[1] = %g avRatio = %g\n", a[0], a[1], avRatio);
-				/*for( i = 0, Dpa_L2 = 0.0; i < m; ++i )
+				for( i = 0, Dpa_L2 = 0.0; i < m; ++i )
 				{
 					tmp = Dp[i] + 0.5*a[i];
 					Dpa_L2 += tmp * tmp;
 				}
-				Dp_L2 = Dpa_L2;*/
-				//printf("\nDp_L2 = %g Dpa_L2 = %g\n", Dp_L2, Dpa_L2);
-				//Dp_L2=sqrt(Dp_L2);
 			}
-			if( Dp_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
+
+			if( !op->cd->lm_acc )
 			{
-				//if(Dp_L2<=eps2*(p_L2 + eps2)){ /* relative change in p is small, stop */
-				if( op->cd->ldebug ) printf( "CONVERGED: Relative change in the OF is small (%g < %g)\n", Dp_L2, eps2_sq * p_L2 );
+				Dpa_L2 = Dp_L2;
+			}
+
+			if( Dpa_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
+			{
+				if( op->cd->ldebug ) printf( "CONVERGED: Relative change in the OF is small (%g < %g)\n", Dpa_L2, eps2_sq * p_L2 );
 				stop = 2;
 				break;
 			}
-			if( Dp_L2 >= ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) ) /* almost singular */
+			if( Dpa_L2 >= ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) ) /* almost singular */
 			{
-				//if(Dp_L2>=(p_L2+eps2)/LM_CNST(EPSILON)){ /* almost singular */
 				if( op->cd->ldebug ) printf( "CONVERGED: almost singular solution (%g > %g)\n", Dp_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
 				stop = 4;
 				break;
 			}
-			//printf("\n\npDp1: %g pDp2: %g\n\n", pDp[0], pDp[1]);
 			( *func )( pDp, wrk, m, n, adata ); ++nfev; /* evaluate function at p + Dp */
 #if 0
 			if( op->cd->solution_type == TEST ) // this is a test; not needed in general
@@ -496,7 +479,6 @@ int LEVMAR_DER(
 #endif
 			}
 #endif
-			//printf("\n\nwrk1: %g wrk2: %g\n\n", wrk2[0], wrk2[1]);
 			if( op->cd->ldebug ) printf( "OF %g lambda %g ", pDp_eL2, mu );
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
@@ -523,20 +505,11 @@ int LEVMAR_DER(
 				stop = 7;
 				break;
 			}
-			if( op->cd->lm_acc == 2 )
-			{
-//				printf( "Leif tmp\n" );
-				tmp = p_eL2 / pDp_eL2;
-				if( tmp > 1.0 ) phi_decline = 1; /* recompute jacobian because OF decreased */
-			}
-			else // original
-			{
-				tmp = p_eL2_old / p_eL2;
-				if( tmp > 2.0 ) phi_decline = 1; /* recompute jacobian because OF decreased */
-			}
-			//printf("\np_eL2_old = %g p_eL2 = %g tmp = %g\n", p_eL2, pDp_eL2, tmp);
+	
+			tmp = p_eL2 / pDp_eL2;
+			if( tmp > 1.0 && avRatio < alpha ) phi_decline = 1; /* recompute jacobian because OF decreased */
+			
 			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
-			// printf( "dF = %g (%g - %g)\n", dF, p_eL2, pDp_eL2 );
 			if( updp || dF > 0.0 ) /* update jac because OF increases */
 			{
 				for( i = 0; i < n; ++i )
@@ -550,21 +523,21 @@ int LEVMAR_DER(
 				++updjac;
 				newjac = 1;
 			}
-			if( !op->cd->lm_acc )
+			if( op->cd->indir )
 			{
 				for( i = 0, dL = 0.0; i < m; ++i )
 					dL += Dp[i] * ( mu * Dp[i] + jacTe[i] );
 			}
 			else dL = 1.0;
-			if( dL > 0.0 && dF > 0.0 && avRatio < ( double ) 1.0 ) /* reduction in error, increment is accepted */
+			if( dL > 0.0 && dF > 0.0 && avRatio < alpha ) /* reduction in error, increment is accepted */
 			{
-				if( !op->cd->lm_acc )
+				if( op->cd->indir )
 				{
 					tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
 					tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
 					tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				}
-				else tmp = ( double ) 0.1;
+				else tmp = ( double ) op->cd->lm_mu;
 				mu = mu * tmp; // change lambda
 				if( mu > 1e3 )
 				{
@@ -585,7 +558,7 @@ int LEVMAR_DER(
 				else mu_constrained = 0;
 				if( op->cd->ldebug > 1 ) printf( "change factor (tmp) %g\n", tmp );
 				else if( op->cd->ldebug ) printf( "\n" );
-				nu = 2;
+				nu = op->cd->lm_nu;
 				for( i = 0 ; i < m; ++i ) /* update p's estimate */
 					p[i] = pDp[i];
 				for( i = 0; i < n; ++i ) /* update e, hx and ||e||_2 */
@@ -621,7 +594,7 @@ int LEVMAR_DER(
 		else mu_constrained = 0;
 		if( op->cd->ldebug > 1 ) printf( "change factor (nu) %d\n", nu );
 		else if( op->cd->ldebug ) printf( "\n" );
-		if( !( op->cd->lm_acc == 2 ) )
+		if( op->cd->indir )
 		{
 			nu2 = nu << 1; // 2 * nu;
 			if( nu2 <= nu ) /* nu has wrapped around (overflown). Thanks to Frank Jordan for spotting this case */
@@ -632,11 +605,10 @@ int LEVMAR_DER(
 			}
 			nu = nu2;
 		}
-//		else 				printf( "Leif nu\n" );
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 			jacTjac[i * m + i] = diag_jacTjac[i];
 	}
-	if( k >= itmax ) stop = 3;
+	if( k >= 10*itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 		jacTjac[i * m + i] = diag_jacTjac[i];
 	if( info )
@@ -869,7 +841,7 @@ int LEVMAR_DIF(
 			}
 			if( success ) op->cd->check_success = 1;
 			if( odebug ) op->cd->odebug = 1;
-			nu = 2; updjac = 0; updp = 0; newjac = 1;
+			nu = 10; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
 				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );

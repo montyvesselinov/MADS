@@ -109,6 +109,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->pardomain = 100;
 	cd->lmfactor = 10.0;
 	cd->lm_acc = 0;
+	cd->lm_mu = 0.1;
+	cd->lm_nu = 2;
+	cd->lm_h = 0.1;
+	cd->lm_ratio = 0.75*0.75;
+	cd->indir = 0;
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -130,7 +135,12 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "leig" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( strcasestr( word, "energy=" ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lmfactor ); }
+		if( strcasestr( word, "mu=" ) ) { w = 1; sscanf( word, "mu=%lf", &cd->lm_mu ); }
+		if( strcasestr( word, "nu=" ) ) { w = 1; sscanf( word, "nu=%d", &cd->lm_nu ); }
+		if( strcasestr( word, "h=" ) ) { w = 1; sscanf( word, "h=%lf", &cd->lm_h ); }
+		if( strcasestr( word, "ratio=" ) ) { w = 1; sscanf( word, "ratio=%lf", &cd->lm_ratio ); }
 		if( strcasestr( word, "accel" ) ) { w = 1; sscanf( word, "accel=%d", &cd->lm_acc ); if( cd->lm_acc <= 0 ) cd->lm_acc = 1; }
+		if( strcasestr( word, "indirect" ) ) { w = 1; sscanf( word, "indirect=%d", &cd->indir ); if( cd->indir <= 0) cd->indir = 1; }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
 		if( strcasestr( word, "iter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }

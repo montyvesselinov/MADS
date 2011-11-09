@@ -89,6 +89,11 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int energy; // starting energy for pssa particles
 	double lmfactor;
 	int lm_acc; // to accelerate or npt LM
+	int indir;
+	double lm_mu;
+	int lm_nu;
+	double lm_h;
+	double lm_ratio;
 	char *solution_id; // solution identifier (name)
 	char *opt_method; // optimization method identifier
 	char *smp_method; // sampling method identifier

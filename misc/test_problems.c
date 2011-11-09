@@ -53,6 +53,7 @@ int set_test_problems( struct opt_data *op )
 		case 10:
 		case 20:
 		case 23:
+		case 31:
 		case 35:
 			cd->test_func_npar = cd->test_func_dim = 2;
 			break;
@@ -82,7 +83,7 @@ int set_test_problems( struct opt_data *op )
 	{
 		sprintf( pd->var_id[d], "Parameter #%d", d + 1 );
 		pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0;
-		pd->var_max[d] = cd->pardomain / 2; pd->var_min[d] = -pd->var_max[d]; pd->var_log[d] = 0; pd->var_opt[d] = 1;
+		pd->var_max[d] = cd->pardomain; pd->var_min[d] = -pd->var_max[d]; pd->var_log[d] = 0; pd->var_opt[d] = 1;
 		pd->var_dx[d] = cd->pardx;
 		pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 		pd->var_index[d] = d;
@@ -164,6 +165,12 @@ int set_test_problems( struct opt_data *op )
 			printf( "Eason 2D " );
 			if( cd->test_func_dim != 2 ) cd->test_func_dim = 2;
 			break;
+		case 31: // Transtrum rosenbrock
+			printf( "Transtrum Rosenbrock" );
+                        od->nObs = cd->test_func_dim;
+                        pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 0; // global minimum at (0,0)
+                        pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 0;
+			break;
 		case 32: // Griewank modified after Locatelli (2003)
 			printf( "Griewank modified after Locatelli (2003)" );
 			od->nObs = cd->test_func_dim;
@@ -178,13 +185,13 @@ int set_test_problems( struct opt_data *op )
 			break;
 		case 34: // Powell's Quadratic
 			printf( "Powell's Quadratic" );
+			od->nObs = 4;
 			for( d = 0; d < pd->nOptParam; d++ )
 			{
 				pd->var_min[d] = -10; pd->var_max[d] = 10;
 				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0,0,0)
 			}
-			od->nObs = 4;
 			break;
 		case 35: // Booth
 			printf( "Booth function (with observations = (d-1)*2)" );
@@ -203,10 +210,9 @@ int set_test_problems( struct opt_data *op )
 			pd->var_min[1] = -4.5; pd->var_max[1] = 4.5;
 			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
 			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
-			//od->nObs = ( cd->test_func_dim - 1 ) * 2;
 			od->nObs = 3;
-			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 3.0; // global minimum at (3,0.5)
-			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 0.5;
+			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 3.025; // global minimum at (3,0.5)
+			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 0.474;
 			break;
 		case 37: // Parsopoulos
 			printf( "Parsopoulos" );
@@ -214,10 +220,9 @@ int set_test_problems( struct opt_data *op )
 			pd->var_min[1] = -5; pd->var_max[1] = 5;
 			pd->var_range[0] = pd->var_max[0] - pd->var_min[0];
 			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
-			od->nObs = 5;
-			for( d = 0; d < pd->nOptParam; d++ )
-				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
-			/* Note: function also has local minima at (-1.74755, 0.87378), (-1.07054, 0.53527), (1.07054, -0.53527), and (1.74755, -0.87378) */
+			od->nObs = 2;
+			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 0; // local minimum at (0,pi/2, ... )
+			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = pi/2.0;
 			break;
 		case 40: // sin/cos
 			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
@@ -236,7 +241,6 @@ int set_test_problems( struct opt_data *op )
 			for( d = 0; d < od->nObs; d++ )
 			{
 				od->obs_target[d] = a * cos( b * d * dx ) + b * sin( a * d * dx );
-				// printf( "o %g %g\n", d * dx, od->obs_target[d] );
 			}
 			oddefined = 1;
 			break;
@@ -279,7 +283,6 @@ int set_test_problems( struct opt_data *op )
 			for( d = 0; d < od->nObs; d++ )
 			{
 				od->obs_target[d] = a * cos( d * dx ) + b * sin( d * dx );
-				// printf( "o %g %g\n", d * dx, od->obs_target[d] );
 			}
 			break;
 		case 43: // Exponential Data Fitting I
@@ -605,6 +608,12 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			x1 = x[0]; x2 = x[1];
 			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
+		case 31: // Transtrum rosenbrock
+			f = 0;
+			o[0] = x[0] * x[0];
+			o[1] = ( double ) 100000000.0*(x[1] - x[0]*x[0]*x[0]*x[0]*x[0])*(x[1] - x[0]*x[0]*x[0]*x[0]*x[0]);
+			f = o[0] + o[1];
+			break;
 		case 32: // Griewank
 			f = 0;
 			p = 0;
@@ -631,10 +640,10 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 34: // Powell's Quadratic
-			o[0] = ( double ) 121 * x[0] * x[0];
-			o[1] = ( double ) 5 * ( x[2] - x[3] ) * ( x[2] - x[3] );
-			o[2] = ( double )( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] ) * ( x[1] - 2 * x[2] );
-			o[3] = ( double ) 10 * ( x[0] - x[3] ) * ( x[0] - x[3] ) * ( x[0] - x[3] ) * ( x[0] - x[3] );
+			o[0] = ( double ) 121.0 * x[0] * x[0];
+			o[1] = ( double ) 5.0 * ( x[2] - x[3] ) * ( x[2] - x[3] );
+			o[2] = ( double )( x[1] - 2.0 * x[2] ) * ( x[1] - 2.0 * x[2] ) * ( x[1] - 2.0 * x[2] ) * ( x[1] - 2.0 * x[2] );
+			o[3] = ( double ) 10.0 * ( x[0] - x[3] ) * ( x[0] - x[3] ) * ( x[0] - x[3] ) * ( x[0] - x[3] );
 			f = o[0] + o[1] + o[2] + o[3];
 			break;
 		case 35: // Booth
@@ -642,7 +651,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			o[0] = ( double )( x[0] + 2 * x[1] - 7.0 ) * ( x[0] + 2 * x[1] - 7.0 );
 			o[1] = ( double )( 2 * x[0] + x[1] - 5.0 ) * ( 2 * x[0] + x[1] - 5.0 );
 			f = o[0] + o[1];
-			printf( "\nx0: %g x1: %g\n", x[0], x[1] );
 			break;
 		case 36: // Beale
 			f = 0;

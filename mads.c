@@ -1896,7 +1896,7 @@ int optimize_lm( struct opt_data *op )
 			if( debug > 1 ) printf( "\n" );
 			fflush( stdout );
 		}
-		if( standalone ) Transform( opt_params, op, opt_params ); // Transform if standalone; do not tranform is part of PSO run
+
 		if( debug > 1 && standalone )
 		{
 			printf( "\n-------------------- Initial state:\n" );
@@ -1948,6 +1948,13 @@ int optimize_lm( struct opt_data *op )
 				opt_params[i] = gsl_vector_get( gsl_opt_params, i );
 			phi = op->phi;
 		}
+		else if( strcasestr( op->cd->opt_method, "tra" ) != NULL )// Transtrum version of LM
+              	{
+
+                     if( debug > 1 && standalone ) printf( "\nTranstrum version of Levenberg-Marquardt Optimization:\n" );
+                     else if( op->cd->ldebug ) printf( "\n" );
+
+              	}
 		else // DEFAULT LevMar version of LM
 		{
 			if( debug > 1 && standalone ) printf( "\nLevenberg-Marquardt Optimization using LevMar library:\n" );
