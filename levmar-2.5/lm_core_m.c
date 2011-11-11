@@ -220,7 +220,7 @@ int LEVMAR_DER(
 	nu = 20; /* force computation of J */
 	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
-	for( k = 0; k < 10*itmax && !stop; ++k )
+	for( k = 0; k < 10 * itmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
 		if( p_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
@@ -229,10 +229,9 @@ int LEVMAR_DER(
 			stop = 6;
 			break;
 		}
-
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
- 		*/
+		*/
 		if( ( updp && nu > 16 ) || updjac == K || mu_big || phi_decline ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug && k != 0 )
@@ -249,7 +248,6 @@ int LEVMAR_DER(
 			p_eL2_old = p_eL2;
 			if( success ) op->cd->check_success = 0;
 			if( odebug ) op->cd->odebug = 0;
-
 			if( using_ffdif ) /* use forward differences */
 				jacf( p, hx, jac, m, n, adata );
 			else  /* use central differences */
@@ -350,7 +348,6 @@ int LEVMAR_DER(
 				p_L2 += p[i] * p[i];
 			}
 		}
-
 		if( op->cd->ldebug > 3 )
 		{
 			printf( "Current estimate: " );
@@ -416,7 +413,6 @@ int LEVMAR_DER(
 				}
 				issolved1 = linsolver( jacTjac, jacTvv, a, m ); ++nlss;
 			}
-
 			/* compute p's new estimate and ||Dp||^2 */
 			for( i = 0, Dp_L2 = 0.0; i < m; ++i )
 			{
@@ -426,23 +422,21 @@ int LEVMAR_DER(
 			if( op->cd->lm_acc && issolved1 )
 			{
 				for( i = 0, a_L2 = 0.0; i < m; ++i )
-				{	
+				{
 					pDp[i] += 0.5 * ( tmp = a[i] );
 					a_L2 += tmp * tmp;
 				}
 				avRatio = a_L2 / Dp_L2;
 				for( i = 0, Dpa_L2 = 0.0; i < m; ++i )
 				{
-					tmp = Dp[i] + 0.5*a[i];
+					tmp = Dp[i] + 0.5 * a[i];
 					Dpa_L2 += tmp * tmp;
 				}
 			}
-
 			if( !op->cd->lm_acc )
 			{
 				Dpa_L2 = Dp_L2;
 			}
-
 			if( Dpa_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: Relative change in the OF is small (%g < %g)\n", Dpa_L2, eps2_sq * p_L2 );
@@ -505,10 +499,8 @@ int LEVMAR_DER(
 				stop = 7;
 				break;
 			}
-	
 			tmp = p_eL2 / pDp_eL2;
 			if( tmp > 1.0 && avRatio < alpha ) phi_decline = 1; /* recompute jacobian because OF decreased */
-			
 			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
 			if( updp || dF > 0.0 ) /* update jac because OF increases */
 			{
@@ -608,7 +600,7 @@ int LEVMAR_DER(
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 			jacTjac[i * m + i] = diag_jacTjac[i];
 	}
-	if( k >= 10*itmax ) stop = 3;
+	if( k >= 10 * itmax ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 		jacTjac[i * m + i] = diag_jacTjac[i];
 	if( info )

@@ -663,7 +663,6 @@ loop:
 		printf( "cell_size / domain_size = %g\n", cell_size / domain_size );
 		printf( "Swarm energy used up: energy = %d\n\n", energy );
 	}
-
 	/*	// Save result
 		for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
 		if( f_ind > 0 )
@@ -805,7 +804,6 @@ void print_collected( void *kd, double *eps, double *dmax, double *dxmin, FILE *
 	struct kdres *kdset; // nearest neighbor search results
 	double *pch;
 	struct position G;
-
 	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
 //	if( f_ind > 0 )
 //	{
@@ -831,7 +829,6 @@ void print_collected( void *kd, double *eps, double *dmax, double *dxmin, FILE *
 void print_particles( struct position *X, FILE *fid )
 {
 	int s, d;
-
 	fprintf( fid, "OF parameters...\n" );
 	for( s = 0; s < S; s++ )
 	{

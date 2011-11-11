@@ -1896,7 +1896,6 @@ int optimize_lm( struct opt_data *op )
 			if( debug > 1 ) printf( "\n" );
 			fflush( stdout );
 		}
-
 		if( debug > 1 && standalone )
 		{
 			printf( "\n-------------------- Initial state:\n" );
@@ -1949,12 +1948,10 @@ int optimize_lm( struct opt_data *op )
 			phi = op->phi;
 		}
 		else if( strcasestr( op->cd->opt_method, "tra" ) != NULL )// Transtrum version of LM
-              	{
-
-                     if( debug > 1 && standalone ) printf( "\nTranstrum version of Levenberg-Marquardt Optimization:\n" );
-                     else if( op->cd->ldebug ) printf( "\n" );
-
-              	}
+		{
+			if( debug > 1 && standalone ) printf( "\nTranstrum version of Levenberg-Marquardt Optimization:\n" );
+			else if( op->cd->ldebug ) printf( "\n" );
+		}
 		else // DEFAULT LevMar version of LM
 		{
 			if( debug > 1 && standalone ) printf( "\nLevenberg-Marquardt Optimization using LevMar library:\n" );

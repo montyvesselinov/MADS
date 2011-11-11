@@ -167,9 +167,9 @@ int set_test_problems( struct opt_data *op )
 			break;
 		case 31: // Transtrum rosenbrock
 			printf( "Transtrum Rosenbrock" );
-                        od->nObs = cd->test_func_dim;
-                        pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 0; // global minimum at (0,0)
-                        pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 0;
+			od->nObs = cd->test_func_dim;
+			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 0; // global minimum at (0,0)
+			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = 0;
 			break;
 		case 32: // Griewank modified after Locatelli (2003)
 			printf( "Griewank modified after Locatelli (2003)" );
@@ -222,7 +222,7 @@ int set_test_problems( struct opt_data *op )
 			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
 			od->nObs = 2;
 			pd->var_truth[0] = pd->var[0] = cd->var[0] = pd->var_current[0] = pd->var_best[0] = 0; // local minimum at (0,pi/2, ... )
-			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = pi/2.0;
+			pd->var_truth[1] = pd->var[1] = cd->var[1] = pd->var_current[1] = pd->var_best[1] = pi / 2.0;
 			break;
 		case 40: // sin/cos
 			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
@@ -611,7 +611,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 		case 31: // Transtrum rosenbrock
 			f = 0;
 			o[0] = x[0] * x[0];
-			o[1] = ( double ) 100000000.0*(x[1] - x[0]*x[0]*x[0]*x[0]*x[0])*(x[1] - x[0]*x[0]*x[0]*x[0]*x[0]);
+			o[1] = ( double ) 100000000.0 * ( x[1] - x[0] * x[0] * x[0] * x[0] * x[0] ) * ( x[1] - x[0] * x[0] * x[0] * x[0] * x[0] );
 			f = o[0] + o[1];
 			break;
 		case 32: // Griewank
