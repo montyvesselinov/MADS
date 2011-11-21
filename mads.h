@@ -3,6 +3,7 @@
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
 // Dylan Harp, dharp@lanl.gov
 //
+// http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
 //
 // LA-CC-10-055; LA-CC-11-035
@@ -106,7 +107,9 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	char *restart_zip_file; // filename of the zip restart file
 	char *infile; // old results file from pssa to be read in to initialize kdtree
 	double phi_cutoff; // objective function cutoff value (termination criteria)
-	double truth; // absolute error from the true solution (termination criteria for test functions)
+	int obsrange; // flag; observations are within predefined ranges (termination criteria)
+	double obserror; // absolute error from the known 'true' observation (termination criteria)
+	double parerror; // absolute error from the known 'true' model parameters (if known; e.g. in the case of test functions; termination criteria)
 	double sindx; // increments to compute model parameter gradients in the sin transformed parameter space
 	double lindx; // increments to compute model parameter gradients in the linear (not sin) transformed parameter space
 	double pardx; // parameter space discretization step for pso, tribes, squads and abagus
@@ -253,7 +256,7 @@ int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
 int optimize_pso( struct opt_data *op ); // PSO optimization
 int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
-void print_results( struct opt_data *op ); // Print final results
+void print_results( struct opt_data *op, int verbosity ); // Print final results
 void save_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
 void ave_sorted( double data[], int n, double *ave, double *ep );

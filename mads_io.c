@@ -98,7 +98,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->maxeval = 5000;
 	cd->paranoid = 0;
 	cd->phi_cutoff = 0;
-	cd->truth = 0.1;
+	cd->parerror = -1;
+	cd->obserror = -1;
+	cd->obsrange = 0;
 	cd->test_func = -1;
 	cd->test_func_dim = 0;
 	cd->energy = 0;
@@ -135,29 +137,35 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "leig" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( strcasestr( word, "energy=" ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lmfactor ); }
-		if( strcasestr( word, "mu=" ) ) { w = 1; sscanf( word, "mu=%lf", &cd->lm_mu ); }
-		if( strcasestr( word, "nu=" ) ) { w = 1; sscanf( word, "nu=%d", &cd->lm_nu ); }
-		if( strcasestr( word, "h=" ) ) { w = 1; sscanf( word, "h=%lf", &cd->lm_h ); }
-		if( strcasestr( word, "ratio=" ) ) { w = 1; sscanf( word, "ratio=%lf", &cd->lm_ratio ); }
-		if( strcasestr( word, "accel" ) ) { w = 1; sscanf( word, "accel=%d", &cd->lm_acc ); if( cd->lm_acc <= 0 ) cd->lm_acc = 1; }
-		if( strcasestr( word, "indirect" ) ) { w = 1; sscanf( word, "indirect=%d", &cd->indir ); if( cd->indir <= 0 ) cd->indir = 1; }
+		if( strcasestr( word, "lmacc" ) ) { w = 1; cd->lm_acc = 1; }
+		if( strcasestr( word, "lmratio=" ) ) { w = 1; sscanf( word, "lmratio=%lf", &cd->lm_ratio ); }
+		if( strcasestr( word, "lmh=" ) ) { w = 1; sscanf( word, "lmh=%lf", &cd->lm_h ); cd->lm_acc = 1; }
+		if( strcasestr( word, "lmind" ) ) { w = 1; cd->indir = 1; }
+		if( strcasestr( word, "lmmu=" ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
+		if( strcasestr( word, "lmnu=" ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
+		if( strcasestr( word, "lmiter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
-		if( strcasestr( word, "iter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }
 		if( strcasestr( word, "eval=" ) ) { w = 1; sscanf( word, "eval=%d", &cd->maxeval ); }
 		if( strcasestr( word, "case=" ) ) { w = 1; sscanf( word, "case=%d", &cd->ireal ); }
 		if( strcasestr( word, "retry" ) ) { w = 1; sscanf( word, "retry=%d", &cd->nretries ); }
 		if( strcasestr( word, "particles" ) ) { w = 1; if( sscanf( word, "particles=%d", &cd->init_particles ) != 1 ) cd->init_particles = -1; }
 		if( strcasestr( word, "opt=" ) ) { w = 1; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; sscanf( word, "opt=%s", cd->opt_method ); }
 		if( strcasestr( word, "smp=" ) ) { w = 1; sscanf( word, "smp=%s", cd->smp_method ); }
-		if( strcasestr( word, "paran" ) ) { w = 1; cd->paranoid = 1; sscanf( word, "paran=%s", cd->paran_method ); }
+		if( strcasestr( word, "mslm" ) ) { w = 1; cd->paranoid = 1; sscanf( word, "mslm=%s", cd->paran_method ); }
+		if( strcasestr( word, "paran=" ) ) { w = 1; cd->paranoid = 1; sscanf( word, "paran=%s", cd->paran_method ); } // legacy
+		if( strcasestr( word, "paran" ) ) { w = 1; cd->paranoid = 1; } // legacy
+		if( strcasestr( word, "_ms" ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( strcasestr( word, "nosin" ) ) { w = 1; cd->sintrans = 0; }
 		if( strcasestr( word, "plog" ) ) { w = 1; if( sscanf( word, "plog=%d", &cd->plogtrans ) != 1 ) cd->plogtrans = 1; }
 		if( strcasestr( word, "olog" ) ) { w = 1; if( sscanf( word, "olog=%d", &cd->ologtrans ) != 1 ) cd->ologtrans = 1; }
 		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
-		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; }
-		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); }
-		if( strcasestr( word, "truth" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->truth ); cd->check_success = 1; }
+		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; cd->obserror = -1; } // legacy
+		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); cd->obsrange = cd->obserror = cd->parerror = 0; }
+		if( strcasestr( word, "obsrange" ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; }
+		if( strcasestr( word, "truth" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; } // legacy
+		if( strcasestr( word, "parerror" ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
+		if( strcasestr( word, "obserror" ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->parerror = 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
 		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
 		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
 		if( strcasestr( word, "pardx" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
@@ -191,7 +199,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 	if( ( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) && cd->nreal == 0 ) cd->nreal = 100;
-	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { strcat( cd->opt_method, "_paran" ); cd->paranoid = 1; }
+	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) cd->paranoid = 1;
 	if( cd->test_func > 0 )
 	{
 		if( cd->test_func < 40 ) printf( "Test Function #%d Dimensionality %d\n", cd->test_func, cd->test_func_dim );
@@ -252,22 +260,31 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		printf( "2: Objective function cutoff value: " );
 		if( cd->phi_cutoff <= DBL_EPSILON ) printf( "NOT implemented (ADD keyword cutoff=[value] to implement)\n" );
 		else printf( "%g\n", cd->phi_cutoff );
-		printf( "3: Observations within defined calibration ranges: " );
-		if( cd->check_success == 1 ) printf( "implemented (keyword success)\n" );
-		else printf( "NOT implemented (ADD keyword success to implement)\n" );
+		printf( "3: Observations within predefined calibration ranges or an absolute observation error: " );
+		if( cd->obsrange ) printf( "implemented using calibration ranges (keyword 'obsrange')\n" );
+		else if( cd->obserror > 0 ) printf( "implemented using a predefined absolute error (keyword 'obserror=%g')\n", cd->obserror );
+		else printf( "NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)\n" );
+		printf( "4: Parameters within a predefined absolute error from known 'true' values: " );
+		if( cd->parerror > 0 ) printf( "implemented (keyword 'parerror=%g')\n", cd->parerror );
+		else printf( "NOT implemented (ADD keyword 'parerror' to implement)\n" );
 		printf( "Objectve function: " );
-		switch( cd->objfunc_type )
+		if( cd->test_func == 0 )
 		{
-			case SSR: printf( "sum of squared residuals" ); break;
-			case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
-			case SSDA: printf( "sum of squared discrepancies and residuals" ); break;
-			case SSD0: printf( "sum of squared discrepancies" ); break;
-			default: printf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
+			switch( cd->objfunc_type )
+			{
+				case SSR: printf( "sum of squared residuals" ); break;
+				case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
+				case SSDA: printf( "sum of squared discrepancies and residuals" ); break;
+				case SSD0: printf( "sum of squared discrepancies" ); break;
+				default: printf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
+			}
 		}
+		else
+			printf( "test function" );
 		printf( "\n" );
 	}
-	if( cd->sintrans == 0 ) printf( "\nSin transformation of the model parameters is not applied!\n" );
-	else printf( "\nSin transformation of the model parameters is applied!\n" );
+	if( cd->sintrans == 0 ) printf( "\nSin transformation of the model parameters: NOT applied (keyword 'nosin')!\n" );
+	else printf( "\nSin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)\n" );
 	if( cd->plogtrans == 1 ) printf( "\nLog transformation enforced on all parameters!\n" );
 	else if( cd->plogtrans == 0 ) printf( "\nLog transformation is not applied to any parameters!\n" );
 	if( cd->ologtrans == 1 ) printf( "\nLog transformation enforced on all calibration targets!\n" );
@@ -346,7 +363,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	bad_data = 0;
 	if( ( infile = fopen( filename, "r" ) ) == NULL )
 	{
-		printf( "File \'%s\' cannot be opened to read problem information!\n", filename );
 		sprintf( filename, "%s.in", op->root );
 		if( ( infile = fopen( filename, "r" ) ) == NULL )
 			nofile = 1;
@@ -375,13 +391,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	{
 		if( ( *cd ).solution_type != TEST || ( *cd ).problem_type == INFOGAP )
 		{
+			printf( "File \'%s\' cannot be opened to read problem information!\n", filename );
 			printf( "\nERROR: Input file is needed!\n\n" );
 			return( -1 );
-		}
-		else
-		{
-			printf( "\nWARNING: Input file is not needed because this is a test problem!\n" );
-			//	return( 1 );
 		}
 	}
 	printf( "\nModel: " );
@@ -392,7 +404,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		case PLANE: { printf( "internal | rectangular contaminant source" ); strcpy( ( *cd ).solution_id, "rect" ); break; }
 		case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcpy( ( *cd ).solution_id, "rect_vert" ); break; }
 		case BOX: { printf( "internal | box contaminant source" ); strcpy( ( *cd ).solution_id, "box" ); break; }
-		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); printf( " dimensionality %d", ( *pd ).nOptParam ); strcpy( ( *cd ).solution_id, "test" ); break; }
+		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); strcpy( ( *cd ).solution_id, "test" ); break; }
 		default: printf( "WARNING! UNDEFINED model type!" );
 	}
 	printf( "\n" );

@@ -109,8 +109,8 @@ int LEVMAR_DER(
 			*wrk,        /* nx1 */
 			*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
 	int using_ffdif = 1;
-	double h = op->cd->lm_h;
-	double alpha = op->cd->lm_ratio;
+	double acc_h = op->cd->lm_h;
+	double lm_ratio = op->cd->lm_ratio; // alpha
 	register LM_REAL mu,  /* damping constant */
 			 tmp, /* mainly used in matrix & vector multiplications */
 			 avRatio = 0.0; /* acceleration/velocity */
@@ -390,8 +390,8 @@ int LEVMAR_DER(
 					jacTvv[i] = 0.0;
 				for( i = 0; i < m; ++i )
 				{
-					phDp_plus[i] = p[i] + h * Dp[i];
-					phDp_minus[i] = p[i] - h * Dp[i];
+					phDp_plus[i] = p[i] + acc_h * Dp[i];
+					phDp_minus[i] = p[i] - acc_h * Dp[i];
 				}
 				( *func )( phDp_plus, hx1, m, n, adata ); nfev++;
 				for( i = 0; i < n; ++i )
@@ -400,7 +400,7 @@ int LEVMAR_DER(
 				for( i = 0; i < n; ++i )
 					ephdp_minus[i] = x[i] - hx2[i];
 				for( i = 0; i < n; ++i )
-					vvddr[i] = ( ephdp_plus[i] - 2.0 * e[i] + ephdp_minus[i] ) / ( h * h );
+					vvddr[i] = ( ephdp_plus[i] - 2.0 * e[i] + ephdp_minus[i] ) / ( acc_h * acc_h );
 				for( j = n; j-- > 0; )
 				{
 					jacT = jac + j * m;
@@ -500,7 +500,7 @@ int LEVMAR_DER(
 				break;
 			}
 			tmp = p_eL2 / pDp_eL2;
-			if( tmp > 1.0 && avRatio < alpha ) phi_decline = 1; /* recompute jacobian because OF decreased */
+			if( tmp > 1.0 && avRatio < lm_ratio ) phi_decline = 1; /* recompute jacobian because OF decreased */
 			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
 			if( updp || dF > 0.0 ) /* update jac because OF increases */
 			{
@@ -521,7 +521,7 @@ int LEVMAR_DER(
 					dL += Dp[i] * ( mu * Dp[i] + jacTe[i] );
 			}
 			else dL = 1.0;
-			if( dL > 0.0 && dF > 0.0 && avRatio < alpha ) /* reduction in error, increment is accepted */
+			if( dL > 0.0 && dF > 0.0 && avRatio < lm_ratio ) /* reduction in error, increment is accepted */
 			{
 				if( op->cd->indir )
 				{

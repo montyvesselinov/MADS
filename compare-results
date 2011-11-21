@@ -1,5 +1,5 @@
 #!/bin/tcsh -f
-diff $1 $2 > $1_$$
+sdiff $1 $2 > $1_$$
 set a = $?
 if( $a != 0 ) then
 	echo Verification failed!

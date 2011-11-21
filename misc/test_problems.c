@@ -139,12 +139,12 @@ int set_test_problems( struct opt_data *op )
 			pd->var_truth[1] = -50;
 			od->nObs = cd->test_func_dim = 2;
 			break;
-		case 10: // Shekel's Foxholes 2D (alternative)
+		case 10: // Shekel's Foxholes 2D
 			printf( "Shekel's Foxholes 2D" );
 			od->nObs = 30;
 			break;
-		case 11: // Shekel's Foxholes 5D (alternative)
-			printf( "Shekel's Foxholes 10D" );
+		case 11: // Shekel's Foxholes 5D
+			printf( "Shekel's Foxholes 5D" );
 			od->nObs = 30;
 			break;
 		case 12: // Shekel's Foxholes 10D
@@ -234,7 +234,7 @@ int set_test_problems( struct opt_data *op )
 			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
 			pd->var_truth[0] = a = 100;
 			pd->var_truth[1] = b = 102;
-			printf( "Sin/Cos test function with %d parameters and %d observations (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
+			printf( "Sin/Cos (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
 			od->nObs = cd->test_func_nobs;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
@@ -259,7 +259,7 @@ int set_test_problems( struct opt_data *op )
 			pd->var_truth[1] = 101;
 			pd->var_truth[2] = 102;
 			pd->var_truth[3] = 103;
-			printf( "Sin/Cos test function with %d parameters and %d observations (", pd->nOptParam, cd->test_func_nobs );
+			printf( "Sin/Cos (", pd->nOptParam, cd->test_func_nobs );
 			printf( "%g", pd->var_truth[0] );
 			for( d = 1; d < pd->nOptParam; d++ )
 				printf( "/%g", pd->var_truth[d] );
@@ -275,7 +275,7 @@ int set_test_problems( struct opt_data *op )
 			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
 			pd->var_truth[0] = a = 93;
 			pd->var_truth[1] = b = 95;
-			printf( "Simplified Sin/Cos test function with %d parameters and %d observations (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
+			printf( "Simplified Sin/Cos (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
 			od->nObs = cd->test_func_nobs;
 			oddefined = 1;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
@@ -287,7 +287,7 @@ int set_test_problems( struct opt_data *op )
 			break;
 		case 43: // Exponential Data Fitting I
 			od->nObs = cd->test_func_nobs = 33;
-			printf( "Exponential Data Fitting I function with %d parameters and %d observations (", pd->nOptParam, cd->test_func_nobs );
+			printf( "Exponential Data Fitting I (", pd->nOptParam, cd->test_func_nobs );
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = ( double ) 1 + d * 0.5;
 			for( d = 0; d < pd->nOptParam; d++ )
@@ -312,7 +312,7 @@ int set_test_problems( struct opt_data *op )
 			break;
 		case 44: // Exponential Data Fitting II
 			od->nObs = cd->test_func_nobs = 65;
-			printf( "Exponential Data Fitting II function with %d parameters and %d observations (", pd->nOptParam, cd->test_func_nobs );
+			printf( "Exponential Data Fitting II (", pd->nOptParam, cd->test_func_nobs );
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = ( double ) 1 + d * 0.5;
 			for( d = 0; d < pd->nOptParam; d++ )
@@ -340,6 +340,7 @@ int set_test_problems( struct opt_data *op )
 	}
 	if( od->nObs > 1 )
 	{
+		printf( " - parameters %d observations %d", pd->nOptParam, od->nObs );
 		od->obs_id = char_matrix( ( *od ).nObs, 50 );
 		if( !oddefined ) od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
@@ -350,10 +351,12 @@ int set_test_problems( struct opt_data *op )
 		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 	}
+	else
+		printf( " - dimensionality %d", cd->test_func_dim );
 	for( d = 0; d < od->nObs; d++ )
 	{
 		sprintf( od->obs_id[d], "Observation #%d", d + 1 );
-		if( oddefined ) { od->obs_max[d] = od->obs_target[d] + cd->truth; od->obs_min[d] = od->obs_target[d] - cd->truth; }
+		if( oddefined ) { od->obs_max[d] = od->obs_target[d] + cd->obserror; od->obs_min[d] = od->obs_target[d] - cd->obserror; }
 		else od->obs_target[d] = od->obs_max[d] = od->obs_min[d] = 0;
 		od->obs_weight[d] = 1;
 		od->obs_log[d] = 0;
@@ -534,7 +537,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				}
 			}
 			break;
-		case 10: // Shekel's Foxholes 2D (alternative)
+		case 10: // Shekel's Foxholes 2D
 			f = 0;
 			for( j = 0; j < 30; j++ )
 			{
@@ -564,7 +567,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				f += o[j] = ( double ) - 1.0 / ( sum1 + c[j] );
 			}
 			break;
-		case 20: // Shekel's Foxholes 2D
+		case 20: // Shekel's Foxholes 2D (alternative)
 			f = 0;
 			for( j = 0; j < 25; j++ )
 			{
