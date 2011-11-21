@@ -296,7 +296,7 @@ int main( int argn, char *argv[] )
 		printf( "                          22: Ackley (global methods only)\n" );
 		printf( "                          23: Eason 2D (global methods only)\n" );
 		printf( "                          31: Rosenbrock (2D simplified alternative)\n" );
-		printf( "                          32: Griewank (alternative)\n" );
+		printf( "                          32: Griewank (:alternative)\n" );
 		printf( "                          33: Rosenbrock (alternative with d*(d-1) observations\n" );
 		printf( "                          34: Powell's Quadratic\n" );
 		printf( "                          35: Booth\n" );
