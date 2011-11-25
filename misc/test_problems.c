@@ -93,19 +93,22 @@ int set_test_problems( struct opt_data *op )
 	{
 		case 1: // Parabola (Sphere)
 			printf( "Parabola (Sphere)" );
-			od->nObs = cd->test_func_dim;
+			if( cd->test_func_nobs > 0 ) od->nObs = cd->test_func_nobs;
+			else od->nObs = cd->test_func_dim;
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
 			break;
 		case 2: // Griewank
 			printf( "Griewank" );
-			od->nObs = cd->test_func_dim;
+			if( cd->test_func_nobs > 0 ) od->nObs = cd->test_func_nobs;
+			else od->nObs = cd->test_func_dim;
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
 			break;
 		case 3: // Rosenbrock
 			printf( "Rosenbrock" );
-			od->nObs = cd->test_func_dim;
+			if( cd->test_func_nobs > 0 ) od->nObs = cd->test_func_nobs;
+			else od->nObs = cd->test_func_dim;
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 1; // global minimum at (1,1, ... )
 			break;
@@ -338,7 +341,7 @@ int set_test_problems( struct opt_data *op )
 			}
 			break;
 	}
-	if( od->nObs > 1 )
+	if( od->nObs > 0 )
 	{
 		printf( " - parameters %d observations %d", pd->nOptParam, od->nObs );
 		od->obs_id = char_matrix( ( *od ).nObs, 50 );
@@ -438,38 +441,76 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 		case 1: // Parabola (Sphere)
 			f = 0;
 			p = 0; // Shift
-			for( d = 0; d < D; d++ )
+			if( nObs == D )
+				for( d = 0; d < D; d++ )
+				{
+					xd = x[d] - p;
+					f += o[d] = xd * xd;
+				}
+			else
 			{
-				xd = x[d] - p;
-				f += o[d] = xd * xd;
+				for( d = 0; d < D; d++ )
+				{
+					xd = x[d] - p;
+					f += xd * xd;
+				}
+				o[0] = f;
 			}
 			break;
 		case 2: // Griewank
 			f = 0;
 			p = 1;
-			for( d = 0; d < D; d++ )
+			if( nObs == D )
 			{
-				xd = x[d];
-				f += o[d] = xd * xd / 4000;
-				p *= cos( xd / sqrt( ( double ) d + 1 ) );
+				for( d = 0; d < D; d++ )
+				{
+					xd = x[d];
+					f += o[d] = xd * xd / 4000;
+					p *= cos( xd / sqrt( ( double ) d + 1 ) );
+				}
+				for( d = 0; d < D; d++ )
+					o[d] += ( -p + 1 ) / D;
+				f += -p + 1;
 			}
-			for( d = 0; d < D; d++ )
-				o[d] += ( -p + 1 ) / D;
-			f += -p + 1;
+			else
+			{
+				for( d = 0; d < D; d++ )
+				{
+					xd = x[d];
+					f += xd * xd / 4000;
+					p *= cos( xd / sqrt( ( double ) d + 1 ) );
+				}
+				f += -p + 1;
+			}
 			break;
 		case 3: // Rosenbrock
 			f = 0;
 			t0 = x[0];
-			for( d = 1; d < D; d++ )
+			if( nObs == D )
 			{
-				tt = ( double ) 1.0 - t0;
-				f += o[d] = tt * tt;
-				if( d == 1 ) { o[0] = o[1]; o[1] = 0; } // first element
-				t1 = x[d];
-				tt = t1 - t0 * t0;
-				f += x1 = tt * tt * 100;
-				o[d] += x1;
-				t0 = t1;
+				for( d = 1; d < D; d++ )
+				{
+					tt = ( double ) 1.0 - t0;
+					f += o[d] = tt * tt;
+					if( d == 1 ) { o[0] = o[1]; o[1] = 0; } // first element
+					t1 = x[d];
+					tt = t1 - t0 * t0;
+					f += x1 = tt * tt * 100;
+					o[d] += x1;
+					t0 = t1;
+				}
+			}
+			else
+			{
+				for( d = 1; d < D; d++ )
+				{
+					tt = ( double ) 1.0 - t0;
+					f += tt * tt;
+					t1 = x[d];
+					tt = t1 - t0 * t0;
+					f += x1 = tt * tt * 100;
+					t0 = t1;
+				}
 			}
 			break;
 		case 4: // De Jong's f4

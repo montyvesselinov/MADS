@@ -225,7 +225,7 @@ int main( int argn, char *argv[] )
 		printf( "   lmmu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF decreases [default lmmu=0.1]" );
 		printf( "   lmnu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF increases [default lmnu=10]" );
 		printf( "   lmaccel            - LM geodesic acceleration as proposed by Transtrum et al (2011) [default NO acceleration]" );
-		printf( "   lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]"  );
+		printf( "   lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]" );
 		printf( "   lmh=[double]       - LM acceleration multiplier [default lmh=0.1]" );
 		printf( "   lmiter=[integer]   - number of Levenberg-Marquardt iterations [default computed internally based on number of evaluations]\n" );
 		printf( "   leigen|eigen       - eigen analysis of the final optimized solution\n" );
@@ -242,7 +242,7 @@ int main( int argn, char *argv[] )
 		printf( "\nsampling method (smp=[string] OR mslm=[string] for Multi-Start Levenberg-Marquardt (MSLM) analysis using multiple retries):\n" );
 		printf( "   smp=olhs           - Optimal Latin Hyper Cube sampling [default] (if real = 1 RANDOM; if real > IDLHS; if real > 500 LHS)\n" );
 		printf( "   smp=lhs            - Latin Hyper Cube sampling (LHS)\n" );
-		printf( "   smp=idlhs          - Improved Distance Latin Hyper Cube sampling (IDLHS)\n" );
+		printf( "   smp=idlhs          - Improved Distributed Latin Hyper Cube sampling (IDLHS)\n" );
 		printf( "   smp=random         - Random sampling\n" );
 		printf( "\nsampling options:\n" );
 		printf( "   real=[integer]     - number of random realizations / samples [default real=100]\n" );
@@ -1848,6 +1848,7 @@ int optimize_lm( struct opt_data *op )
 	char buf[80];
 	if( op->od->nObs == 0 ) { printf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
 	if( op->pd->nOptParam == 0 ) { printf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	if( op->pd->nOptParam > op->od->nObs ) { printf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
 	gsl_matrix *gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam );
 	gsl_matrix *gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
@@ -2599,7 +2600,7 @@ void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data
 	{
 		if( debug )
 		{
-			printf( "Improved Distances LHS method " );
+			printf( "Improved Distributed LHS method " );
 			if( strncasecmp( op->cd->smp_method, "idlhs", 5 ) != 0 ) printf( "(number of realizations < 500) " );
 			printf( "... " );
 			fflush( stdout );

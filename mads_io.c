@@ -189,8 +189,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasecmp( word, "ssdr" ) == 0 ) { w = 1; cd->objfunc_type = SSDR; }
 		if( strcasestr( word, "test" ) ) { w = 1; cd->test_func = 1; cd->test_func_dim = 2; sscanf( word, "test=%d", &cd->test_func ); ( *cd ).solution_type = TEST; }
 		if( strcasestr( word, "dim=" ) ) { w = 1; sscanf( word, "dim=%d", &cd->test_func_dim ); if( cd->test_func_dim < 2 ) cd->test_func_dim = 2; }
-		if( strcasestr( word, "npar=" ) ) { w = 1; sscanf( word, "npar=%d", &cd->test_func_npar ); if( cd->test_func_npar < 2 ) cd->test_func_npar = 2; }
-		if( strcasestr( word, "nobs=" ) ) { w = 1; sscanf( word, "nobs=%d", &cd->test_func_nobs ); if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 2; }
+		if( strcasestr( word, "npar=" ) ) { w = 1; sscanf( word, "npar=%d", &cd->test_func_npar ); }
+		if( strcasestr( word, "nobs=" ) ) { w = 1; sscanf( word, "nobs=%d", &cd->test_func_nobs ); }
 		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type = POINT; }
 		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
 		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type = BOX; }
@@ -202,14 +202,18 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) cd->paranoid = 1;
 	if( cd->test_func > 0 )
 	{
-		if( cd->test_func < 40 ) printf( "Test Function #%d Dimensionality %d\n", cd->test_func, cd->test_func_dim );
+		printf( "Test Function %d ", cd->test_func );
+		if( cd->test_func < 40 )
+		{
+			printf( "Dimensionality %d ", cd->test_func );
+			if( cd->test_func_nobs > 0 ) printf( "Observations %d", cd->test_func_nobs );
+		}
 		else
 		{
-			printf( "Test Function %d ", cd->test_func );
 			if( cd->test_func_npar > 0 ) printf( "Parameters %d ", cd->test_func_npar );
-			if( cd->test_func_nobs > 0 ) printf( "Observations %d\n", cd->test_func_nobs );
-			printf( "\n" );
+			if( cd->test_func_nobs > 0 ) printf( "Observations %d", cd->test_func_nobs );
 		}
+		printf( "\n" );
 	}
 	printf( "Problem type: " );
 	switch( cd->problem_type )

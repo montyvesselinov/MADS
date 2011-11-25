@@ -126,8 +126,8 @@ int LEVMAR_DER(
 	updjac = newjac = 0; /* -Wall */
 	if( n < m )
 	{
-		fprintf( stderr, LCAT( LEVMAR_DIF, "(): cannot solve a problem with fewer measurements [%d] than unknowns [%d]\n" ), n, m );
-		return LM_ERROR;
+		// fprintf( stderr, LCAT( LEVMAR_DER, "(): cannot solve a problem with fewer measurements [%d] than unknowns [%d]\n" ), n, m );
+		// return LM_ERROR;
 	}
 	if( opts )
 	{
