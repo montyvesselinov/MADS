@@ -221,12 +221,12 @@ int main( int argn, char *argv[] )
 		printf( "   retry=[integer]    - number of optimization retries [default retry=0]\n" );
 		printf( "   particles=[integer]- number of initial particles or tribes [default particles=10+2*sqrt(Number_of_parameters)]\n" );
 		printf( "   lmfactor=[double]  - multiplier applied to compute when to initiate LM searches within SQUADS algorithm [default lmfactor=1]\n" );
-		printf( "   lmindirect         - Indirect computation of LM alpha coefficient [default DIRECT/Delayed gratification computation]" );
-		printf( "   lmmu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF decreases [default lmmu=0.1]" );
-		printf( "   lmnu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF increases [default lmnu=10]" );
-		printf( "   lmaccel            - LM geodesic acceleration as proposed by Transtrum et al (2011) [default NO acceleration]" );
-		printf( "   lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]" );
-		printf( "   lmh=[double]       - LM acceleration multiplier [default lmh=0.1]" );
+		printf( "   lmindirect         - Indirect computation of LM alpha coefficient [default DIRECT/Delayed gratification computation]\n" );
+		printf( "   lmmu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF decreases [default lmmu=0.1]\n" );
+		printf( "   lmnu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF increases [default lmnu=10]\n" );
+		printf( "   lmaccel            - LM geodesic acceleration as proposed by Transtrum et al (2011) [default NO acceleration]\n" );
+		printf( "   lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]\n" );
+		printf( "   lmh=[double]       - LM acceleration multiplier [default lmh=0.1]\n" );
 		printf( "   lmiter=[integer]   - number of Levenberg-Marquardt iterations [default computed internally based on number of evaluations]\n" );
 		printf( "   leigen|eigen       - eigen analysis of the final optimized solution\n" );
 		printf( "\noptimization method (opt=[string]; various combinations are possible, e.g. pso_std_lm_gsl):\n" );
