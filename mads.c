@@ -402,7 +402,6 @@ int main( int argn, char *argv[] )
 			}
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			exit( 0 );
-
 		}
 		if( cd.opt_method[0] == 0 ) { strcpy( cd.opt_method, "lm" ); cd.calib_type = SIMPLE; cd.problem_type = CALIBRATE; }
 		cd.solution_type = EXTERNAL; func = func_extrn;

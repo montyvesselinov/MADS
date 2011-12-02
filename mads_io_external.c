@@ -167,7 +167,7 @@ int load_pst( char *filename, struct opt_data *op )
 		printf( "%s <- %s\n", ed->fn_ins[i], ed->fn_obs[i] );
 	fclose( in );
 	printf( "\n" );
-	return( 0 );
+	return( 1 );
 }
 
 int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int debug )
