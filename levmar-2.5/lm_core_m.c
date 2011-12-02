@@ -502,7 +502,7 @@ int LEVMAR_DER(
 			tmp = p_eL2 / pDp_eL2;
 			if( tmp > op->cd->lm_ofdecline && avRatio < lm_ratio ) phi_decline = 1; /* recompute jacobian because OF decreased */
 			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
-			if( updp || dF > 0.0 ) /* update jac because OF increases */
+			if( updp || dF > 0.0 ) /* update jacobian because OF increases */
 			{
 				for( i = 0; i < n; ++i )
 				{
@@ -715,8 +715,8 @@ int LEVMAR_DIF(
 	int nu, nu2, stop = 0, nfev, njap = 0, nlss = 0, K = ( m >= 10 ) ? m : 10, updjac, updp = 1, newjac;
 	const int nm = n * m;
 	int ( *linsolver )( LM_REAL * A, LM_REAL * B, LM_REAL * x, int m ) = NULL;
-	mu = jacTe_inf = p_L2 = 0.0; /* -Wall */
-	updjac = newjac = 0; /* -Wall */
+	mu = jacTe_inf = p_L2 = 0.0;
+	updjac = newjac = 0;
 	if( n < m )
 	{
 		fprintf( stderr, LCAT( LEVMAR_DIF, "(): cannot solve a problem with fewer measurements [%d] than unknowns [%d]\n" ), n, m );
