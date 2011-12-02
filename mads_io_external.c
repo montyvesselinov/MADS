@@ -80,6 +80,7 @@ int load_pst( char *filename, struct opt_data *op )
 	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
 	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	pd->var_current = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->var_best = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	pd->var_opt = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
 	pd->var_log = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
@@ -93,6 +94,7 @@ int load_pst( char *filename, struct opt_data *op )
 	for( i = 0; i < npar_groups; i++ )
 		fgets( buf, 1000, in );
 	fgets( buf, 1000, in );
+	pd->nFlgParam = 0;
 	pd->nOptParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
 	{
@@ -128,6 +130,7 @@ int load_pst( char *filename, struct opt_data *op )
 	od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+	od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 	for( i = 0; i < od->nObs; i++ )

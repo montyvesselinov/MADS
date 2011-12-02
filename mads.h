@@ -95,6 +95,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int lm_nu;
 	double lm_h;
 	double lm_ratio;
+	double lm_ofdecline;
 	char *solution_id; // solution identifier (name)
 	char *opt_method; // optimization method identifier
 	char *smp_method; // sampling method identifier

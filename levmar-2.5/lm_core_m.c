@@ -500,7 +500,7 @@ int LEVMAR_DER(
 				break;
 			}
 			tmp = p_eL2 / pDp_eL2;
-			if( tmp > 1.0 && avRatio < lm_ratio ) phi_decline = 1; /* recompute jacobian because OF decreased */
+			if( tmp > op->cd->lm_ofdecline && avRatio < lm_ratio ) phi_decline = 1; /* recompute jacobian because OF decreased */
 			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
 			if( updp || dF > 0.0 ) /* update jac because OF increases */
 			{

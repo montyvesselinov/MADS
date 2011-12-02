@@ -115,6 +115,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->lm_nu = 2;
 	cd->lm_h = 0.1;
 	cd->lm_ratio = 0.75 * 0.75;
+	cd->lm_ofdecline = 2; // TODO Leif prefers to be 1
 	cd->indir = 0;
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
@@ -139,6 +140,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lmfactor ); }
 		if( strcasestr( word, "lmacc" ) ) { w = 1; cd->lm_acc = 1; }
 		if( strcasestr( word, "lmratio=" ) ) { w = 1; sscanf( word, "lmratio=%lf", &cd->lm_ratio ); }
+		if( strcasestr( word, "lmofdecline=" ) ) { w = 1; sscanf( word, "lmofdecline=%lf", &cd->lm_ofdecline ); }
 		if( strcasestr( word, "lmh=" ) ) { w = 1; sscanf( word, "lmh=%lf", &cd->lm_h ); cd->lm_acc = 1; }
 		if( strcasestr( word, "lmind" ) ) { w = 1; cd->indir = 1; }
 		if( strcasestr( word, "lmmu=" ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
@@ -537,6 +539,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		// if( ( od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) ) ) == NULL ) printf( "***\nNO MEMORY!!!!\n***\n" );
 		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 		for( i = 0; i < od->nObs; i++ )
