@@ -70,7 +70,7 @@ struct problem
 	int maxEval;
 	int repeat;
 	int D;
-	float lmfactor;
+	float lm_factor;
 	float *min;
 	float *max;
 	float *dx;

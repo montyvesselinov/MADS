@@ -109,14 +109,14 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->lindx = 0.001;
 	cd->pardx = 0;
 	cd->pardomain = 100;
-	cd->lmfactor = 10.0;
+	cd->lm_factor = 10.0;
 	cd->lm_acc = 0;
 	cd->lm_mu = 0.1;
-	cd->lm_nu = 2;
+	cd->lm_nu = 2; // default value
 	cd->lm_h = 0.1;
 	cd->lm_ratio = 0.75 * 0.75;
-	cd->lm_ofdecline = 2; // TODO Leif prefers to be 1
-	cd->indir = 0;
+	cd->lm_ofdecline = 2; // TODO Leif prefers to be 1; Original code is 2 and works better
+	cd->lm_indir = 1;
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -137,12 +137,13 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "igrnd" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGRND; }
 		if( strcasestr( word, "leig" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( strcasestr( word, "energy=" ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
-		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lmfactor ); }
+		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
 		if( strcasestr( word, "lmacc" ) ) { w = 1; cd->lm_acc = 1; }
 		if( strcasestr( word, "lmratio=" ) ) { w = 1; sscanf( word, "lmratio=%lf", &cd->lm_ratio ); }
 		if( strcasestr( word, "lmofdecline=" ) ) { w = 1; sscanf( word, "lmofdecline=%lf", &cd->lm_ofdecline ); }
 		if( strcasestr( word, "lmh=" ) ) { w = 1; sscanf( word, "lmh=%lf", &cd->lm_h ); cd->lm_acc = 1; }
-		if( strcasestr( word, "lmind" ) ) { w = 1; cd->indir = 1; }
+		if( strcasestr( word, "lmind" ) ) { w = 1; cd->lm_indir = 1; cd->lm_ofdecline = 2; }
+		if( strcasestr( word, "lmdir" ) ) { w = 1; cd->lm_indir = 0; cd->lm_ofdecline = 1; }
 		if( strcasestr( word, "lmmu=" ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
 		if( strcasestr( word, "lmnu=" ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
 		if( strcasestr( word, "lmiter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }
@@ -274,7 +275,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( cd->parerror > 0 ) printf( "implemented (keyword 'parerror=%g')\n", cd->parerror );
 		else printf( "NOT implemented (ADD keyword 'parerror' to implement)\n" );
 		printf( "Objectve function: " );
-		if( cd->test_func == 0 )
+		if( cd->test_func > 0 )
+			printf( "test function %d", cd->test_func );
+		else
 		{
 			switch( cd->objfunc_type )
 			{
@@ -285,8 +288,6 @@ int parse_cmd( char *buf, struct calc_data *cd )
 				default: printf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
 			}
 		}
-		else
-			printf( "test function" );
 		printf( "\n" );
 	}
 	if( cd->sintrans == 0 ) printf( "\nSin transformation of the model parameters: NOT applied (keyword 'nosin')!\n" );
@@ -571,9 +572,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		{
 			for( i = 0; i < od->nObs; i++ )
 			{
-				if( od->nObs < 50 || ( i < 20 || i > od->nObs - 20 ) )
+				if( cd->debug > 10 || od->nObs <= 50 || ( i < 20 || i > od->nObs - 20 ) )
 					printf( "%-20s: %15g weight %12g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
-				if( od->nObs > 50 && i == 21 ) printf( "...\n" );
+				if( ( !( cd->debug > 10 ) || od->nObs > 50 ) && i == 21 ) printf( "...\n" );
 			}
 		}
 		ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );

@@ -178,7 +178,7 @@ int pso_tribes( struct opt_data *op )
 	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
-	pb.lmfactor = op->cd->lmfactor;
+	pb.lm_factor = op->cd->lm_factor;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->pdebug )
@@ -1375,11 +1375,11 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 			else if( phi_current_best < min ) min = phi_current_best;
 		}
 		r1 = ( max - min ) / min;
-		r2 = 1 + ( *pb ).lmfactor / 10;
+		r2 = 1 + ( *pb ).lm_factor / 10;
 		if( r1 < r2 )
 		{
 			lm_wait = 1;
-			phi_lm_wait = min / ( *pb ).lmfactor * 2;
+			phi_lm_wait = min / ( *pb ).lm_factor * 2;
 			if( debug_level ) printf( "Skip LM search because OF range of tribes' shamans is small till OF %g is less than %g (min %g max %g ratio %g < %g)!\n", min, phi_lm_wait, min, max, r1, r2 );
 		}
 		else if( debug_level ) printf( "Do LM search because OF range of tribes' shamans is sufficient (min %g max %g ratio %g >= %g)!\n", min, max, r1, r2 );
@@ -1811,7 +1811,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				( *S ).tr_best = tr;
 			}
 			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
-			r1 = ( double ) 1 + ( *pb ).lmfactor / 20;
+			r1 = ( double ) 1 + ( *pb ).lm_factor / 20;
 			if( ( *S ).trib[tr].part[shaman].xBest.f.f[0] > phi_current_best / r1 )
 			{
 				count_bad_tribes++;
@@ -1842,7 +1842,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 		if( count_bad_tribes >= ( *S ).size )
 		{
 			lm_wait = 1;
-			phi_lm_wait = ( *S ).best.f.f[0] / ( *pb ).lmfactor;
+			phi_lm_wait = ( *S ).best.f.f[0] / ( *pb ).lm_factor;
 			if( debug_level ) printf( "Skip LM search till OF %g is less than %g!\n", ( *S ).best.f.f[0], phi_lm_wait );
 			( *S ).status = -1; // Bad swarm --- LM not happy with the swarm; try to add a tribe
 			nSwarmAdaptIter = ( *S ).size * ( *S ).size; // Force swarm adaption
@@ -1850,13 +1850,13 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 		gop->phi = ( *S ).best.f.f[0];
 	}
 	// else if(( *S ).size > ( *pb ).D )   // EXPLORE DIFFERENT
-	// else if( ( nTotPart > ( double ) 0.9 * ( *pb ).lmfactor * ( *pb ).D || ( double ) ( *pb ).lmfactor * ( *pb ).maxEval < ( double ) 2.0 * eval ) )  // EXPLORE DIFFERENT
+	// else if( ( nTotPart > ( double ) 0.9 * ( *pb ).lm_factor * ( *pb ).D || ( double ) ( *pb ).lm_factor * ( *pb ).maxEval < ( double ) 2.0 * eval ) )  // EXPLORE DIFFERENT
 	/*
 		else if( nTotPart > ( double ) 100 * ( *pb ).D )
 		{
 			if( debug_level )
 			{
-				printf( "Best particle move using LM ... (particles %d > %f * dimension %d) ", nTotPart, ( *pb ).lmfactor / 2, ( *pb ).D );
+				printf( "Best particle move using LM ... (particles %d > %f * dimension %d) ", nTotPart, ( *pb ).lm_factor / 2, ( *pb ).D );
 				fflush( stdout );
 				if( debug_level > 1 ) { printf( "\nold " ); position_print( &( *S ).best ); }
 			}

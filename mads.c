@@ -1882,6 +1882,7 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->ldebug && standalone ) printf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
+	Transform( opt_params, op, opt_params );
 	if( op->cd->paranoid )
 	{
 		if( standalone ) printf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " ); fflush( stdout );
@@ -1914,6 +1915,7 @@ int optimize_lm( struct opt_data *op )
 				printf( "CALIBRATION %d: initial guesses from IGRND random set: ", count );
 			else if( count > 1 )
 			{
+				if( op->cd->ldebug ) printf( "\n********************************************************************\n" );
 				if( debug ) printf( "CALIBRATION %d: initial guesses from internal MSLM random set #%d: ", count, count_set + 1 );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
@@ -1941,6 +1943,7 @@ int optimize_lm( struct opt_data *op )
 				}
 			}
 			if( debug > 1 ) printf( "\n" );
+			Transform( opt_params, op, opt_params );
 			fflush( stdout );
 		}
 		if( debug > 1 && standalone )
@@ -2164,12 +2167,12 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	phi = op->phi;
 	if( debug )
 	{
-		printf( "\nJacobian matrix\n" ); // Print ian
+		printf( "\nJacobian matrix\n" ); // Print Jacobian
 		printf( "%-25s :", "Observations" );
 		for( k = 0; k < op->od->nObs; k++ )
 		{
 			if( op->od->nObs < 30 || ( k < 10 || k > op->od->nObs - 10 ) ) printf( " %s", op->od->obs_id[k] );
-			if( op->od->nObs > 30 && k == 11 ) printf( " ..." );
+			if( op->od->nObs >= 30 && k == 11 ) printf( " ..." );
 		}
 		printf( "\n" );
 		for( k = i = 0; i < op->pd->nOptParam; i++ )
@@ -2181,7 +2184,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 				if( fabs( eps ) > 1e3 ) sprintf( buf, " %6.0e", eps );
 				else sprintf( buf, " %6.2f", eps );
 				if( op->od->nObs < 30 || ( j < 10 || j > op->od->nObs - 10 ) ) printf( " %s", buf );
-				if( op->od->nObs > 30 && j == 11 ) printf( " ..." );
+				if( op->od->nObs >= 30 && j == 11 ) printf( " ..." );
 			}
 			printf( "\n" );
 			/*
