@@ -936,7 +936,7 @@ int LEVMAR_DIF(
 					}
 					else
 						for( i = 0; i < op->pd->nOptParam; i++, l++ );
-					if( ( !(op->cd->ldebug > 14) || op->od->nObs > 50 ) && j == 21 ) printf( "...\n" );
+					if( ( !( op->cd->ldebug > 14 ) || op->od->nObs > 50 ) && j == 21 ) printf( "...\n" );
 					printf( "\n" );
 				}
 			}
