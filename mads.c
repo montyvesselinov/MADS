@@ -201,6 +201,7 @@ int main( int argn, char *argv[] )
 		printf( "   calibrate          - calibration run [default]\n" );
 		printf( "   montecarlo         - Monte Carlo analysis\n" );
 		printf( "   gsens              - global sensitivity analysis\n" );
+		printf( "   glue               - Generalized Likelihood Uncertainty Estimation\n" );
 		printf( "   lsens              - local sensitivity analysis (standalone or at the end of the calibration)\n" );
 		printf( "   eigen              - local eigensystem analysis (standalone or at the end of the calibration)\n" );
 		printf( "   abagus             - Agent-Based Global Uncertainty & Sensitivity Analysis\n" );
@@ -2523,6 +2524,7 @@ int postpua( struct opt_data *op )
 	double *opt_params, of;
 	char buf[80], filename[80];
 	int i, n;
+	op->od = op->preds;
 	if( op->cd->infile[0] == 0 ) { printf( "\nInfile must be specified for postpua run\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 );}
 	fl = fopen( op->cd->infile, "r" );
 	if( fl == NULL ) { printf( "\nError opening %s\n", op->cd->infile ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }

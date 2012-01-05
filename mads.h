@@ -34,7 +34,7 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 
-enum PROBLEM_TYPE {UNKNOWN = -2, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, INFOGAP, POSTPUA };
+enum PROBLEM_TYPE {UNKNOWN = -2, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, INFOGAP, POSTPUA, GLUE };
 enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
 enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3 };
@@ -250,6 +250,11 @@ struct gsens_data // global sensitivity analysis data structure
 	double *D_hat; 		// component output variance (\hat{D}_i)
 	double *D_hat_n; 	// not component output variance (\hat{D}_{~i})
 	double ep;          // absolute first moment
+};
+
+struct glue_data // GLUE postprocessing data structure
+{
+	double *phi; // Objective function for acceptable runs
 };
 
 // mads.c

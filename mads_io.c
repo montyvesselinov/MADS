@@ -128,6 +128,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "eige" ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = EIGEN; }
 		if( strcasestr( word, "mont" ) ) { w = 1; cd->problem_type = MONTECARLO; }
 		if( strcasestr( word, "gsen" ) ) { w = 1; cd->problem_type = GLOBALSENS; }
+		if( strcasestr( word, "glue" ) ) { w = 1; cd->problem_type = GLUE; }
 		if( strcasestr( word, "abag" ) ) { w = 1; cd->problem_type = ABAGUS; }
 		if( strcasestr( word, "infogap" ) ) { w = 1; cd->problem_type = INFOGAP; }
 		if( strcasestr( word, "postpua" ) ) { w = 1; cd->problem_type = POSTPUA; }
@@ -229,6 +230,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		case MONTECARLO: printf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
 		case GLOBALSENS: printf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
 		case ABAGUS: printf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
+		case GLUE: printf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
 		case INFOGAP: printf( "Info-gap decision analysis" ); break;
 		case POSTPUA: printf( "predictive uncertainty analysis of sampling results" ); break;
 		default: printf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
@@ -762,9 +764,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				if( cd->debug ) printf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 				k++;
 			}
+	printf( "Number of predictions = %d\n", ( *preds ).nObs );
 	if( ( *preds ).nObs > 0 )
 	{
-		printf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
+		if( cd->problem_type == INFOGAP) printf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
 		preds->obs_target = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_current = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_best = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
@@ -774,6 +777,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		preds->obs_weight = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		preds->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		preds->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 		preds->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		for( k = i = 0; i < ( *wd ).nW; i++ )
 			for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
@@ -793,6 +797,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == INFOGAP ) )
 	{ printf( "\nWeight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for infogap analysis\n\n" ); exit( 0 ); }
+	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == GLUE ) )
+	{ printf( "\nWeight of at least one observation must be set as a prediction\nby setting weight to -1 for glue analysis\n\n" ); exit( 0 ); }
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf\n", &( *gd ).time );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &( *gd ).nx, &( *gd ).ny, &( *gd ).nz );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &( *gd ).min_x, &( *gd ).min_y, &( *gd ).min_z );
