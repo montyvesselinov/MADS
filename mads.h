@@ -252,11 +252,6 @@ struct gsens_data // global sensitivity analysis data structure
 	double ep;          // absolute first moment
 };
 
-struct glue_data // GLUE postprocessing data structure
-{
-	double *phi; // Objective function for acceptable runs
-};
-
 // mads.c
 int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
 int optimize_pso( struct opt_data *op ); // PSO optimization

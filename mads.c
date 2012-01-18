@@ -47,6 +47,7 @@
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_sort_vector.h>
+#include <gsl/gsl_interp.h>
 #include "levmar-2.5/levmar.h"
 #include "mads.h"
 
@@ -65,11 +66,13 @@ void ave_sorted( double data[], int n, double *ave, double *ep );
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 int sort_int( const void *x, const void *y );
+int sort_double (const void * a, const void * b);
 
 /* Functions elsewhere */
 // Model analyses
 int pssa( struct opt_data *op );
 int postpua( struct opt_data *op );
+int glue( struct opt_data *op );
 int infogap( struct opt_data *op );
 int pso_tribes( struct opt_data *op );
 int pso_std( struct opt_data *op );
@@ -1665,6 +1668,14 @@ int main( int argn, char *argv[] )
 		status = postpua( &op );
 	}
 //
+//------------------------ GLUE
+//
+	if( cd.problem_type == GLUE ) // Generalized Likelihood Uncertainty Estimation
+	{
+		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
+		status = glue( &op );
+	}
+//
 //------------------------ INFOGAP
 //
 	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
@@ -2525,7 +2536,7 @@ int postpua( struct opt_data *op )
 	char buf[80], filename[80];
 	int i, n;
 	op->od = op->preds;
-	if( op->cd->infile[0] == 0 ) { printf( "\nInfile must be specified for postpua run\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 );}
+	if( op->cd->infile[0] == 0 ) { printf( "\nInfile (results file from abagus run) must be specified for postpua run\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 );}
 	fl = fopen( op->cd->infile, "r" );
 	if( fl == NULL ) { printf( "\nError opening %s\n", op->cd->infile ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
 	sprintf( filename, "%s.pua", op->root );
@@ -2555,6 +2566,131 @@ int postpua( struct opt_data *op )
 	fclose( outfl );
 	printf( "Done\n" );
 	printf( "Results written to %s\n\n", filename );
+	return 1;
+}
+
+int glue( struct opt_data *op )
+{
+	FILE *fl, *outfl;
+	double *phi, **preds, phi_temp, *percentile, *pred_temp, *sum; 
+	char buf[200], filename[80], pred_id[100][30];
+	int num_lines = 0, j;
+	gsl_matrix *glue_mat; //! matrix for sorting predictions
+	gsl_permutation *p1;
+
+	// Open postpua output file
+	if( op->cd->infile[0] == 0 ) { printf( "\nInfile (results file from postpua run) must be specified for glue run\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 );}
+	fl = fopen( op->cd->infile, "r" );
+	if( fl == NULL ) { printf( "\nError opening %s\n", op->cd->infile ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	// Create glue output file
+	sprintf( filename, "%s.glue", op->root );
+	outfl = fopen( filename , "w" );
+	if( outfl == NULL ) { printf( "\nError opening %s\n", filename ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	fgets( buf, sizeof buf, fl ); // Skip header
+	// Count number of acceptable solutions
+	while( fgets( buf, sizeof buf, fl ) != NULL ) 
+	{
+		sscanf( buf, "%*d %lf ", &phi_temp ); 	
+		if( phi_temp <= op->cd->phi_cutoff ) num_lines++; // Count lines
+	}
+	printf( "\nNumber of solutions with phi <= %g: %d\n", op->cd->phi_cutoff, num_lines );
+	printf( "\nPerforming GLUE analysis for %s...", op->cd->infile );
+	fflush( stdout );
+
+	// Read in data
+	rewind( fl );
+	fscanf( fl, "%*s %*s %[^\n]%s", buf ); // Skip first part of header ("Number OF")
+	int i = 0;
+	// Read in names of predictions (e.g. combination of well names and times)
+	while( sscanf( buf, " %s %[^\n]%s", pred_id[i], buf ) > 1 ) { i++; }
+	int num_preds = i + 1;
+	
+	// Allocate memory for phis and predictions
+	if( ( phi = ( double * ) malloc( num_lines * sizeof( double ) ) ) == NULL ) 
+	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	//phi = ( double * ) malloc( num_lines * sizeof( double ) );
+	preds = double_matrix( num_lines, num_preds );
+	// Collect acceptable solutions
+	glue_mat = gsl_matrix_alloc( num_lines, num_preds + 1 );
+	int phi_index = num_preds; // phi_index indicates column of phis in glue_mat
+	i = 0;
+//	printf( "\n\nAcceptable lines from %s:\n", op->cd->infile ); 
+	while( fgets( buf, sizeof buf, fl ) != NULL ) 
+	{
+		sscanf( buf, "%*d %lf %[^\n]%s", &phi_temp, buf ); 	
+		if( phi_temp <= op->cd->phi_cutoff ) 
+		{
+//			printf( "%lf %s\n", phi_temp, buf );
+			phi[i] = phi_temp;
+			gsl_matrix_set( glue_mat, i, phi_index, phi_temp ); // Place phi after predictions
+			for( j = 0; j < num_preds; j++ )
+			{
+				sscanf( buf, " %lf %[^\n]%s", &preds[i][j], buf );
+				gsl_matrix_set( glue_mat, i, j, preds[i][j] ); // Place phi after predictions
+			}
+			i++;
+		}
+	}
+	fclose( fl );
+	//printf( "\nglue_mat:\n" );
+	//gsl_matrix_fprintf( stdout, glue_mat, "%g" );
+
+	// Calculate weighted percentile of each phi; note: low phis imply high percentile
+	p1 = gsl_permutation_alloc( num_lines );
+	percentile = ( double * ) malloc( num_lines * sizeof( double ) );
+	pred_temp = ( double * ) malloc( num_lines * sizeof( double ) );
+	sum = ( double * ) malloc( num_lines * sizeof( double ) );
+	double p05, p95; // 5th and 95th percentiles
+	printf( "\n\nprediction p05 p95\n" );
+	int count;
+	for( i = 0; i < num_preds; i++ )
+	{
+		gsl_vector_view column = gsl_matrix_column( glue_mat, i );
+		gsl_sort_vector_index( p1, &column.vector );
+		sum[0] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, 0 ), num_preds );
+		pred_temp[0] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, 0 ), i );
+		// Collect summation of weights and ordered predictions
+//		printf( "\nSample sum prediction:\n" );
+		//printf( "0 %g %g\n", sum[0], pred_temp[0] );
+		for( j = 1; j < num_lines; j++ ) 
+		{ 
+			sum[j] = sum[j-1] + gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), num_preds ); 
+			pred_temp[j] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), i ); 
+			//printf( "%d %g %g\n", j, sum[j], pred_temp[j] );
+		}
+//		printf( "\nno prediction percentile:\n" );
+		for( j = 0; j < num_lines; j++ ) { percentile[j] = (1.0 / sum[num_lines-1] ) * ( sum[j] - pred_temp[j]/2.0 ); /*printf( "%d %g %g\n", j+1, pred_temp[j], percentile[j]);*/ }
+		if( percentile[0] > 0.05 ) p05 = pred_temp[0];
+		else if( percentile[num_lines-1] < 0.05 ) p05 = pred_temp[num_lines-1];
+		else
+		{
+			count = 0;
+			for( j = 1; j < num_lines; j++ ) { if( percentile[j] < 0.05 ) count++; else {break;} }
+			p05 = pred_temp[j-1] + (( 0.05 - percentile[j-1] ) / ( percentile[j] - percentile[j-1] )) * ( pred_temp[j] - pred_temp[j-1] );
+		}
+//		printf( "\n%d\n", j );	
+//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p05 );	
+		if( percentile[0] > 0.95 ) p95 = pred_temp[0];
+		else if( percentile[num_lines-1] < 0.95 ) p95 = pred_temp[num_lines-1];
+		else
+		{
+			count = 0;
+			for( j = 1; j < num_lines; j++ ) { if( percentile[j] < 0.95 ) count++; else {break;}  }
+			p95 = pred_temp[j-1] + (( 0.95 - percentile[j-1] ) / ( percentile[j] - percentile[j-1] )) * ( pred_temp[j] - pred_temp[j-1] );
+		}
+//		printf( "\n%d\n", j );	
+//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p95 );	
+
+		printf( "%d %g %g\n", i + 1, p05, p95 );
+		//printf( "%g ", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.95, accelerator ) );	
+		//printf( " %g\n", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.05, accelerator ) );	
+
+	}	
+	printf( "\n" );
+	fclose( outfl );
+	printf( "Done\n" );
+	printf( "Results written to %s\n\n", filename );
+	gsl_matrix_free( glue_mat );
 	return 1;
 }
 
@@ -2833,3 +2969,10 @@ int sort_int( const void *x, const void *y )
 {
 	return ( *( int * )x - * ( int * )y );
 }
+
+int sort_double (const void *x, const void *y)
+{
+  return ( *( double * )x - * ( double * )y );
+}
+
+
