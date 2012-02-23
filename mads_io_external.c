@@ -235,7 +235,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	if( debug )
 	{
 		printf( "Search separator: %s\n", token_search );
-		printf( "Parameter separator: %s\n", token_obs );
+		printf( "Observation separator: %s\n", token_obs );
 		printf( "Dummy observation: %s\n", dummy_var );
 	}
 	while( 1 )
@@ -249,13 +249,13 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		if( buf_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &word_inst[1], "%d", &c );
-			word_inst = strtok_r( NULL, separator, &pnt_inst );
 			if( debug ) printf( "Skip %d lines\n", c );
+			word_inst = strtok_r( NULL, separator, &pnt_inst );
 		}
 		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 		{
 			white_skip( &word_inst ); white_trim( word_inst );
-			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst );
+			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout );
 			if( word_inst[0] == token_search[0] ) // search for keyword
 			{
 				word_search = strtok( word_inst, token_search );
@@ -295,6 +295,13 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 					printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
 					bad_data = 1;
 				}
+			}
+			else
+			{
+				printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
+				printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
+				bad_data = 1;
+				break;
 			}
 		}
 	}
@@ -373,7 +380,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	if( debug )
 	{
 		printf( "Search separator: %s\n", token_search );
-		printf( "Parameter separator: %s\n", token_obs );
+		printf( "Observation separator: %s\n", token_obs );
 		printf( "Dummy observation: %s\n", dummy_var );
 	}
 	buf_data[0] = 0; word_data = pnt_data = NULL;
@@ -410,7 +417,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 		{
 			white_skip( &word_inst ); white_trim( word_inst );
-			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst );
+			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout );
 			if( word_inst[0] == token_search[0] ) // search for keyword
 			{
 				word_search = strtok( word_inst, token_search );
@@ -484,6 +491,13 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 					printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
 					bad_data = 1;
 				}
+			}
+			else
+			{
+				printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
+				printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
+				bad_data = 1;
+				break;
 			}
 		}
 	}

@@ -1160,11 +1160,12 @@ int main( int argn, char *argv[] )
 		phi_min = HUGE_VAL;
 		if( cd.ireal != 0 ) k = cd.ireal - 1;
 		else k = 0;
-		if( cd.solution_type == EXTERNAL && cd.num_proc > 1 && k == 0 ) // Parallel job:
+		if( cd.solution_type == EXTERNAL && cd.num_proc > 1 && k == 0 ) // Parallel job
 		{
-			if( cd.debug ) printf( "Parallel execution of external jobs ...\n" );
+			if( cd.debug || cd.mdebug ) printf( "Parallel execution of external jobs ...\n" );
 			for( count = 0; count < cd.nreal; count ++ ) // Write all the files
 			{
+				if( cd.debug || cd.mdebug ) printf( "Generation of all the model input files ...\n" );
 				fprintf( out, "%d : ", count + 1 ); // counter
 				if( cd.mdebug ) printf( "\n" );
 				printf( "Random set #%d: ", count + 1 );
@@ -1186,7 +1187,15 @@ int main( int argn, char *argv[] )
 						if( pd.var_log[pd.var_index[i]] == 0 ) printf( "%s %g\n", pd.var_id[pd.var_index[i]], pd.var[pd.var_index[i]] );
 						else printf( "%s %g\n", pd.var_id[pd.var_index[i]], pow( 10, pd.var[pd.var_index[i]] ) );
 				}
+				for( i = 0; i < pd.nParam; i++ )
+					if( pd.var_opt[i] >= 1 )
+					{
+						if( pd.var_log[i] ) fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
+						else fprintf( out, " %.15g", pd.var[i] );
+					}
+				fprintf( out, "\n" );
 			}
+			fclose( out );
 			if( cd.pardebug > 4 )
 			{
 				for( count = 0; count < cd.nreal; count ++ ) // Perform all the runs in serial model (for testing)
@@ -1203,10 +1212,19 @@ int main( int argn, char *argv[] )
 				sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 				system( buf );
 			}
+			out = Fwrite( filename ); // rewrite results file including the results
 			for( count = 0; count < cd.nreal; count ++ ) // Read all the files
 			{
+				if( cd.debug || cd.mdebug ) printf( "Reading all the model output files ...\n" );
 				op.counter = count + 1;
-				printf( "Model results #%d: ", count + 1 );
+				fprintf( out, "%d : ", op.counter ); // counter
+				for( i = 0; i < pd.nOptParam; i++ ) // re
+				{
+					k = pd.var_index[i];
+					pd.var[k] = var_lhs[i + count * npar] * pd.var_range[k] + pd.var_min[k];
+				}
+				if( cd.mdebug ) printf( "\n" );
+				printf( "Model results #%d: ", op.counter );
 				bad_data = 0;
 				bad_data = func_extrn_read( count + 1, &op, od.res );
 				if( bad_data )
