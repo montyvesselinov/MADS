@@ -320,12 +320,12 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	double v;
 	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
-		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
+		printf( "\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
 		return( -1 );
 	}
 	if( ( infile_data = fopen( fn_in_d, "r" ) ) == NULL )
 	{
-		printf( "\n\nERROR: File %s cannot be opened to read the model-predicted observations!\n", fn_in_d );
+		printf( "\nERROR: File %s cannot be opened to read the model-predicted observations!\n", fn_in_d );
 		return( -1 );
 	}
 	if( debug ) printf( "\nReading output file \'%s\' obtained from external model execution using instruction file \'%s\'.\n", fn_in_d, fn_in_i );

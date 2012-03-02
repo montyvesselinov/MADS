@@ -767,7 +767,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	printf( "Number of predictions = %d\n", ( *preds ).nObs );
 	if( ( *preds ).nObs > 0 )
 	{
-		if( cd->problem_type == INFOGAP) printf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
+		if( cd->problem_type == INFOGAP ) printf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
 		preds->obs_target = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_current = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_best = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );

@@ -66,7 +66,7 @@ void ave_sorted( double data[], int n, double *ave, double *ep );
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 int sort_int( const void *x, const void *y );
-int sort_double (const void * a, const void * b);
+int sort_double( const void *a, const void *b );
 
 /* Functions elsewhere */
 // Model analyses
@@ -590,7 +590,7 @@ int main( int argn, char *argv[] )
 			sprintf( filename, "%s.results", op.root ); if( Ftest( filename ) != 0 ) printf( "MADS results file \'%40s\' last modified on %s\n", filename, Fdatetime( filename, 0 ) );
 			printf( "MADS restart file \'%40s\' last modified on %s\n", cd.restart_zip_file, Fdatetime( cd.restart_zip_file, 0 ) );
 			printf( "ZIP file (%s) with restart information is unzipped ... \n", cd.restart_zip_file );
-			sprintf( buf, "rm -fR ../%s* %s.restart_info; unzip -u -: %s >& /dev/null", cd.mydir_hosts, op.root, cd.restart_zip_file ); // the input file name was temporarily in buf; not any more ...
+			sprintf( buf, "rm -fR ../%s* %s.restart_info; unzip -o -u -: %s >& /dev/null", cd.mydir_hosts, op.root, cd.restart_zip_file ); // the input file name was temporarily in buf; not any more ...
 			system( buf );
 			sprintf( filename, "%s.restart_info", op.root );
 			in = Fread( filename );
@@ -1163,9 +1163,9 @@ int main( int argn, char *argv[] )
 		if( cd.solution_type == EXTERNAL && cd.num_proc > 1 && k == 0 ) // Parallel job
 		{
 			if( cd.debug || cd.mdebug ) printf( "Parallel execution of external jobs ...\n" );
+			if( cd.debug || cd.mdebug ) printf( "Generation of all the model input files ...\n" );
 			for( count = 0; count < cd.nreal; count ++ ) // Write all the files
 			{
-				if( cd.debug || cd.mdebug ) printf( "Generation of all the model input files ...\n" );
 				fprintf( out, "%d : ", count + 1 ); // counter
 				if( cd.mdebug ) printf( "\n" );
 				printf( "Random set #%d: ", count + 1 );
@@ -1790,21 +1790,6 @@ int main( int argn, char *argv[] )
 	if( cd.problem_type == FORWARD && od.nObs > 0 ) fclose( out2 );
 	if( cd.problem_type == FORWARD || cd.problem_type == CALIBRATE )
 	{
-		if( gd.min_t > 0 && cd.solution_type != TEST )
-		{
-			printf( "\nCompute breakthrough curves at all the wells ...\n" );
-			sprintf( filename, "%s.btc", op.root );
-			sprintf( filename2, "%s.btc-peak", op.root );
-			compute_btc2( filename, filename2, &op );
-//			sprintf( filename, "%s.btc", root );
-//			compute_btc( filename, &op, &gd );
-		}
-		if( gd.time > 0 && cd.solution_type != TEST )
-		{
-			printf( "\nCompute spatial distribution of predictions at t = %g ...\n", gd.time );
-			sprintf( filename, "%s.vtk", op.root );
-			compute_grid( filename, &cd, &gd );
-		}
 		if( od.nObs > 0 )
 		{
 			sprintf( filename, "%s.phi", op.root );
@@ -2590,12 +2575,11 @@ int postpua( struct opt_data *op )
 int glue( struct opt_data *op )
 {
 	FILE *fl, *outfl;
-	double *phi, **preds, phi_temp, *percentile, *pred_temp, *sum; 
+	double *phi, **preds, phi_temp, *percentile, *pred_temp, *sum;
 	char buf[200], filename[80], pred_id[100][30];
 	int num_lines = 0, j;
 	gsl_matrix *glue_mat; //! matrix for sorting predictions
 	gsl_permutation *p1;
-
 	// Open postpua output file
 	if( op->cd->infile[0] == 0 ) { printf( "\nInfile (results file from postpua run) must be specified for glue run\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 );}
 	fl = fopen( op->cd->infile, "r" );
@@ -2606,15 +2590,14 @@ int glue( struct opt_data *op )
 	if( outfl == NULL ) { printf( "\nError opening %s\n", filename ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
 	fgets( buf, sizeof buf, fl ); // Skip header
 	// Count number of acceptable solutions
-	while( fgets( buf, sizeof buf, fl ) != NULL ) 
+	while( fgets( buf, sizeof buf, fl ) != NULL )
 	{
-		sscanf( buf, "%*d %lf ", &phi_temp ); 	
+		sscanf( buf, "%*d %lf ", &phi_temp );
 		if( phi_temp <= op->cd->phi_cutoff ) num_lines++; // Count lines
 	}
 	printf( "\nNumber of solutions with phi <= %g: %d\n", op->cd->phi_cutoff, num_lines );
 	printf( "\nPerforming GLUE analysis for %s...", op->cd->infile );
 	fflush( stdout );
-
 	// Read in data
 	rewind( fl );
 	fscanf( fl, "%*s %*s %[^\n]%s", buf ); // Skip first part of header ("Number OF")
@@ -2622,9 +2605,8 @@ int glue( struct opt_data *op )
 	// Read in names of predictions (e.g. combination of well names and times)
 	while( sscanf( buf, " %s %[^\n]%s", pred_id[i], buf ) > 1 ) { i++; }
 	int num_preds = i + 1;
-	
 	// Allocate memory for phis and predictions
-	if( ( phi = ( double * ) malloc( num_lines * sizeof( double ) ) ) == NULL ) 
+	if( ( phi = ( double * ) malloc( num_lines * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
 	//phi = ( double * ) malloc( num_lines * sizeof( double ) );
 	preds = double_matrix( num_lines, num_preds );
@@ -2632,11 +2614,11 @@ int glue( struct opt_data *op )
 	glue_mat = gsl_matrix_alloc( num_lines, num_preds + 1 );
 	int phi_index = num_preds; // phi_index indicates column of phis in glue_mat
 	i = 0;
-//	printf( "\n\nAcceptable lines from %s:\n", op->cd->infile ); 
-	while( fgets( buf, sizeof buf, fl ) != NULL ) 
+//	printf( "\n\nAcceptable lines from %s:\n", op->cd->infile );
+	while( fgets( buf, sizeof buf, fl ) != NULL )
 	{
-		sscanf( buf, "%*d %lf %[^\n]%s", &phi_temp, buf ); 	
-		if( phi_temp <= op->cd->phi_cutoff ) 
+		sscanf( buf, "%*d %lf %[^\n]%s", &phi_temp, buf );
+		if( phi_temp <= op->cd->phi_cutoff )
 		{
 //			printf( "%lf %s\n", phi_temp, buf );
 			phi[i] = phi_temp;
@@ -2652,7 +2634,6 @@ int glue( struct opt_data *op )
 	fclose( fl );
 	//printf( "\nglue_mat:\n" );
 	//gsl_matrix_fprintf( stdout, glue_mat, "%g" );
-
 	// Calculate weighted percentile of each phi; note: low phis imply high percentile
 	p1 = gsl_permutation_alloc( num_lines );
 	percentile = ( double * ) malloc( num_lines * sizeof( double ) );
@@ -2670,40 +2651,38 @@ int glue( struct opt_data *op )
 		// Collect summation of weights and ordered predictions
 //		printf( "\nSample sum prediction:\n" );
 		//printf( "0 %g %g\n", sum[0], pred_temp[0] );
-		for( j = 1; j < num_lines; j++ ) 
-		{ 
-			sum[j] = sum[j-1] + gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), num_preds ); 
-			pred_temp[j] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), i ); 
+		for( j = 1; j < num_lines; j++ )
+		{
+			sum[j] = sum[j - 1] + gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), num_preds );
+			pred_temp[j] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), i );
 			//printf( "%d %g %g\n", j, sum[j], pred_temp[j] );
 		}
 //		printf( "\nno prediction percentile:\n" );
-		for( j = 0; j < num_lines; j++ ) { percentile[j] = (1.0 / sum[num_lines-1] ) * ( sum[j] - pred_temp[j]/2.0 ); /*printf( "%d %g %g\n", j+1, pred_temp[j], percentile[j]);*/ }
+		for( j = 0; j < num_lines; j++ ) { percentile[j] = ( 1.0 / sum[num_lines - 1] ) * ( sum[j] - pred_temp[j] / 2.0 ); /*printf( "%d %g %g\n", j+1, pred_temp[j], percentile[j]);*/ }
 		if( percentile[0] > 0.05 ) p05 = pred_temp[0];
-		else if( percentile[num_lines-1] < 0.05 ) p05 = pred_temp[num_lines-1];
+		else if( percentile[num_lines - 1] < 0.05 ) p05 = pred_temp[num_lines - 1];
 		else
 		{
 			count = 0;
 			for( j = 1; j < num_lines; j++ ) { if( percentile[j] < 0.05 ) count++; else {break;} }
-			p05 = pred_temp[j-1] + (( 0.05 - percentile[j-1] ) / ( percentile[j] - percentile[j-1] )) * ( pred_temp[j] - pred_temp[j-1] );
+			p05 = pred_temp[j - 1] + ( ( 0.05 - percentile[j - 1] ) / ( percentile[j] - percentile[j - 1] ) ) * ( pred_temp[j] - pred_temp[j - 1] );
 		}
-//		printf( "\n%d\n", j );	
-//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p05 );	
+//		printf( "\n%d\n", j );
+//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p05 );
 		if( percentile[0] > 0.95 ) p95 = pred_temp[0];
-		else if( percentile[num_lines-1] < 0.95 ) p95 = pred_temp[num_lines-1];
+		else if( percentile[num_lines - 1] < 0.95 ) p95 = pred_temp[num_lines - 1];
 		else
 		{
 			count = 0;
 			for( j = 1; j < num_lines; j++ ) { if( percentile[j] < 0.95 ) count++; else {break;}  }
-			p95 = pred_temp[j-1] + (( 0.95 - percentile[j-1] ) / ( percentile[j] - percentile[j-1] )) * ( pred_temp[j] - pred_temp[j-1] );
+			p95 = pred_temp[j - 1] + ( ( 0.95 - percentile[j - 1] ) / ( percentile[j] - percentile[j - 1] ) ) * ( pred_temp[j] - pred_temp[j - 1] );
 		}
-//		printf( "\n%d\n", j );	
-//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p95 );	
-
+//		printf( "\n%d\n", j );
+//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p95 );
 		printf( "%d %g %g\n", i + 1, p05, p95 );
-		//printf( "%g ", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.95, accelerator ) );	
-		//printf( " %g\n", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.05, accelerator ) );	
-
-	}	
+		//printf( "%g ", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.95, accelerator ) );
+		//printf( " %g\n", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.05, accelerator ) );
+	}
 	printf( "\n" );
 	fclose( outfl );
 	printf( "Done\n" );
@@ -2947,10 +2926,11 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		sprintf( filename, "%s.btc", f );
 		sprintf( filename2, "%s.btc-peak", f );
 		compute_btc2( filename, filename2, op );
+		//			compute_btc( filename, &op, &gd );
 	}
 	if( gd->time > 0 && op->cd->solution_type != TEST )
 	{
-		printf( "\nCompute spatial distribution of predictions at t = %g ...", gd->time );
+		printf( "\nCompute spatial distribution of predictions at t = %g ...\n", gd->time );
 		fflush( stdout );
 		sprintf( filename, "%s.vtk", f );
 		compute_grid( filename, op->cd, gd );
@@ -2988,9 +2968,9 @@ int sort_int( const void *x, const void *y )
 	return ( *( int * )x - * ( int * )y );
 }
 
-int sort_double (const void *x, const void *y)
+int sort_double( const void *x, const void *y )
 {
-  return ( *( double * )x - * ( double * )y );
+	return ( *( double * )x - * ( double * )y );
 }
 
 

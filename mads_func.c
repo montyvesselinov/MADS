@@ -248,30 +248,44 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		}
 	}
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
-	create_mprun_dir( dir ); // Create directory for parallel runs
-	for( i = 0; i < p->ed->ntpl; i++ ) // Create input files
+	// Delete expected output files in the root directory to prevent the creation of links to these files in the "child" directories
+	strcpy( buf, "rm -f " );
+	for( i = 0; i < p->ed->nins; i++ )
+		strcat( buf, p->ed->fn_obs[i] );
+	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
+	if( p->cd->pardebug > 2 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
+	system( buf );
+	create_mprun_dir( dir ); // Create the child directory for parallel runs with link to the files in the working root directory
+	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
 			exit( -1 );
 	}
+	// Update model input files in zip restart files
+	if( p->cd->restart )
 	sprintf( buf, "zip -u %s ", p->cd->restart_zip_file ); // Archive input files
 	for( i = 0; i < p->ed->ntpl; i++ )
-		sprintf( &buf[( int ) strlen( buf )], "../%s/%s", dir, p->ed->fn_out[i] );
+		sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
 	system( buf );
 	if( p->cd->pardebug > 3 ) printf( "Input files for parallel run #%d are archived!\n", ieval );
 	if( p->cd->restart == 0 ) // Do not delete if restart is attempted
 	{
-		strcpy( buf, "rm -f " ); // Delete expected output files in the working directory; in this way links cannot be created
-		for( i = 0; i < p->ed->nins; i++ )
-			strcat( buf, p->ed->fn_obs[i] );
-		strcat( buf, " >& /dev/null" );
 		sprintf( buf, "cd ../%s; rm -f ", dir ); // Delete expected output files in the hosts directories
 		for( i = 0; i < p->ed->nins; i++ )
 			strcat( buf, p->ed->fn_obs[i] );
-		strcat( buf, " >& /dev/null" );
-		if( p->cd->pardebug > 3 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
+		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
+		if( p->cd->pardebug > 2 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
+		system( buf );
+	}
+	else // Just in case; the restart file should have been already extracted
+	{
+		sprintf( buf, "unzip -u -: %s ", p->cd->restart_zip_file ); // Archive input files
+		for( i = 0; i < p->ed->nins; i++ )
+			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
+		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
+		if( p->cd->pardebug > 2 ) printf( "Extract the expected output files before execution (\'%s\')\n", buf );
 		system( buf );
 	}
 	return GSL_SUCCESS;
@@ -284,7 +298,7 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 	p->cd->neval++;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "\nWorking directory: ../%s\n", dir );
-	if( p->cd->pardebug > 1 )
+	if( p->cd->pardebug > 2 )
 	{
 		sprintf( buf, "cd ../%s; ls -altr ", dir ); // Check directory content
 		system( buf );
@@ -303,6 +317,11 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	int i, bad_data;
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
+	if( p->cd->pardebug > 2 )
+	{
+		sprintf( buf, "cd ../%s; ls -altr ", dir ); // Check directory content
+		system( buf );
+	}
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
@@ -522,7 +541,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->cd->check_success && p->cd->obserror > DBL_EPSILON ) success_all = 0;
 			if( p->cd->fdebug >= 5 )
 			{
-				printf( "Test OF %g\n", success_all, phi );
+				printf( "Test OF %d %g\n", success_all, phi );
 				c = 0;
 				for( k = 0; k < p->od->nObs; k++ )
 				{
@@ -559,6 +578,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				case BOX:
 					c1 = box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->cd );
 					c2 = box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->cd );
+					break;
 			}
 			c = ( c1 + c2 ) / 2;
 			p->od->obs_current[k] = c;
