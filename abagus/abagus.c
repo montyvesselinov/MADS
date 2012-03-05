@@ -153,8 +153,6 @@ void print_particles( struct position *X, FILE *fid );
 double alea( double a, double b );
 int alea_integer( int a, int b );
 // in ../mads.c
-void DeTransform( double *x, void *data, double *f );
-void Transform( double *x, void *data, double *f );
 int get_seed( );
 void seed_rand_kiss( unsigned long seed );
 

@@ -29,8 +29,6 @@
 #include <stdlib.h>
 #include "../mads.h"
 
-int Ftest( char *filename );
-
 char *dir_hosts( void *data, char *timedate_stamp )
 {
 	struct opt_data *p = ( struct opt_data * )data;

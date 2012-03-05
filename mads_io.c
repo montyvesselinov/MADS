@@ -53,9 +53,6 @@ int count_cols( char *filename, int row );
 char **char_matrix( int maxCols, int maxRows );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
-int Ftest( char *filename );
-FILE *Fread( char *filename );
-FILE *Fwrite( char *filename );
 int set_test_problems( struct opt_data *op );
 void *malloc_check( const char *what, size_t n );
 

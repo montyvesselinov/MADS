@@ -715,7 +715,7 @@ int LEVMAR_DER(
 			case 6: printf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
 			case 7: printf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
 			case 8: printf( "model predictions are within predefined calibration ranges\n" ); break;
-			default: printf( "UNKNOWN flag: %d\n", stop );
+			default: printf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 2 )
 		{

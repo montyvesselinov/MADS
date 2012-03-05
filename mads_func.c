@@ -772,6 +772,7 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 		case BOX:
 			c1 = box_source( x, y, z1, t, ( void * ) p );
 			c2 = box_source( x, y, z2, t, ( void * ) p );
+			break;
 	}
 	return( ( c1 + c2 ) / 2 );
 }

@@ -140,9 +140,6 @@ int func_extrn_read( int ieval, void *data, double *f );
 void Transform( double *v, void *data, double *vt );
 void DeTransform( double *v, void *data, double *vt );
 // Parallel
-int create_mprun_dirs( int nDir, char **dirs );
-int delete_mprun_dirs( int nDir, char **dirs );
-int delete_mprun_outputs( int nDir, void *data );
 int mprun( int nJob, void *data );
 char *dir_hosts( void *data, char *timedate_stamp );
 
