@@ -164,9 +164,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "plog" ) ) { w = 1; if( sscanf( word, "plog=%d", &cd->plogtrans ) != 1 ) cd->plogtrans = 1; }
 		if( strcasestr( word, "olog" ) ) { w = 1; if( sscanf( word, "olog=%d", &cd->ologtrans ) != 1 ) cd->ologtrans = 1; }
 		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
-		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; cd->obserror = -1; } // legacy
-		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); cd->obsrange = cd->obserror = cd->parerror = 0; }
+		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); cd->check_success = cd->obsrange = cd->obserror = cd->parerror = 0; }
 		if( strcasestr( word, "obsrange" ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; }
+		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; } // legacy
 		if( strcasestr( word, "truth" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; } // legacy
 		if( strcasestr( word, "parerror" ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
 		if( strcasestr( word, "obserror" ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->parerror = 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
@@ -387,7 +387,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else buf[0] = 0;
 	// Add commands provided as arguments
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-	if( parse_cmd( buf, cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	if( parse_cmd( buf, cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
 	// Read Solution Type
 	cd->solution_id = ( char * ) malloc( 50 * sizeof( char ) ); ( *cd ).solution_id[0] = 0;
 	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fscanf( infile, "%s\n", ( *cd ).solution_id ); sscanf( ( *cd ).solution_id, "%d",  &( *cd ).solution_type ); }
@@ -483,7 +483,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretizations is ON
 		}
 	}
-	if( bad_data ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	if( bad_data ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
 	if( ( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD && ( *pd ).nFlgParam == 0 )
 	{
 		printf( "WARNING: Partial parameter-space discretization (PPSD) is selected.\nHowever no parameters are flagged!\nSingle calibration will be performed using the initial guesses provided in the input file!\n" );
@@ -533,6 +533,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
 	if( cd->solution_type == EXTERNAL )
 	{
+		// check parameter name uniqueness
+		for( i = 0; i < pd->nParam; i++ )
+			for( j = i + 1; j < pd->nParam; j++ )
+				if( strcmp( pd->var_id[i], pd->var_id[j] ) == 0 )
+				{
+					printf( "ERROR: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] );
+					bad_data = 1;
+				}
+		if( bad_data ) return( 0 );
 		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &od->nObs );
 		od->nTObs = od->nObs;
 		od->obs_id = char_matrix( ( *od ).nObs, 50 );
@@ -579,6 +588,13 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				if( ( !( cd->debug > 10 ) || od->nObs > 50 ) && i == 21 ) printf( "...\n" );
 			}
 		}
+		for( i = 0; i < od->nObs; i++ )
+			for( j = i + 1; j < od->nObs; j++ )
+				if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
+				{
+					printf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
+					bad_data = 1;
+				}
 		ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
 		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": " ); fgets( ed->cmdline, 80, infile );
 		ed->cmdline[strlen( ed->cmdline ) - 1] = 0;
@@ -587,7 +603,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		{
 			printf( "ERROR: Execution command is not valid!\n" );
 			sprintf( buf, "rm -f %s.running", op->root ); system( buf );
-			exit( 1 );
+			exit( 0 );
 		}
 		strcpy( buf, ed->cmdline );
 		file = &buf[0];
@@ -616,8 +632,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 		if( k == 0 )
 		{
-			printf( "WARNING: Program \'%s\' does not exist or cannot be executed!\n", file );
-			exit( 1 );
+			printf( "ERROR: Program \'%s\' does not exist or cannot be executed!\n", file );
+			exit( 0 );
 		}
 		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %d\n", &ed->ntpl );
 		ed->fn_tpl = char_matrix( ed->ntpl, 80 );
@@ -628,7 +644,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( access( ed->fn_tpl[i], R_OK ) == -1 )
 			{
 				printf( "ERROR: File \'%s\' does not exist!\n", ed->fn_tpl[i] );
-				exit( 1 );
+				exit( 0 );
 			}
 		}
 		printf( "External files:\n" );
@@ -644,7 +660,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( access( ed->fn_ins[i], R_OK ) == -1 )
 			{
 				printf( "ERROR: File \'%s\' does not exist!\n", ed->fn_ins[i] );
-				exit( 1 );
+				exit( 0 );
 			}
 		}
 		printf( "- to read current model predictions:\n" );
@@ -654,6 +670,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		( *gd ).min_t = ( *gd ).time = 0;
 		return( 1 ); // EXIT; Done with external problem
 	}
+	// check parameter name uniqueness
+	for( i = 0; i < pd->nParam; i++ )
+		for( j = i + 1; j < pd->nParam; j++ )
+			if( strcmp( pd->var_id[i], pd->var_id[j] ) == 0 )
+				printf( "WARNING: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] );
+	// read well and observation info
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &( *wd ).nW );
 	wd->id = char_matrix( ( *wd ).nW, 40 );
 	wd->x = ( double * ) malloc( ( *wd ).nW * sizeof( double ) );
@@ -712,8 +734,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( j + 1 < ( *wd ).nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) printf( "\t\t\t\t\t\t\t      " ); }
 		}
 	}
+	for( i = 0; i < ( *wd ).nW; i++ )
+		for( j = i + 1; j < ( *wd ).nW; j++ )
+			if( strcmp( wd->id[i], wd->id[j] ) == 0 )
+				printf( "WARNING: Well names #%i (%s) and #%i (%s) are identical!\n", i + 1, wd->id[i], j + 1, wd->id[j] );
+	if( pd->nParam == 0 || ( pd->nOptParam == 0 && pd->nFlgParam == 0 ) ) { printf( "\nERROR: Number of model parameters is zero!\n\n" ); bad_data = 1; }
 	if( bad_data ) return( 0 );
-	if( pd->nParam == 0 || ( pd->nOptParam == 0 && pd->nFlgParam == 0 ) ) { printf( "\nERROR: Number of model parameters is zero!\n\n" ); return( 0 ); }
 	if( od->nObs == 0 )
 	{
 		if( cd->problem_type != FORWARD && cd->problem_type != MONTECARLO )
@@ -749,6 +775,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	od->time_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 	if( cd->debug ) printf( "\n" );
 	printf( "Number of calibration targets = %d\n", ( *od ).nObs );
+	if( op->pd->nOptParam > op->od->nObs ) { printf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
 	for( k = i = 0; i < ( *wd ).nW; i++ )
 		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
 			if( ( *wd ).obs_weight[i][j] > 0 )
@@ -795,10 +822,17 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					k++;
 				}
 	}
-	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == INFOGAP ) )
-	{ printf( "\nWeight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for infogap analysis\n\n" ); exit( 0 ); }
-	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == GLUE ) )
-	{ printf( "\nWeight of at least one observation must be set as a prediction\nby setting weight to -1 for glue analysis\n\n" ); exit( 0 ); }
+	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == INFOGAP ) ) // INFOGAP problem
+	{
+		printf( "\nWeight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for infogap analysis\n\n" );
+		bad_data = 1;
+	}
+	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == GLUE ) ) // GLUE problem
+	{
+		printf( "\nWeight of at least one observation must be set as a prediction\nby setting weight to -1 for glue analysis\n\n" );
+		bad_data = 1;
+	}
+	if( bad_data ) return( 0 );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf\n", &( *gd ).time );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &( *gd ).nx, &( *gd ).ny, &( *gd ).nz );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &( *gd ).min_x, &( *gd ).min_y, &( *gd ).min_z );
@@ -972,7 +1006,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 		{
 			x = i * dx + gd->min_x;
 			c = func_solver1( x, y, z, t, ( void * ) cd );
-			printf( "%5.0g ", c );
+			printf( "%6.0g ", c );
 		}
 		printf( "\n" );
 	}

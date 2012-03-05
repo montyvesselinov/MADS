@@ -259,7 +259,7 @@ int pso_tribes( struct opt_data *op )
 			if( op->cd->pdebug > 1 )
 			{
 				debug = op->cd->fdebug; op->cd->fdebug = 3;
-				func( S.best.x, gop, res ); // evaluate the best result
+				func_global( S.best.x, gop, res ); // evaluate the best result
 				op->cd->fdebug = debug;
 				objfunc_print( &S.best.f );
 				printf( " current position %d: ", r ); position_print( &S.best );
@@ -285,7 +285,7 @@ int pso_tribes( struct opt_data *op )
 		if( op->cd->fdebug < 3 ) { debug = op->cd->fdebug; op->cd->fdebug = 3; }
 		else debug = 0;
 	}
-	func( bestBest.x, gop, res ); // evaluate the best BEST result
+	func_global( bestBest.x, gop, res ); // evaluate the best BEST result
 	if( op->cd->pdebug > 1 && debug ) op->cd->fdebug = debug;
 	for( n = 0; n < pb.nPhi; n++ )
 	{
@@ -447,7 +447,7 @@ void position_eval( struct problem *pb, struct position *pos )
 	int i;
 	eval++;
 	( *pos ).f.size = ( *pb ).nPhi;
-	func( ( *pos ).x, gop, res ); // evaluation ... either internal of external
+	func_global( ( *pos ).x, gop, res ); // evaluation ... either internal of external
 	f = gop->phi;
 	( *pos ).f.f[0] = fabs( f - ( *pb ).objective[0] );
 	for( i = 0; i < ( *pb ).nPhi; i++ ) // Save the min and the max objfunc ever found
@@ -466,7 +466,7 @@ void position_eval( struct problem *pb, struct position *pos )
 	if( gop->cd->check_success && gop->success )
 	{
 		if( debug_level && gop->cd->fdebug == 0 ) printf( "PSO Success: Predictions are within the predefined calibration bounds (within position_eval)!\n" );
-		copy_position( pos, &( * pb ).pos_success );
+		copy_position( pos, &( *pb ).pos_success );
 		( * pb ).success = 1;
 	}
 	if( debug_level > 2 )
@@ -1302,8 +1302,11 @@ void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 {
 	int d;
 	long i;
+	// DeTransform( ( *P ).x, op, ( *P ).x ); // there is no need to detransform
 	for( d = 0; d < ( *pb ).D; d++ )
 		op->pd->var[op->pd->var_index[d]] = ( *P ).x[d];
+	// for( d = 0; d < ( *pb ).D; d++ )
+	// printf( "%g\n", op->pd->var[op->pd->var_index[d]] );
 	d = gop->cd->neval;
 	op->phi = ( *P ).f.f[0];
 	optimize_lm( op );

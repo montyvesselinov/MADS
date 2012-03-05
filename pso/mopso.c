@@ -283,7 +283,7 @@ int mopso( struct opt_data *op )
 			if( debug_level && pb.repeat > 1 )
 			{
 				debug = op->cd->debug; op->cd->debug = 3;
-				func( S.best.x, gop, res );
+				func_global( S.best.x, gop, res );
 				op->cd->debug = debug;
 			}
 			fitness_print( S.best.f );
@@ -314,7 +314,7 @@ int mopso( struct opt_data *op )
 		printf( "\nBest result:\n" ); // position_print(bestBest);
 	}
 	debug = op->cd->debug; op->cd->debug = 3;
-	func( bestBest.x, gop, res );
+	func_global( bestBest.x, gop, res );
 	op->cd->debug = debug;
 	fitness_print( bestBest.f );
 	printf( "Total number of functional evaluations %d\n", eval_total );
@@ -342,7 +342,7 @@ static struct fitness position_eval( struct problem pb, struct position x )
 
 	eval++;
 	fit.size = pb.fNb;
-	func( x.x, gop, res ); // evaluation ... either internal of external
+	func_global( x.x, gop, res ); // evaluation ... either internal of external
 	f = 0;
 	for( i = 0; i < gop->od->nObs; i++ ) f += res[i] *res[i];
 	fit.f[0] = fabs( f - pb.objective[0] );

@@ -50,7 +50,7 @@ int load_pst( char *filename, struct opt_data *op )
 	FILE *in;
 	double d;
 	char code[20], buf[1000];
-	int i, k, npar_groups, nobs_groups;
+	int i, j, k, npar_groups, nobs_groups, bad_data = 0;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct obs_data *od;
@@ -120,6 +120,14 @@ int load_pst( char *filename, struct opt_data *op )
 			printf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, ( *pd ).var_min[i], ( *pd ).var_max[i] );
 			( *pd ).var_index[k++] = i;
 		}
+	for( i = 0; i < pd->nParam; i++ )
+		for( j = i + 1; j < pd->nParam; j++ )
+			if( strcmp( pd->var_id[i], pd->var_id[j] ) == 0 )
+			{
+				printf( "ERROR: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] );
+				bad_data = 1;
+			}
+	if( bad_data ) return( 0 );
 	fgets( buf, 1000, in ); // skip line
 	for( i = 0; i < nobs_groups; i++ )
 		fgets( buf, 1000, in );
@@ -144,6 +152,14 @@ int load_pst( char *filename, struct opt_data *op )
 		od->obs_min[i] = 0; od->obs_max[i] = od->obs_target[i] * 2;
 		od->obs_log[i] = 0;
 	}
+	for( i = 0; i < od->nObs; i++ )
+		for( j = i + 1; j < od->nObs; j++ )
+			if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
+			{
+				printf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
+				bad_data = 1;
+			}
+	if( bad_data ) return( 0 );
 	fgets( buf, 1000, in ); // skip line
 	ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
 	fgets( ed->cmdline, 80, in );

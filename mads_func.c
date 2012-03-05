@@ -175,18 +175,15 @@ int func_extrn( double *x, void *data, double *f )
 		}
 		f[i] = err * p->od->obs_weight[i];
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
-		if( p->cd->check_success && p->od->obs_weight[i] > 0.0 )
+		if( p->cd->obserror > 0 )
 		{
-			if( p->cd->obsrange )
-			{
-				if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; }
-				else success = 1;
-			}
-			else if( p->cd->obserror > 0 )
-			{
-				if( fabs( c - t ) > p->cd->obserror ) { success_all = success = 0; }
-				else success = 1;
-			}
+			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+			else success = 1;
+		}
+		else // if( p->cd->obsrange )
+		{
+			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
 		{
@@ -202,7 +199,7 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
 	{
 		p->success = 1;
-		if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+		if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_extrn)!\n", phi, p->cd->phi_cutoff );
 	}
 	else p->success = 0;
 	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) printf( "SUCCESS: Model results are within the predefined ranges (func_extrn)!\n" ); }
@@ -264,7 +261,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	// Update model input files in zip restart files
 	if( p->cd->restart )
-	sprintf( buf, "zip -u %s ", p->cd->restart_zip_file ); // Archive input files
+		sprintf( buf, "zip -u %s ", p->cd->restart_zip_file ); // Archive input files
 	for( i = 0; i < p->ed->ntpl; i++ )
 		sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
@@ -418,18 +415,15 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		f[i] = err * p->od->obs_weight[i];
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
-		if( p->cd->check_success && p->od->obs_weight[i] > 0.0 )
+		if( p->cd->obserror > 0 )
 		{
-			if( p->cd->obsrange )
-			{
-				if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; }
-				else success = 1;
-			}
-			else if( p->cd->obserror > 0 )
-			{
-				if( fabs( c - t ) > p->cd->obserror ) { success_all = success = 0; }
-				else success = 1;
-			}
+			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+			else success = 1;
+		}
+		else // if( p->cd->obsrange )
+		{
+			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
 		{
@@ -582,16 +576,17 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			}
 			c = ( c1 + c2 ) / 2;
 			p->od->obs_current[k] = c;
+			t = p->wd->obs_target[i][j];
 			if( p->wd->obs_log[i][j] == 0 )
 			{
-				err = c - p->wd->obs_target[i][j];
+				err = c - t;
 				if( p->cd->objfunc_type != SSR )
 				{
 					if( p->cd->objfunc_type == SSD0 ) err = 0;
 					if( p->cd->objfunc_type == SSDA )
 					{
 						err = sqrt( fabs( err ) );
-						if( c < p->wd->obs_target[i][j] ) err *= -1;
+						if( c < t ) err *= -1;
 					}
 					if( c < p->wd->obs_min[i][j] ) err += c - p->wd->obs_min[i][j];
 					else if( c > p->wd->obs_max[i][j] ) err += c - p->wd->obs_max[i][j];
@@ -600,24 +595,20 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			else
 			{
 				if( c < DBL_EPSILON ) c = DBL_EPSILON;
-				t = p->wd->obs_target[i][j];
 				if( t < DBL_EPSILON ) t = DBL_EPSILON;
 				err = log10( c ) - log10( t );
 			}
 			f[k] = err * p->wd->obs_weight[i][j];
 			if( p->cd->compute_phi ) phi += f[k] * f[k];
-			if( p->cd->check_success && p->od->obs_weight[i] > 0.0 )
+			if( p->cd->obserror > 0 )
 			{
-				if( p->cd->obsrange )
-				{
-					if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; }
-					else success = 1;
-				}
-				else if( p->cd->obserror > 0 )
-				{
-					if( fabs( c - t ) > p->cd->obserror ) { success_all = success = 0; }
-					else success = 1;
-				}
+				if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+				else success = 1;
+			}
+			else // if( p->cd->obsrange )
+			{
+				if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+				else success = 1;
 			}
 			if( p->cd->fdebug >= 2 )
 			{
@@ -651,7 +642,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 
 void func_levmar( double *x, double *f, int m, int n, void *data ) /* forward run for LevMar */
 {
-	func( x, data, f );
+	func_global( x, data, f );
 }
 
 void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data ) /* forward run for LevMar */
@@ -717,7 +708,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			compute_center = 1;
 			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
 			{ printf( "Not enough memory!\n" ); return( 1 ); }
-			func( x, data, f_x );
+			func_global( x, data, f_x );
 		}
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
@@ -725,7 +716,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
-			func( x, data, f_xpdx );
+			func_global( x, data, f_xpdx );
 			x[j] = x_old;
 			for( i = 0; i < p->od->nObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
 		}
@@ -796,10 +787,10 @@ void Transform( double *v, void *data, double *vt )
 		for( i = 0; i < p->pd->nOptParam; i++ )
 		{
 			k = p->pd->var_index[i];
-//			printf( "trans %s %g %g %g -> ", p->pd->var_id[p->pd->var_index[i]], v[i], p->pd->var_range[k], p->pd->var_min[k] );
+			//			printf( "trans %s %g %g %g -> ", p->pd->var_id[p->pd->var_index[i]], v[i], p->pd->var_range[k], p->pd->var_min[k] );
 			vt[i] = ( v[i] - p->pd->var_min[k] ) / p->pd->var_range[k];
 			vt[i] = asin( ( double ) vt[i] * 2.0 - 1.0 );
-//			printf( "%g\n", vt[i] );
+			//			printf( "%g\n", vt[i] );
 		}
 }
 
@@ -811,7 +802,7 @@ void DeTransform( double *v, void *data, double *vt )
 		for( i = 0; i < p->pd->nOptParam; i++ )
 		{
 			vt[i] = v[i];
-//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
+			//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
 		}
 	else
 		for( i = 0; i < p->pd->nOptParam; i++ )
@@ -819,6 +810,6 @@ void DeTransform( double *v, void *data, double *vt )
 			k = p->pd->var_index[i];
 			vt[i] = ( ( double ) sin( v[i] ) + 1.0 ) / 2.0;
 			vt[i] = p->pd->var_min[k] + vt[i] * p->pd->var_range[k];
-//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
+			//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
 		}
 }

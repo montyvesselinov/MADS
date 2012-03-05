@@ -433,7 +433,7 @@ loop:
 		if( n_exec > 1 ) printf( "\n Best min value = %f", min );
 	}
 // end: LABEL THAT IS NOT USED
-	func( P[best].x, gop, res );
+	func_global( P[best].x, gop, res );
 	DeTransform( P[best].x, op, P[best].x );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		op->pd->var[op->pd->var_index[i]] = P[best].x[i];
@@ -633,7 +633,7 @@ double perf( int s, int function )
 			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
 		case 19: // mads contaminant transport model
-			func( xs.x, gop, res );
+			func_global( xs.x, gop, res );
 			f = gop->phi;
 			break;
 	}

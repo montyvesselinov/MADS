@@ -156,6 +156,7 @@ int alea_integer( int a, int b );
 void DeTransform( double *x, void *data, double *f );
 void Transform( double *x, void *data, double *f );
 int get_seed( );
+void seed_rand_kiss( unsigned long seed );
 
 // Global variables
 int best; // Best of the best position (rank in the swarm)
@@ -1008,7 +1009,7 @@ double perf_pssa( int s, int function )
 			break;
 		case 19: // mads contaminant transport model
 			//Transform( xs.x, gop, xs.x );
-			func( xs.x, gop, res );
+			func_global( xs.x, gop, res );
 			f = gop->phi;
 			break;
 	}

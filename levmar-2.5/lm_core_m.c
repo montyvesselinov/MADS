@@ -331,9 +331,9 @@ int LEVMAR_DER(
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				if( fabs( jac_max[i] ) > DBL_EPSILON || fabs( jac_min[i] ) > DBL_EPSILON ) ok++;
-				else printf( "Model parameter \'%s\' is not impacting model predictions\n", op->pd->var_id[op->pd->var_index[i]] );
+				else { if( op->cd->ldebug ) printf( "WARNING: Model parameter \'%s\' is not impacting model predictions\n", op->pd->var_id[op->pd->var_index[i]] ); }
 			}
-			if( ok == 0 )
+			if( ok == 0 && !( op->cd->ldebug && op->cd->standalone ) )
 				printf( "WARNING: None of the model parameters is impacting model predictions\n" );
 		}
 		if( newjac ) /* Jacobian has changed, recompute J^T J, J^t e, etc */
@@ -395,7 +395,7 @@ int LEVMAR_DER(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}
@@ -1000,7 +1000,7 @@ int LEVMAR_DIF(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}

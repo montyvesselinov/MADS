@@ -87,6 +87,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 			 double xjac[], int ixjac, double xjtj[], int *infer );
 int lm_gsl( gsl_vector *x, struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *covar );
 // IO
+void mads_info();
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
@@ -148,10 +149,13 @@ char *dir_hosts( void *data, char *timedate_stamp );
 int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
-	int i, j, k, m, q1, q2, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data;
+	int i, j, k, m, q1, q2, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data = 0, no_memory = 0;
 	int *eval_success, *eval_total;
 	unsigned long neval_total, njac_total;
-	double c, err, phi, phi_min, *orig_params, *opt_params, *var_lhs, *var_a_lhs, *var_b_lhs;
+	double c, err, phi, phi_min, *orig_params, *opt_params,
+		   *opt_params_min, *opt_params_max, *opt_params_avg,
+		   *sel_params_min, *sel_params_max, *sel_params_avg,
+		   *var_lhs, *var_a_lhs, *var_b_lhs;
 	struct calc_data cd;
 	struct param_data pd;
 	struct obs_data od;
@@ -162,7 +166,7 @@ int main( int argn, char *argv[] )
 	struct opt_data op;
 	struct gsens_data gs;
 	char filename[255], filename2[255], root[255], extension[255], buf[255], *dot, *cwd;
-	int ( *optimize )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
+	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
 	char ESC = 27; // Escape
 	FILE *in, *out, *out2;
@@ -191,169 +195,7 @@ int main( int argn, char *argv[] )
 	printf( "---------------------------------------------------\n" );
 	if( argn < 2 )
 	{
-		printf( "USAGE: %s problem_name [ keywords | options ]       OR\n", argv[0] );
-		printf( "       %s MADS_input_file [ keywords | options ]    OR\n", argv[0] );
-		printf( "       %s PEST_input_file [ keywords | options ] (MADS is compatible with PEST control, template and instruction files)\n\n", argv[0] );
-		printf( "problem_name:         name of the solved problem; MADS_input_file named problem_name.mads is expected\n" );
-		printf( "MADS_input_file:      problem input file in MADS format (typically *.mads)\n" );
-		printf( "PEST_input_file:      problem input file in PEST format (PEST control file; *.pst)\n\n" );
-		printf( "keywords & options (can be provided in any order):\n\n" );
-		printf( "problem type keywords:\n" );
-		printf( "   create             - create calibration problem based on provided model parameters\n" );
-		printf( "   forward            - forward model run\n" );
-		printf( "   calibrate          - calibration run [default]\n" );
-		printf( "   montecarlo         - Monte Carlo analysis\n" );
-		printf( "   gsens              - global sensitivity analysis\n" );
-		printf( "   glue               - Generalized Likelihood Uncertainty Estimation\n" );
-		printf( "   lsens              - local sensitivity analysis (standalone or at the end of the calibration)\n" );
-		printf( "   eigen              - local eigensystem analysis (standalone or at the end of the calibration)\n" );
-		printf( "   abagus             - Agent-Based Global Uncertainty & Sensitivity Analysis\n" );
-		printf( "   infogap            - Info-gap decision analysis\n" );
-		printf( "   postpua            - predictive uncertainty analysis of sampling results (currently for abagus PSSA files only)\n" );
-		printf( "\ncalibration method keywords (select one):\n" );
-		printf( "   single             - single calibration using initial guesses provided in the input file [default]\n" );
-		printf( "   igrnd              - sequential calibrations using a set of random initial values (number of realizations defined by real=X)\n" );
-		printf( "   igpd               - sequential calibrations using a set of discretized initial values (discretization defined in the input file)\n" );
-		printf( "   ppsd               - sequential calibrations using partial parameter space discretization (PPSD) method\n" );
-		printf( "\ncalibration termination criteria:\n" );
-		printf( "   eval=[integer]     - functional evaluations exceed the predefined value [default eval=5000]\n" );
-		printf( "   cutoff=[real]      - objective function is below the cutoff value [default cutoff=0]\n" );
-		printf( "   obsrange           - model predictions are within predefined calibration ranges\n" );
-		printf( "   obserror=[real]    - model predictions are within a predefined absolute error [default obserror=0.1]\n" );
-		printf( "   parerror=[real]    - model parameters are within a predefined absolute error from their known 'true' values [default parerror=0.1]\n" );
-		printf( "\ncalibration options:\n" );
-		printf( "   retry=[integer]    - number of optimization retries [default retry=0]\n" );
-		printf( "   particles=[integer]- number of initial particles or tribes [default particles=10+2*sqrt(Number_of_parameters)]\n" );
-		printf( "   lmfactor=[double]  - multiplier applied to compute when to initiate LM searches within SQUADS algorithm [default lmfactor=1]\n" );
-		printf( "   lmindirect         - Indirect computation of LM alpha coefficient [default DIRECT/Delayed gratification computation]\n" );
-		printf( "   lmmu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF decreases [default lmmu=0.1]\n" );
-		printf( "   lmnu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF increases [default lmnu=10]\n" );
-		printf( "   lmaccel            - LM geodesic acceleration as proposed by Transtrum et al (2011) [default NO acceleration]\n" );
-		printf( "   lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]\n" );
-		printf( "   lmh=[double]       - LM acceleration multiplier [default lmh=0.1]\n" );
-		printf( "   lmiter=[integer]   - number of Levenberg-Marquardt iterations [default computed internally based on number of evaluations]\n" );
-		printf( "   leigen|eigen       - eigen analysis of the final optimized solution\n" );
-		printf( "\noptimization method (opt=[string]; various combinations are possible, e.g. pso_std_lm_gsl):\n" );
-		printf( "   opt=lm             - Local Levenberg-Marquardt optimization [default]\n" );
-		printf( "   opt=lm_levmar      - Local Levenberg-Marquardt optimization using LEVMAR library\n" );
-		printf( "   opt=lm_gsl         - Local Levenberg-Marquardt optimization using GSL library\n" );
-		printf( "   opt=lm_ms          - Local Multi-Start (Multy-Try) Levenberg-Marquardt (MSLM) optimization using multiple initial guesses\n" );
-		printf( "   opt=pso            - Global Particle Swarm optimization (default Standard2006)\n" );
-		printf( "   opt=apso           - Global Adaptive Particle Swarm optimization (default TRIBES)\n" );
-		printf( "   opt=swarm          - Global Particle Swarm optimization Standard2006 (also opt=pso_std)\n" );
-		printf( "   opt=tribes         - Global Particle Swarm optimization TRIBES\n" );
-		printf( "   opt=squads         - SQUADS: Adaptive hybrid optimization using coupled local and global optimization techniques\n" );
-		printf( "\nsampling method (smp=[string] OR mslm=[string] for Multi-Start Levenberg-Marquardt (MSLM) analysis using multiple retries):\n" );
-		printf( "   smp=olhs           - Optimal Latin Hyper Cube sampling [default] (if real = 1 RANDOM; if real > IDLHS; if real > 500 LHS)\n" );
-		printf( "   smp=lhs            - Latin Hyper Cube sampling (LHS)\n" );
-		printf( "   smp=idlhs          - Improved Distributed Latin Hyper Cube sampling (IDLHS)\n" );
-		printf( "   smp=random         - Random sampling\n" );
-		printf( "\nsampling options:\n" );
-		printf( "   real=[integer]     - number of random realizations / samples [default real=100]\n" );
-		printf( "   case=[integer]     - execute a single case from all the realizations / samples (applied in PPSD, IGDP, IGRND, MONTECARLO)\n" );
-		printf( "   seed=[integer]     - random seed value [randomly generated by default]\n" );
-		printf( "\nobjective function functional form options (select one):\n" );
-		printf( "   ssr                - sum of the squared residuals [default]\n" );
-		printf( "   ssd0               - sum of the squared discrepancies\n" );
-		printf( "   ssda               - sum of the squared discrepancies and absolute residuals\n" );
-		printf( "   ssdr               - sum of the squared discrepancies and squared residuals\n" );
-		printf( "\ntransformation of parameter space and observations:\n" );
-		printf( "   nosin              - Sin transformation of optimized parameters is not applied [parameters are sin transformed by default]\n" );
-		printf( "   sindx              - Parameter space step for numerical derivatives of sin transformed parameters [default sindx=0.0000001]\n" );
-		printf( "   lindx              - Parameter space step for numerical derivatives of not transformed parameters [default lindx=0.001]\n" );
-		printf( "   pardx              - Parameter space step for parameter space discretization [default pardx=0.1]\n" );
-		printf( "   plog=[-1,0,1]      - Log transformation of all optimized parameters is enforced (1) or disabled (0)\n" );
-		printf( "                        [default plog=-1; log transformation is explicitly defined for each parameter in the input file]\n" );
-		printf( "   olog=[-1,0,1]      - Log transformation of all the observations (simulated and measured) is enforced (1) or disabled (0)\n" );
-		printf( "                        [default olog=-1; log transformation is explicitly defined for each observation in the input file]\n" );
-		printf( "   oweight=[-1,0,1,2] - Weights for all the observation residuals are defined:\n" );
-		printf( "                        0 = zero weight, 1 = unit weight, 2 = weight reversely proportional to observation\n" );
-		printf( "                        [default oweight=-1; weights for each observation are explicitly defined in the input file]\n" );
-		printf( "\nparallelization (parallelization environment and available resources are internally detected by default):\n" );
-		printf( "   np=[integer]       - Number of requested parallel jobs [optional]\n" );
-		printf( "   rstfile=[string]   - name of existing ZIP restart file to be used (created by previous Parallel MADS run) [optional]\n" );
-		printf( "   restart=[integer]  - restart=1 (default; automatic restart if possible); restart=0 (force no restart); restart=2 (force restart)\n" );
-		printf( "                        by default the analyses will be restarted automatically (restart=1)\n" );
-		printf( "\nABAGUS (Agent-Based Global Uncertainty & Sensitivity Analysis) options:\n" );
-		printf( "   infile=[string]    - name of previous results file to be used to initialize Kd-tree [default=NULL]\n" );
-		printf( "   energy=[integer]   - initial energy for particles [default energy=10000]\n" );
-		printf( "\nbuild-in analytical solutions:\n" );
-		printf( "   point              - point contaminant source in 3D flow domain\n" );
-		printf( "   plane              - areal contaminant source in 3D flow domain\n" );
-		printf( "   box                - brick contaminant source in 3D flow domain\n" );
-		printf( "\nbuild-in test problems for optimization / uncertainty-quantification techniques (local and global methods):\n" );
-		printf( "   test=[integer]     - test problem ID [default=1]:\n" );
-		printf( "                           1: Parabola (Sphere) \n" );
-		printf( "                           2: Griewank\n" );
-		printf( "                           3: Rosenbrock\n" );
-		printf( "                           4: De Jong's Function #4\n" );
-		printf( "                           5: Step\n" );
-		printf( "                           6: Alpine function (Clerc's Function #1)\n" );
-		printf( "                           7: Rastrigin\n" );
-		printf( "                           8: Krishna Kumar\n" );
-		printf( "                           9: Tripod function 2D\n" );
-		printf( "                          10: Shekel's Foxholes 2D\n" );
-		printf( "                          11: Shekel's Foxholes 5D\n" );
-		printf( "                          12: Shekel's Foxholes 10D\n" );
-		printf( "                          20: Shekel's Foxholes 2D (alternative; global methods only)\n" );
-		printf( "                          21: Polynomial fitting (global methods only)\n" );
-		printf( "                          22: Ackley (global methods only)\n" );
-		printf( "                          23: Eason 2D (global methods only)\n" );
-		printf( "                          31: Rosenbrock (2D simplified alternative)\n" );
-		printf( "                          32: Griewank (:alternative)\n" );
-		printf( "                          33: Rosenbrock (alternative with d*(d-1) observations\n" );
-		printf( "                          34: Powell's Quadratic\n" );
-		printf( "                          35: Booth\n" );
-		printf( "                          36: Beale\n" );
-		printf( "                          37: Parsopoulos\n" );
-		printf( "                          Curve-fitting test functions:\n" );
-		printf( "                          40: Sin/Cos test function (2 parameters)\n" );
-		printf( "                          41: Sin/Cos test function (4 parameters)\n" );
-		printf( "                          42: Sin/Cos test function (2 parameters; simplified)\n" );
-		printf( "                          43: Exponential Data Fitting I (5 parameters)\n" );
-		printf( "                          44: Exponential Data Fitting II (11 parameters)\n" );
-		printf( "   dim=[integer]      - dimensionality of parameter space for the test problem (fixed for some of the problems) [default=2]\n" );
-		printf( "   npar=[integer]     - number of model parameters for the test problem (fixed for some of the problems) [default=2]\n" );
-		printf( "   nobs=[integer]     - number of observations for the test problem (fixed for some of the problems) [default=2]\n" );
-		printf( "   pardomain=[float]  - parameter space domain size [default pardomain=100]\n" );
-		printf( "\ndebugging / verbose levels:\n" );
-		printf( "   debug=[0-5]        - general debugging [default debug=0]\n" );
-		printf( "   fdebug=[0-5]       - model evaluation debugging [default fdebug=0]\n" );
-		printf( "   ldebug=[0-3]       - Levenberg-Marquardt optimization debugging [default ldebug=0]\n" );
-		printf( "   pdebug=[0-3]       - Particle Swarm optimization debugging [default pdebug=0]\n" );
-		printf( "   mdebug=[0-3]       - Random sampling debugging [default mdebug=0]\n" );
-		printf( "   odebug=[0-1]       - Record objective function progress in a file with extension \'ofe\' [default odebug=0]\n" );
-		printf( "   tpldebug=[0-3]     - Debug the writing of external files [default tpldebug=0]\n" );
-		printf( "   insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]\n" );
-		printf( "   pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]\n" );
-		printf( "\nExamples:\n" );
-		printf( "   mads a01 test=2 opt=lm igrnd real=1 (no input files are needed for execution)\n" );
-		printf( "   mads a01 test=2 opt=squads igrnd real=1\n" );
-		printf( "   mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)\n" );
-		printf( "   mads a01 test=3 abagus cutoff=20 eval=100000 (collect solutions of Rosenbrock function below phi cutoff)\n" );
-		printf( "   mads example/contamination/s01 ldebug (file s01.mads is located in example/contamination)\n" );
-		printf( "   mads example/contamination/s02 ldebug (file s02.mads is located in example/contamination)\n" );
-		printf( "   mads example/contamination/s01 ldebug igrnd real=1\n" );
-		printf( "   mads example/contamination/s01 seed=1549170842 obsrange igrnd real=1\n" );
-		printf( "   mads example/contamination/s01 opt=squads seed=1549170842 eigen obsrange pdebug igrnd real=1\n" );
-		printf( "   mads example/contamination/s01 opt=pso seed=1549170842 eigen obsrange igrnd real=1\n" );
-		printf( "   mads w01 np=2 ldebug pardebug=2 (files associated with problem w01 are located in example/wells)\n" );
-		printf( "             (for w01 example, code WELLS can be obtained at http://wells.lanl.gov)\n" );
-		printf( "\nComparisons between local and global methods:\n" );
-		printf( "   mads a01 test=3 opt=lm igrnd real=1 (local method; fails)\n" );
-		printf( "   mads a01 test=3 opt=swarm igrnd real=1 (global method; successful)\n" );
-		printf( "   mads a01 test=3 opt=tribes igrnd real=1 (global method; successful)\n" );
-		printf( "   mads a01 test=3 opt=squads igrnd real=1 (coupled global/local method; successfuli & fast)\n" );
-		printf( "\nComparisons with PEST (http://www.sspa.com/pest/):\n" );
-		printf( "   mads s02 ldebug (file s02.mads is located in example/contamination)\n" );
-		printf( "   pest s02pest (file s02pest.pst is located in example/contamination)\n" );
-		printf( "   mads w01 ldebug (files associated with problem w01 are located in example/wells)\n" );
-		printf( "   pest w01pest (files associated with problem w01pest are located in example/wells)\n" );
-		printf( "   pest w02pest (files associated with problem w02pest are located in example/wells)\n" );
-		printf( "             (for w01 comparison, code WELLS can be obtained at http://wells.lanl.gov)\n" );
-		printf( "\nFor additional information:\n" );
-		printf( "   web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n" );
-		printf( "   email: Velimir Vesselinov (monty) vvv@lanl.gov\n" );
+		mads_info(); // print short mads help manual
 		exit( 1 );
 	}
 	else
@@ -384,9 +226,9 @@ int main( int argn, char *argv[] )
 	if( Ftest( buf ) == 0 ) // If file already exists quit ...
 	{
 		printf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n\n", op.root, buf );
-//		printf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-//		printf( "Delete %s to execute (sorry for the inconvenience)!\n", buf );
-//		exit( 1 );
+		//		printf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
+		//		printf( "Delete %s to execute (sorry for the inconvenience)!\n", buf );
+		//		exit( 0 );
 	}
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
 	/*
@@ -408,10 +250,10 @@ int main( int argn, char *argv[] )
 			exit( 0 );
 		}
 		if( cd.opt_method[0] == 0 ) { strcpy( cd.opt_method, "lm" ); cd.calib_type = SIMPLE; cd.problem_type = CALIBRATE; }
-		cd.solution_type = EXTERNAL; func = func_extrn;
+		cd.solution_type = EXTERNAL; func_global = func_extrn;
 		buf[0] = 0;
 		for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-		if( parse_cmd( buf, &cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		if( parse_cmd( buf, &cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
 	else // MADS Problem
 	{
@@ -427,8 +269,8 @@ int main( int argn, char *argv[] )
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			exit( 0 );
 		}
-		if( cd.solution_type == EXTERNAL ) func = func_extrn;
-		else func = func_intrn;
+		if( cd.solution_type == EXTERNAL ) func_global = func_extrn;
+		else func_global = func_intrn;
 	}
 	/*
 	 *  Check for parallel environment
@@ -512,7 +354,7 @@ int main( int argn, char *argv[] )
 		cd.mydir_hosts = dir_hosts( &op, op.datetime_stamp ); // Directories for parallel execution have unique name based on the execution time
 	}
 	op.label = ( char * ) malloc( 10 * sizeof( char ) ); op.label[0] = 0;
-	if( ( orig_params = ( double * ) malloc( pd.nParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf );  exit( 1 ); }
+	if( ( orig_params = ( double * ) malloc( pd.nParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	/*
 	 *  Problem based on external model
 	 */
@@ -553,7 +395,7 @@ int main( int argn, char *argv[] )
 		{
 			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			system( buf );
-			exit( -1 );
+			exit( 0 );
 		}
 	}
 	/*
@@ -621,42 +463,55 @@ int main( int argn, char *argv[] )
 			system( buf );
 		}
 	}
-//
-// DONE with file reading and problem setup
-//
-// Model analyses are performed below based on provided inputs
-//
-// ------------------------ IGRND
-//
+	//
+	// DONE with file reading and problem setup
+	//
+	// Model analyses are performed below based on provided inputs
+	//
+	// ------------------------ IGRND
+	//
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
 	{
 		strcpy( op.label, "igrnd" );
-		if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+		if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+		if( cd.nreal > 1 )
+		{
+			if( ( opt_params_min = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+			if( ( opt_params_max = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+			if( ( opt_params_avg = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+			if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+			for( i = 0; i < pd.nOptParam; i++ )
+			{
+				opt_params_min[i] = HUGE_VAL;
+				opt_params_max[i] = opt_params_avg[i] = 0;
+			}
+			if( cd.phi_cutoff > DBL_EPSILON || cd.check_success )
+			{
+				if( ( sel_params_min = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+				if( ( sel_params_max = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+				if( ( sel_params_avg = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+				if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+				for( i = 0; i < pd.nOptParam; i++ )
+				{
+					sel_params_min[i] = HUGE_VAL;
+					sel_params_max[i] = opt_params_avg[i] = 0;
+				}
+			}
+		}
 		printf( "\nSEQUENTIAL RUNS using random initial guesses for model parameters (realizations = %d):\n", cd.nreal );
 		if( pd.nFlgParam != 0 ) { printf( "Only flagged parameters are randomized\n" ); npar = pd.nFlgParam; }
 		else if( pd.nOptParam != 0 ) { printf( "No flagged parameters; all optimizable parameters are randomized\n" ); npar = pd.nOptParam; }
 		else { printf( "No flagged or optimizable parameters; all parameters are randomized\n" ); npar = pd.nParam; }
-		if( ( var_lhs = ( double * ) malloc( npar * cd.nreal * sizeof( double ) ) ) == NULL )
+		if( ( var_lhs = ( double * ) malloc( npar * cd.nreal * sizeof( double ) ) ) == NULL ) no_memory = 1;
+		if( ( eval_success = ( int * ) malloc( cd.nreal * sizeof( int ) ) ) == NULL ) no_memory = 1;
+		if( ( eval_total = ( int * ) malloc( cd.nreal * sizeof( int ) ) ) == NULL ) no_memory = 1;
+		if( no_memory )
 		{
 			printf( "Not enough memory!\n" );
 			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			system( buf );
-			exit( 1 );
-		}
-		if( ( eval_success = ( int * ) malloc( cd.nreal * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
-		}
-		if( ( eval_total = ( int * ) malloc( cd.nreal * sizeof( double ) ) ) == NULL )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 1 );
+			exit( 0 );
 		}
 		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
 		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
@@ -679,8 +534,8 @@ int main( int argn, char *argv[] )
 		}
 		for( i = 0; i < pd.nParam; i++ )
 			orig_params[i] = pd.var[i]; // Save original initial values for all parameters
-		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize = optimize_lm; // Define optimization method: LM
-		else optimize = optimize_pso; // Define optimization method: PSO
+		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
+		else optimize_func = optimize_pso; // Define optimization method: PSO
 		// File management
 		sprintf( filename, "%s.igrnd.zip", op.root );
 		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null", op.root, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
@@ -721,16 +576,19 @@ int main( int argn, char *argv[] )
 					k++;
 				}
 				else pd.var[i] = orig_params[i];
-			if( pd.nOptParam > 0 ) status = optimize( &op ); // Optimize
+			if( pd.nOptParam > 0 )
+			{
+				status = optimize_func( &op ); // Optimize
+				if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+			}
 			else
 			{
 				for( i = 0; i < pd.nParam; i++ )
 					pd.var[i] = var_lhs[i + count * npar] * pd.var_range[i] + pd.var_min[i];
 				if( cd.mdebug ) { printf( "Forward run ... \n" ); debug_level = cd.fdebug; cd.fdebug = 3; }
-				func( pd.var, &op, od.res ); // pd.var is a dummy variable because pd.nOptParam == 0
+				func_global( pd.var, &op, od.res ); // pd.var is a dummy variable because pd.nOptParam == 0
 				if( cd.mdebug ) cd.fdebug = debug_level;
 			}
-			if( op.phi < op.cd->phi_cutoff ) phi_global++;
 			if( cd.debug > 1 )
 				printf( "\n" );
 			else
@@ -746,8 +604,33 @@ int main( int argn, char *argv[] )
 			}
 			neval_total += eval_total[count] = cd.neval;
 			njac_total += cd.njac;
-			if( op.success ) eval_success[success_global] = cd.neval;
-			success_global += op.success;
+			if( cd.check_success && op.success )
+			{
+				eval_success[success_global] = cd.neval;
+				success_global++;
+			}
+			else if( op.phi < op.cd->phi_cutoff )
+			{
+				eval_success[phi_global] = cd.neval;
+				phi_global++;
+			}
+			if( cd.nreal > 1 )
+			{
+				for( i = 0; i < pd.nOptParam; i++ ) // Posterior parameter statistics for all simulations
+				{
+					c = pd.var[pd.var_index[i]];
+					if( pd.var_log[pd.var_index[i]] ) c = pow( 10, c );
+					if( c < opt_params_min[i] ) opt_params_min[i] = c;
+					if( c > opt_params_max[i] ) opt_params_max[i] = c;
+					opt_params_avg[i] += c;
+					if( ( cd.check_success && op.success ) || op.phi < op.cd->phi_cutoff )
+					{
+						if( c < sel_params_min[i] ) sel_params_min[i] = c;
+						if( c > sel_params_max[i] ) sel_params_max[i] = c;
+						sel_params_avg[i] += c;
+					}
+				}
+			}
 			if( op.phi < phi_min )
 			{
 				phi_min = op.phi;
@@ -786,7 +669,7 @@ int main( int argn, char *argv[] )
 			printf( "Repeat the run producing the best results ...\n" );
 			debug_level = cd.fdebug; cd.fdebug = 1;
 			Transform( opt_params, &op, opt_params );
-			func( opt_params, &op, od.res );
+			func_global( opt_params, &op, od.res );
 			cd.fdebug = debug_level;
 		}
 		if( cd.nreal > 1 )
@@ -819,10 +702,25 @@ int main( int argn, char *argv[] )
 			q1 = ( double ) cd.nreal / 4 - 0.25;
 			m = ( double ) cd.nreal / 2 - 0.5;
 			q2 = ( double ) cd.nreal * 3 / 4 - 0.25;
-			if( cd.nreal > 0 )
+			printf( "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[cd.nreal - 1], cd.nreal );
+			fprintf( out2, "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[cd.nreal - 1], cd.nreal );
+			printf( "Statistics of all the model parameter estimates:\n" );
+			fprintf( out2, "Statistics of all the model parameter estimates:\n" );
+			for( i = 0; i < pd.nOptParam; i++ ) // Posterior parameter statistics for all simulations
 			{
-				printf( "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[cd.nreal - 1], cd.nreal );
-				fprintf( out2, "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[cd.nreal - 1], cd.nreal );
+				printf( "%-35s : average %12g min %12g max %12g\n", pd.var_id[pd.var_index[i]], opt_params_avg[i] / cd.nreal, opt_params_min[i], opt_params_max[i] );
+				fprintf( out2, "%-35s : average %12g min %12g max %12g\n", pd.var_id[pd.var_index[i]], opt_params_avg[i] / cd.nreal, opt_params_min[i], opt_params_max[i] );
+			}
+			if( success_global > 0 || phi_global > 0 )
+			{
+				printf( "Statistics of all the successful model parameter estimates:\n" );
+				fprintf( out2, "Statistics of all the successful model parameter estimates:\n" );
+				k = success_global + phi_global;
+				for( i = 0; i < pd.nOptParam; i++ ) // Posterior parameter statistics for all simulations
+				{
+					printf( "%-35s : average %12g min %12g max %12g\n", pd.var_id[pd.var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
+					fprintf( out2, "%-35s : average %12g min %12g max %12g\n", pd.var_id[pd.var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
+				}
 			}
 		}
 		fprintf( out, "Total number of evaluations = %lu\n", neval_total );
@@ -844,22 +742,22 @@ int main( int argn, char *argv[] )
 		free( opt_params ); free( eval_success ); free( eval_total );
 		save_results( "", &op, &gd );
 	}
-//
-// ------------------------ IGPD
-//
+	//
+	// ------------------------ IGPD
+	//
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGPD ) /* Calibration analysis using discretized initial guesses */
 	{
 		strcpy( op.label, "igpd" );
 		if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		printf( "\nSEQUENTIAL CALIBRATIONS using discretized initial guesses for model parameters:\n" );
 		if( pd.nFlgParam == 0 )
 			printf( "WARNING: No flagged parameters! Discretization of the initial guesses cannot be performed! Forward run will be performed instead.\n" );
 		if( pd.nOptParam == 0 )
 			printf( "WARNING: No parameters to optimize! Forward run will be performed instead.\n" );
 		for( i = 0; i < pd.nParam; i++ ) orig_params[i] = pd.var[i]; // Save original initial values for all parameters
-		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize = optimize_lm; // Define optimization method: LM
-		else optimize = optimize_pso; // Define optimization method: PSO
+		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
+		else optimize_func = optimize_pso; // Define optimization method: PSO
 		// File management
 		sprintf( filename, "%s.igpd.zip", op.root );
 		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null", op.root, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
@@ -906,11 +804,15 @@ int main( int argn, char *argv[] )
 						else fprintf( out, " %.15g", orig_params[i] );
 					}
 				}
-				if( pd.nOptParam > 0 ) status = optimize( &op ); // Optimize
+				if( pd.nOptParam > 0 )
+				{
+					status = optimize_func( &op ); // Optimize
+					if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+				}
 				else
 				{
 					if( cd.debug ) { printf( "Forward run ... \n" ); debug_level = cd.fdebug; cd.fdebug = 3; }
-					func( pd.var, &op, od.res ); // pd.var is dummy because pd.nOptParam == 0
+					func_global( pd.var, &op, od.res ); // pd.var is dummy because pd.nOptParam == 0
 					if( cd.debug ) cd.fdebug = debug_level;
 				}
 				neval_total += cd.neval;
@@ -969,7 +871,7 @@ int main( int argn, char *argv[] )
 			printf( "Repeat the run producing the best results ...\n" );
 			debug_level = cd.fdebug; cd.fdebug = 3;
 			Transform( opt_params, &op, opt_params );
-			func( opt_params, &op, od.res );
+			func_global( opt_params, &op, od.res );
 			cd.fdebug = debug_level;
 		}
 		fprintf( out, "Minimum objective function: %g\n", phi_min );
@@ -997,9 +899,9 @@ int main( int argn, char *argv[] )
 		free( opt_params );
 		save_results( "", &op, &gd );
 	}
-//
-// ------------------------ PPSD
-//
+	//
+	// ------------------------ PPSD
+	//
 	if( cd.problem_type == CALIBRATE && cd.calib_type == PPSD ) /* Calibration analysis using discretized parameters */
 	{
 		strcpy( op.label, "ppsd" );
@@ -1009,8 +911,8 @@ int main( int argn, char *argv[] )
 		if( pd.nOptParam == 0 )
 			printf( "WARNING: No parameters to optimize! Forward runs performed instead\n" );
 		for( i = 0; i < pd.nParam; i++ ) orig_params[i] = pd.var[i]; // Save original initial values for all parameters
-		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize = optimize_lm; // Define optimization method: LM
-		else optimize = optimize_pso; // Define optimization method: PSO
+		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
+		else optimize_func = optimize_pso; // Define optimization method: PSO
 		sprintf( filename, "%s.igpd.zip", op.root );
 		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.ppsd.zip %s.ppsd_%s.zip >& /dev/null", op.root, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
 		sprintf( buf, "zip -m %s.ppsd.zip %s.ppsd-[0-9]*.* >& /dev/null", op.root, op.root ); system( buf );
@@ -1051,11 +953,15 @@ int main( int argn, char *argv[] )
 						fprintf( out, "%g ", cd.var[i] );
 					}
 				}
-				if( pd.nOptParam > 0 ) status = optimize( &op ); // Optimize
+				if( pd.nOptParam > 0 )
+				{
+					status = optimize_func( &op ); // Optimize
+					if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+				}
 				else
 				{
 					if( cd.debug ) { printf( "Forward run ... \n" ); debug_level = cd.fdebug; cd.fdebug = 3; }
-					func( pd.var, &op, od.res ); // pd.var is dummy because pd.nOptParam == 0
+					func_global( pd.var, &op, od.res ); // pd.var is dummy because pd.nOptParam == 0
 					if( cd.debug ) cd.fdebug = debug_level;
 				}
 				if( op.phi < op.cd->phi_cutoff ) phi_global++;
@@ -1118,17 +1024,17 @@ int main( int argn, char *argv[] )
 		op.counter = 0;
 		printf( "Results are saved in %s.ppsd.results\n", op.root );
 	}
-//
-// ------------------------ MONTECARLO
-//
+	//
+	// ------------------------ MONTECARLO
+	//
 	if( cd.problem_type == MONTECARLO ) /* Monte Carlo analysis */
 	{
 		strcpy( op.label, "mcrnd" );
 		if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		npar = pd.nOptParam;
 		if( ( var_lhs = ( double * ) malloc( npar * cd.nreal * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		printf( "\nMonte Carlo analysis using latin-hyper cube sampling:\n" );
 		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
 		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
@@ -1277,7 +1183,7 @@ int main( int argn, char *argv[] )
 				}
 				if( cd.mdebug ) { debug_level = cd.fdebug; cd.fdebug = 3; }
 				Transform( opt_params, &op, opt_params );
-				func( opt_params, &op, od.res );
+				func_global( opt_params, &op, od.res );
 				if( cd.mdebug ) cd.fdebug = debug_level;
 				if( cd.mdebug )
 				{
@@ -1332,7 +1238,7 @@ int main( int argn, char *argv[] )
 			printf( "Repeat the run producing the best results ...\n" );
 			debug_level = cd.fdebug; cd.fdebug = 3;
 			Transform( opt_params, &op, opt_params );
-			func( opt_params, &op, od.res );
+			func_global( opt_params, &op, od.res );
 			cd.fdebug = debug_level;
 		}
 		printf( "Results are saved in %s.mcrnd.results\n", op.root );
@@ -1347,10 +1253,10 @@ int main( int argn, char *argv[] )
 		free( opt_params );
 		save_results( "", &op, &gd );
 	}
-//
-// ------------------------ GLOBALSENS
-//
-// TODO gsens needs to be a separate function
+	//
+	// ------------------------ GLOBALSENS
+	//
+	// TODO gsens needs to be a separate function
 	if( cd.problem_type == GLOBALSENS ) // Global sensitivity analysis run
 	{
 		strcpy( op.label, "gsens" );
@@ -1359,25 +1265,25 @@ int main( int argn, char *argv[] )
 		//		gsl_qrng *q = gsl_qrng_alloc( gsl_qrng_sobol, pd.nOptParam );
 		n_sub = cd.nreal / 2;	// set to half of user specified reals
 		if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// Temporary variable to store cd.nreal phis
 		if( ( phis_full = ( double * ) malloc( cd.nreal * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// Temporary variable to store m_sub phis
 		if( ( phis_half = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// Temporary variable to store random sample a
 		if( ( var_a_lhs = ( double * ) malloc( pd.nOptParam * n_sub * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// Sample a phis
 		if( ( gs.f_a = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// Sample b phis
 		if( ( gs.f_b = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// Temporary variable to store random sample b
 		if( ( var_b_lhs = ( double * ) malloc( pd.nOptParam * n_sub * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// matrices to store lhs samples
 		gs.var_a_lhs = double_matrix( n_sub, pd.nOptParam );
 		gs.var_b_lhs = double_matrix( n_sub, pd.nOptParam );
@@ -1388,10 +1294,10 @@ int main( int argn, char *argv[] )
 		{ printf( "Error creating 3D matrix\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// Vector of variances for individual component contribution
 		if( ( gs.D_hat = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		// Vector of variances for total component contribution
 		if( ( gs.D_hat_n = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		printf( "\nGlobal sensitivity analysis using random sampling:\n" );
 		// Create samples
 		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
@@ -1473,7 +1379,7 @@ int main( int argn, char *argv[] )
 				opt_params[i] = pd.var[k] = gs.var_a_lhs[count][i];
 			}
 			Transform( opt_params, &op, opt_params );
-			func( opt_params, &op, od.res );
+			func_global( opt_params, &op, od.res );
 			// Sum phi and phi^2
 			fhat += op.phi;
 			fhat2 += pow( op.phi, 2 );
@@ -1498,7 +1404,7 @@ int main( int argn, char *argv[] )
 				opt_params[i] = pd.var[k] = gs.var_b_lhs[count][i];
 			}
 			Transform( opt_params, &op, opt_params );
-			func( opt_params, &op, od.res );
+			func_global( opt_params, &op, od.res );
 			// Sum phi and phi^2
 			fhat += op.phi;
 			fhat2 += pow( op.phi, 2 );
@@ -1545,7 +1451,7 @@ int main( int argn, char *argv[] )
 				printf( "Total output variance = %g\n", gs.D_hat_t );
 				gs.D_hat_t = gsl_stats_variance( phis_full, 1, cd.nreal );
 				printf( "Total output variance = %g\n", gs.D_hat_t );
-		*/		free( phis_full );
+		 */		free( phis_full );
 		// Collect matrix of phis for fmat_a
 		printf( "Computing phis for calculation of individual output variances:\n" );
 		fflush( stdout );
@@ -1563,7 +1469,7 @@ int main( int argn, char *argv[] )
 						opt_params[j] = pd.var[k] = gs.var_b_lhs[count][j];
 				}
 				Transform( opt_params, &op, opt_params );
-				func( opt_params, &op, od.res );
+				func_global( opt_params, &op, od.res );
 				// Save phi to fmat_a
 				gs.fmat_a[i][count] = op.phi;
 			}
@@ -1584,7 +1490,7 @@ int main( int argn, char *argv[] )
 						opt_params[j] = pd.var[k] = gs.var_a_lhs[count][j];
 				}
 				Transform( opt_params, &op, opt_params );
-				func( opt_params, &op, od.res );
+				func_global( opt_params, &op, od.res );
 				// Save phi to fmat_b
 				gs.fmat_b[i][count] = op.phi;
 			}
@@ -1635,19 +1541,18 @@ int main( int argn, char *argv[] )
 		free_matrix( ( void ** ) gs.fmat_a, pd.nOptParam );
 		free_matrix( ( void ** ) gs.fmat_b, pd.nOptParam );
 	}
-//
-// ------------------------ SIMPLE CALIBRATION
-//
+	//
+	// ------------------------ SIMPLE CALIBRATION
+	//
 	if( cd.problem_type == CALIBRATE && cd.calib_type == SIMPLE ) /* Inverse analysis */
 	{
 		if( cd.nretries > 1 ) printf( "\nMULTI-START CALIBRATION using a series of random initial guesses:\n" );
 		else printf( "\nSINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:\n" );
-		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize = optimize_lm; // Define optimization method: LM
-		else optimize = optimize_pso; // Define optimization method: PSO
+		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
+		else optimize_func = optimize_pso; // Define optimization method: PSO
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = pd.var[i]; // Set all the initial values
-		success = optimize( &op ); // Optimize
-		if( success == 0 )
-		{ printf( "ERROR: Optimization did not start! Optimization method mismatch!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 1 ); }
+		success = optimize_func( &op ); // Optimize
+		if( success == 0 ) { printf( "ERROR: Optimization did not start!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		sprintf( filename, "%s-rerun.mads", op.root );
 		if( cd.solution_type != TEST ) save_problem( filename, &op );
 		if( cd.debug == 0 ) printf( "\n" );
@@ -1664,46 +1569,53 @@ int main( int argn, char *argv[] )
 		else predict = 0; // There are no observations that are not calibration targets
 	}
 	strcpy( op.label, "" ); // No labels needed below
-//
-// ------------------------ EIGEN || LOCALSENS
-//
+	//
+	// ------------------------ EIGEN || LOCALSENS
+	//
 	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS )
+	{
 		status = eigen( &op, NULL, NULL ); // Eigen or sensitivity analysis run
-//
-//------------------------- ABAGUS
-//
+		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+	}
+	//
+	//------------------------- ABAGUS
+	//
 	if( cd.problem_type == ABAGUS ) // Particle swarm sensitivity analysis run
 	{
 		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = pssa( &op );
+		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
-//
-//------------------------ POSTPUA
-//
+	//
+	//------------------------ POSTPUA
+	//
 	if( cd.problem_type == POSTPUA ) // Predictive uncertainty analysis of sampling results
 	{
 		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = postpua( &op );
+		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
-//
-//------------------------ GLUE
-//
+	//
+	//------------------------ GLUE
+	//
 	if( cd.problem_type == GLUE ) // Generalized Likelihood Uncertainty Estimation
 	{
 		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = glue( &op );
+		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
-//
-//------------------------ INFOGAP
-//
+	//
+	//------------------------ INFOGAP
+	//
 	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
 	{
 		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = infogap( &op );
+		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
-//
-// ------------------------ FORWARD
-//
+	//
+	// ------------------------ FORWARD
+	//
 	if( cd.problem_type == FORWARD ) // Forward run
 	{
 		sprintf( filename, "%s.results", op.root );
@@ -1719,14 +1631,14 @@ int main( int argn, char *argv[] )
 			out2 = Fwrite( filename );
 		}
 	}
-//
-// ------------------------ CREATE
-//
+	//
+	// ------------------------ CREATE
+	//
 	if( cd.problem_type == CREATE ) // Create a MADS file based on a forward run
 		printf( "\nModel predictions (forward run; no calibration):\n" );
-//
-// ------------------------ PREDICT
-//
+	//
+	// ------------------------ PREDICT
+	//
 	if( cd.problem_type == FORWARD || cd.problem_type == CREATE || predict )
 	{
 		success_all = 1;
@@ -1858,7 +1770,9 @@ int optimize_pso( struct opt_data *op )
 		printf( "\n------------------------- Optimization Results:\n" );
 		print_results( op, 1 );
 	}
-	if( op->cd->leigen && op->cd->solution_type != TEST ) eigen( op, NULL, NULL ); // Execute eigen analysis of the final results
+	if( op->cd->leigen && op->cd->solution_type != TEST )
+		if( eigen( op, NULL, NULL ) == 0 ) // Execute eigen analysis of the final results
+			return( 0 );
 	return( 1 );
 }
 
@@ -1871,23 +1785,23 @@ int optimize_lm( struct opt_data *op )
 	double opt_parm[4], *jacobian, *jacTjac, *covar, *work, eps, delta, *var_lhs;
 	double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
 	char buf[80];
-	if( op->od->nObs == 0 ) { printf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
-	if( op->pd->nOptParam == 0 ) { printf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
-	if( op->pd->nOptParam > op->od->nObs ) { printf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
+	debug = op->cd->debug;
+	standalone = op->cd->standalone;
+	if( !standalone ) op->cd->paranoid = 0;
+	if( op->od->nObs == 0 ) { printf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
+	if( op->pd->nOptParam == 0 ) { printf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
+	if( ( op->pd->nOptParam > op->od->nObs ) && ( standalone && op->cd->calib_type == SIMPLE ) ) { printf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
 	gsl_matrix *gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam );
 	gsl_matrix *gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( opt_params_best = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( x_c = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
-	debug = op->cd->debug;
-	standalone = op->cd->standalone;
-	if( !standalone ) op->cd->paranoid = 0;
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	if( op->cd->niter <= 0 )
 	{
 		if( strcasestr( op->cd->opt_method, "lm" ) ) maxiter = 50;
@@ -1897,7 +1811,13 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->ldebug && standalone ) printf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
-	Transform( opt_params, op, opt_params );
+	if( !standalone )
+	{
+		// for( i = 0; i < op->pd->nOptParam; i++ )
+		// printf( "%g\n", opt_params[i] );
+	}
+	else
+		Transform( opt_params, op, opt_params );
 	if( op->cd->paranoid )
 	{
 		if( standalone ) printf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " ); fflush( stdout );
@@ -1905,7 +1825,7 @@ int optimize_lm( struct opt_data *op )
 		if( op->cd->nretries <= 0 ) op->cd->nretries = ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * npar / 10 );
 		if( debug ) printf( "\nRandom sampling for MSLM optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
 		if( ( var_lhs = ( double * ) malloc( npar * op->cd->nretries * sizeof( double ) ) ) == NULL )
-		{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+		{ printf( "Not enough memory!\n" ); return( 0 ); }
 		if( op->cd->seed < 0 ) { op->cd->seed *= -1; if( debug ) printf( "Imported seed: %d\n", op->cd->seed ); }
 		else if( op->cd->seed == 0 ) { if( debug ) printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
 		else if( debug ) printf( "Current seed: %d\n", op->cd->seed );
@@ -1966,7 +1886,7 @@ int optimize_lm( struct opt_data *op )
 			printf( "\n-------------------- Initial state:\n" );
 			op->cd->pderiv = op->cd->oderiv = -1;
 			debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-			func( opt_params, op, res );
+			func_global( opt_params, op, res );
 			op->cd->fdebug = debug_level;
 		}
 		// LM optimization ...
@@ -1975,9 +1895,9 @@ int optimize_lm( struct opt_data *op )
 			if( debug > 1 && standalone ) printf( "\nLevenberg-Marquardt Optimization:\n" );
 			else if( op->cd->ldebug ) printf( "\n" );
 			if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+			{ printf( "Not enough memory!\n" ); return( 0 ); }
 			if( ( jacTjac = ( double * ) malloc( sizeof( double ) * ( ( op->pd->nOptParam + 1 ) * op->pd->nOptParam / 2 ) ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+			{ printf( "Not enough memory!\n" ); return( 0 ); }
 			iopt = 2; /*    iopt=0 Brown's algorithm without strict descent
 			       		iopt=1 strict descent and default values for input vector parm
 					iopt=2 strict descent with user parameter choices in input vector parm */
@@ -1992,8 +1912,8 @@ int optimize_lm( struct opt_data *op )
 			/* Third convergence criterion */
 			delta = 0; /* norm of the approximate gradient is less than or equal to delta */
 			maxfn = op->cd->maxeval - op->cd->neval; /* maximum number of function evaluations; remove the number of evaluation already performed */
-			if( strcasestr( op->cd->opt_method, "chav" ) != NULL ) ier = zxssqch( func, op, op->od->nObs, op->pd->nOptParam, nsig, eps, delta, maxfn, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nObs, jacTjac, &infer ); // Chavo's version
-			else ier = lm_opt( func, func_dx, op, op->od->nObs, op->pd->nOptParam, nsig, eps, delta, maxfn, maxiter, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nObs, jacTjac, &infer ); // Monty's version
+			if( strcasestr( op->cd->opt_method, "chav" ) != NULL ) ier = zxssqch( func_global, op, op->od->nObs, op->pd->nOptParam, nsig, eps, delta, maxfn, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nObs, jacTjac, &infer ); // Chavo's version
+			else ier = lm_opt( func_global, func_dx, op, op->od->nObs, op->pd->nOptParam, nsig, eps, delta, maxfn, maxiter, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nObs, jacTjac, &infer ); // Monty's version
 			for( k = i = 0; i < op->pd->nOptParam; i++ )
 				for( j = 0; j < op->od->nObs; j++, k++ )
 					gsl_matrix_set( gsl_jacobian, j, i, jacobian[k] );
@@ -2022,10 +1942,10 @@ int optimize_lm( struct opt_data *op )
 			if( debug > 1 && standalone ) printf( "\nLevenberg-Marquardt Optimization using LevMar library:\n" );
 			else if( op->cd->ldebug ) printf( "\n" );
 			if( ( covar = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->pd->nOptParam ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+			{ printf( "Not enough memory!\n" ); return( 0 ); }
 			// LM_DIF_WORKSZ(m,n) = 4*n+4*m + n*m + m*m
 			if( ( work = ( double * ) malloc( sizeof( double ) * LM_DIF_WORKSZ( op->pd->nOptParam, op->od->nObs ) ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+			{ printf( "Not enough memory!\n" ); return( 0 ); }
 			for( i = 0; i < op->od->nObs; i++ ) res[i] = 0;
 			jacobian = work + op->pd->nOptParam + 2 * op->od->nObs;
 			opts[0] = 1e-3; opts[1] = 1E-5; opts[2] = 1E-5;
@@ -2067,13 +1987,13 @@ int optimize_lm( struct opt_data *op )
 				printf( "\n------------------------- Final state:\n" );
 				op->cd->pderiv = op->cd->oderiv = -1;
 				debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-				func( opt_params, op, op->od->res ); // opt_params are already transformed
+				func_global( opt_params, op, op->od->res ); // opt_params are already transformed
 				op->cd->fdebug = debug_level;
 			}
 			else
 			{
 				// Make a Forward run with the best results
-				func( opt_params, op, op->od->res ); // opt_params are already transformed
+				func_global( opt_params, op, op->od->res ); // opt_params are already transformed
 			}
 			DeTransform( opt_params, op, x_c );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -2118,13 +2038,15 @@ int optimize_lm( struct opt_data *op )
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			op->pd->var[op->pd->var_index[i]] = opt_params_best[i];
 		Transform( opt_params_best, op, opt_params );
-		func( opt_params, op, op->od->res );
+		func_global( opt_params, op, op->od->res );
 	}
-	if( ( op->cd->leigen || debug > 1 ) && standalone ) eigen( op, gsl_jacobian, gsl_covar ); // Eigen analysis
+	if( ( op->cd->leigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->calib_type == SIMPLE )
+		if( eigen( op, gsl_jacobian, gsl_covar ) == 0 ) // Eigen analysis
+			return( 0 );
 	if( op->cd->paranoid ) free( var_lhs );
 	free( opt_params ); free( opt_params_best ); free( x_c ); free( res );
 	gsl_matrix_free( gsl_jacobian ); gsl_matrix_free( gsl_covar ); gsl_vector_free( gsl_opt_params );
-	if( standalone && !debug && op->cd->calib_type == SIMPLE ) printf( "\n" );
+	if( !debug && standalone && op->cd->calib_type == SIMPLE ) printf( "\n" );
 	return( 1 );
 }
 
@@ -2144,17 +2066,17 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	gsl_vector *eigenval = gsl_vector_alloc( op->pd->nOptParam );
 	gsl_eigen_symmv_workspace *eigenwork = gsl_eigen_symmv_alloc( op->pd->nOptParam );
 	if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	compute_jacobian = compute_covar = 0;
 	if( gsl_jacobian == NULL ) { gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam ); compute_jacobian = 1; }
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( x_u = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( x_d = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( stddev = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	debug = op->cd->debug;
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
@@ -2178,7 +2100,8 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 		printf( "Analyzed state:\n" );
 		debug_level = op->cd->fdebug; op->cd->fdebug = 3;
 	}
-	func( opt_params, op, op->od->res );
+	func_global( opt_params, op, op->od->res );
+	if( debug ) op->cd->fdebug = debug_level;
 	phi = op->phi;
 	if( debug )
 	{
@@ -2213,7 +2136,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 				if( op->od->nObs > 30 && j == 11 ) printf( " ..." );
 			}
 			printf( "\n" );
-			*/
+			 */
 		}
 	}
 	sprintf( filename, "%s", op->root );
@@ -2492,7 +2415,7 @@ int infogap( struct opt_data *op )
 			gsl_matrix_set( ig_mat, i, col, opt_params[j] ); // Place after of
 		}
 		fscanf( fl, " \n" );
-		func( opt_params, op, op->preds->res );
+		func_global( opt_params, op, op->preds->res );
 		for( j = 0; j < *nPreds; j++ )
 		{
 			gsl_matrix_set( ig_mat, i, j, op->preds->obs_current[j] ); // Place in first columns
@@ -2534,63 +2457,60 @@ int infogap( struct opt_data *op )
 
 int postpua( struct opt_data *op )
 {
-	FILE *fl, *outfl;
+	FILE *in, *out;
 	double *opt_params, of;
 	char buf[80], filename[80];
 	int i, n;
 	op->od = op->preds;
-	if( op->cd->infile[0] == 0 ) { printf( "\nInfile (results file from abagus run) must be specified for postpua run\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 );}
-	fl = fopen( op->cd->infile, "r" );
-	if( fl == NULL ) { printf( "\nError opening %s\n", op->cd->infile ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	if( op->cd->infile[0] == 0 ) { printf( "\nInfile (results file from abagus run) must be specified for postpua run\n" ); return( 0 );}
+	in = Fread( op->cd->infile );
+	// Create postpua output file
 	sprintf( filename, "%s.pua", op->root );
-	outfl = fopen( filename , "w" );
-	if( outfl == NULL ) { printf( "\nError opening %s\n", filename ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	out = Fwrite( filename );
 	printf( "\nComputing predictions for %s...", op->cd->infile );
 	fflush( stdout );
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
-	fgets( buf, sizeof buf, fl ); // Skip header
-	fprintf( outfl, "Number       OF           " );
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
+	fgets( buf, sizeof buf, in ); // Skip header
+	fprintf( out, "Number       OF           " );
 	for( i = 0; i < op->od->nObs; i++ )
-		fprintf( outfl, " %-12s", op->od->obs_id[i] );
-	fprintf( outfl, "\n" );
-	while( fscanf( fl, "%d %lf", &n, &of ) > 0 )
+		fprintf( out, " %-12s", op->od->obs_id[i] );
+	fprintf( out, "\n" );
+	while( fscanf( in, "%d %lf", &n, &of ) > 0 )
 	{
-		fprintf( outfl, "%-12d %-12lf ", n, of );
+		fprintf( out, "%-12d %-12lf ", n, of );
 		for( i = 0; i < op->pd->nOptParam; i++ )
-			fscanf( fl, "%lf", &opt_params[i] );
-		fscanf( fl, " \n" );
-		func( opt_params, op, op->od->res );
+			fscanf( in, "%lf", &opt_params[i] );
+		fscanf( in, " \n" );
+		func_global( opt_params, op, op->od->res );
 		for( i = 0; i < op->od->nObs; i++ )
-			fprintf( outfl, " %-12g", op->od->obs_current[i] );
-		fprintf( outfl, "\n" );
+			fprintf( out, " %-12g", op->od->obs_current[i] );
+		fprintf( out, "\n" );
 	}
-	fclose( fl );
-	fclose( outfl );
-	printf( "Done\n" );
+	fclose( in );
+	fclose( out );
+	printf( "Done.\n" );
 	printf( "Results written to %s\n\n", filename );
 	return 1;
 }
 
 int glue( struct opt_data *op )
 {
-	FILE *fl, *outfl;
+	FILE *in, *out;
 	double *phi, **preds, phi_temp, *percentile, *pred_temp, *sum;
 	char buf[200], filename[80], pred_id[100][30];
 	int num_lines = 0, j;
-	gsl_matrix *glue_mat; //! matrix for sorting predictions
+	gsl_matrix *glue_mat; // matrix for sorting predictions
 	gsl_permutation *p1;
 	// Open postpua output file
-	if( op->cd->infile[0] == 0 ) { printf( "\nInfile (results file from postpua run) must be specified for glue run\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 );}
-	fl = fopen( op->cd->infile, "r" );
-	if( fl == NULL ) { printf( "\nError opening %s\n", op->cd->infile ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	if( op->cd->infile[0] == 0 ) { printf( "\nInfile (results file from postpua run) must be specified for glue run\n" ); return( 0 );}
+	in = Fread( op->cd->infile );
 	// Create glue output file
 	sprintf( filename, "%s.glue", op->root );
-	outfl = fopen( filename , "w" );
-	if( outfl == NULL ) { printf( "\nError opening %s\n", filename ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
-	fgets( buf, sizeof buf, fl ); // Skip header
+	out = Fwrite( filename );
+	fgets( buf, sizeof buf, in ); // Skip header
 	// Count number of acceptable solutions
-	while( fgets( buf, sizeof buf, fl ) != NULL )
+	while( fgets( buf, sizeof buf, in ) != NULL )
 	{
 		sscanf( buf, "%*d %lf ", &phi_temp );
 		if( phi_temp <= op->cd->phi_cutoff ) num_lines++; // Count lines
@@ -2599,41 +2519,41 @@ int glue( struct opt_data *op )
 	printf( "\nPerforming GLUE analysis for %s...", op->cd->infile );
 	fflush( stdout );
 	// Read in data
-	rewind( fl );
-	fscanf( fl, "%*s %*s %[^\n]%s", buf ); // Skip first part of header ("Number OF")
+	rewind( in );
+	fscanf( in, "%*s %*s %[^\n]s", buf ); // Skip first part of header ("Number OF")
 	int i = 0;
 	// Read in names of predictions (e.g. combination of well names and times)
-	while( sscanf( buf, " %s %[^\n]%s", pred_id[i], buf ) > 1 ) { i++; }
+	while( sscanf( buf, " %s %[^\n]s", pred_id[i], buf ) > 1 ) { i++; }
 	int num_preds = i + 1;
 	// Allocate memory for phis and predictions
 	if( ( phi = ( double * ) malloc( num_lines * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	//phi = ( double * ) malloc( num_lines * sizeof( double ) );
 	preds = double_matrix( num_lines, num_preds );
 	// Collect acceptable solutions
 	glue_mat = gsl_matrix_alloc( num_lines, num_preds + 1 );
 	int phi_index = num_preds; // phi_index indicates column of phis in glue_mat
 	i = 0;
-//	printf( "\n\nAcceptable lines from %s:\n", op->cd->infile );
-	while( fgets( buf, sizeof buf, fl ) != NULL )
+	//	printf( "\n\nAcceptable lines from %s:\n", op->cd->infile );
+	while( fgets( buf, sizeof buf, in ) != NULL )
 	{
-		sscanf( buf, "%*d %lf %[^\n]%s", &phi_temp, buf );
+		sscanf( buf, "%*d %lf %[^\n]s", &phi_temp, buf );
 		if( phi_temp <= op->cd->phi_cutoff )
 		{
-//			printf( "%lf %s\n", phi_temp, buf );
+			//			printf( "%lf %s\n", phi_temp, buf );
 			phi[i] = phi_temp;
 			gsl_matrix_set( glue_mat, i, phi_index, phi_temp ); // Place phi after predictions
 			for( j = 0; j < num_preds; j++ )
 			{
-				sscanf( buf, " %lf %[^\n]%s", &preds[i][j], buf );
+				sscanf( buf, " %lf %[^\n]s", &preds[i][j], buf );
 				gsl_matrix_set( glue_mat, i, j, preds[i][j] ); // Place phi after predictions
 			}
 			i++;
 		}
 	}
-	fclose( fl );
-	//printf( "\nglue_mat:\n" );
-	//gsl_matrix_fprintf( stdout, glue_mat, "%g" );
+	fclose( in );
+	// printf( "\nglue_mat:\n" );
+	// gsl_matrix_fprintf( stdout, glue_mat, "%g" );
 	// Calculate weighted percentile of each phi; note: low phis imply high percentile
 	p1 = gsl_permutation_alloc( num_lines );
 	percentile = ( double * ) malloc( num_lines * sizeof( double ) );
@@ -2648,16 +2568,16 @@ int glue( struct opt_data *op )
 		gsl_sort_vector_index( p1, &column.vector );
 		sum[0] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, 0 ), num_preds );
 		pred_temp[0] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, 0 ), i );
+		// printf( "\nSample sum prediction:\n" );
+		// printf( "0 %g %g\n", sum[0], pred_temp[0] );
 		// Collect summation of weights and ordered predictions
-//		printf( "\nSample sum prediction:\n" );
-		//printf( "0 %g %g\n", sum[0], pred_temp[0] );
 		for( j = 1; j < num_lines; j++ )
 		{
 			sum[j] = sum[j - 1] + gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), num_preds );
 			pred_temp[j] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), i );
-			//printf( "%d %g %g\n", j, sum[j], pred_temp[j] );
+			// printf( "%d %g %g\n", j, sum[j], pred_temp[j] );
 		}
-//		printf( "\nno prediction percentile:\n" );
+		// printf( "\nno prediction percentile:\n" );
 		for( j = 0; j < num_lines; j++ ) { percentile[j] = ( 1.0 / sum[num_lines - 1] ) * ( sum[j] - pred_temp[j] / 2.0 ); /*printf( "%d %g %g\n", j+1, pred_temp[j], percentile[j]);*/ }
 		if( percentile[0] > 0.05 ) p05 = pred_temp[0];
 		else if( percentile[num_lines - 1] < 0.05 ) p05 = pred_temp[num_lines - 1];
@@ -2667,8 +2587,8 @@ int glue( struct opt_data *op )
 			for( j = 1; j < num_lines; j++ ) { if( percentile[j] < 0.05 ) count++; else {break;} }
 			p05 = pred_temp[j - 1] + ( ( 0.05 - percentile[j - 1] ) / ( percentile[j] - percentile[j - 1] ) ) * ( pred_temp[j] - pred_temp[j - 1] );
 		}
-//		printf( "\n%d\n", j );
-//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p05 );
+		//		printf( "\n%d\n", j );
+		//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p05 );
 		if( percentile[0] > 0.95 ) p95 = pred_temp[0];
 		else if( percentile[num_lines - 1] < 0.95 ) p95 = pred_temp[num_lines - 1];
 		else
@@ -2677,15 +2597,15 @@ int glue( struct opt_data *op )
 			for( j = 1; j < num_lines; j++ ) { if( percentile[j] < 0.95 ) count++; else {break;}  }
 			p95 = pred_temp[j - 1] + ( ( 0.95 - percentile[j - 1] ) / ( percentile[j] - percentile[j - 1] ) ) * ( pred_temp[j] - pred_temp[j - 1] );
 		}
-//		printf( "\n%d\n", j );
-//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p95 );
+		//		printf( "\n%d\n", j );
+		//		printf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p95 );
 		printf( "%d %g %g\n", i + 1, p05, p95 );
 		//printf( "%g ", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.95, accelerator ) );
 		//printf( " %g\n", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.05, accelerator ) );
 	}
 	printf( "\n" );
-	fclose( outfl );
-	printf( "Done\n" );
+	fclose( out );
+	printf( "Done.\n" );
 	printf( "Results written to %s\n\n", filename );
 	gsl_matrix_free( glue_mat );
 	return 1;
@@ -2698,9 +2618,9 @@ void var_sorted( double data[], double datb[], int n, double ave, double ep, dou
 	int j;
 	double dev2[n];
 	// First pass to calculate mean
-//	s = 0.0;
-//	for( j = 0; j < n; j++ ) s += data[j];
-//	*ave = s/n;
+	//	s = 0.0;
+	//	for( j = 0; j < n; j++ ) s += data[j];
+	//	*ave = s/n;
 	// Second pass to calculate absolute deviations
 	for( j = 0; j < n; j++ )
 		dev2[j] = ( data[j] - ave ) * ( datb[j] - ave );
@@ -2945,7 +2865,7 @@ char *timestamp()
 	datetime = ( char * ) malloc( 10 * sizeof( char ) );
 	time( &raw_time );
 	ptr_ts = localtime( &raw_time );
-//	printf( "%s\n", asctime( ptr_ts ) );
+	//	printf( "%s\n", asctime( ptr_ts ) );
 	sprintf( datetime, "%02d:%02d:%02d", ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
 	return( datetime );
 }
@@ -2958,7 +2878,7 @@ char *datestamp()
 	datetime = ( char * ) malloc( 16 * sizeof( char ) );
 	time( &raw_time );
 	ptr_ts = localtime( &raw_time );
-//	printf( "%s\n", asctime( ptr_ts ) );
+	//	printf( "%s\n", asctime( ptr_ts ) );
 	sprintf( datetime, "%4d%02d%02d-%02d%02d%02d", ptr_ts->tm_year + 1900, ptr_ts->tm_mon + 1, ptr_ts->tm_mday, ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
 	return( datetime );
 }

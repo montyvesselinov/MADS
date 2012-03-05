@@ -40,7 +40,7 @@ enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3 };
 enum PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END, POROSITY, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ };
 
-int (*func)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
+int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 
 struct opt_data // TODO class MADS (in C++)
 {

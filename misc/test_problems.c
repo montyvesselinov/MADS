@@ -237,7 +237,7 @@ int set_test_problems( struct opt_data *op )
 			pd->var_range[1] = pd->var_max[1] - pd->var_min[1];
 			pd->var_truth[0] = a = 100;
 			pd->var_truth[1] = b = 102;
-			printf( "Sin/Cos (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
+			printf( "Sin/Cos (%g/%g)", a, b );
 			od->nObs = cd->test_func_nobs;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nObs - 1 );
@@ -262,7 +262,7 @@ int set_test_problems( struct opt_data *op )
 			pd->var_truth[1] = 101;
 			pd->var_truth[2] = 102;
 			pd->var_truth[3] = 103;
-			printf( "Sin/Cos (", pd->nOptParam, cd->test_func_nobs );
+			printf( "Sin/Cos (" );
 			printf( "%g", pd->var_truth[0] );
 			for( d = 1; d < pd->nOptParam; d++ )
 				printf( "/%g", pd->var_truth[d] );
@@ -278,7 +278,7 @@ int set_test_problems( struct opt_data *op )
 			if( cd->test_func_nobs < 2 ) cd->test_func_nobs = 100;
 			pd->var_truth[0] = a = 93;
 			pd->var_truth[1] = b = 95;
-			printf( "Simplified Sin/Cos (%g/%g)", pd->nOptParam, cd->test_func_nobs, a, b );
+			printf( "Simplified Sin/Cos (%g/%g)", a, b );
 			od->nObs = cd->test_func_nobs;
 			oddefined = 1;
 			od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
@@ -290,7 +290,7 @@ int set_test_problems( struct opt_data *op )
 			break;
 		case 43: // Exponential Data Fitting I
 			od->nObs = cd->test_func_nobs = 33;
-			printf( "Exponential Data Fitting I (", pd->nOptParam, cd->test_func_nobs );
+			printf( "Exponential Data Fitting I (" );
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = ( double ) 1 + d * 0.5;
 			for( d = 0; d < pd->nOptParam; d++ )
@@ -315,7 +315,7 @@ int set_test_problems( struct opt_data *op )
 			break;
 		case 44: // Exponential Data Fitting II
 			od->nObs = cd->test_func_nobs = 65;
-			printf( "Exponential Data Fitting II (", pd->nOptParam, cd->test_func_nobs );
+			printf( "Exponential Data Fitting II (" );
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = ( double ) 1 + d * 0.5;
 			for( d = 0; d < pd->nOptParam; d++ )
