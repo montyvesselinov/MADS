@@ -146,12 +146,10 @@ char *dir_hosts( void *data, char *timedate_stamp );
 int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
-	int i, j, k, m, q1, q2, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data = 0, no_memory = 0;
+	int i, j, k, ier, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data = 0, no_memory = 0;
 	int *eval_success, *eval_total;
 	unsigned long neval_total, njac_total;
 	double c, err, phi, phi_min, *orig_params, *opt_params,
-		   *opt_params_min, *opt_params_max, *opt_params_avg,
-		   *sel_params_min, *sel_params_max, *sel_params_avg,
 		   *var_lhs, *var_a_lhs, *var_b_lhs;
 	struct calc_data cd;
 	struct param_data pd;
@@ -162,10 +160,9 @@ int main( int argn, char *argv[] )
 	struct grid_data gd;
 	struct opt_data op;
 	struct gsens_data gs;
-	char filename[255], filename2[255], root[255], extension[255], buf[255], *dot, *cwd;
+	char filename[255], root[255], extension[255], buf[255], *dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
-	char ESC = 27; // Escape
 	FILE *in, *out, *out2;
 	time_t time_start, time_end, time_elapsed;
 	pid_t pid;
@@ -469,275 +466,8 @@ int main( int argn, char *argv[] )
 	//
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
 	{
-		strcpy( op.label, "igrnd" );
-		if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-		if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-		if( cd.nreal > 1 )
-		{
-			if( ( opt_params_min = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-			if( ( opt_params_max = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-			if( ( opt_params_avg = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-			if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-			for( i = 0; i < pd.nOptParam; i++ )
-			{
-				opt_params_min[i] = HUGE_VAL;
-				opt_params_max[i] = opt_params_avg[i] = 0;
-			}
-			if( cd.phi_cutoff > DBL_EPSILON || cd.check_success )
-			{
-				if( ( sel_params_min = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-				if( ( sel_params_max = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-				if( ( sel_params_avg = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-				if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-				for( i = 0; i < pd.nOptParam; i++ )
-				{
-					sel_params_min[i] = HUGE_VAL;
-					sel_params_max[i] = opt_params_avg[i] = 0;
-				}
-			}
-		}
-		printf( "\nSEQUENTIAL RUNS using random initial guesses for model parameters (realizations = %d):\n", cd.nreal );
-		if( pd.nFlgParam != 0 ) { printf( "Only flagged parameters are randomized\n" ); npar = pd.nFlgParam; }
-		else if( pd.nOptParam != 0 ) { printf( "No flagged parameters; all optimizable parameters are randomized\n" ); npar = pd.nOptParam; }
-		else { printf( "No flagged or optimizable parameters; all parameters are randomized\n" ); npar = pd.nParam; }
-		if( ( var_lhs = ( double * ) malloc( npar * cd.nreal * sizeof( double ) ) ) == NULL ) no_memory = 1;
-		if( ( eval_success = ( int * ) malloc( cd.nreal * sizeof( int ) ) ) == NULL ) no_memory = 1;
-		if( ( eval_total = ( int * ) malloc( cd.nreal * sizeof( int ) ) ) == NULL ) no_memory = 1;
-		if( no_memory )
-		{
-			printf( "Not enough memory!\n" );
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 0 );
-		}
-		if( cd.seed < 0 ) { cd.seed *= -1; printf( "Imported seed: %d\n", cd.seed ); }
-		else if( cd.seed == 0 ) { printf( "New " ); cd.seed_init = cd.seed = get_seed(); }
-		else printf( "Current seed: %d\n", cd.seed );
-		printf( "Random sampling (variables %d; realizations %d) using ", npar, cd.nreal );
-		sampling( npar, cd.nreal, &cd.seed, var_lhs, &op, 1 );
-		printf( "done.\n" );
-		if( cd.mdebug )
-		{
-			sprintf( filename, "%s.igrnd_set", op.root );
-			out = Fwrite( filename );
-			for( count = 0; count < cd.nreal; count ++ )
-			{
-				for( k = 0; k < npar; k++ )
-					fprintf( out, "%.15g ", var_lhs[k + count * npar] );
-				fprintf( out, "\n" );
-			}
-			fclose( out );
-			printf( "Random sampling set saved in %s.igrnd_set\n", op.root );
-		}
-		for( i = 0; i < pd.nParam; i++ )
-			orig_params[i] = pd.var[i]; // Save original initial values for all parameters
-		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
-		else optimize_func = optimize_pso; // Define optimization method: PSO
-		// File management
-		sprintf( filename, "%s.igrnd.zip", op.root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null", op.root, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
-		sprintf( buf, "zip -m %s.igrnd.zip %s.igrnd-[0-9]*.* >& /dev/null", op.root, op.root ); system( buf );
-		sprintf( buf, "mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null", op.root, op.root, Fdatetime( filename, 0 ) ); system( buf );
-		sprintf( filename, "%s.igrnd.results", op.root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.igrnd_%s.results >& /dev/null", filename, op.root, Fdatetime( filename, 0 ) ); system( buf ); }
-		out = Fwrite( filename );
-		sprintf( filename, "%s.igrnd-opt=%s_eval=%d_real=%d", op.root, cd.opt_method, cd.maxeval, cd.nreal );
-		out2 = Fwrite( filename );
-		if( pd.nOptParam == 0 )
-			printf( "WARNING: No parameters to optimize! Forward runs performed instead (ie Monte Carlo analysis)\n" );
-		phi_min = HUGE_VAL;
-		phi_global = success_global = neval_total = njac_total = 0;
-		if( cd.ireal != 0 ) k = cd.ireal - 1; // applied if execution of a specific realization is requested (ncase)
-		else k = 0;
-		for( count = k; count < cd.nreal; count++ )
-		{
-			cd.neval = cd.njac = 0;
-			fprintf( out, "%d : init var", count + 1 );
-			printf( "\nRandom set #%d: ", count + 1 );
-			if( cd.debug || cd.nreal == 1 ) printf( "\n" );
-			op.counter = count + 1;
-			for( k = i = 0; i < pd.nParam; i++ )
-				if( pd.var_opt[i] == 2 || ( pd.var_opt[i] == 1 && pd.nFlgParam == 0 ) )
-				{
-					pd.var[i] = var_lhs[k + count * npar] * pd.var_range[i] + pd.var_min[i];
-					if( pd.var_log[i] )
-					{
-						if( cd.debug || cd.nreal == 1 ) printf( "%s %.15g\n", pd.var_id[i], pow( 10, pd.var[i] ) );
-						fprintf( out, " %.15g", pow( 10, pd.var[i] ) );
-					}
-					else
-					{
-						if( cd.debug || cd.nreal == 1 ) printf( "%s %.15g\n", pd.var_id[i], pd.var[i] );
-						fprintf( out, " %.15g", pd.var[i] );
-					}
-					k++;
-				}
-				else pd.var[i] = orig_params[i];
-			if( pd.nOptParam > 0 )
-			{
-				status = optimize_func( &op ); // Optimize
-				if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-			}
-			else
-			{
-				for( i = 0; i < pd.nParam; i++ )
-					pd.var[i] = var_lhs[i + count * npar] * pd.var_range[i] + pd.var_min[i];
-				if( cd.mdebug ) { printf( "Forward run ... \n" ); debug_level = cd.fdebug; cd.fdebug = 3; }
-				func_global( pd.var, &op, od.res ); // pd.var is a dummy variable because pd.nOptParam == 0
-				if( cd.mdebug ) cd.fdebug = debug_level;
-			}
-			if( cd.debug > 1 )
-				printf( "\n" );
-			else
-			{
-				printf( "Evaluations: %d ", cd.neval );
-				if( cd.njac > 0 ) printf( "Jacobians: %d ", cd.njac );
-				printf( "Objective function: %g Success: %d", op.phi, op.success );
-			}
-			if( cd.debug || cd.nreal == 1 )
-			{
-				printf( "\n" );
-				print_results( &op, 0 );
-			}
-			neval_total += eval_total[count] = cd.neval;
-			njac_total += cd.njac;
-			if( cd.check_success && op.success )
-			{
-				eval_success[success_global] = cd.neval;
-				success_global++;
-			}
-			else if( op.phi < op.cd->phi_cutoff )
-			{
-				eval_success[phi_global] = cd.neval;
-				phi_global++;
-			}
-			if( cd.nreal > 1 )
-			{
-				for( i = 0; i < pd.nOptParam; i++ ) // Posterior parameter statistics for all simulations
-				{
-					c = pd.var[pd.var_index[i]];
-					if( pd.var_log[pd.var_index[i]] ) c = pow( 10, c );
-					if( c < opt_params_min[i] ) opt_params_min[i] = c;
-					if( c > opt_params_max[i] ) opt_params_max[i] = c;
-					opt_params_avg[i] += c;
-					if( ( cd.check_success && op.success ) || op.phi < op.cd->phi_cutoff )
-					{
-						if( c < sel_params_min[i] ) sel_params_min[i] = c;
-						if( c > sel_params_max[i] ) sel_params_max[i] = c;
-						sel_params_avg[i] += c;
-					}
-				}
-			}
-			if( op.phi < phi_min )
-			{
-				phi_min = op.phi;
-				for( i = 0; i < pd.nOptParam; i++ ) pd.var_best[i] = pd.var[pd.var_index[i]];
-				for( i = 0; i < od.nObs; i++ ) od.obs_best[i] = od.obs_current[i];
-			}
-			if( cd.pdebug || cd.ldebug ) printf( "\n" ); // extra new line if the optimization process is debugged
-			fprintf( out2, "%g %d %d\n", op.phi, op.success, cd.neval );
-			fflush( out2 );
-			fprintf( out, " : OF %g success %d : final var", op.phi, op.success );
-			for( i = 0; i < pd.nOptParam; i++ ) // Print only optimized parameters (including flagged); ignore fixed parameters
-			{
-				k = pd.var_index[i];
-				if( pd.var_log[k] ) fprintf( out, " %.15g", pow( 10, pd.var[k] ) );
-				else fprintf( out, " %.15g", pd.var[k] );
-			}
-			fprintf( out, "\n" );
-			fflush( out );
-			if( op.success && cd.nreal > 1 && cd.odebug > 1 ) save_results( "igrnd", &op, &gd );
-			if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
-			if( cd.ireal != 0 ) break;
-		}
-		op.counter = 0;
-		free( var_lhs );
-		cd.neval = neval_total; // provide the correct number of total evaluations
-		cd.njac = njac_total; // provide the correct number of total evaluations
-		printf( "\nTotal number of evaluations = %lu\n", neval_total );
-		printf( "Total number of jacobians = %lu\n", njac_total );
-		op.phi = phi_min; // get the best phi
-		for( i = 0; i < pd.nOptParam; i++ ) opt_params[i] = pd.var[pd.var_index[i]] = pd.var_current[i] = pd.var_best[i]; // get the best estimate
-		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = od.obs_best[i] ; // get the best observations
-		fprintf( out, "Minimum objective function: %g\n", phi_min );
-		printf( "Minimum objective function: %g\n", phi_min );
-		if( cd.debug )
-		{
-			printf( "Repeat the run producing the best results ...\n" );
-			debug_level = cd.fdebug; cd.fdebug = 1;
-			Transform( opt_params, &op, opt_params );
-			func_global( opt_params, &op, od.res );
-			cd.fdebug = debug_level;
-		}
-		if( cd.nreal > 1 )
-		{
-			if( op.cd->phi_cutoff > DBL_EPSILON )
-			{
-				if( phi_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions below predefined OF cutoff %g!\n", cd.nreal, op.cd->phi_cutoff );
-				else printf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op.cd->phi_cutoff, phi_global, cd.nreal, ( double ) phi_global / cd.nreal );
-			}
-			if( op.cd->obsrange > DBL_EPSILON || op.cd->obserror > DBL_EPSILON )
-			{
-				if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced successful calibration ranges!\n", cd.nreal );
-				else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
-			}
-			if( op.cd->parerror > DBL_EPSILON )
-			{
-				if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced acceptable model parameters!\n", cd.nreal );
-				else printf( "Number of the sequential calibration runs producing acceptable model parameters = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
-			}
-			qsort( eval_success, success_global, sizeof( int ), sort_int );
-			qsort( eval_total, cd.nreal, sizeof( int ), sort_int );
-			q1 = ( double ) success_global / 4 - 0.25;
-			m = ( double ) success_global / 2 - 0.5;
-			q2 = ( double ) success_global * 3 / 4 - 0.25;
-			if( success_global > 0 )
-			{
-				printf( "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
-				fprintf( out2, "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
-			}
-			q1 = ( double ) cd.nreal / 4 - 0.25;
-			m = ( double ) cd.nreal / 2 - 0.5;
-			q2 = ( double ) cd.nreal * 3 / 4 - 0.25;
-			printf( "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[cd.nreal - 1], cd.nreal );
-			fprintf( out2, "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[cd.nreal - 1], cd.nreal );
-			printf( "Statistics of all the model parameter estimates:\n" );
-			fprintf( out2, "Statistics of all the model parameter estimates:\n" );
-			for( i = 0; i < pd.nOptParam; i++ ) // Posterior parameter statistics for all simulations
-			{
-				printf( "%-35s : average %12g min %12g max %12g\n", pd.var_id[pd.var_index[i]], opt_params_avg[i] / cd.nreal, opt_params_min[i], opt_params_max[i] );
-				fprintf( out2, "%-35s : average %12g min %12g max %12g\n", pd.var_id[pd.var_index[i]], opt_params_avg[i] / cd.nreal, opt_params_min[i], opt_params_max[i] );
-			}
-			if( success_global > 0 || phi_global > 0 )
-			{
-				printf( "Statistics of all the successful model parameter estimates:\n" );
-				fprintf( out2, "Statistics of all the successful model parameter estimates:\n" );
-				k = success_global + phi_global;
-				for( i = 0; i < pd.nOptParam; i++ ) // Posterior parameter statistics for all simulations
-				{
-					printf( "%-35s : average %12g min %12g max %12g\n", pd.var_id[pd.var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
-					fprintf( out2, "%-35s : average %12g min %12g max %12g\n", pd.var_id[pd.var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
-				}
-			}
-		}
-		fprintf( out, "Total number of evaluations = %lu\n", neval_total );
-		if( cd.nreal > 1 )
-		{
-			if( op.cd->phi_cutoff > DBL_EPSILON ) fprintf( out, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op.cd->phi_cutoff, phi_global, cd.nreal, ( double ) phi_global / cd.nreal );
-			if( op.cd->obsrange > DBL_EPSILON || op.cd->obserror > DBL_EPSILON )
-				fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
-			if( op.cd->parerror > DBL_EPSILON )
-				fprintf( out, "Number of the sequential calibration runs producing acceptable model parameters = %d (out of %d; success ratio %g)\n", success_global, cd.nreal, ( double ) success_global / cd.nreal );
-		}
-		fprintf( out2, "OF min: %g\n", phi_min );
-		fprintf( out2, "Total number of evaluations: %lu\n", neval_total );
-		fprintf( out2, "Success rate %g\n", ( double ) success_global / cd.nreal );
-		fclose( out ); fclose( out2 );
-		printf( "Results are saved in %s.igrnd.results and %s.igrnd-opt=%s_eval=%d_real=%d\n", op.root, op.root, cd.opt_method, cd.maxeval, cd.nreal );
-		printf( "\nFinal results:\n" );
-		print_results( &op, 1 );
-		free( opt_params ); free( eval_success ); free( eval_total );
-		save_results( "", &op, &gd );
+		status = igrnd( &op );
+		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
 	//
 	// ------------------------ IGPD
@@ -2890,4 +2620,291 @@ int sort_double( const void *x, const void *y )
 	return ( *( double * )x - * ( double * )y );
 }
 
+int igrnd( struct opt_data *op )
+{
+	int i, k, m, q1, q2, npar, status, success, phi_global, success_global, success_all, count, debug_level, predict = 0, compare, bad_data = 0, no_memory = 0;
+	int *eval_success, *eval_total;
+	unsigned long neval_total, njac_total;
+	double c, err, phi, phi_min, *orig_params, *opt_params,
+		   *opt_params_min, *opt_params_max, *opt_params_avg,
+		   *sel_params_min, *sel_params_max, *sel_params_avg,
+		   *var_lhs;
+	char filename[255], buf[255];
+	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
+	FILE *out, *out2;
+	char ESC = 27; // Escape
+
+	strcpy( op->label, "igrnd" );
+	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+	if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+	if( op->cd->nreal > 1 )
+	{
+		if( ( opt_params_min = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+		if( ( opt_params_max = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+		if( ( opt_params_avg = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+		if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+		for( i = 0; i < op->pd->nOptParam; i++ )
+		{
+			opt_params_min[i] = HUGE_VAL;
+			opt_params_max[i] = opt_params_avg[i] = 0;
+		}
+		if( op->cd->phi_cutoff > DBL_EPSILON || op->cd->check_success )
+		{
+			if( ( sel_params_min = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+			if( ( sel_params_max = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+			if( ( sel_params_avg = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+			if( no_memory ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+			for( i = 0; i < op->pd->nOptParam; i++ )
+			{
+				sel_params_min[i] = HUGE_VAL;
+				sel_params_max[i] = opt_params_avg[i] = 0;
+			}
+		}
+	}
+	printf( "\nSEQUENTIAL RUNS using random initial guesses for model parameters (realizations = %d):\n", op->cd->nreal );
+	if( op->pd->nFlgParam != 0 ) { printf( "Only flagged parameters are randomized\n" ); npar = op->pd->nFlgParam; }
+	else if( op->pd->nOptParam != 0 ) { printf( "No flagged parameters; all optimizable parameters are randomized\n" ); npar = op->pd->nOptParam; }
+	else { printf( "No flagged or optimizable parameters; all parameters are randomized\n" ); npar = op->pd->nParam; }
+	if( ( var_lhs = ( double * ) malloc( npar * op->cd->nreal * sizeof( double ) ) ) == NULL ) no_memory = 1;
+	if( ( eval_success = ( int * ) malloc( op->cd->nreal * sizeof( int ) ) ) == NULL ) no_memory = 1;
+	if( ( eval_total = ( int * ) malloc( op->cd->nreal * sizeof( int ) ) ) == NULL ) no_memory = 1;
+	if( no_memory )
+	{
+		printf( "Not enough memory!\n" );
+		sprintf( buf, "rm -f %s.running", op->root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+		system( buf );
+		return( 0 );
+	}
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
+	else printf( "Current seed: %d\n", op->cd->seed );
+	printf( "Random sampling (variables %d; realizations %d) using ", npar, op->cd->nreal );
+	sampling( npar, op->cd->nreal, &op->cd->seed, var_lhs, op, 1 );
+	printf( "done.\n" );
+	if( op->cd->mdebug )
+	{
+		sprintf( filename, "%s.igrnd_set", op->root );
+		out = Fwrite( filename );
+		for( count = 0; count < op->cd->nreal; count ++ )
+		{
+			for( k = 0; k < npar; k++ )
+				fprintf( out, "%.15g ", var_lhs[k + count * npar] );
+			fprintf( out, "\n" );
+		}
+		fclose( out );
+		printf( "Random sampling set saved in %s.igrnd_set\n", op->root );
+	}
+	for( i = 0; i < op->pd->nParam; i++ )
+		orig_params[i] = op->pd->var[i]; // Save original initial values for all parameters
+	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
+	else optimize_func = optimize_pso; // Define optimization method: PSO
+	// File management
+	sprintf( filename, "%s.igrnd.zip", op->root );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "zip -m %s.igrnd.zip %s.igrnd-[0-9]*.* >& /dev/null", op->root, op->root ); system( buf );
+	sprintf( buf, "mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	sprintf( filename, "%s.igrnd.results", op->root );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.igrnd_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	out = Fwrite( filename );
+	sprintf( filename, "%s.igrnd-opt=%s_eval=%d_real=%d", op->root, op->cd->opt_method, op->cd->maxeval, op->cd->nreal );
+	out2 = Fwrite( filename );
+	if( op->pd->nOptParam == 0 )
+		printf( "WARNING: No parameters to optimize! Forward runs performed instead (ie Monte Carlo analysis)\n" );
+	phi_min = HUGE_VAL;
+	phi_global = success_global = neval_total = njac_total = 0;
+	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1; // applied if execution of a specific realization is requested (ncase)
+	else k = 0;
+	for( count = k; count < op->cd->nreal; count++ )
+	{
+		op->cd->neval = op->cd->njac = 0;
+		fprintf( out, "%d : init var", count + 1 );
+		printf( "\nRandom set #%d: ", count + 1 );
+		if( op->cd->debug || op->cd->nreal == 1 ) printf( "\n" );
+		op->counter = count + 1;
+		for( k = i = 0; i < op->pd->nParam; i++ )
+			if( op->pd->var_opt[i] == 2 || ( op->pd->var_opt[i] == 1 && op->pd->nFlgParam == 0 ) )
+			{
+				op->pd->var[i] = var_lhs[k + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
+				if( op->pd->var_log[i] )
+				{
+					if( op->cd->debug || op->cd->nreal == 1 ) printf( "%s %.15g\n", op->pd->var_id[i], pow( 10, op->pd->var[i] ) );
+					fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
+				}
+				else
+				{
+					if( op->cd->debug || op->cd->nreal == 1 ) printf( "%s %.15g\n", op->pd->var_id[i], op->pd->var[i] );
+					fprintf( out, " %.15g", op->pd->var[i] );
+				}
+				k++;
+			}
+			else op->pd->var[i] = orig_params[i];
+		if( op->pd->nOptParam > 0 )
+		{
+			status = optimize_func( op ); // Optimize
+			if( status == 0 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+		}
+		else
+		{
+			for( i = 0; i < op->pd->nParam; i++ )
+				op->pd->var[i] = var_lhs[i + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
+			if( op->cd->mdebug ) { printf( "Forward run ... \n" ); debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+			func_global( op->pd->var, op, op->od->res ); // op->pd->var is a dummy variable because op->pd->nOptParam == 0
+			if( op->cd->mdebug ) op->cd->fdebug = debug_level;
+		}
+		if( op->cd->debug > 1 )
+			printf( "\n" );
+		else
+		{
+			printf( "Evaluations: %d ", op->cd->neval );
+			if( op->cd->njac > 0 ) printf( "Jacobians: %d ", op->cd->njac );
+			printf( "Objective function: %g Success: %d", op->phi, op->success );
+		}
+		if( op->cd->debug || op->cd->nreal == 1 )
+		{
+			printf( "\n" );
+			print_results( op, 0 );
+		}
+		neval_total += eval_total[count] = op->cd->neval;
+		njac_total += op->cd->njac;
+		if( op->cd->check_success && op->success )
+		{
+			eval_success[success_global] = op->cd->neval;
+			success_global++;
+		}
+		else if( op->phi < op->cd->phi_cutoff )
+		{
+			eval_success[phi_global] = op->cd->neval;
+			phi_global++;
+		}
+		if( op->cd->nreal > 1 )
+		{
+			for( i = 0; i < op->pd->nOptParam; i++ ) // Posterior parameter statistics for all simulations
+			{
+				c = op->pd->var[op->pd->var_index[i]];
+				if( op->pd->var_log[op->pd->var_index[i]] ) c = pow( 10, c );
+				if( c < opt_params_min[i] ) opt_params_min[i] = c;
+				if( c > opt_params_max[i] ) opt_params_max[i] = c;
+				opt_params_avg[i] += c;
+				if( ( op->cd->check_success && op->success ) || op->phi < op->cd->phi_cutoff )
+				{
+					if( c < sel_params_min[i] ) sel_params_min[i] = c;
+					if( c > sel_params_max[i] ) sel_params_max[i] = c;
+					sel_params_avg[i] += c;
+				}
+			}
+		}
+		if( op->phi < phi_min )
+		{
+			phi_min = op->phi;
+			for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
+			for( i = 0; i < op->od->nObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+		}
+		if( op->cd->pdebug || op->cd->ldebug ) printf( "\n" ); // extra new line if the optimization process is debugged
+		fprintf( out2, "%g %d %d\n", op->phi, op->success, op->cd->neval );
+		fflush( out2 );
+		fprintf( out, " : OF %g success %d : final var", op->phi, op->success );
+		for( i = 0; i < op->pd->nOptParam; i++ ) // Print only optimized parameters (including flagged); ignore fixed parameters
+		{
+			k = op->pd->var_index[i];
+			if( op->pd->var_log[k] ) fprintf( out, " %.15g", pow( 10, op->pd->var[k] ) );
+			else fprintf( out, " %.15g", op->pd->var[k] );
+		}
+		fprintf( out, "\n" );
+		fflush( out );
+		if( op->success && op->cd->nreal > 1 && op->cd->odebug > 1 ) save_results( "igrnd", op, op->gd );
+		if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
+		if( op->cd->ireal != 0 ) break;
+	}
+	op->counter = 0;
+	free( var_lhs );
+	op->cd->neval = neval_total; // provide the correct number of total evaluations
+	op->cd->njac = njac_total; // provide the correct number of total evaluations
+	printf( "\nTotal number of evaluations = %lu\n", neval_total );
+	printf( "Total number of jacobians = %lu\n", njac_total );
+	op->phi = phi_min; // get the best phi
+	for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
+	for( i = 0; i < op->od->nObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
+	fprintf( out, "Minimum objective function: %g\n", phi_min );
+	printf( "Minimum objective function: %g\n", phi_min );
+	if( op->cd->debug )
+	{
+		printf( "Repeat the run producing the best results ...\n" );
+		debug_level = op->cd->fdebug; op->cd->fdebug = 1;
+		Transform( opt_params, &op, opt_params );
+		func_global( opt_params, &op, op->od->res );
+		op->cd->fdebug = debug_level;
+	}
+	if( op->cd->nreal > 1 )
+	{
+		if( op->cd->phi_cutoff > DBL_EPSILON )
+		{
+			if( phi_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions below predefined OF cutoff %g!\n", op->cd->nreal, op->cd->phi_cutoff );
+			else printf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
+		}
+		if( op->cd->obsrange > DBL_EPSILON || op->cd->obserror > DBL_EPSILON )
+		{
+			if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced successful calibration ranges!\n", op->cd->nreal );
+			else printf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
+		}
+		if( op->cd->parerror > DBL_EPSILON )
+		{
+			if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced acceptable model parameters!\n", op->cd->nreal );
+			else printf( "Number of the sequential calibration runs producing acceptable model parameters = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
+		}
+		qsort( eval_success, success_global, sizeof( int ), sort_int );
+		qsort( eval_total, op->cd->nreal, sizeof( int ), sort_int );
+		q1 = ( double ) success_global / 4 - 0.25;
+		m = ( double ) success_global / 2 - 0.5;
+		q2 = ( double ) success_global * 3 / 4 - 0.25;
+		if( success_global > 0 )
+		{
+			printf( "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
+			fprintf( out2, "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
+		}
+		q1 = ( double ) op->cd->nreal / 4 - 0.25;
+		m = ( double ) op->cd->nreal / 2 - 0.5;
+		q2 = ( double ) op->cd->nreal * 3 / 4 - 0.25;
+		printf( "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[op->cd->nreal - 1], op->cd->nreal );
+		fprintf( out2, "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[op->cd->nreal - 1], op->cd->nreal );
+		printf( "Statistics of all the model parameter estimates:\n" );
+		fprintf( out2, "Statistics of all the model parameter estimates:\n" );
+		for( i = 0; i < op->pd->nOptParam; i++ ) // Posterior parameter statistics for all simulations
+		{
+			printf( "%-35s : average %12g min %12g max %12g\n", op->pd->var_id[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
+			fprintf( out2, "%-35s : average %12g min %12g max %12g\n", op->pd->var_id[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
+		}
+		if( success_global > 0 || phi_global > 0 )
+		{
+			printf( "Statistics of all the successful model parameter estimates:\n" );
+			fprintf( out2, "Statistics of all the successful model parameter estimates:\n" );
+			k = success_global + phi_global;
+			for( i = 0; i < op->pd->nOptParam; i++ ) // Posterior parameter statistics for all simulations
+			{
+				printf( "%-35s : average %12g min %12g max %12g\n", op->pd->var_id[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
+				fprintf( out2, "%-35s : average %12g min %12g max %12g\n", op->pd->var_id[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
+			}
+		}
+	}
+	fprintf( out, "Total number of evaluations = %lu\n", neval_total );
+	if( op->cd->nreal > 1 )
+	{
+		if( op->cd->phi_cutoff > DBL_EPSILON ) fprintf( out, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
+		if( op->cd->obsrange > DBL_EPSILON || op->cd->obserror > DBL_EPSILON )
+			fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
+		if( op->cd->parerror > DBL_EPSILON )
+			fprintf( out, "Number of the sequential calibration runs producing acceptable model parameters = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
+	}
+	fprintf( out2, "OF min: %g\n", phi_min );
+	fprintf( out2, "Total number of evaluations: %lu\n", neval_total );
+	fprintf( out2, "Success rate %g\n", ( double ) success_global / op->cd->nreal );
+	fclose( out ); fclose( out2 );
+	printf( "Results are saved in %s.igrnd.results and %s.igrnd-opt=%s_eval=%d_real=%d\n", op->root, op->root, op->cd->opt_method, op->cd->maxeval, op->cd->nreal );
+	printf( "\nFinal results:\n" );
+	print_results( op, 1 );
+	free( opt_params ); free( eval_success ); free( eval_total );
+	free( opt_params_min ); free( opt_params_max ); free( opt_params_avg );
+	if( op->cd->phi_cutoff > DBL_EPSILON || op->cd->check_success ) { free( sel_params_min ); free( sel_params_max ); free( sel_params_avg ); }
+	save_results( "", op, op->gd );
+}
 

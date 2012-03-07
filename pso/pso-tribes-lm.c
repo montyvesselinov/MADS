@@ -1301,7 +1301,6 @@ void position_update( struct problem *pb, struct particle *P, struct particle in
 void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 {
 	int d;
-	long i;
 	// DeTransform( ( *P ).x, op, ( *P ).x ); // there is no need to detransform
 	for( d = 0; d < ( *pb ).D; d++ )
 		op->pd->var[op->pd->var_index[d]] = ( *P ).x[d];
@@ -1494,7 +1493,6 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 	int i, tr;
 	int nTribe;
 	int tribe_worst;
-	int n;
 	nTribe = ( *S ).size;
 	for( tr = 0; tr < ( *S ).size; tr++ )
 	{
@@ -1757,7 +1755,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 	double phi_current_best, r1;
 	int pa, nTotPart = 0;
 	int shaman, count_bad_tribes = 0;
-	int i, tr, tr_best;
+	int tr;
 	if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 	if( lm_wait == 1 )
 	{

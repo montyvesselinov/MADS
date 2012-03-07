@@ -411,7 +411,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcpy( ( *cd ).solution_id, "rect_vert" ); break; }
 		case BOX: { printf( "internal | box contaminant source" ); strcpy( ( *cd ).solution_id, "box" ); break; }
 		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); strcpy( ( *cd ).solution_id, "test" ); break; }
-		default: printf( "WARNING! UNDEFINED model type!" );
+		default: printf( "WARNING! UNDEFINED model type!" ); break;
 	}
 	printf( "\n" );
 	if( ( *cd ).solution_type == TEST ) return( 1 );
