@@ -2633,7 +2633,6 @@ int igrnd( struct opt_data *op )
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	FILE *out, *out2;
 	char ESC = 27; // Escape
-
 	strcpy( op->label, "igrnd" );
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
