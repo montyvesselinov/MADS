@@ -48,6 +48,8 @@ unsigned maxpathlen( char *path[], const char *base );
 void execvepath( char *path[], const char *base, char *const argv[], char *const envp[] );
 int count_lines( char *filename );
 int count_cols( char *filename, int row );
+char *timestamp(); // create time stamp
+char *datestamp(); // create date stamp
 
 /* Functions elsewhere */
 char **char_matrix( int maxCols, int maxRows );
@@ -1254,4 +1256,30 @@ int count_cols( char *filename, int row )
 	}
 	fclose( fl );
 	return ncol;
+}
+
+char *timestamp()
+{
+	time_t raw_time;
+	struct tm *ptr_ts;
+	char *datetime;
+	datetime = ( char * ) malloc( 10 * sizeof( char ) );
+	time( &raw_time );
+	ptr_ts = localtime( &raw_time );
+	//	printf( "%s\n", asctime( ptr_ts ) );
+	sprintf( datetime, "%02d:%02d:%02d", ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
+	return( datetime );
+}
+
+char *datestamp()
+{
+	time_t raw_time;
+	struct tm *ptr_ts;
+	char *datetime;
+	datetime = ( char * ) malloc( 16 * sizeof( char ) );
+	time( &raw_time );
+	ptr_ts = localtime( &raw_time );
+	//	printf( "%s\n", asctime( ptr_ts ) );
+	sprintf( datetime, "%4d%02d%02d-%02d%02d%02d", ptr_ts->tm_year + 1900, ptr_ts->tm_mon + 1, ptr_ts->tm_mday, ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
+	return( datetime );
 }
