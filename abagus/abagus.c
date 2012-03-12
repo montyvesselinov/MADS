@@ -325,7 +325,7 @@ int abagus( struct opt_data *op )
 	}
 	// Write accepted locations from input file to output file
 	// Open output file
-	sprintf( filename, "%s.pssa", op->root ); // TODO rename pssa to abagus to avoid confusion
+	sprintf( filename, "%s.abagus", op->root ); // TODO rename pssa to abagus to avoid confusion
 	if( ( f_run = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
 	fprintf( f_run, "Number OF parameters...\n" ); // Write header
 	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] ); // Determine center parameter space for search
