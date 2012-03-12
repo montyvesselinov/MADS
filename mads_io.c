@@ -91,6 +91,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->restart = 1;
 	cd->nreal = 0;
 	cd->niter = 0;
+	cd->tied = 0;
 	cd->init_particles = -1;
 	cd->nretries = 0;
 	cd->seed = cd->seed_init = 0;
@@ -148,6 +149,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "lmnu=" ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
 		if( strcasestr( word, "lmiter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
+		if( strcasestr( word, "tied" ) ) { w = 1; cd->tied = 1; } // Tied shortcut
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
 		if( strcasestr( word, "eval=" ) ) { w = 1; sscanf( word, "eval=%d", &cd->maxeval ); }
 		if( strcasestr( word, "case=" ) ) { w = 1; sscanf( word, "case=%d", &cd->ireal ); }

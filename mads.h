@@ -88,6 +88,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int restart; // flag restart for parallel jobs
 	int njob; // number of parallel jobs
 	int energy; // starting energy for pssa particles
+	int tied;
 	double lm_factor;
 	int lm_acc; // to accelerate or npt LM
 	int lm_indir;
