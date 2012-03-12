@@ -620,6 +620,7 @@ loop:
 		// Set first particle to IVs from mads input file, presumably obtained by optimization
 		for( d = 0; d < D; d++ )
 			X[0].x[d] = op->pd->var[op->pd->var_index[d]];
+		energy = op->cd->energy; // Put energy back to original
 	}
 	// Print out collected positions
 	if( op->cd->pdebug == 10 )
