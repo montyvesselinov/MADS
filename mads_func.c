@@ -463,6 +463,11 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
+		if( p->cd->tied && ( k == AY || k == AZ ) ) // Tied parameters
+		{
+			// printf( "divide %.12g %.12g\n", p->cd->var[AX], p->cd->var[k] );
+			p->cd->var[k] = p->cd->var[AX] / p->cd->var[k];
+		}
 		if( p->cd->fdebug >= 3 ) printf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
 	if( p->cd->fdebug >= 3 )
