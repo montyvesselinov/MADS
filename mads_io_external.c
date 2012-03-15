@@ -282,23 +282,21 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
 		if( pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
 		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
-		word_inst = strtok_r( pnt_inst, separator, &pnt_inst ); // IMPORTANT: strtok modifies buf_inst by adding '\0's; if needed strcpy buf_inst
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
-			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
 			sscanf( &word_inst[1], "%d", &c );
 			if( debug ) printf( "Skip %d lines\n", c );
-			word_inst = strtok_r( NULL, separator, &pnt_inst );
 		}
-		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
+		for( ; word_inst; )
 		{
 			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
-			// white_skip( &word_inst );
-			if( debug ) { printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout ); }
-			if( word_inst[0] == token_search[0] ) // search for keyword
+			if( pnt_inst[0] == token_search[0] ) // search for keyword
 			{
 				if( debug ) { printf( "Search for keyword " ); fflush( stdout ); }
 				word_search[0] = 0;
+				word_s = strtok_r( NULL, token_search, &pnt_inst );
+				strcat( word_search, word_s );
+/*
 				c = strlen( word_inst );
 				if( c > 1 )
 				{
@@ -322,11 +320,14 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 					else // skip search token; the entire search pattern is already obtained
 						word_inst = strtok_r( NULL, separator, &pnt_inst );
 				}
+*/
 				if( debug ) { printf( " \'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
 			}
 			else
 			{
+				word_inst = strtok_r( pnt_inst, separator, &pnt_inst ); // IMPORTANT: strtok modifies buf_inst by adding '\0's; if needed strcpy buf_inst
 				white_trim( word_inst );
+				if( debug ) { printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout ); }
 				if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
 				{
 					if( debug ) printf( "Skip dummy data!\n" );
