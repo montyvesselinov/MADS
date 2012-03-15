@@ -116,12 +116,12 @@ void *malloc_check( const char *what, size_t n )
 	return p;
 }
 
-void white_skip( char **s )
+void white_skip( char **s ) // remove the white space at the beginning of the string
 {
 	while( iswhite( **s ) )( *s )++;
 }
 
-char *white_trim( char *x )
+char *white_trim( char *x ) // remove the white space at the end of the string
 {
 	char *y;
 	if( !x ) return( x );

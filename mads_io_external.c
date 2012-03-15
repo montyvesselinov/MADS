@@ -25,6 +25,8 @@
 // PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 #define _GNU_SOURCE
+#define iswhite(c) ((c)== ' ' || (c)=='\t' || (c)=='\n')
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -190,7 +192,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 {
 	FILE *infile_inst;
 	char *separator = " \t\n";
-	char *word_inst, *word_search, token_obs[2], token_search[2], dummy_var[6], buf_inst[1000], *pnt_inst;
+	char *word_inst, *word_s, word_search[1000], token_obs[2], token_search[2], comment[2], dummy_var[6], buf_inst[1000], *pnt_inst;
 	int i, c, bad_data = 0;
 	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
@@ -199,6 +201,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	}
 	if( debug ) printf( "\nChecking instruction file \'%s\'.\n", fn_in_i );
 	fgets( buf_inst, 1000, infile_inst );
+	if( debug ) printf( "Current instruction line: %s\n", buf_inst );
 	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
 	{
 		if( c == 0 ) // first entry
@@ -207,11 +210,16 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 			if( strcasestr( word_inst, "pif" ) )
 			{
 				if( debug ) printf( "PEST Instruction file\n" );
+				token_search[0] = '@'; // just in case
 				token_obs[0] = '!';
+				comment[0] = 0;
 			}
 			else if( strcasestr( word_inst, "instruction" ) )
 			{
 				if( debug ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
+				token_search[0] = '@'; // just in case
+				token_obs[0] = '!';
+				comment[0] = '#';
 			}
 			else
 			{
@@ -219,27 +227,37 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 				rewind( infile_inst );
 				token_search[0] = '@';
 				token_obs[0] = '!';
+				comment[0] = '#';
 				break;
 			}
 		}
 		else if( c == 1 ) // second entry; "search" token
 		{
 			white_trim( word_inst );
-			if( debug ) printf( "Search token %s\n", word_inst );
+			if( debug > 1 ) printf( "Search token %s\n", word_inst );
 			token_search[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
 				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( token_search[0] == 0 ) token_search[0] = '@';
+
 		}
 		else if( c == 2 ) // third entry; "variable" token
 		{
 			white_trim( word_inst );
-			if( debug ) printf( "Variable token %s\n", word_inst );
+			if( debug > 1 ) printf( "Variable token %s\n", word_inst );
 			token_obs[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
 				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( token_obs[0] == 0 ) token_obs[0] = '!';
-			break;
+		}
+		else if( c == 3 ) // third entry; "comment" token
+		{
+			white_trim( word_inst );
+			if( debug > 1 ) printf( "Comment token %s\n", word_inst );
+			comment[0] = word_inst[0];
+			if( strlen( word_inst ) > 1 )
+				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+			if( comment[0] == 0 ) comment[0] = '#';
 		}
 	}
 	token_search[1] = token_obs[1] = 0;
@@ -248,76 +266,107 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	strcat( dummy_var, "dum" );
 	dummy_var[4] = token_obs[0];
 	dummy_var[5] = 0;
+	token_obs[1] = token_search[1] = comment[1] = 0;
 	if( debug )
 	{
 		printf( "Search separator: %s\n", token_search );
 		printf( "Observation separator: %s\n", token_obs );
 		printf( "Dummy observation: %s\n", dummy_var );
+		printf( "Comment: %s\n", comment );
 	}
 	while( 1 )
 	{
 		fgets( buf_inst, 1000, infile_inst );
 		if( feof( infile_inst ) ) break;
-		white_trim( buf_inst );
-		if( debug ) printf( "\nCurrent instruction line: %s\n", buf_inst );
 		pnt_inst = &buf_inst[0];
-		word_inst = strtok_r( buf_inst, separator, &pnt_inst );
-		if( buf_inst[0] == 'l' ) // skip lines in the "data" file
+		white_trim( pnt_inst ); white_skip( &pnt_inst );
+		if( pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
+		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
+		word_inst = strtok_r( pnt_inst, separator, &pnt_inst ); // IMPORTANT: strtok modifies buf_inst by adding '\0's; if needed strcpy buf_inst
+		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
+			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
 			sscanf( &word_inst[1], "%d", &c );
 			if( debug ) printf( "Skip %d lines\n", c );
 			word_inst = strtok_r( NULL, separator, &pnt_inst );
 		}
 		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 		{
-			white_skip( &word_inst ); white_trim( word_inst );
-			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout );
+			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
+			// white_skip( &word_inst );
+			if( debug ) { printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout ); }
 			if( word_inst[0] == token_search[0] ) // search for keyword
 			{
-				word_search = strtok( word_inst, token_search );
-				white_skip( &word_search ); white_trim( word_search );
-				if( debug ) printf( "Search for keyword \'%s\' in the data file ...\n", word_search );
-			}
-			else if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
-			{
-				if( debug ) printf( "Skip dummy data!\n" );
-			}
-			else if( word_inst[0] == 'w' ) // white space
-			{
-				if( debug ) printf( "Skip white space!\n" );
-			}
-			else if( word_inst[0] == token_obs[0] ) // observation variable
-			{
-				c = 0;
-				if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
-				else word_inst = &word_inst[1];
-				if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
-				else strtok_r( NULL, separator, &pnt_inst );
-				if( debug ) printf( "Observation keyword \'%s\' ... ", word_inst );
-				white_skip( &word_inst );
-				white_trim( word_inst );
-				for( i = 0; i < nobs; i++ )
+				if( debug ) { printf( "Search for keyword " ); fflush( stdout ); }
+				word_search[0] = 0;
+				c = strlen( word_inst );
+				if( c > 1 )
 				{
-					if( strcmp( word_inst, obs_id[i] ) == 0 )
+					strcat( word_search, &word_inst[1] );
+					if( word_inst[c - 1] == token_search[0] ) // the entire search pattern is already obtained
+						word_search[c - 2] = 0;               // there were no white characters
+					else
 					{
-						if( check[i] < 0 ) { check[i] = 1; }
-						else { check[i] += 1; }
-						if( debug ) printf( "\'%s\' detected %g times\n", obs_id[i], check[i] );
-						break;
+						strcat( word_search, " " );           // the search pattern is split; add the deleted " "
+						c = 1;                                // add the rest
 					}
 				}
-				if( nobs == i )
+				if( c == 1 ) // the rest of the search pattern needs to be obtained
 				{
-					printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
-					bad_data = 1;
+					if( pnt_inst[0] != token_search[0] )
+					{
+						word_s = strtok_r( NULL, token_search, &pnt_inst );
+						strcat( word_search, " " ); // add the deleted " "
+						strcat( word_search, word_s );
+					}
+					else // skip search token; the entire search pattern is already obtained
+						word_inst = strtok_r( NULL, separator, &pnt_inst );
 				}
+				if( debug ) { printf( " \'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
 			}
 			else
 			{
-				printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
-				printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
-				bad_data = 1;
-				break;
+				white_trim( word_inst );
+				if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
+				{
+					if( debug ) printf( "Skip dummy data!\n" );
+				}
+				else if( word_inst[0] == 'w' ) // white space
+				{
+					if( debug ) printf( "Skip white space!\n" );
+				}
+				else if( word_inst[0] == token_obs[0] ) // observation variable
+				{
+					c = 0;
+					if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
+					else word_inst = &word_inst[1];
+					if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
+					else strtok_r( NULL, separator, &pnt_inst );
+					if( debug ) printf( "Observation keyword \'%s\' ... ", word_inst );
+					white_skip( &word_inst ); white_trim( word_inst );
+					for( i = 0; i < nobs; i++ )
+					{
+						if( strcmp( word_inst, obs_id[i] ) == 0 )
+						{
+							if( check[i] < 0 ) { check[i] = 1; }
+							else { check[i] += 1; }
+							if( debug ) printf( "\'%s\' detected %g times\n", obs_id[i], check[i] );
+							break;
+						}
+					}
+					if( nobs == i )
+					{
+						printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
+						bad_data = 1;
+					}
+				}
+				else
+				{
+					printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
+					printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
+					bad_data = 1;
+					break;
+				}
 			}
 		}
 	}
@@ -331,7 +380,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 {
 	FILE *infile_inst, *infile_data;
 	char *separator = " \t\n";
-	char *word_inst, *word_data, *word_search, token_search[2], token_obs[2], dummy_var[6], buf_data[1000], buf_inst[1000], *pnt_inst, *pnt_data;
+	char *word_inst, *word_data, *word_s, word_search[1000], token_search[2], token_obs[2], comment[2], dummy_var[6], buf_data[1000], buf_inst[1000], *pnt_inst, *pnt_data;
 	int i, c, bad_data = 0;
 	double v;
 	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
@@ -346,6 +395,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	}
 	if( debug ) printf( "\nReading output file \'%s\' obtained from external model execution using instruction file \'%s\'.\n", fn_in_d, fn_in_i );
 	fgets( buf_inst, 1000, infile_inst );
+	if( debug > 1 ) printf( "Current instruction line: %s\n", buf_inst );
 	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
 	{
 		if( c == 0 ) // first entry
@@ -353,19 +403,25 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			white_trim( word_inst );
 			if( strcasestr( word_inst, "pif" ) )
 			{
-				if( debug ) printf( "PEST Instruction file\n" );
+				if( debug > 1 ) printf( "PEST Instruction file\n" );
+				token_search[0] = '@'; // just in case
 				token_obs[0] = '!';
+				comment[0] = 0;
 			}
 			else if( strcasestr( word_inst, "instruction" ) )
 			{
-				if( debug ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
+				if( debug > 1 ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
+				token_search[0] = '@'; // just in case
+				token_obs[0] = '!';
+				comment[0] = '#';
 			}
 			else
 			{
-				if( debug ) printf( "MADS Instruction file\n" );
+				if( debug > 1 ) printf( "MADS Instruction file\n" );
 				rewind( infile_inst );
 				token_search[0] = '@';
 				token_obs[0] = '!';
+				comment[0] = '#';
 				break;
 			}
 		}
@@ -384,6 +440,14 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			if( strlen( word_inst ) > 1 )
 				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( token_obs[0] == 0 ) token_obs[0] = '!';
+		}
+		else if( c == 3 ) // third entry; "comment" token
+		{
+			white_trim( word_inst );
+			comment[0] = word_inst[0];
+			if( strlen( word_inst ) > 1 )
+				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+			if( comment[0] == 0 ) comment[0] = '#';
 			break;
 		}
 	}
@@ -393,22 +457,25 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	strcat( dummy_var, "dum" );
 	dummy_var[4] = token_obs[0];
 	dummy_var[5] = 0;
-	if( debug )
+	token_obs[1] = token_search[1] = comment[1] = 0;
+	if( debug > 1 )
 	{
 		printf( "Search separator: %s\n", token_search );
 		printf( "Observation separator: %s\n", token_obs );
 		printf( "Dummy observation: %s\n", dummy_var );
+		printf( "Comment: %s\n", comment );
 	}
 	buf_data[0] = 0; word_data = pnt_data = NULL;
 	while( 1 )
 	{
 		fgets( buf_inst, 1000, infile_inst );
 		if( feof( infile_inst ) ) break;
-		white_trim( buf_inst );
-		if( debug ) printf( "\nCurrent instruction line: %s\n", buf_inst );
 		pnt_inst = &buf_inst[0];
-		word_inst = strtok_r( buf_inst, separator, &pnt_inst );
-		if( buf_inst[0] == 'l' ) // skip lines in the "data" file
+		white_trim( pnt_inst ); white_skip( &pnt_inst );
+		if( pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
+		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
+		word_inst = strtok_r( pnt_inst, separator, &pnt_inst );
+		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &word_inst[1], "%d", &c );
 			word_inst = strtok_r( NULL, separator, &pnt_inst );
@@ -427,24 +494,52 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			pnt_data = &buf_data[0];
 			word_data = NULL;
 		}
-		if( debug ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'", word_data, pnt_data );
+		if( debug > 1 ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'", word_data, pnt_data );
 		if( debug ) { if( pnt_data == NULL ) printf( "\n" ); else { if( pnt_data[strlen( pnt_data ) - 2] != '\n' ) printf( "\n" ); } }
 		c = 0;
 		for( ; word_inst; word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 		{
-			white_skip( &word_inst ); white_trim( word_inst );
-			if( debug ) printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout );
+			white_skip( &word_inst );
+			if( debug > 1 ) printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout );
 			if( word_inst[0] == token_search[0] ) // search for keyword
 			{
-				word_search = strtok( word_inst, token_search );
-				white_skip( &word_search ); white_trim( word_search );
-				if( debug ) printf( "Search for keyword \'%s\' in the data file ...\n", word_search );
+				if( debug ) { printf( "Search for keyword " ); fflush( stdout ); }
+				word_search[0] = 0;
+				c = strlen( word_inst );
+				if( c > 1 )
+				{
+					strcat( word_search, &word_inst[1] );
+					if( word_inst[c - 1] == token_search[0] ) // the entire search pattern is already obtained
+						word_search[c - 2] = 0;               // there were no white characters
+					else
+					{
+						strcat( word_search, " " );           // the search pattern is split; add the deleted " "
+						c = 1;                                // add the rest
+					}
+				}
+				if( c == 1 ) // the rest of the search pattern needs to be obtained
+				{
+					if( pnt_inst[0] != token_search[0] )
+					{
+						word_s = strtok_r( NULL, token_search, &pnt_inst );
+						strcat( word_search, " " ); // add the deleted " "
+						strcat( word_search, word_s );
+					}
+					else // skip search token; the entire search pattern is already obtained
+						word_inst = strtok_r( NULL, separator, &pnt_inst );
+				}
+				if( debug ) { printf( " \'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
 				bad_data = 1;
 				while( !feof( infile_data ) )
 				{
 					if( ( pnt_data = strstr( pnt_data, word_search ) ) != NULL )
 					{
-						if( debug ) printf( "Matching line found in the data file: \'%s\' Location \'%s\'\n", buf_data, pnt_data );
+						if( debug ) printf( "Data file Location \'%s\'\n", pnt_data );
+						else
+						{
+							if ( debug > 1 ) printf( "Matching line found in the data file: \'%s\' Location \'%s\'\n", buf_data, pnt_data );
+						}
+						pnt_data += strlen( word_search );
 						bad_data = 0;
 						break;
 					}
@@ -456,64 +551,68 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				}
 				if( bad_data == 1 )
 				{
-					printf( "\nERROR: Search keyword \'%s\' cannot be found in the data file \'%s\'!\n", word_inst, fn_in_d );
+					printf( "\nERROR: Search keyword \'%s\' cannot be found in the data file \'%s\'!\n", word_search, fn_in_d );
 					return( -1 );
 				}
 			}
-			else if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
+			else // no keyword search
 			{
-				if( debug ) printf( "Skip dummy data!\n" );
-				word_data = strtok_r( NULL, separator, &pnt_data );
-				if( debug ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
-			}
-			else if( word_inst[0] == 'w' ) // white space
-			{
-				if( debug ) printf( "Skip white space!\n" );
-				if( pnt_data[0] != ' ' )
+				white_trim( word_inst );
+				if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
 				{
-					if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
+					if( debug > 1 ) printf( "Skip dummy data!\n" );
 					word_data = strtok_r( NULL, separator, &pnt_data );
+					if( debug > 1 ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
+				}
+				else if( word_inst[0] == 'w' ) // white space
+				{
+					if( debug > 1) printf( "Skip white space!\n" );
+					if( pnt_data[0] != ' ' )
+					{
+						if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
+						word_data = strtok_r( NULL, separator, &pnt_data );
+					}
+					else
+					{
+						word_data = strtok_r( NULL, separator, &pnt_data );
+					}
+					if( debug > 1 ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
+				}
+				else if( word_inst[0] == token_obs[0] ) // observation variable
+				{
+					c++;
+					if( word_data == NULL || c > 1 ) word_data = strtok_r( NULL, separator, &pnt_data );
+					if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
+					else word_inst = &word_inst[1];
+					if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
+					else strtok_r( NULL, separator, &pnt_inst );
+					if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
+					white_skip( &word_inst );
+					white_trim( word_inst );
+					for( i = 0; i < nobs; i++ )
+					{
+						if( strcmp( word_inst, obs_id[i] ) == 0 )
+						{
+							sscanf( word_data, "%lf", &v );
+							if( check[i] < 0 ) { obs[i] = v; check[i] = 1; }
+							else { obs[i] += v; check[i] += 1; }
+							if( debug ) printf( "\'%s\'=%g\n", obs_id[i], obs[i] );
+							break;
+						}
+					}
+					if( nobs == i )
+					{
+						printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
+						bad_data = 1;
+					}
 				}
 				else
 				{
-					word_data = strtok_r( NULL, separator, &pnt_data );
-				}
-				if( debug ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
-			}
-			else if( word_inst[0] == token_obs[0] ) // observation variable
-			{
-				c++;
-				if( word_data == NULL || c > 1 ) word_data = strtok_r( NULL, separator, &pnt_data );
-				if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
-				else word_inst = &word_inst[1];
-				if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
-				else strtok_r( NULL, separator, &pnt_inst );
-				if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
-				white_skip( &word_inst );
-				white_trim( word_inst );
-				for( i = 0; i < nobs; i++ )
-				{
-					if( strcmp( word_inst, obs_id[i] ) == 0 )
-					{
-						sscanf( word_data, "%lf", &v );
-						if( check[i] < 0 ) { obs[i] = v; check[i] = 1; }
-						else { obs[i] += v; check[i] += 1; }
-						if( debug ) printf( "\'%s\'=%g\n", obs_id[i], obs[i] );
-						break;
-					}
-				}
-				if( nobs == i )
-				{
-					printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
+					printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
+					printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
 					bad_data = 1;
+					break;
 				}
-			}
-			else
-			{
-				printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
-				printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
-				bad_data = 1;
-				break;
 			}
 		}
 	}
