@@ -335,6 +335,11 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 						bad_data = 1;
 					}
 				}
+				else if( word_inst[0] == comment[0] ) // comment
+				{
+					if( debug ) printf( "Comment. Skip rest of the instruction line!\n" );
+					break;
+				}
 				else
 				{
 					printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
@@ -558,6 +563,11 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 						printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
 						bad_data = 1;
 					}
+				}
+				else if( word_inst[0] == comment[0] ) // comment
+				{
+					if( debug > 1 ) printf( "Comment. Skip rest of the instruction line!\n" );
+					break;
 				}
 				else
 				{
