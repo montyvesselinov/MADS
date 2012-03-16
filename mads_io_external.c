@@ -239,7 +239,6 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 			if( strlen( word_inst ) > 1 )
 				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( token_search[0] == 0 ) token_search[0] = '@';
-
 		}
 		else if( c == 2 ) // third entry; "variable" token
 		{
@@ -489,7 +488,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 						if( debug ) printf( "Data file Location \'%s\'\n", pnt_data );
 						else
 						{
-							if ( debug > 1 ) printf( "Matching line found in the data file: \'%s\' Location \'%s\'\n", buf_data, pnt_data );
+							if( debug > 1 ) printf( "Matching line found in the data file: \'%s\' Location \'%s\'\n", buf_data, pnt_data );
 						}
 						pnt_data += strlen( word_search );
 						bad_data = 0;
@@ -520,7 +519,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				}
 				else if( word_inst[0] == 'w' ) // white space
 				{
-					if( debug > 1) printf( "Skip white space!\n" );
+					if( debug > 1 ) printf( "Skip white space!\n" );
 					if( pnt_data[0] != ' ' )
 					{
 						if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
