@@ -28,7 +28,6 @@
 #ifndef MADS_H
 #define MADS_H
 
-#include <gsl/gsl_vector.h>
 #include <stdio.h>
 #include <time.h>
 #include <gsl/gsl_vector.h>
