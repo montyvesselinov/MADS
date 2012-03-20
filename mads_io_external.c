@@ -271,7 +271,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		printf( "Search separator: %s\n", token_search );
 		printf( "Observation separator: %s\n", token_obs );
 		printf( "Dummy observation: %s\n", dummy_var );
-		printf( "Comment: %s\n", comment );
+		if( comment[0] ) printf( "Comment: %s\n", comment );
 	}
 	while( 1 ) // IMPORTANT: strtok below modifies buf_inst by adding '\0's; if needed strcpy buf_inst
 	{
@@ -280,11 +280,11 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		pnt_inst = &buf_inst[0];
 		word_inst = 0;
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
-		if( pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
+		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
 		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
-			sscanf( &word_inst[1], "%d", &c );
+			sscanf( &pnt_inst[1], "%d", &c );
 			if( debug ) printf( "Skip %d lines\n", c );
 			word_inst = strtok_r( NULL, separator, &pnt_inst ); // skip l command
 		}
@@ -335,7 +335,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 						bad_data = 1;
 					}
 				}
-				else if( word_inst[0] == comment[0] ) // comment
+				else if( comment[0] && word_inst[0] == comment[0] ) // comment
 				{
 					if( debug ) printf( "Comment. Skip rest of the instruction line!\n" );
 					break;
@@ -444,7 +444,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		printf( "Search separator: %s\n", token_search );
 		printf( "Observation separator: %s\n", token_obs );
 		printf( "Dummy observation: %s\n", dummy_var );
-		printf( "Comment: %s\n", comment );
+		if( comment[0] ) printf( "Comment: %s\n", comment );
 	}
 	buf_data[0] = 0; word_data = pnt_data = NULL;
 	while( 1 )
@@ -454,14 +454,15 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		pnt_inst = &buf_inst[0];
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
 		word_inst = 0;
-		if( pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
+		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
 		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
-			sscanf( &word_inst[1], "%d", &c );
+			sscanf( &pnt_inst[1], "%d", &c );
 			if( debug ) printf( "Skip %d lines\n", c );
 			for( i = 0; i < c; i++ )
 				fgets( buf_data, 1000, infile_data );
+			word_inst = strtok_r( NULL, separator, &pnt_inst ); // skip l command
 			if( feof( infile_data ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 			white_trim( buf_data );
 			pnt_data = &buf_data[0];
@@ -564,7 +565,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 						bad_data = 1;
 					}
 				}
-				else if( word_inst[0] == comment[0] ) // comment
+				else if( comment[0] && word_inst[0] == comment[0] ) // comment
 				{
 					if( debug > 1 ) printf( "Comment. Skip rest of the instruction line!\n" );
 					break;
