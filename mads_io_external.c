@@ -282,6 +282,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
 		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
 		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
+		if( strlen( pnt_inst ) == 0 ) { if( debug ) printf( "Empty line; will be skipped.\n" ); continue; }
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &pnt_inst[1], "%d", &c );
@@ -301,7 +302,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 			{
 				word_inst = strtok_r( NULL, separator, &pnt_inst ); // read TEMPLETE word
 				white_trim( word_inst );
-				if( debug ) { printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout ); }
+				if( debug ) { printf( "INSTRUCTION word \'%s\' : ", word_inst ); fflush( stdout ); }
 				if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
 				{
 					if( debug ) printf( "Skip dummy data!\n" );
@@ -318,7 +319,8 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 					if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
 					else strtok_r( NULL, separator, &pnt_inst );
 					if( debug ) printf( "Observation keyword \'%s\' ... ", word_inst );
-					white_skip( &word_inst ); white_trim( word_inst );
+					white_skip( &word_inst );
+					white_trim( word_inst );
 					for( i = 0; i < nobs; i++ )
 					{
 						if( strcmp( word_inst, obs_id[i] ) == 0 )
@@ -342,7 +344,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 				}
 				else
 				{
-					printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
+					printf( "\nERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
 					printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
 					bad_data = 1;
 					break;
@@ -362,7 +364,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	FILE *infile_inst, *infile_data;
 	char *separator = " \t\n";
 	char *word_inst, *word_data, *word_search, token_search[2], token_obs[2], comment[2], dummy_var[6], buf_data[1000], buf_inst[1000], *pnt_inst, *pnt_data;
-	int i, c, bad_data = 0;
+	int i, c, bad_data = 0, sl;
 	double v;
 	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
@@ -456,6 +458,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		word_inst = 0;
 		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
 		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
+		if( strlen( pnt_inst ) == 0 ) { if( debug ) printf( "Empty line; will be skipped.\n" ); continue; }
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &pnt_inst[1], "%d", &c );
@@ -491,12 +494,12 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				{
 					if( ( pnt_data = strstr( pnt_data, word_search ) ) != NULL )
 					{
-						if( debug ) printf( "Data file Location \'%s\'\n", pnt_data );
+						pnt_data += strlen( word_search );
+						if( debug == 1 ) printf( "Matching data file location \'%s\'\n", pnt_data );
 						else
 						{
-							if( debug > 1 ) printf( "Matching line found in the data file: \'%s\' Location \'%s\'\n", buf_data, pnt_data );
+							if( debug > 1 ) printf( "Matching data file line: \'%s\'\nLocation: \'%s\'\n", buf_data, pnt_data );
 						}
-						pnt_data += strlen( word_search );
 						bad_data = 0;
 						break;
 					}
@@ -504,7 +507,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 					if( feof( infile_data ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 					white_trim( buf_data );
 					pnt_data = &buf_data[0];
-					word_data = NULL;
+					word_data = NULL; // Force reading
 				}
 				if( bad_data == 1 )
 				{
@@ -516,10 +519,12 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			{
 				word_inst = strtok_r( NULL, separator, &pnt_inst ); // read TEMPLETE word
 				white_trim( word_inst );
-				if( debug > 1 ) printf( "TEMPLETE word \'%s\' : ", word_inst ); fflush( stdout );
+				if( debug > 1 ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
+				if( debug > 1 ) printf( "INSTRUCTION word \'%s\' : ", word_inst ); fflush( stdout );
 				if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
 				{
 					if( debug > 1 ) printf( "Skip dummy data!\n" );
+					if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
 					word_data = strtok_r( NULL, separator, &pnt_data );
 					if( debug > 1 ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
 				}
@@ -543,11 +548,21 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 					if( word_data == NULL || c > 1 ) word_data = strtok_r( NULL, separator, &pnt_data );
 					if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
 					else word_inst = &word_inst[1];
-					if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
+					sl = strlen( word_inst );
+					if( word_inst[sl - 1] == token_obs[0] ) word_inst[sl - 1] = 0;
 					else strtok_r( NULL, separator, &pnt_inst );
-					if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
 					white_skip( &word_inst );
 					white_trim( word_inst );
+					if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
+					if( word_data == NULL || strlen(word_data) == 0 )
+					{
+						printf( "\nERROR: Mismatch between the instruction file \'%s\' and the data file \'%s\'!\n", fn_in_i, fn_in_d );
+						printf( "INSTRUCTION word \'%s\'\n", word_inst );
+						printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
+						printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
+						bad_data = 1;
+						break;
+					}
 					for( i = 0; i < nobs; i++ )
 					{
 						if( strcmp( word_inst, obs_id[i] ) == 0 )
@@ -572,7 +587,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				}
 				else
 				{
-					printf( "ERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
+					printf( "\nERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
 					printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
 					bad_data = 1;
 					break;
@@ -683,7 +698,9 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
 	}
-	sprintf( buf, "rm %s >& /dev/null", fn_out ); system( buf );
+	sprintf( buf, "rm -f %s >& /dev/null", fn_out );
+	if ( debug ) printf( "Remove files for model inputs: %s\n", buf );
+	system( buf );
 	if( ( out = fopen( fn_out, "w" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to write data!\n", fn_out );
