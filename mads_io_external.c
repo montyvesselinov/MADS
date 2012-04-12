@@ -554,7 +554,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 					white_skip( &word_inst );
 					white_trim( word_inst );
 					if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
-					if( word_data == NULL || strlen(word_data) == 0 )
+					if( word_data == NULL || strlen( word_data ) == 0 )
 					{
 						printf( "\nERROR: Mismatch between the instruction file \'%s\' and the data file \'%s\'!\n", fn_in_i, fn_in_d );
 						printf( "INSTRUCTION word \'%s\'\n", word_inst );
@@ -699,7 +699,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		return( -1 );
 	}
 	sprintf( buf, "rm -f %s >& /dev/null", fn_out );
-	if ( debug ) printf( "Remove files for model inputs: %s\n", buf );
+	if( debug ) printf( "Remove files for model inputs: %s\n", buf );
 	system( buf );
 	if( ( out = fopen( fn_out, "w" ) ) == NULL )
 	{
