@@ -444,7 +444,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 
 int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 {
-	int i, j, k, s, success, success_all = 1;
+	int i, j, k, p1, p2, l, s, success, success_all = 1;
 	double c, t, c1, c2, err, phi = 0.0;
 	struct opt_data *p = ( struct opt_data * )data;
 	char filename[255];
@@ -556,22 +556,25 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			i = p->od->well_index[k];
 			j = p->od->time_index[k];
 			c1 = c2 = p->cd->c_background;
+			// printf( "HERE intern\n" );
 			for( s = 0; s < p->cd->num_solutions; s++ )
 			{
 				if( p->cd->num_solutions == 1 )
-					for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-						p->ad->var[i] = p->cd->var[i];
+					for( p1 = 0; p1 < NUM_ANAL_PARAMS; p1++ )
+						p->ad->var[p1] = p->cd->var[p1];
 				else
 				{
 					if( s == 0 )
 					{
-						k = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE;
-						for( i = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; i < k; i++ )
-							p->ad->var[i] = p->cd->var[i];
+						l = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
+						p2 = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
+						for( p1 = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; p1 < l; p1++, p2++ )
+							p->ad->var[p2] = p->cd->var[p1];
 					}
-					k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
-					for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++ )
-						p->ad->var[i] = p->cd->var[i];
+					l = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+					p2 = 0;
+					for( p1 = NUM_ANAL_PARAMS_SOURCE * s; p1 < l; p1++, p2++ )
+						p->ad->var[p2] = p->cd->var[p1];
 				}
 				switch( p->cd->solution_type[s] )
 				{
@@ -749,7 +752,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 
 double func_solver1( double x, double y, double z, double t, void *data ) // Compute for given (x, y, z, t)
 {
-	int i, k, s;
+	int i, j, k, s;
 	double c;
 	struct calc_data *p = ( struct calc_data * )data;
 	struct anal_data ad;
@@ -763,14 +766,17 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 		{
 			if( s == 0 )
 			{
-				k = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE;
-				for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++ )
-					ad.var[i] = p->var[i];
+				k = NUM_ANAL_PARAMS_SOURCE * p->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
+				j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
+				for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
+					ad.var[j] = p->var[i];
 			}
 			k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
-			for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++ )
-				ad.var[i] = p->var[i];
+			j = 0;
+			for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
+				ad.var[j] = p->var[i];
 		}
+		// printf( "HERE func_solver1\n" );
 		switch( p->solution_type[s] )
 		{
 			case POINT:
@@ -793,7 +799,7 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 
 double func_solver( double x, double y, double z1, double z2, double t, void *data ) // Compute for (x, y, z1, t) and (x, y, z2, t) and average
 {
-	int i, k, s;
+	int i, j, k, s;
 	double c1, c2;
 	struct calc_data *p = ( struct calc_data * )data;
 	struct anal_data ad;
@@ -807,14 +813,19 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 		{
 			if( s == 0 )
 			{
-				k = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE;
-				for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++ )
-					ad.var[i] = p->var[i];
+				k = NUM_ANAL_PARAMS_SOURCE * p->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
+				j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
+				for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
+					ad.var[j] = p->var[i];
 			}
 			k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
-			for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++ )
-				ad.var[i] = p->var[i];
+			j = 0;
+			for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
+				ad.var[j] = p->var[i];
 		}
+		// printf( "HERE func_solver\n" );
+		// for( i = 0; i < NUM_ANAL_PARAMS; i++ )
+		// printf( "p %g\n", ad.var[i] );
 		switch( p->solution_type[s] )
 		{
 			case POINT:

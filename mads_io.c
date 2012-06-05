@@ -428,8 +428,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			return( -1 );
 		}
 	}
-	printf( "\nModel: " );
+	if( ( *cd ).num_solutions > 1 ) printf( "\nModels: " );
+	else printf( "\nModel: " );
 	for( c = 0; c < ( *cd ).num_solutions; c++ )
+	{
+		if( ( *cd ).num_solutions > 1 ) printf( "(%d) ", c + 1 );
 		switch( ( *cd ).solution_type[c] )
 		{
 			case EXTERNAL: { printf( "external" ); strcpy( ( *cd ).solution_id, "external" ); break; }
@@ -440,6 +443,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); strcpy( ( *cd ).solution_id, "test" ); break; }
 			default: printf( "WARNING! UNDEFINED model type!" ); break;
 		}
+	}
 	printf( "\n" );
 	if( ( *cd ).solution_type[0] == TEST ) return( 1 );
 	// Read parameters

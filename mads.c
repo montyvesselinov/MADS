@@ -187,6 +187,7 @@ int main( int argn, char *argv[] )
 	cd.standalone = 1; // LM variable; LM is stand-alone if not part of tribes optimization
 	cd.compute_phi = 1; // function calls compute OF (phi); turned off only when the jacobians are computed for LM
 	cd.pderiv = cd.oderiv = -1; // internal flags; do not compute parameter and observation derivatives
+	cd.c_background = 0;
 	op.phi = HUGE_VAL;
 	op.success = 0;
 	op.f_ofe = NULL;
