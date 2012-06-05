@@ -163,6 +163,7 @@ int main( int argn, char *argv[] )
 	struct extrn_data ed;
 	struct grid_data gd;
 	struct opt_data op;
+	struct anal_data ad;
 	char filename[255], root[255], extension[255], buf[255], *dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
@@ -179,6 +180,7 @@ int main( int argn, char *argv[] )
 	op.cd = &cd;
 	op.gd = &gd;
 	op.ed = &ed;
+	op.ad = &ad;
 	cd.neval = 0;
 	cd.njac = 0;
 	cd.nlmo = 0;
@@ -248,7 +250,7 @@ int main( int argn, char *argv[] )
 			exit( 0 );
 		}
 		if( cd.opt_method[0] == 0 ) { strcpy( cd.opt_method, "lm" ); cd.calib_type = SIMPLE; cd.problem_type = CALIBRATE; }
-		cd.solution_type = EXTERNAL; func_global = func_extrn;
+		cd.solution_type[0] = EXTERNAL; func_global = func_extrn;
 		buf[0] = 0;
 		for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
 		if( parse_cmd( buf, &cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
@@ -267,7 +269,7 @@ int main( int argn, char *argv[] )
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			exit( 0 );
 		}
-		if( cd.solution_type == EXTERNAL ) func_global = func_extrn;
+		if( cd.solution_type[0] == EXTERNAL ) func_global = func_extrn;
 		else func_global = func_intrn;
 	}
 	/*
@@ -354,7 +356,7 @@ int main( int argn, char *argv[] )
 	/*
 	 *  Problem based on external model
 	 */
-	if( cd.solution_type == EXTERNAL ) // Check the files for external execution
+	if( cd.solution_type[0] == EXTERNAL ) // Check the files for external execution
 	{
 		if( ( opt_params = ( double * ) malloc( pd.nParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the template files for errors ...\n" );
@@ -400,7 +402,7 @@ int main( int argn, char *argv[] )
 	 *  Check for restart conditions
 	 */
 	printf( "\nExecution date & time stamp: %s\n", op.datetime_stamp ); // Stamp will be applied to name / rename various output files
-	if( cd.solution_type == EXTERNAL && cd.num_proc > 1 )
+	if( cd.solution_type[0] == EXTERNAL && cd.num_proc > 1 )
 	{
 		if( cd.restart == 1 ) // Restart by default
 		{
@@ -519,7 +521,7 @@ int main( int argn, char *argv[] )
 		success = optimize_func( &op ); // Optimize
 		if( success == 0 ) { printf( "ERROR: Optimization did not start!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		sprintf( filename, "%s-rerun.mads", op.root );
-		if( cd.solution_type != TEST ) save_problem( filename, &op );
+		if( cd.solution_type[0] != TEST ) save_problem( filename, &op );
 		if( cd.debug == 0 ) printf( "\n" );
 		print_results( &op, 1 );
 		save_results( "", &op, &gd );
@@ -609,7 +611,7 @@ int main( int argn, char *argv[] )
 		success_all = 1;
 		compare = 0;
 		phi = 0;
-		if( cd.solution_type == EXTERNAL )
+		if( cd.solution_type[0] == EXTERNAL )
 			for( i = 0; i < od.nObs; i++ )
 			{
 				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) continue;
@@ -624,7 +626,7 @@ int main( int argn, char *argv[] )
 				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
 				else od.obs_target[i] = c; // Save computed values as calibration targets
 			}
-		else if( cd.solution_type != TEST )
+		else if( cd.solution_type[0] != TEST )
 			for( i = 0; i < wd.nW; i++ )
 				for( j = 0; j < wd.nWellObs[i]; j++ )
 				{
@@ -736,7 +738,7 @@ int optimize_pso( struct opt_data *op )
 		printf( "\n------------------------- Optimization Results:\n" );
 		print_results( op, 1 );
 	}
-	if( op->cd->leigen && op->cd->solution_type != TEST )
+	if( op->cd->leigen && op->cd->solution_type[0] != TEST )
 		if( eigen( op, NULL, NULL ) == 0 ) // Execute eigen analysis of the final results
 			return( 0 );
 	return( 1 );
@@ -1012,6 +1014,7 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->paranoid ) free( var_lhs );
 	free( opt_params ); free( opt_params_best ); free( x_c ); free( res );
 	gsl_matrix_free( gsl_jacobian ); gsl_matrix_free( gsl_covar ); gsl_vector_free( gsl_opt_params );
+	free( op->cd->solution_id ); free( op->cd->solution_type );
 	if( !debug && standalone && op->cd->calib_type == SIMPLE ) printf( "\n" );
 	return( 1 );
 }
@@ -1979,7 +1982,7 @@ int montecarlo( struct opt_data *op )
 	phi_min = HUGE_VAL;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1;
 	else k = 0;
-	if( op->cd->solution_type == EXTERNAL && op->cd->num_proc > 1 && k == 0 ) // Parallel job
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 && k == 0 ) // Parallel job
 	{
 		if( op->cd->debug || op->cd->mdebug ) printf( "Parallel execution of external jobs ...\n" );
 		if( op->cd->debug || op->cd->mdebug ) printf( "Generation of all the model input files ...\n" );
@@ -2735,10 +2738,10 @@ void print_results( struct opt_data *op, int verbosity )
 		else printf( "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
 	if( verbosity == 0 ) return;
-	if( op->cd->solution_type != TEST && op->od->nObs > 0 )
+	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
 	{
 		printf( "\nModel predictions for calibration targets:\n" );
-		if( op->cd->solution_type == EXTERNAL )
+		if( op->cd->solution_type[0] == EXTERNAL )
 			for( i = 0; i < op->od->nObs; i++ )
 			{
 				if( op->od->obs_weight[i] == 0 ) { predict = 1; continue; }
@@ -2784,10 +2787,10 @@ void print_results( struct opt_data *op, int verbosity )
 		if( success_all ) printf( "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
 		else printf( "At least one of the estimated model parameters has an absolute error from the true parameters greater than %g!\n", op->cd->parerror );
 	}
-	if( op->cd->solution_type != TEST && op->od->nObs > 0 && predict )
+	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 && predict )
 	{
 		printf( "\nModel predictions:\n" );
-		if( op->cd->solution_type == EXTERNAL )
+		if( op->cd->solution_type[0] == EXTERNAL )
 			for( i = 0; i < op->od->nObs; i++ )
 			{
 				if( op->od->obs_weight[i] != 0 ) continue;
@@ -2835,13 +2838,13 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		if( op->pd->var_log[k] == 0 ) fprintf( out, "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
 		else fprintf( out, "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
-	if( op->cd->solution_type != TEST && op->od->nObs > 0 )
+	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
 	{
 		fprintf( out, "\nModel predictions:\n" );
 		strcpy( filename, f );
 		strcat( filename, ".residuals" );
 		out2 = Fwrite( filename );
-		if( op->cd->solution_type == EXTERNAL )
+		if( op->cd->solution_type[0] == EXTERNAL )
 			for( i = 0; i < op->od->nObs; i++ )
 			{
 				if( op->od->obs_weight[i] != 0 )
@@ -2902,7 +2905,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->neval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed_init );
 	fclose( out );
-	if( gd->min_t > 0 && op->cd->solution_type != TEST )
+	if( gd->min_t > 0 && op->cd->solution_type[0] != TEST )
 	{
 		printf( "\nCompute breakthrough curves at all the wells ..." );
 		fflush( stdout );
@@ -2911,7 +2914,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 		compute_btc2( filename, filename2, op );
 		//			compute_btc( filename, &op, &gd );
 	}
-	if( gd->time > 0 && op->cd->solution_type != TEST )
+	if( gd->time > 0 && op->cd->solution_type[0] != TEST )
 	{
 		printf( "\nCompute spatial distribution of predictions at t = %g ...\n", gd->time );
 		fflush( stdout );

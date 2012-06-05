@@ -69,8 +69,11 @@ int load_pst( char *filename, struct opt_data *op )
 	}
 	cd->opt_method = ( char * ) malloc( 50 * sizeof( char ) );
 	cd->solution_id = ( char * ) malloc( 50 * sizeof( char ) );
-	strcpy( cd->solution_id, "extertnal" );
-	cd->solution_type = -1;
+	cd->solution_type = ( int * ) malloc( 1 * sizeof( int ) );
+	strcpy( cd->solution_id, "external" );
+	cd->num_solutions = 1;
+	( *cd ).solution_type = ( int * ) malloc( sizeof( int ) );
+	cd->solution_type[0] = EXTERNAL;
 	for( i = 0; i < 4; i++ ) // skip 4 lines
 		fgets( buf, 1000, in );
 	sscanf( buf, "%d %d %d %*d %d", &( *pd ).nParam, &( *od ).nObs, &npar_groups, &nobs_groups );

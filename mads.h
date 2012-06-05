@@ -37,9 +37,22 @@ enum PROBLEM_TYPE {UNKNOWN = -2, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, M
 enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
 enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3 };
+#define NUM_ANAL_PARAMS 19
+#define NUM_ANAL_PARAMS_SOURCE 9
 enum PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END, POROSITY, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ };
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
+
+struct anal_data
+{
+	int num_param;
+	int debug;
+	double xe; // x coordinate; needed only for the functions during integration (can be a subclass)
+	double ye; // y coordinate; needed only for the functions during integration (can be a subclass)
+	double ze; // z coordinate; needed only for the functions during integration (can be a subclass)
+	double te; // t coordinate; needed only for the functions during integration (can be a subclass)
+	double var[NUM_ANAL_PARAMS]; // optimized model parameters; needed only for the functions during integration (can be a subclass)
+};
 
 struct opt_data // TODO class MADS (in C++)
 {
@@ -57,6 +70,7 @@ struct opt_data // TODO class MADS (in C++)
 	struct calc_data *cd; // calculation parameters subclass
 	struct grid_data *gd; // grid subclass to compute model predictions
 	struct extrn_data *ed; // parameter subclass for external simulations
+	struct anal_data *ad;
 	// model of the MADS functions should be part of this class
 };
 
@@ -65,7 +79,8 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int problem_type; // problem type: forward, calibration, ...
 	int calib_type; // calibration type: simple, igpd, ...
 	int paranoid; // paranoid calibration
-	int solution_type; // external / internal (box, ... )
+	int num_solutions; // number of internal solutions
+	int *solution_type; // external / internal (box, ... )
 	int nlmo; // number of LM calls
 	int nreal; // number of realizations 
 	int ireal; // execution of specific realization (case)
@@ -96,6 +111,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	double lm_h;
 	double lm_ratio;
 	double lm_ofdecline;
+	double c_background;
 	char *solution_id; // solution identifier (name)
 	char *opt_method; // optimization method identifier
 	char *smp_method; // sampling method identifier

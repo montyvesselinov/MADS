@@ -70,9 +70,10 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	strcpy( cd->opt_method, "lm" );
 	cd->problem_type = UNKNOWN;
 	cd->calib_type = SIMPLE;
-	cd->solution_type = EXTERNAL;
+	cd->solution_type[0] = EXTERNAL;
 	cd->objfunc_type = SSR;
 	cd->check_success = 0;
+	cd->c_background = 0;
 	cd->debug = 0;
 	cd->fdebug = 0;
 	cd->ldebug = 0;
@@ -138,6 +139,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "igrnd" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGRND; }
 		if( strcasestr( word, "leig" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( strcasestr( word, "energy=" ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
+		if( strcasestr( word, "background=" ) ) { w = 1; sscanf( word, "background=%lf", &cd->c_background ); }
 		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
 		if( strcasestr( word, "lmacc" ) ) { w = 1; cd->lm_acc = 1; }
 		if( strcasestr( word, "lmratio=" ) ) { w = 1; sscanf( word, "lmratio=%lf", &cd->lm_ratio ); }
@@ -192,13 +194,13 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasecmp( word, "ssd0" ) == 0 ) { w = 1; cd->objfunc_type = SSD0; }
 		if( strcasecmp( word, "ssda" ) == 0 ) { w = 1; cd->objfunc_type = SSDA; }
 		if( strcasecmp( word, "ssdr" ) == 0 ) { w = 1; cd->objfunc_type = SSDR; }
-		if( strcasestr( word, "test" ) ) { w = 1; cd->test_func = 1; cd->test_func_dim = 2; sscanf( word, "test=%d", &cd->test_func ); ( *cd ).solution_type = TEST; }
+		if( strcasestr( word, "test" ) ) { w = 1; cd->test_func = 1; cd->test_func_dim = 2; sscanf( word, "test=%d", &cd->test_func ); ( *cd ).solution_type[0] = TEST; }
 		if( strcasestr( word, "dim=" ) ) { w = 1; sscanf( word, "dim=%d", &cd->test_func_dim ); if( cd->test_func_dim < 2 ) cd->test_func_dim = 2; }
 		if( strcasestr( word, "npar=" ) ) { w = 1; sscanf( word, "npar=%d", &cd->test_func_npar ); }
 		if( strcasestr( word, "nobs=" ) ) { w = 1; sscanf( word, "nobs=%d", &cd->test_func_nobs ); }
-		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type = POINT; }
-		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
-		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type = BOX; }
+		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type[0] = POINT; }
+		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type[0] = PLANE3D; else( *cd ).solution_type[0] = PLANE; }
+		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type[0] = BOX; }
 		if( w == 0 ) { printf( "\nERROR: Unknown keyword \'%s\'!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); return( -1 ); }
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
@@ -277,7 +279,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		printf( "4: Parameters within a predefined absolute error from known 'true' values: " );
 		if( cd->parerror > 0 ) printf( "implemented (keyword 'parerror=%g')\n", cd->parerror );
 		else printf( "NOT implemented (ADD keyword 'parerror' to implement)\n" );
-		printf( "Objectve function: " );
+		printf( "Objective function: " );
 		if( cd->test_func > 0 )
 			printf( "test function %d", cd->test_func );
 		else
@@ -341,7 +343,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		printf( "Debug level for random sets: mdebug=%d\n", cd->mdebug );
 	if( ( cd->debug || cd->pardebug ) && cd->num_proc > 1 )
 		printf( "Debug level for parallel execution: pardebug=%d\n", cd->pardebug );
-	if( ( cd->debug || cd->tpldebug || cd->insdebug ) && cd->solution_type == EXTERNAL )
+	if( ( cd->debug || cd->tpldebug || cd->insdebug ) && cd->solution_type[0] == EXTERNAL )
 	{
 		printf( "Debug level for template file: tpldebug=%d\n", cd->tpldebug );
 		printf( "Debug level for instruction file: insdebug=%d\n", cd->insdebug );
@@ -354,8 +356,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	FILE *infile;
 //	FILE *infileb;
 	double x0, y0, x, y, d, alpha, beta;
-	char buf[1000], *file, **path, exec[1000];
-	int  i, j, k, bad_data, nofile = 0, skip = 0;
+	char buf[1000], *file, **path, exec[1000], *word;
+	char *separator = " \t\n";
+	int  i, j, k, c, bad_data, nofile = 0, skip = 0;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct obs_data *od;
@@ -388,40 +391,70 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else buf[0] = 0;
 	// Add commands provided as arguments
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
+	cd->solution_id = ( char * ) malloc( 150 * sizeof( char ) );
+	( *cd ).solution_id[0] = 0;
+	( *cd ).num_solutions = 1;
+	( *cd ).solution_type = ( int * ) malloc( sizeof( int ) );
 	if( parse_cmd( buf, cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
 	// Read Solution Type
-	cd->solution_id = ( char * ) malloc( 50 * sizeof( char ) ); ( *cd ).solution_id[0] = 0;
-	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fscanf( infile, "%s\n", ( *cd ).solution_id ); sscanf( ( *cd ).solution_id, "%d",  &( *cd ).solution_type ); }
-	if( strcasestr( ( *cd ).solution_id, "ext" ) )( *cd ).solution_type = EXTERNAL;
-	if( strcasestr( ( *cd ).solution_id, "poi" ) )( *cd ).solution_type = POINT;
-	if( strcasestr( ( *cd ).solution_id, "rec" ) ) { if( strcasestr( ( *cd ).solution_id, "ver" ) )( *cd ).solution_type = PLANE3D; else( *cd ).solution_type = PLANE; }
-	if( strcasestr( ( *cd ).solution_id, "box" ) )( *cd ).solution_type = BOX;
-	if( strcasestr( ( *cd ).solution_id, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type = TEST; od->nObs = 0; }
+	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fgets( ( *cd ).solution_id, 150, infile ); /*fscanf( infile, "%s\n", ( *cd ).solution_id );*/ }
+	strcpy( buf, ( *cd ).solution_id );
+	for( c = 0, word = strtok( ( *cd ).solution_id, separator ); word; c++, word = strtok( NULL, separator ) )
+		printf( "Solution #%d %s\n", c + 1, word );
+	( *cd ).num_solutions = c;
+	printf( "Number of solutions: %d\n", ( *cd ).num_solutions );
+	if( ( *cd ).num_solutions > 1 )
+	{
+		free( ( *cd ).solution_type );
+		( *cd ).solution_type = ( int * ) malloc( ( *cd ).num_solutions * sizeof( int ) );
+	}
+	strcpy( ( *cd ).solution_id, buf );
+	for( c = 0, word = strtok( ( *cd ).solution_id, separator ); word; c++, word = strtok( NULL, separator ) )
+	{
+		sscanf( word, "%d", &( *cd ).solution_type[c] );
+		if( strcasestr( word, "ext" ) ) { ( *cd ).solution_type[c] = EXTERNAL; if( ( *cd ).num_solutions > 1 ) { printf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
+		if( strcasestr( word, "poi" ) )( *cd ).solution_type[c] = POINT;
+		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) )( *cd ).solution_type[c] = PLANE3D; else( *cd ).solution_type[c] = PLANE; }
+		if( strcasestr( word, "box" ) )( *cd ).solution_type[c] = BOX;
+		if( strcasestr( word, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type[c] = TEST; od->nObs = 0; if( ( *cd ).num_solutions > 1 ) { printf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
+	}
+	if( bad_data ) return( -1 );
 	if( nofile )
 	{
-		if( ( *cd ).solution_type != TEST || ( *cd ).problem_type == INFOGAP )
+		if( ( *cd ).solution_type[0] != TEST || ( *cd ).problem_type == INFOGAP )
 		{
 			printf( "File \'%s\' cannot be opened to read problem information!\n", filename );
-			printf( "\nERROR: Input file is needed!\n\n" );
+			printf( "ERROR: Input file is needed!\n\n" );
 			return( -1 );
 		}
 	}
 	printf( "\nModel: " );
-	switch( ( *cd ).solution_type )
-	{
-		case EXTERNAL: { printf( "external" ); strcpy( ( *cd ).solution_id, "external" ); break; }
-		case POINT: { printf( "internal | point contaminant source" ); strcpy( ( *cd ).solution_id, "point" ); break; }
-		case PLANE: { printf( "internal | rectangular contaminant source" ); strcpy( ( *cd ).solution_id, "rect" ); break; }
-		case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcpy( ( *cd ).solution_id, "rect_vert" ); break; }
-		case BOX: { printf( "internal | box contaminant source" ); strcpy( ( *cd ).solution_id, "box" ); break; }
-		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); strcpy( ( *cd ).solution_id, "test" ); break; }
-		default: printf( "WARNING! UNDEFINED model type!" ); break;
-	}
+	for( c = 0; c < ( *cd ).num_solutions; c++ )
+		switch( ( *cd ).solution_type[c] )
+		{
+			case EXTERNAL: { printf( "external" ); strcpy( ( *cd ).solution_id, "external" ); break; }
+			case POINT: { printf( "internal | point contaminant source" ); strcpy( ( *cd ).solution_id, "point" ); break; }
+			case PLANE: { printf( "internal | rectangular contaminant source" ); strcpy( ( *cd ).solution_id, "rect" ); break; }
+			case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcpy( ( *cd ).solution_id, "rect_vert" ); break; }
+			case BOX: { printf( "internal | box contaminant source" ); strcpy( ( *cd ).solution_id, "box" ); break; }
+			case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); strcpy( ( *cd ).solution_id, "test" ); break; }
+			default: printf( "WARNING! UNDEFINED model type!" ); break;
+		}
 	printf( "\n" );
-	if( ( *cd ).solution_type == TEST ) return( 1 );
+	if( ( *cd ).solution_type[0] == TEST ) return( 1 );
 	// Read parameters
 	if( skip == 0 ) fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &( *pd ).nParam );
 	printf( "\nNumber of model parameters: %d\n", ( *pd ).nParam );
+	if( ( *cd ).solution_type[0] != TEST && ( *cd ).solution_type[0] != EXTERNAL )
+	{
+		k = ( *cd ).num_solutions * NUM_ANAL_PARAMS_SOURCE + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
+		if( k != ( *pd ).nParam )
+		{
+			printf( "ERROR: Internal analytical solver expects %d parameters (%d != %d)!\n", k, k, ( *pd ).nParam );
+			bad_data = 1;
+			return( -1 );
+		}
+	}
 	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
 	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
@@ -532,7 +565,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	*/
 	pd->var_current = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
 	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
-	if( cd->solution_type == EXTERNAL )
+	if( cd->solution_type[0] == EXTERNAL )
 	{
 		// check parameter name uniqueness
 		for( i = 0; i < pd->nParam; i++ )
@@ -956,7 +989,7 @@ int save_problem( char *filename, struct opt_data *op )
 		else
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_id[i], ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 	}
-	if( cd->solution_type != EXTERNAL )
+	if( cd->solution_type[0] != EXTERNAL )
 	{
 		fprintf( outfile, "Number of wells: %i\n", ( *wd ).nW );
 		for( i = 0; i < ( *wd ).nW; i++ )

@@ -444,7 +444,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 
 int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 {
-	int i, j, k, success, success_all = 1;
+	int i, j, k, s, success, success_all = 1;
 	double c, t, c1, c2, err, phi = 0.0;
 	struct opt_data *p = ( struct opt_data * )data;
 	char filename[255];
@@ -484,7 +484,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	if( p->cd->fdebug >= 4 )
 	{
 		printf( "Objective function: " );
-		if( p->cd->solution_type != TEST )
+		if( p->cd->solution_type[0] != TEST )
 		{
 			switch( p->cd->objfunc_type )
 			{
@@ -501,7 +501,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	// p->cd->compute_phi = 1;
 	// if( p->cd->compute_phi ) printf( " --- computed!!!!\n" );
-	if( p->cd->solution_type == TEST )
+	if( p->cd->solution_type[0] == TEST )
 	{
 		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var, p->od->nObs, f );
 		if( p->cd->check_success && p->cd->obsrange ) success_all = 0;
@@ -555,25 +555,44 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->cd->oderiv != -1 ) { k = p->cd->oderiv; }
 			i = p->od->well_index[k];
 			j = p->od->time_index[k];
-			switch( p->cd->solution_type )
+			c1 = c2 = p->cd->c_background;
+			for( s = 0; s < p->cd->num_solutions; s++ )
 			{
-				case POINT:
-					c1 = point_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->cd );
-					c2 = point_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->cd );
-					break;
-				case PLANE:
-					c1 = rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->cd );
-					c2 = rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->cd );
-					break;
-				case PLANE3D:
-					c1 = rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->cd );
-					c2 = rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->cd );
-					break;
-				default:
-				case BOX:
-					c1 = box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->cd );
-					c2 = box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->cd );
-					break;
+				if( p->cd->num_solutions == 1 )
+					for( i = 0; i < NUM_ANAL_PARAMS; i++ )
+						p->ad->var[i] = p->cd->var[i];
+				else
+				{
+					if( s == 0 )
+					{
+						k = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE;
+						for( i = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; i < k; i++ )
+							p->ad->var[i] = p->cd->var[i];
+					}
+					k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+					for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++ )
+						p->ad->var[i] = p->cd->var[i];
+				}
+				switch( p->cd->solution_type[s] )
+				{
+					case POINT:
+						c1 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+						c2 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+						break;
+					case PLANE:
+						c1 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+						c2 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+						break;
+					case PLANE3D:
+						c1 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+						c2 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+						break;
+					default:
+					case BOX:
+						c1 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+						c2 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+						break;
+				}
 			}
 			c = ( c1 + c2 ) / 2;
 			p->od->obs_current[k] = c;
@@ -670,7 +689,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); return( 1 ); }
 	p->cd->compute_phi = 0;
-	if( p->cd->num_proc > 1 && p->cd->solution_type == EXTERNAL ) // Parallel execution of external runs
+	if( p->cd->num_proc > 1 && p->cd->solution_type[0] == EXTERNAL ) // Parallel execution of external runs
 	{
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
 		{
@@ -730,50 +749,92 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 
 double func_solver1( double x, double y, double z, double t, void *data ) // Compute for given (x, y, z, t)
 {
+	int i, k, s;
 	double c;
 	struct calc_data *p = ( struct calc_data * )data;
-	switch( p->solution_type )
+	struct anal_data ad;
+	c = p->c_background;
+	for( s = 0; s < p->num_solutions; s++ )
 	{
-		case POINT:
-			c = point_source( x, y, z, t, ( void * ) p );
-			break;
-		case PLANE:
-			c = rectangle_source( x, y, z, t, ( void * ) p );
-			break;
-		case PLANE3D:
-			c = rectangle_source_vz( x, y, z, t, ( void * ) p );
-			break;
-		default:
-		case BOX:
-			c = box_source( x, y, z, t, ( void * ) p );
-			break;
+		if( p->num_solutions == 1 )
+			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
+				ad.var[i] = p->var[i];
+		else
+		{
+			if( s == 0 )
+			{
+				k = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE;
+				for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++ )
+					ad.var[i] = p->var[i];
+			}
+			k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+			for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++ )
+				ad.var[i] = p->var[i];
+		}
+		switch( p->solution_type[s] )
+		{
+			case POINT:
+				c += point_source( x, y, z, t, ( void * ) &ad );
+				break;
+			case PLANE:
+				c += rectangle_source( x, y, z, t, ( void * ) &ad );
+				break;
+			case PLANE3D:
+				c += rectangle_source_vz( x, y, z, t, ( void * ) &ad );
+				break;
+			default:
+			case BOX:
+				c += box_source( x, y, z, t, ( void * ) &ad );
+				break;
+		}
 	}
 	return( c );
 }
 
 double func_solver( double x, double y, double z1, double z2, double t, void *data ) // Compute for (x, y, z1, t) and (x, y, z2, t) and average
 {
+	int i, k, s;
 	double c1, c2;
 	struct calc_data *p = ( struct calc_data * )data;
-	switch( p->solution_type )
+	struct anal_data ad;
+	c1 = c2 = p->c_background;
+	for( s = 0; s < p->num_solutions; s++ )
 	{
-		case POINT:
-			c1 = point_source( x, y, z1, t, ( void * ) p );
-			c2 = point_source( x, y, z2, t, ( void * ) p );
-			break;
-		case PLANE:
-			c1 = rectangle_source( x, y, z1, t, ( void * ) p );
-			c2 = rectangle_source( x, y, z2, t, ( void * ) p );
-			break;
-		case PLANE3D:
-			c1 = rectangle_source_vz( x, y, z1, t, ( void * ) p );
-			c2 = rectangle_source_vz( x, y, z2, t, ( void * ) p );
-			break;
-		default:
-		case BOX:
-			c1 = box_source( x, y, z1, t, ( void * ) p );
-			c2 = box_source( x, y, z2, t, ( void * ) p );
-			break;
+		if( p->num_solutions == 1 )
+			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
+				ad.var[i] = p->var[i];
+		else
+		{
+			if( s == 0 )
+			{
+				k = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE;
+				for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++ )
+					ad.var[i] = p->var[i];
+			}
+			k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+			for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++ )
+				ad.var[i] = p->var[i];
+		}
+		switch( p->solution_type[s] )
+		{
+			case POINT:
+				c1 += point_source( x, y, z1, t, ( void * ) &ad );
+				c2 += point_source( x, y, z2, t, ( void * ) &ad );
+				break;
+			case PLANE:
+				c1 += rectangle_source( x, y, z1, t, ( void * ) &ad );
+				c2 += rectangle_source( x, y, z2, t, ( void * ) &ad );
+				break;
+			case PLANE3D:
+				c1 += rectangle_source_vz( x, y, z1, t, ( void * ) &ad );
+				c2 += rectangle_source_vz( x, y, z2, t, ( void * ) &ad );
+				break;
+			default:
+			case BOX:
+				c1 += box_source( x, y, z1, t, ( void * ) &ad );
+				c2 += box_source( x, y, z2, t, ( void * ) &ad );
+				break;
+		}
 	}
 	return( ( c1 + c2 ) / 2 );
 }

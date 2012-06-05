@@ -49,7 +49,7 @@ double point_source( double x, double y, double z, double t, void *params )
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
 	gsl_function F;
 	int status;
-	struct calc_data *p = ( struct calc_data * )params;
+	struct anal_data *p = ( struct anal_data * )params;
 	double result, error, time;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
@@ -76,7 +76,7 @@ double point_source( double x, double y, double z, double t, void *params )
 
 double int_point_source( double tau, void *params )
 {
-	struct calc_data *p = ( struct calc_data * )params;
+	struct anal_data *p = ( struct anal_data * )params;
 	double lambda = ( p->var[LAMBDA] );
 	double vx = ( p->var[VX] );
 	double ax = ( p->var[AX] );
@@ -110,7 +110,7 @@ double box_source( double x, double y, double z, double t, void *params )
 	gsl_integration_workspace *w;
 	gsl_function F;
 	int status;
-	struct calc_data *p = ( struct calc_data * )params;
+	struct anal_data *p = ( struct anal_data * )params;
 	double result, error, time;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
@@ -133,7 +133,7 @@ double box_source( double x, double y, double z, double t, void *params )
 
 double int_box_source( double tau, void *params )
 {
-	struct calc_data *p = ( struct calc_data * )params;
+	struct anal_data *p = ( struct anal_data * )params;
 	double lambda = ( p->var[LAMBDA] );
 	double vx = ( p->var[VX] );
 	double ax = ( p->var[AX] );
@@ -170,7 +170,7 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
 	gsl_function F;
 	int status;
-	struct calc_data *p = ( struct calc_data * )params;
+	struct anal_data *p = ( struct anal_data * )params;
 	double result, error, time;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
@@ -194,7 +194,7 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 
 double int_rectangle_source( double tau, void *params )
 {
-	struct calc_data *p = ( struct calc_data * )params;
+	struct anal_data *p = ( struct anal_data * )params;
 	double lambda = ( p->var[LAMBDA] );
 	double vx = ( p->var[VX] );
 	double ax = ( p->var[AX] );
@@ -226,7 +226,7 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
 	gsl_function F;
 	int status;
-	struct calc_data *p = ( struct calc_data * )params;
+	struct anal_data *p = ( struct anal_data * )params;
 	double result, error, time;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
@@ -248,7 +248,7 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 }
 double int_rectangle_source_vz( double tau, void *params )
 {
-	struct calc_data *p = ( struct calc_data * )params;
+	struct anal_data *p = ( struct anal_data * )params;
 	double lambda = ( p->var[LAMBDA] );
 	double vx = ( p->var[VX] );
 	double vz = ( p->var[VZ] );

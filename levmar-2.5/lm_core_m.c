@@ -515,7 +515,7 @@ int LEVMAR_DER(
 			}
 			( *func )( pDp, wrk, m, n, adata ); ++nfev; /* evaluate function at p + Dp */
 #if 0
-			if( op->cd->solution_type == TEST ) // this is a test; not needed in general
+			if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
 				for( i = 0; i < n; i++ )
 					wrk[i] = sqrt( wrk[i] );
 #endif
@@ -530,7 +530,7 @@ int LEVMAR_DER(
 #if 1
 				pDp_eL2 += tmp * tmp;
 #else
-				if( op->cd->solution_type == TEST ) // this is a test; not needed in general
+				if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
 					pDp_eL2 += wrk[i];
 				else
 					pDp_eL2 += tmp * tmp;
