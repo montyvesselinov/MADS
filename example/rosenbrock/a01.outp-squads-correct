@@ -1,0 +1,69 @@
+MADS: Model Analyses & Decision Support (v1.1) 2011
+---------------------------------------------------
+Velimir Vesselinov (monty) vvv@lanl.gov
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Argument[1]: a01
+Input file name: a01.mads
+Problem root name: a01
+Test Function 3 Dimensionality 3 
+Problem type: calibration
+
+Calibration technique: sequential calibration using a set of random initial values (realizations = 10)
+Optimization method: opt=squads | SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+Number of particles = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 1000
+2: Objective function cutoff value: NOT implemented (ADD keyword cutoff=[value] to implement)
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: test function 3
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Debug level (general): debug=0
+
+Model: internal | test optimization problem #3: Rosenbrock - parameters 2 observations 2
+
+Execution date & time stamp: 20120606-143641
+
+SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
+No flagged parameters; all optimizable parameters are randomized
+Imported seed: 2096575428
+Random sampling (variables 2; realizations 10) using 
+Improved Distributed LHS method (number of realizations < 500) ... done.
+
+Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 197 Jacobians: 35 Objective function: 6.52804e-18 Success: 0
+Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 82 Jacobians: 15 Objective function: 2.3071e-17 Success: 0
+Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 266 Jacobians: 48 Objective function: 9.38872e-22 Success: 0
+Random set #4: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 1003 Jacobians: 137 Objective function: 4.97769e-15 Success: 0
+Random set #5: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 47 Jacobians: 5 Objective function: 1.31394e-17 Success: 0
+Random set #6: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 381 Jacobians: 62 Objective function: 9.70516e-22 Success: 0
+Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 582 Jacobians: 85 Objective function: 3.3887e-20 Success: 0
+Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 62 Jacobians: 8 Objective function: 1.68734e-17 Success: 0
+Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 181 Jacobians: 30 Objective function: 2.36927e-18 Success: 0
+Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 54 Jacobians: 7 Objective function: 4.61887e-18 Success: 0
+Total number of evaluations = 2855
+Total number of jacobians = 432
+Minimum objective function: 9.38872e-22
+Statistics of total number of evaluations      : 47 - 62 [1m181[0m 381 - 1003 : 10
+Statistics of all the model parameter estimates:
+Parameter #1                        : average            1 min            1 max            1
+Parameter #2                        : average            1 min            1 max            1
+Results are saved in a01.igrnd.results and a01.igrnd-opt=squads_eval=1000_real=10
+
+Final results:
+Model parameters:
+Parameter #1 1
+Parameter #2 1
+Objective function: 9.38872e-22 Success: 0 
+Simulation time = 0 seconds
+Functional evaluations = 2855
+Jacobian evaluations = 432
+Levenberg-Marquardt optimizations = 67
+Seed = 2096575428
+Execution  started  on Wed Jun  6 14:36:41 2012
+Execution completed on Wed Jun  6 14:36:41 2012
+Execution date & time stamp: 20120606-143641

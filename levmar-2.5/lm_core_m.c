@@ -86,7 +86,7 @@ int LEVMAR_DER(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac, kmax;
+	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac, kmax, maxnfev;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -188,6 +188,7 @@ int LEVMAR_DER(
 	jac_min = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	jac_max = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	/* compute e=x - f(p) and its L2 norm */
+	maxnfev = op->cd->maxeval - op->cd->neval;
 	( *func )( p, hx, m, n, adata ); nfev = 1;
 	if( op->cd->check_success && op->success )
 	{
@@ -258,7 +259,7 @@ int LEVMAR_DER(
 				printf( "\n\n" );
 			}
 			if( njap >= itmax ) { stop = 31; continue; }
-			if( nfev >= op->cd->maxeval - op->cd->neval ) { stop = 32; continue; }
+			if( nfev >= maxnfev ) { stop = 32; continue; }
 			computejac = 0;
 			mu_big = 0;
 			phi_decline = 0;
@@ -714,7 +715,7 @@ int LEVMAR_DER(
 			case 2: printf( "small Dp (%g)\n", Dp_L2 ); break;
 			case 3: printf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
 			case 31: printf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
-			case 32: printf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev + op->cd->neval, op->cd->maxeval ); break;
+			case 32: printf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
 			case 4: printf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
 			case 5: printf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
 			case 6: printf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
@@ -781,7 +782,7 @@ int LEVMAR_DIF(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, success, odebug, kmax;
+	int worksz, freework = 0, issolved, success, odebug, kmax, maxnfev;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -857,6 +858,7 @@ int LEVMAR_DIF(
 	wrk = pDp + m;
 	wrk2 = wrk + n;
 	/* compute e=x - f(p) and its L2 norm */
+	maxnfev = op->cd->maxeval - op->cd->neval;
 	( *func )( p, hx, m, n, adata ); nfev = 1;
 	if( op->cd->check_success && op->success )
 	{
@@ -909,7 +911,7 @@ int LEVMAR_DIF(
 				printf( "\n\n" );
 			}
 			if( njap >= itmax ) { stop = 31; continue; }
-			if( nfev >= op->cd->maxeval - op->cd->neval ) { stop = 32; continue; }
+			if( nfev >= maxnfev ) { stop = 32; continue; }
 			if( success ) op->cd->check_success = 0;
 			if( odebug ) op->cd->odebug = 0;
 			if( using_ffdif ) /* use forward differences */
@@ -1186,7 +1188,7 @@ int LEVMAR_DIF(
 			case 2: printf( "small Dp (%g)\n", Dp_L2 ); break;
 			case 3: printf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
 			case 31: printf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
-			case 32: printf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev + op->cd->neval, op->cd->maxeval ); break;
+			case 32: printf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
 			case 4: printf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
 			case 5: printf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
 			case 6: printf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;

@@ -70,6 +70,7 @@ Debug/*
 .nfs*
 # MAC files
 ._*
+._.*
 .DS*
 # PEST files
 *.cnd

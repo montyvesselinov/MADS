@@ -1,0 +1,75 @@
+MADS: Model Analyses & Decision Support (v1.1) 2011
+---------------------------------------------------
+Velimir Vesselinov (monty) vvv@lanl.gov
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Argument[1]: p01lm
+Input file name: p01lm.mads
+Problem root name: p01lm
+Test Function 3 Dimensionality 3 
+Problem type: calibration
+
+Calibration technique: sequential calibration using a set of random initial values (realizations = 10)
+Optimization method: opt=lm | Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 1000
+2: Objective function cutoff value: 0.001
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: test function 3
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Debug level (general): debug=0
+
+Model: internal | test optimization problem #3: Rosenbrock - parameters 3 observations 3
+
+Execution date & time stamp: 20120606-145455
+
+SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
+No flagged parameters; all optimizable parameters are randomized
+Imported seed: 2096575428
+Random sampling (variables 3; realizations 10) using 
+Improved Distributed LHS method (number of realizations < 500) ... done.
+
+Random set #1: Levenberg-Marquardt Optimization ... Evaluations: 29 Jacobians: 5 Objective function: 10918.4 Success: 0
+Random set #2: Levenberg-Marquardt Optimization ... Evaluations: 575 Jacobians: 50 Objective function: 0.165815 Success: 0
+Random set #3: Levenberg-Marquardt Optimization ... Evaluations: 133 Jacobians: 14 Objective function: 98.3179 Success: 0
+Random set #4: Levenberg-Marquardt Optimization ... Evaluations: 646 Jacobians: 50 Objective function: 66366.5 Success: 0
+Random set #5: Levenberg-Marquardt Optimization ... Evaluations: 653 Jacobians: 50 Objective function: 7205.67 Success: 0
+Random set #6: Levenberg-Marquardt Optimization ... Evaluations: 40 Jacobians: 5 Objective function: 2157.79 Success: 0
+Random set #7: Levenberg-Marquardt Optimization ... Evaluations: 82 Jacobians: 9 Objective function: 10094.6 Success: 0
+Random set #8: Levenberg-Marquardt Optimization ... Evaluations: 18 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
+Random set #9: Levenberg-Marquardt Optimization ... Evaluations: 645 Jacobians: 50 Objective function: 5029.72 Success: 0
+Random set #10: Levenberg-Marquardt Optimization ... Evaluations: 593 Jacobians: 50 Objective function: 0.813681 Success: 0
+Total number of evaluations = 3414
+Total number of jacobians = 287
+Minimum objective function: 2.19572e-07
+Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 1 (out of 10; success ratio 0.1)
+Statistics of total number of evaluations      : 18 - 40 [1m133[0m 645 - 653 : 10
+Statistics of all the model parameter estimates:
+Parameter #1                        : average     -0.11235 min     -3.16124 max      1.00625
+Parameter #2                        : average     -2.51507 min     -9.97384 max      9.99976
+Parameter #3                        : average      37.8716 min     -24.8655 max          100
+Statistics of all the successful model parameter estimates:
+Parameter #1                        : average     0.999995 min     0.999995 max     0.999995
+Parameter #2                        : average     0.999988 min     0.999988 max     0.999988
+Parameter #3                        : average     0.999929 min     0.999929 max     0.999929
+Results are saved in p01lm.igrnd.results and p01lm.igrnd-opt=lm_eval=1000_real=10
+
+Final results:
+Model parameters:
+Parameter #1 0.999995
+Parameter #2 0.999988
+Parameter #3 0.999929
+Objective function: 2.19572e-07 Success: 0 
+Simulation time = 0 seconds
+Functional evaluations = 3414
+Jacobian evaluations = 287
+Levenberg-Marquardt optimizations = 10
+Seed = 2096575428
+Execution  started  on Wed Jun  6 14:54:55 2012
+Execution completed on Wed Jun  6 14:54:55 2012
+Execution date & time stamp: 20120606-145455

@@ -96,6 +96,19 @@ verify:
 	cd example/rosenbrock; ../../mads a01 test=3 opt=squads igrnd real=1 seed=2096575428 > /dev/null
 	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-correct
 	@echo "**************************************************************************************"
+	@echo ""
+	@echo "**************************************************************************************"
+	@echo "TEST 1.0b: Rosenbrock problem using different multistart (paranoid) optimization techniques ..."
+	@echo "TEST 1.1b: Levenberg-Marquardt ... "
+	cd example/rosenbrock; ../../mads p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 > p01lm.outp-multistart-lm
+	@./compare-results example/rosenbrock/p01lm.outp-multistart-lm example/rosenbrock/p01lm.outp-lm-correct
+	@./compare-results example/rosenbrock/p01lm.results example/rosenbrock/p01lm.results-multistart-lm-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 1.2b: SQUADS ..."
+	cd example/rosenbrock; ../../mads p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 > p01squads.outp-multistart-squads
+	@./compare-results example/rosenbrock/p01squads.outp-multistart-squads example/rosenbrock/p01squads.outp-squads-correct
+	@./compare-results example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-correct
+	@echo "**************************************************************************************"
 	@echo "TEST 1: DONE"
 	@echo ""
 	@echo ""
@@ -139,25 +152,39 @@ create-verify:
 	#seed=2096575428
 	#seed=1977879092
 	@echo "**************************************************************************************"
-	@echo "TEST 1: Rosenbrock problem using different optimization techniques ..."
-	@echo "TEST 1.1: Levenberg-Marquardt ... "
+	@echo "TEST 1.0a: Rosenbrock problem using different optimization techniques ..."
+	@echo "TEST 1.1a: Levenberg-Marquardt ... "
 	cd example/rosenbrock; ../../mads a01 test=3 opt=lm igrnd real=1 seed=2096575428 > /dev/null
 	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-correct
 	@echo "**************************************************************************************"
-	@echo "TEST 1.2: Particle-Swarm ..."
+	@echo "TEST 1.2a: Particle-Swarm ..."
 	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1 seed=2096575428 > /dev/null
 	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-pso-correct
 	@echo "**************************************************************************************"
-	@echo "TEST 1.3: TRIBES ..."
+	@echo "TEST 1.3a: TRIBES ..."
 	cd example/rosenbrock; ../../mads a01 test=3 opt=tribes igrnd real=1 seed=2096575428 > /dev/null
 	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-tribes-correct
 	@echo "**************************************************************************************"
-	@echo "TEST 1.4: SQUADS ..."
+	@echo "TEST 1.4a: SQUADS ..."
 	cd example/rosenbrock; ../../mads a01 test=3 opt=squads igrnd real=1 seed=2096575428 > /dev/null
 	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-correct
 	@echo "**************************************************************************************"
-	@echo "TEST 1: DONE"
 	@echo ""
+	@echo "**************************************************************************************"
+	@echo "TEST 1.0b: Rosenbrock problem using different multistart (paranoid) optimization techniques ..."
+	@echo "TEST 1.1b: Levenberg-Marquardt ... "
+	cd example/rosenbrock; ../../mads p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 > p01lm.outp-multistart-lm
+	@cp example/rosenbrock/p01lm.outp-multistart-lm example/rosenbrock/p01lm.outp-lm-correct
+	@cp example/rosenbrock/p01lm.results example/rosenbrock/p01lm.results-multistart-lm-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 1.2b: SQUADS ..."
+	cd example/rosenbrock; ../../mads p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 > p01squads.outp-multistart-squads
+	@cp example/rosenbrock/p01squads.outp-multistart-squads example/rosenbrock/p01squads.outp-squads-correct
+	@cp example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-correct
+	@echo "**************************************************************************************"
+	@echo ""
+	@echo "**************************************************************************************"
+	@echo "TEST 1: DONE"
 	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2: Problem example/contamination/s01 ..."
