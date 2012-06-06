@@ -767,7 +767,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 							if( par[i] > 0 ) sprintf( number, "%-*.*g", l, l - 5, par[i] );
 							else sprintf( number, "%-*.*g", l, l - 6, par[i] );
 							l2 = strlen( number );
-							if( l2 > l ) printf( "ERROR: The parameter does not fit the requested field (%s length % > %s)!\n", number, l2, l );
+							if( l2 > l ) printf( "ERROR: The parameter does not fit the requested field (%s length %d > %d)!\n", number, l2, l );
 						}
 						else
 							sprintf( number, "%-20.12g", par[i] );
