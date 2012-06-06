@@ -135,6 +135,66 @@ verify:
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
 
+create-verify:
+	#seed=2096575428
+	#seed=1977879092
+	@echo "**************************************************************************************"
+	@echo "TEST 1: Rosenbrock problem using different optimization techniques ..."
+	@echo "TEST 1.1: Levenberg-Marquardt ... "
+	cd example/rosenbrock; ../../mads a01 test=3 opt=lm igrnd real=1 seed=2096575428 > /dev/null
+	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 1.2: Particle-Swarm ..."
+	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1 seed=2096575428 > /dev/null
+	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-pso-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 1.3: TRIBES ..."
+	cd example/rosenbrock; ../../mads a01 test=3 opt=tribes igrnd real=1 seed=2096575428 > /dev/null
+	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-tribes-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 1.4: SQUADS ..."
+	cd example/rosenbrock; ../../mads a01 test=3 opt=squads igrnd real=1 seed=2096575428 > /dev/null
+	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 1: DONE"
+	@echo ""
+	@echo ""
+	@echo "**************************************************************************************"
+	@echo "TEST 2: Problem example/contamination/s01 ..."
+	mads example/contamination/s01 sindx=0.01 > /dev/null
+	@cp example/contamination/s01.results example/contamination/s01.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 2: DONE"
+	@echo ""
+	@echo ""
+	@echo "**************************************************************************************"
+	@echo "TEST 2: Problem example/wells/w01 ..."
+	cd example/wells; ../../mads w01 > /dev/null
+	@cp example/wells/w01.results example/wells/w01.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 2: DONE"
+	@echo ""
+	@echo ""
+	@echo "**************************************************************************************"
+	@echo "TEST 3: Problem example/wells-short/w01 using different instruction formats ..."
+	@echo "TEST 3.1: Instruction file example/wells-short/w01-v1.inst ..."
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01 > /dev/null
+	@cp example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 3.2: Instruction file example/wells-short/w01-v2.inst ..."
+	cd example/wells-short; ln -sf w01-v2.inst w01.inst; ../../mads w01 > /dev/null
+	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 3.3: Instruction file example/wells-short/w01-v3.inst ..."
+	cd example/wells-short; ln -sf w01-v3.inst w01.inst; ../../mads w01 > /dev/null
+	@cp example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 3.4: Instruction file example/wells-short/w01-v4.inst ..."
+	cd example/wells-short; ln -sf w01-v4.inst w01.inst; ../../mads w01 > /dev/null
+	@cp example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 3: DONE"
+
 astyle:
 	astyle $(SOURCESTYLE)
 	rm -f $(SOURCESTYLE:%c=%c.orig)

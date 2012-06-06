@@ -50,6 +50,7 @@ int count_lines( char *filename );
 int count_cols( char *filename, int row );
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
+char *str_replace( char *orig, char *rep, char *with ); // replace all string occurances
 
 /* Functions elsewhere */
 char **char_matrix( int maxCols, int maxRows );
@@ -149,7 +150,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "lmdir" ) ) { w = 1; cd->lm_indir = 0; cd->lm_ofdecline = 1; }
 		if( strcasestr( word, "lmmu=" ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
 		if( strcasestr( word, "lmnu=" ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
-		if( strcasestr( word, "lmiter=" ) ) { w = 1; sscanf( word, "iter=%d", &cd->niter ); }
+		if( strcasestr( word, "lmiter=" ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->niter ); }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( strcasestr( word, "tied" ) ) { w = 1; cd->tied = 1; } // Tied shortcut
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
@@ -256,7 +257,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		else if( strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { printf( "Levenberg-Marquardt optimization\n" ); if( cd->calib_type == SIMPLE ) cd->leigen = 1; }
 		else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
 			printf( "Particle-Swarm optimization\n" );
-		else { printf( "WARNING: Unknown method! Levenberg-Marquardt optimization assumed\n" ); strcpy( cd->opt_method, "lm" ); }
+		else { printf( "WARNING: Unknown method (opt=%s)! Levenberg-Marquardt optimization assumed\n", cd->opt_method ); strcpy( cd->opt_method, "lm" ); }
 		if( cd->nretries > 0 ) printf( "Number of calibration retries = %d\n", cd->nretries );
 		if( cd->niter < 0 ) cd->niter = 0;
 		if( cd->niter > 0 ) printf( "Number of Levenberg-Marquardt iterations = %d\n", cd->niter );
@@ -356,7 +357,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	FILE *infile;
 //	FILE *infileb;
 	double x0, y0, x, y, d, alpha, beta;
-	char buf[1000], *file, **path, exec[1000], *word;
+	char buf[1000], *file, **path, exec[1000], *word, *start;
 	char *separator = " \t\n";
 	int  i, j, k, c, bad_data, nofile = 0, skip = 0;
 	struct calc_data *cd;
@@ -399,17 +400,17 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	// Read Solution Type
 	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fgets( ( *cd ).solution_id, 150, infile ); /*fscanf( infile, "%s\n", ( *cd ).solution_id );*/ }
 	strcpy( buf, ( *cd ).solution_id );
-	for( c = 0, word = strtok( ( *cd ).solution_id, separator ); word; c++, word = strtok( NULL, separator ) )
-		printf( "Solution #%d %s\n", c + 1, word );
+	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
+		printf( "Model #%d %s\n", c + 1, word );
 	( *cd ).num_solutions = c;
-	printf( "Number of solutions: %d\n", ( *cd ).num_solutions );
 	if( ( *cd ).num_solutions > 1 )
 	{
+		printf( "Number of analytical solutions: %d\n", ( *cd ).num_solutions );
 		free( ( *cd ).solution_type );
 		( *cd ).solution_type = ( int * ) malloc( ( *cd ).num_solutions * sizeof( int ) );
 	}
-	strcpy( ( *cd ).solution_id, buf );
-	for( c = 0, word = strtok( ( *cd ).solution_id, separator ); word; c++, word = strtok( NULL, separator ) )
+	strcpy( buf, ( *cd ).solution_id );
+	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
 	{
 		sscanf( word, "%d", &( *cd ).solution_type[c] );
 		if( strcasestr( word, "ext" ) ) { ( *cd ).solution_type[c] = EXTERNAL; if( ( *cd ).num_solutions > 1 ) { printf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
@@ -418,6 +419,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( strcasestr( word, "box" ) )( *cd ).solution_type[c] = BOX;
 		if( strcasestr( word, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type[c] = TEST; od->nObs = 0; if( ( *cd ).num_solutions > 1 ) { printf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	}
+	if( ( *cd ).num_solutions == 0 && ( *cd ).test_func >= 0 ) { ( *cd ).num_solutions = 1; ( *cd ).solution_type[0] = TEST; od->nObs = 0; if( ( *cd ).num_solutions > 1 ) { printf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	if( bad_data ) return( -1 );
 	if( nofile )
 	{
@@ -428,21 +430,23 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			return( -1 );
 		}
 	}
-	if( ( *cd ).num_solutions > 1 ) printf( "\nModels: " );
+	( *cd ).solution_id[0] = 0;
+	if( ( *cd ).num_solutions > 1 ) printf( "\nModels:" );
 	else printf( "\nModel: " );
 	for( c = 0; c < ( *cd ).num_solutions; c++ )
 	{
-		if( ( *cd ).num_solutions > 1 ) printf( "(%d) ", c + 1 );
+		if( ( *cd ).num_solutions > 1 ) printf( " (%d) ", c + 1 );
 		switch( ( *cd ).solution_type[c] )
 		{
-			case EXTERNAL: { printf( "external" ); strcpy( ( *cd ).solution_id, "external" ); break; }
-			case POINT: { printf( "internal | point contaminant source" ); strcpy( ( *cd ).solution_id, "point" ); break; }
-			case PLANE: { printf( "internal | rectangular contaminant source" ); strcpy( ( *cd ).solution_id, "rect" ); break; }
-			case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcpy( ( *cd ).solution_id, "rect_vert" ); break; }
-			case BOX: { printf( "internal | box contaminant source" ); strcpy( ( *cd ).solution_id, "box" ); break; }
-			case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); strcpy( ( *cd ).solution_id, "test" ); break; }
+			case EXTERNAL: { printf( "external" ); strcat( ( *cd ).solution_id, "external" ); break; }
+			case POINT: { printf( "internal | point contaminant source" ); strcat( ( *cd ).solution_id, "point" ); break; }
+			case PLANE: { printf( "internal | rectangular contaminant source" ); strcat( ( *cd ).solution_id, "rect" ); break; }
+			case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcat( ( *cd ).solution_id, "rect_vert" ); break; }
+			case BOX: { printf( "internal | box contaminant source" ); strcat( ( *cd ).solution_id, "box" ); break; }
+			case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); sprintf( ( *cd ).solution_id, "test=%d", ( *cd ).test_func ); break; }
 			default: printf( "WARNING! UNDEFINED model type!" ); break;
 		}
+		if( ( *cd ).num_solutions > 1 ) strcat( ( *cd ).solution_id, " " );
 	}
 	printf( "\n" );
 	if( ( *cd ).solution_type[0] == TEST ) return( 1 );
@@ -475,7 +479,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( cd->debug ) printf( "%-26s: ", pd->var_id[i] );
 		fscanf( infile, ": %lf %d %d %lf %lf %lf\n", &( *pd ).var[i], &( *pd ).var_opt[i], &( *pd ).var_log[i], &( *pd ).var_dx[i], &( *pd ).var_min[i], &( *pd ).var_max[i] );
 		( *cd ).var[i] = ( *pd ).var[i];
-		if( cd->debug ) printf( "init %17.12g opt %1d log %1d step %7g min %7g max %7g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+		if( cd->debug ) printf( "init %7g opt %1d log %1d step %7g min %7g max %7g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 		if( ( *pd ).var_opt[i] == 1 )( *pd ).nOptParam++;
 		else if( ( *pd ).var_opt[i] == 2 )
 		{
@@ -533,14 +537,14 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	for( k = i = 0; i < ( *pd ).nParam; i++ )
 		if( ( *pd ).var_opt[i] == 1 || ( ( *pd ).var_opt[i] > 1 && ( *cd ).calib_type != PPSD ) )
 		{
-			if( cd->debug ) printf( "%-26s: init %17.12g step %8.3g min %7g max %7g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+			if( cd->debug ) printf( "%-26s: init %7g step %8.3g min %7g max %7g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 			( *pd ).var_index[k++] = i;
 		}
 	if( cd->debug ) printf( "\n" );
 	printf( "Number of flagged parameters = %d\n", ( *pd ).nFlgParam );
 	for( i = 0; i < ( *pd ).nParam; i++ )
 		if( ( *pd ).var_opt[i] == 2 )
-			if( cd->debug ) printf( "%-26s: init %17.12g step %6g min %6g max %6g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+			if( cd->debug ) printf( "%-26s: init %7g step %6g min %6g max %6g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 	if( ( *pd ).nParam == ( *pd ).nOptParam && cd->debug ) printf( "\nNO fixed parameters\n" );
 	else
 	{
@@ -622,7 +626,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			for( i = 0; i < od->nObs; i++ )
 			{
 				if( cd->debug > 10 || od->nObs <= 50 || ( i < 20 || i > od->nObs - 20 ) )
-					printf( "%-20s: %15g weight %12g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
+					printf( "%-20s: %15g weight %7g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 				if( ( !( cd->debug > 10 ) || od->nObs > 50 ) && i == 21 ) printf( "...\n" );
 			}
 		}
@@ -753,7 +757,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( cd->oweight == 1 )( *wd ).obs_weight[i][j] = 1;
 			else if( cd->oweight == 0 )( *wd ).obs_weight[i][j] = 0;
 			else if( cd->oweight == 2 ) { if( abs( ( *wd ).obs_target[i][j] ) > DBL_EPSILON )( *wd ).obs_weight[i][j] = ( double ) 1.0 / ( *wd ).obs_target[i][j]; else( *wd ).obs_weight[i][j] = HUGE_VAL; }
-			if( cd->debug ) printf( "t %5g c %5g weight %12g log %1d acceptable range: min %5g max %5g\n", ( *wd ).obs_time[i][j], ( *wd ).obs_target[i][j], ( *wd ).obs_weight[i][j], ( *wd ).obs_log[i][j], ( *wd ).obs_min[i][j], ( *wd ).obs_max[i][j] );
+			if( cd->debug ) printf( "t %5g c %5g weight %7g log %1d acceptable range: min %5g max %5g\n", ( *wd ).obs_time[i][j], ( *wd ).obs_target[i][j], ( *wd ).obs_weight[i][j], ( *wd ).obs_log[i][j], ( *wd ).obs_min[i][j], ( *wd ).obs_max[i][j] );
 			if( wd->obs_max[i][j] < wd->obs_target[i][j] || wd->obs_min[i][j] > wd->obs_target[i][j] )
 			{
 				printf( "ERROR: Observation target is outside the specified min/max range! " );
@@ -1322,3 +1326,47 @@ char *datestamp()
 	sprintf( datetime, "%4d%02d%02d-%02d%02d%02d", ptr_ts->tm_year + 1900, ptr_ts->tm_mon + 1, ptr_ts->tm_mday, ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
 	return( datetime );
 }
+
+// You must free the result if result is non-NULL.
+char *str_replace( char *orig, char *rep, char *with )
+{
+	char *result; // the return string
+	char *ins;    // the next insert point
+	char *tmp;    // varies
+	int len_rep;  // length of rep
+	int len_with; // length of with
+	int len_front; // distance between rep and end of last rep
+	int count;    // number of replacements
+	if( !orig )
+		return NULL;
+	if( !rep || !( len_rep = strlen( rep ) ) )
+		return NULL;
+	if( !( ins = strstr( orig, rep ) ) )
+		return NULL;
+	if( !with )
+		with = "";
+	len_with = strlen( with );
+	for( count = 0; tmp = strstr( ins, rep ); ++count )
+	{
+		ins = tmp + len_rep;
+	}
+	// first time through the loop, all the variable are set correctly
+	// from here on,
+	//    tmp points to the end of the result string
+	//    ins points to the next occurrence of rep in orig
+	//    orig points to the remainder of orig after "end of rep"
+	tmp = result = malloc( strlen( orig ) + ( len_with - len_rep ) * count + 1 );
+	if( !result )
+		return NULL;
+	while( count-- )
+	{
+		ins = strstr( orig, rep );
+		len_front = ins - orig;
+		tmp = strncpy( tmp, orig, len_front ) + len_front;
+		tmp = strcpy( tmp, with ) + len_with;
+		orig += len_front + len_rep; // move to next "end of rep"
+	}
+	strcpy( tmp, orig );
+	return result;
+}
+

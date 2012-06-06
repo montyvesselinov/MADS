@@ -86,7 +86,7 @@ int LEVMAR_DER(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac;
+	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac, kmax;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -232,7 +232,8 @@ int LEVMAR_DER(
 	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	computejac = 0;
-	for( k = 0; k < itmax && !stop; ++k )
+	kmax = itmax * 100;
+	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
 		if( p_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
@@ -248,7 +249,7 @@ int LEVMAR_DER(
 		{
 			if( op->cd->ldebug && k != 0 )
 			{
-				if( k != 0 ) printf( "New Jacobian because: " );
+				if( k != 0 ) printf( "New Jacobian requested because: " );
 				if( nu > 16 && k != 0 ) printf( "Lambda multiplication factor too large (nu = %d > 16); ", nu );
 				if( updjac >= K ) printf( "Maximum number of lambda iteration is reached (%d); ", K );
 				if( mu_big ) printf( "Lambda is constrained (%g); ", 1e3 );
@@ -256,6 +257,8 @@ int LEVMAR_DER(
 				if( computejac ) printf( "requested" );
 				printf( "\n\n" );
 			}
+			if( njap >= itmax ) { stop = 31; continue; }
+			if( nfev >= op->cd->maxeval - op->cd->neval ) { stop = 32; continue; }
 			computejac = 0;
 			mu_big = 0;
 			phi_decline = 0;
@@ -395,7 +398,7 @@ int LEVMAR_DER(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}
@@ -684,7 +687,7 @@ int LEVMAR_DER(
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 			jacTjac[i * m + i] = diag_jacTjac[i];
 	}
-	if( k >= itmax ) stop = 3;
+	if( k >= kmax && stop == 0 ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 		jacTjac[i * m + i] = diag_jacTjac[i];
 	if( info )
@@ -709,7 +712,9 @@ int LEVMAR_DER(
 		{
 			case 1: printf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
 			case 2: printf( "small Dp (%g)\n", Dp_L2 ); break;
-			case 3: printf( "maximum number of iterations is exceeded (itmax=%d)\n", itmax ); break;
+			case 3: printf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
+			case 31: printf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
+			case 32: printf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev + op->cd->neval, op->cd->maxeval ); break;
 			case 4: printf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
 			case 5: printf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
 			case 6: printf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
@@ -776,7 +781,7 @@ int LEVMAR_DIF(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, success, odebug;
+	int worksz, freework = 0, issolved, success, odebug, kmax;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -888,7 +893,8 @@ int LEVMAR_DIF(
 	nu = 20; /* force computation of J */
 	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
-	for( k = 0; k < itmax && !stop; ++k )
+	kmax = itmax * 100;
+	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
@@ -897,11 +903,13 @@ int LEVMAR_DIF(
 		{
 			if( op->cd->ldebug )
 			{
-				printf( "New jacobian because: " );
+				printf( "New Jacobian requested because: " );
 				if( nu > 16 ) printf( "Lambda multiplication factor too large (nu = %d > 16); ", nu );
 				if( updjac == K ) printf( "Maximum number of lambda iteration is reached (%d); ", K );
 				printf( "\n\n" );
 			}
+			if( njap >= itmax ) { stop = 31; continue; }
+			if( nfev >= op->cd->maxeval - op->cd->neval ) { stop = 32; continue; }
 			if( success ) op->cd->check_success = 0;
 			if( odebug ) op->cd->odebug = 0;
 			if( using_ffdif ) /* use forward differences */
@@ -1000,7 +1008,7 @@ int LEVMAR_DIF(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}
@@ -1151,7 +1159,7 @@ int LEVMAR_DIF(
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 			jacTjac[i * m + i] = diag_jacTjac[i];
 	}
-	if( k >= itmax ) stop = 3;
+	if( k >= kmax && stop == 0 ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 		jacTjac[i * m + i] = diag_jacTjac[i];
 	if( info )
@@ -1176,13 +1184,15 @@ int LEVMAR_DIF(
 		{
 			case 1: printf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
 			case 2: printf( "small Dp (%g)\n", Dp_L2 ); break;
-			case 3: printf( "maximum number of iterations is exceeded (itmax=%d)\n", itmax ); break;
+			case 3: printf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
+			case 31: printf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
+			case 32: printf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev + op->cd->neval, op->cd->maxeval ); break;
 			case 4: printf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
 			case 5: printf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
 			case 6: printf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
 			case 7: printf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
 			case 8: printf( "model predictions are within predefined calibration ranges\n" ); break;
-			default: printf( "UNKNOWN flag: %d\n", stop );
+			default: printf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 2 )
 		{

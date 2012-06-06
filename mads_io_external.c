@@ -276,10 +276,9 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		printf( "Dummy observation: %s\n", dummy_var );
 		if( comment[0] ) printf( "Comment: %s\n", comment );
 	}
-	while( 1 ) // IMPORTANT: strtok below modifies buf_inst by adding '\0's; if needed strcpy buf_inst
+	while( !feof( infile_inst ) ) // IMPORTANT: strtok below modifies buf_inst by adding '\0's; if needed strcpy buf_inst
 	{
-		fgets( buf_inst, 1000, infile_inst );
-		if( feof( infile_inst ) ) break;
+		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) printf( "\nEND of instruction file: %s\n", buf_inst ); break; }
 		pnt_inst = &buf_inst[0];
 		word_inst = 0;
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
@@ -452,10 +451,9 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		if( comment[0] ) printf( "Comment: %s\n", comment );
 	}
 	buf_data[0] = 0; word_data = pnt_data = NULL;
-	while( 1 )
+	while( !feof( infile_inst ) )
 	{
-		fgets( buf_inst, 1000, infile_inst );
-		if( feof( infile_inst ) ) break;
+		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) printf( "\nEND of instruction file: %s\n", buf_inst ); break; }
 		pnt_inst = &buf_inst[0];
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
 		word_inst = 0;
@@ -467,7 +465,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			sscanf( &pnt_inst[1], "%d", &c );
 			if( debug ) printf( "Skip %d lines\n", c );
 			for( i = 0; i < c; i++ )
-				fgets( buf_data, 1000, infile_data );
+				if( fgets( buf_data, 1000, infile_data ) == NULL ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 			word_inst = strtok_r( NULL, separator, &pnt_inst ); // skip l command
 			if( feof( infile_data ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 			white_trim( buf_data );
@@ -506,8 +504,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 						bad_data = 0;
 						break;
 					}
-					fgets( buf_data, 1000, infile_data );
-					if( feof( infile_data ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
+					if( fgets( buf_data, 1000, infile_data ) == NULL ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 					white_trim( buf_data );
 					pnt_data = &buf_data[0];
 					word_data = NULL; // Force reading
@@ -652,8 +649,7 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 	if( debug ) printf( "Parameter separator: %s\n", token );
 	while( !feof( in ) )
 	{
-		fgets( buf, 1000, in );
-		if( feof( in ) ) break; // fgets does not produce EOF after reading the last line ...
+		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) printf( "\nEND of template file: %s\n", buf ); break; }
 		l = strlen( buf );
 		buf[l - 1] = 0;
 		if( buf[0] == token[0] ) start = 0; else start = 1;
@@ -695,7 +691,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	FILE *in, *out;
 	char *sep = " \t\n";
 	char *word, token[2], number[80], buf[1000];
-	int i, l, l2, c, start, space = 0, bad_data = 0;
+	int i, l, l2, c, start, space = 0, bad_data = 0, preserve;
 	if( ( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
@@ -746,8 +742,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	if( debug ) printf( "Parameter separator: %s\n", token );
 	while( !feof( in ) )
 	{
-		fgets( buf, 1000, in );
-		if( feof( in ) ) break; // fgets does not produce EOF after reading the last line ...
+		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) printf( "\nEND of template file: %s\n", buf ); break; }
 		l = strlen( buf );
 		buf[l - 1] = 0; // remove 'new line' character
 		if( buf[0] == token[0] ) start = 0; else start = 1; // if first character is a token it will be not considered a separator
@@ -760,13 +755,22 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 				l = strlen( word );
 				white_skip( &word );
 				white_trim( word );
+				l2 = strlen( word );
+				if( l > 10 && l > ( l2 + 2 ) ) preserve = 1;
+				else preserve = 0;
 				for( i = 0; i < npar; i++ )
 				{
 					if( strcmp( word, par_id[i] ) == 0 )
 					{
-						sprintf( number, "%-*.*g", l, l - 5, par[i] );
-						l2 = strlen( number );
-						if( l2 > l ) number[l] = 0;
+						if( preserve == 1 )
+						{
+							if( par[i] > 0 ) sprintf( number, "%-*.*g", l, l - 5, par[i] );
+							else sprintf( number, "%-*.*g", l, l - 6, par[i] );
+							l2 = strlen( number );
+							if( l2 > l ) printf( "ERROR: The parameter does not fit the requested field (%s length % > %s)!\n", number, l2, l );
+						}
+						else
+							sprintf( number, "%-20.12g", par[i] );
 						if( space ) fprintf( out, " %s", number );
 						else { space = 1; fprintf( out, "%s", number ); }
 						if( debug ) printf( "replaced with \'%s\' (parameter \'%s\')\n", number, par_id[i] );

@@ -713,6 +713,7 @@ int main( int argn, char *argv[] )
 	printf( "Execution date & time stamp: %s\n", op.datetime_stamp );
 	sprintf( buf, "rm -f %s.running", op.root ); system( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
+	free( op.cd->solution_id ); free( op.cd->solution_type );
 	exit( 0 ); // DONE
 }
 
@@ -924,13 +925,23 @@ int optimize_lm( struct opt_data *op )
 			while( op->cd->maxeval > op->cd->neval )
 			{
 				// Levmar has no termination criteria based on the number of functional evaluations or number of jacobian evaluations
-				if( opts[4] > 0 ) maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 10 ) + 1 ); // Forward derivatives
-				else              maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 10 ) + 1 ); // Central derivatives
+				// ... it uses the number of LM iterations that count the jacobian and lambda evaluations
+				// ... assuming about 10 lambda searches per jacobian iteration
+				// Levmar has now adder terminaitonal based on op->cd->maxeval and op->cd->niter
+				if( opts[4] > 0 ) maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 1 ) + 1 ); // Forward derivatives
+				else              maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 1 ) + 1 ); // Central derivatives
 				if( maxiter_levmar > maxiter ) maxiter_levmar = maxiter;
-				maxiter_levmar *= 10; // Assuming about 10 lambda searches per iteration
 				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter_levmar, opts, info, work, covar, op );
 				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter_levmar, opts, info, work, covar, op );
-				if( info[6] == 4 || info[6] == 5 ) { opts[0] *= 10; if( op->cd->ldebug ) printf( "Rerun with larger initial lambda (%g)\n", opts[0] ); }
+				if( info[6] == 4 || info[6] == 5 )
+				{
+					if( op->cd->maxeval < op->cd->neval )
+					{
+						opts[0] *= 10;
+						printf( "\nWARNING: LM optimization rerun with larger initial lambda (%g)\n", opts[0] );
+					}
+					else printf( "\nWARNING: LM optimization may benefit from rerun with larger initial lambda (%g)\n", opts[0] );
+				}
 				else break;
 			}
 			if( op->cd->ldebug > 1 )
@@ -1015,7 +1026,6 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->paranoid ) free( var_lhs );
 	free( opt_params ); free( opt_params_best ); free( x_c ); free( res );
 	gsl_matrix_free( gsl_jacobian ); gsl_matrix_free( gsl_covar ); gsl_vector_free( gsl_opt_params );
-	free( op->cd->solution_id ); free( op->cd->solution_type );
 	if( !debug && standalone && op->cd->calib_type == SIMPLE ) printf( "\n" );
 	return( 1 );
 }
@@ -1318,7 +1328,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 			if( debug )
 			{
 				printf( "%-40s : %12g stddev %12g (%12g - %12g)", op->pd->var_id[k], opt_params[i], stddev[i], x_d[i], x_u[i] );
-				if( status ) printf( " Estimated ranges are constrained by prior uncertainty bounds\n" );
+				if( status ) printf( " Uncertainty ranges constrained by prior bounds\n" );
 				else printf( "\n" );
 			}
 		}
@@ -1336,7 +1346,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 				status = 0;
 				if( x_d[i] <= op->pd->var_min[k] ) { status = 1; x_d[i] = op->pd->var_min[k]; }
 				if( x_u[i] >= op->pd->var_max[k] ) { status = 1; x_u[i] = op->pd->var_max[k]; }
-				if( status ) printf( " Estimated ranges are constrained by prior uncertainty bounds\n" );
+				if( status ) printf( " Uncertainty ranges constrained by prior bounds\n" );
 				else printf( "\n" );
 			}
 		}

@@ -1,6 +1,10 @@
 syntax: glob
 # MADS files
 mads
+latex/*
+html/*
+Debug/*
+.settings/*
 *.results
 *-rerun.mads
 *-error.mads

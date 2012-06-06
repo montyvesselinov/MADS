@@ -463,10 +463,15 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
-		if( p->cd->tied && ( k == AY || k == AZ ) ) // Tied parameters
+		if( p->cd->tied ) // Hard wiring; Tied dispersivities
 		{
-			// printf( "divide %.12g %.12g\n", p->cd->var[AX], p->cd->var[k] );
-			p->cd->var[k] = p->cd->var[AX] / p->cd->var[k];
+			p1 = p->cd->num_solutions * NUM_ANAL_PARAMS_SOURCE + AY;
+			p2 = p->cd->num_solutions * NUM_ANAL_PARAMS_SOURCE + AZ;
+			if( k == p1 || k == p2 )
+			{
+				// printf( "divide %.12g %.12g\n", p->cd->var[AX], p->cd->var[k] );
+				p->cd->var[k] = p->cd->var[AX] / p->cd->var[k];
+			}
 		}
 		if( p->cd->fdebug >= 3 ) printf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
@@ -636,7 +641,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->cd->fdebug >= 2 )
 			{
 				if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
-					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * p->od->obs_weight[i], success, p->od->obs_min[i], p->od->obs_max[i] );
+					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * p->od->obs_weight[k], success, p->od->obs_min[k], p->od->obs_max[k] );
 				if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 				if( !p->cd->compute_phi ) phi += f[i] * f[i];
 			}
