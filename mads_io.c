@@ -972,6 +972,8 @@ int save_problem( char *filename, struct opt_data *op )
 		case IGPD: fprintf( outfile, "igpd" ); break;
 	}
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
+	if( cd->c_background > 0 ) fprintf( outfile, " background=%g", cd->c_background );
+	if( cd->tied ) fprintf( outfile, " tied" );
 	if( cd->nretries > 0 ) fprintf( outfile, " retry=%d", cd->nretries );
 	if( cd->init_particles > 1 ) fprintf( outfile, " particles=%d", cd->init_particles );
 	else if( cd->init_particles < 0 ) fprintf( outfile, " particles" );
@@ -1337,27 +1339,20 @@ char *str_replace( char *orig, char *rep, char *with )
 	int len_with; // length of with
 	int len_front; // distance between rep and end of last rep
 	int count;    // number of replacements
-	if( !orig )
-		return NULL;
-	if( !rep || !( len_rep = strlen( rep ) ) )
-		return NULL;
-	if( !( ins = strstr( orig, rep ) ) )
-		return NULL;
-	if( !with )
-		with = "";
+	if( !orig ) return NULL;
+	if( !rep || !( len_rep = strlen( rep ) ) ) return NULL;
+	if( !( ins = strstr( orig, rep ) ) ) return NULL;
+	if( !with ) with = "";
 	len_with = strlen( with );
 	for( count = 0; tmp = strstr( ins, rep ); ++count )
-	{
 		ins = tmp + len_rep;
-	}
 	// first time through the loop, all the variable are set correctly
 	// from here on,
 	//    tmp points to the end of the result string
 	//    ins points to the next occurrence of rep in orig
 	//    orig points to the remainder of orig after "end of rep"
 	tmp = result = malloc( strlen( orig ) + ( len_with - len_rep ) * count + 1 );
-	if( !result )
-		return NULL;
+	if( !result ) return NULL;
 	while( count-- )
 	{
 		ins = strstr( orig, rep );
