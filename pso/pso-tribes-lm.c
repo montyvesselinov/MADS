@@ -1789,7 +1789,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			lmo_count++;
 			phi_current_best = ( *S ).trib[tr].part[shaman].xBest.f.f[0];
 			position_lm( gop, pb, &( *S ).trib[tr].part[shaman].xBest );
-			if( debug_level ) printf( " OF %g -> %g ", phi_current_best, ( *S ).trib[tr].part[shaman].xBest.f.f[0] );
+			if( debug_level ) printf( " OF %g -> %g E %d", phi_current_best, ( *S ).trib[tr].part[shaman].xBest.f.f[0], eval );
 			if( debug_level > 1 ) { printf( "new " ); position_print( &( *S ).trib[tr].part[shaman].xBest ); }
 			copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).trib[tr].part[shaman].x );
 			if( gop->cd->check_success && gop->success )
