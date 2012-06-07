@@ -1917,7 +1917,15 @@ int ppsd( struct opt_data *op )
 				fprintf( out, " : OF %g Success %d\n", op->phi, op->success );
 			fflush( out );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
-			if( op->success && op->cd->odebug > 1 ) save_results( "ppsd", op, op->gd );
+			if( op->success && op->cd->odebug > 1 )
+			{
+				save_results( "ppsd", op, op->gd );
+				if( op->cd->save && op->cd->solution_type[0] != TEST )
+				{
+					sprintf( filename, "%s-ppsd-%d.mads", op->root, count + 1 );
+					save_problem( filename, &op );
+				}
+			}
 			if( op->cd->ireal != 0 ) break;
 		}
 		for( i = 0; i < op->pd->nParam; i++ )

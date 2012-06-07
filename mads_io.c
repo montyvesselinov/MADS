@@ -94,6 +94,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->nreal = 0;
 	cd->niter = 0;
 	cd->tied = 0;
+	cd->save = 0;
 	cd->init_particles = -1;
 	cd->nretries = 0;
 	cd->seed = cd->seed_init = 0;
@@ -153,6 +154,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "lmiter=" ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->niter ); }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( strcasestr( word, "tied" ) ) { w = 1; cd->tied = 1; } // Tied shortcut
+		if( strcasestr( word, "save" ) ) { w = 1; cd->save = 1; } // Tied shortcut
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
 		if( strcasestr( word, "eval=" ) ) { w = 1; sscanf( word, "eval=%d", &cd->maxeval ); }
 		if( strcasestr( word, "case=" ) ) { w = 1; sscanf( word, "case=%d", &cd->ireal ); }
@@ -974,6 +976,7 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
 	if( cd->c_background > 0 ) fprintf( outfile, " background=%g", cd->c_background );
 	if( cd->tied ) fprintf( outfile, " tied" );
+	if( cd->save ) fprintf( outfile, " save" );
 	if( cd->nretries > 0 ) fprintf( outfile, " retry=%d", cd->nretries );
 	if( cd->init_particles > 1 ) fprintf( outfile, " particles=%d", cd->init_particles );
 	else if( cd->init_particles < 0 ) fprintf( outfile, " particles" );

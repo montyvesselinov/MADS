@@ -144,6 +144,7 @@ void mads_info()
 	printf( "   tpldebug=[0-3]     - Debug the writing of external files [default tpldebug=0]\n" );
 	printf( "   insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]\n" );
 	printf( "   pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]\n" );
+	printf( "   create             - Create MADS input files for successful parameter sets [default create=0]\n" );
 	printf( "\nExamples:\n" );
 	printf( "   mads a01 test=2 opt=lm igrnd real=1 (no input files are needed for execution)\n" );
 	printf( "   mads a01 test=2 opt=squads igrnd real=1\n" );
