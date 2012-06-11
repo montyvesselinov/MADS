@@ -1774,7 +1774,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 	for( tr = 0; tr < ( *S ).size; tr++ )
 		nTotPart += ( *S ).trib[tr].size; // Total number of particles
 	set_particle( pb, &best );
-	if( nTotPart > ( *pb ).D )
+	if( nTotPart > 2 * ( *pb ).D )
 	{
 		count_not_good_tribes = 0; // Counter for not very successful LM iterations
 		for( tr = 0; tr < ( *S ).size; tr++ )

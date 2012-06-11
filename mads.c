@@ -91,8 +91,9 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 			 int iopt, double parm[], double x[], double *phi, double f[],
 			 double xjac[], int ixjac, double xjtj[], int *infer );
 int lm_gsl( gsl_vector *x, struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *covar );
-// IO
+// Info
 void mads_info();
+// IO
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 int parse_cmd( char *buf, struct calc_data *cd );
@@ -110,7 +111,7 @@ char *Fdatetime( char *filename, int debug );
 time_t Fdatetime_t( char *filename, int debug );
 int count_lines( char *filename );
 int count_cols( char *filename, int row );
-// Pesting
+// External IO
 int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
 int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
@@ -374,7 +375,7 @@ int main( int argn, char *argv[] )
 				bad_data = 1;
 			}
 			else if( opt_params[i] > 1.5 )
-				printf( "WARNING: Model parameter \'%s\' is represented more than once (%d) in the template file(s)!\n", pd.var_id[i], ( int ) opt_params[i] );
+				printf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_id[i], ( int ) opt_params[i] );
 		}
 		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the instruction files for errors ...\n" );
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
@@ -389,7 +390,7 @@ int main( int argn, char *argv[] )
 				bad_data = 1;
 			}
 			else if( od.obs_current[i] > 1.5 )
-				printf( "WARNING: Observation \'%s\' is defined more than once (%d) in the instruction file(s)! Arithmetic average will be computed!\n", od.obs_id[i], ( int ) od.obs_current[i] );
+				printf( "WARNING: Observation \'%s\' is defined more than once (%d times) in the instruction file(s)! Arithmetic average will be computed!\n", od.obs_id[i], ( int ) od.obs_current[i] );
 		}
 		if( bad_data )
 		{
@@ -1480,8 +1481,22 @@ int igrnd( struct opt_data *op )
 			else op->pd->var[i] = orig_params[i];
 		if( op->pd->nOptParam > 0 )
 		{
-			status = optimize_func( op ); // Optimize
-			if( status == 0 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+			if( op->cd->pargen )
+			{
+				if( op->cd->solution_type[0] != TEST && op->cd->solution_type[0] != EXTERNAL )
+				{
+					sprintf( filename, "%s-igrnd.%d.mads", op->root, count + 1 );
+					op->cd->calib_type = SIMPLE;
+					save_problem( filename, op );
+					op->cd->calib_type = IGRND;
+					continue;
+				}
+			}
+			else
+			{
+				status = optimize_func( op ); // Optimize
+				if( status == 0 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+			}
 		}
 		else
 		{
@@ -1822,6 +1837,7 @@ int ppsd( struct opt_data *op )
 	int i, j, k, status, phi_global, success_global, count, debug_level, no_memory = 0;
 	unsigned long neval_total;
 	double phi_min, *orig_params;
+	int *orig_opt;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	FILE *out;
@@ -1857,6 +1873,15 @@ int ppsd( struct opt_data *op )
 		if( op->pd->var_opt[i] == 2 ) orig_params[i] = op->cd->var[i] = op->pd->var_min[i];
 	phi_min = HUGE_VAL;
 	count = neval_total = phi_global = success_global = 0;
+	if( op->cd->pargen )
+	{
+		orig_opt = ( int * ) malloc( op->pd->nParam * sizeof( int ) );
+		for( i = 0; i < op->pd->nParam; i++ )
+		{
+			orig_opt[i] = op->pd->var_opt[i];
+			if( op->pd->var_opt[i] == 2 ) op->pd->var_opt[i] = 0;
+		}
+	}
 	do
 	{
 		op->cd->neval = 0;
@@ -1878,8 +1903,36 @@ int ppsd( struct opt_data *op )
 			}
 			if( op->pd->nOptParam > 0 )
 			{
-				status = optimize_func( op ); // Optimize
-				if( status == 0 ) { return( 0 ); }
+				if( op->cd->pargen )
+				{
+					if( op->cd->solution_type[0] != TEST && op->cd->solution_type[0] != EXTERNAL )
+					{
+						sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
+						op->cd->calib_type = SIMPLE;
+						save_problem( filename, op );
+						op->cd->calib_type = PPSD;
+						for( i = 0; i < op->pd->nParam; i++ )
+							if( orig_opt[i] == 2 )
+							{
+								printf( "%s %g\n", op->pd->var_id[i], op->cd->var[i] );
+								fprintf( out, "%g ", op->cd->var[i] );
+								if( orig_params[i] < op->pd->var_max[i] )
+								{
+									orig_params[i] += op->pd->var_dx[i];
+									if( orig_params[i] > op->pd->var_max[i] ) orig_params[i] = op->pd->var_max[i];
+									break;
+								}
+								else orig_params[i] = op->pd->var_min[i];
+							}
+						if( i == op->pd->nParam ) break;
+						else continue;
+					}
+				}
+				else
+				{
+					status = optimize_func( op ); // Optimize
+					if( status == 0 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+				}
 			}
 			else
 			{
@@ -1917,13 +1970,15 @@ int ppsd( struct opt_data *op )
 				fprintf( out, " : OF %g Success %d\n", op->phi, op->success );
 			fflush( out );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
+			sprintf( filename, "%s-ppsd-%d.mads", op->root, count + 1 );
+			save_problem( filename, op );
 			if( op->success && op->cd->odebug > 1 )
 			{
 				save_results( "ppsd", op, op->gd );
 				if( op->cd->save && op->cd->solution_type[0] != TEST )
 				{
 					sprintf( filename, "%s-ppsd-%d.mads", op->root, count + 1 );
-					save_problem( filename, &op );
+					save_problem( filename, op );
 				}
 			}
 			if( op->cd->ireal != 0 ) break;
@@ -1943,6 +1998,12 @@ int ppsd( struct opt_data *op )
 	}
 	while( 1 );
 	fclose( out );
+	if( op->cd->pargen )
+	{
+		for( i = 0; i < op->pd->nParam; i++ )
+			 op->pd->var_opt[i] = orig_opt[i];
+		free( orig_opt );
+	}
 	op->cd->neval = neval_total; // provide the correct number of total evaluations
 	printf( "\nTotal number of evaluations = %lu\n", neval_total );
 	if( success_global == 0 ) printf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", op->cd->nreal );
@@ -1997,7 +2058,7 @@ int montecarlo( struct opt_data *op )
 	sprintf( filename, "%s.mcrnd.results", op->root );
 	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.mcrnd_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 	out = Fwrite( filename );
-	phi_global = success_global = 0;
+	phi_global = success_global = success_all = 0;
 	phi_min = HUGE_VAL;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1;
 	else k = 0;
@@ -2069,6 +2130,8 @@ int montecarlo( struct opt_data *op )
 			bad_data = 0;
 			bad_data = func_extrn_read( count + 1, op, op->od->res );
 			if( bad_data ) return( 0 );
+			if( ( op->cd->check_success && op->success ) || op->phi < op->cd->phi_cutoff ) success_all = 1;
+			else success_all = 0;
 			if( op->cd->mdebug > 1 ) { printf( "\n" ); print_results( op, 0 ); }
 			else if( op->cd->mdebug )
 			{
@@ -2114,6 +2177,8 @@ int montecarlo( struct opt_data *op )
 			if( op->cd->mdebug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 			Transform( opt_params, op, opt_params );
 			func_global( opt_params, op, op->od->res );
+			if( ( op->cd->check_success && op->success ) || op->phi < op->cd->phi_cutoff ) success_all = 1;
+			else success_all = 0;
 			if( op->cd->mdebug ) op->cd->fdebug = debug_level;
 			if( op->cd->mdebug )
 			{

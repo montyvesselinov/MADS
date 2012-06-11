@@ -95,6 +95,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->niter = 0;
 	cd->tied = 0;
 	cd->save = 0;
+	cd->pargen = 0;
 	cd->init_particles = -1;
 	cd->nretries = 0;
 	cd->seed = cd->seed_init = 0;
@@ -154,7 +155,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "lmiter=" ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->niter ); }
 		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( strcasestr( word, "tied" ) ) { w = 1; cd->tied = 1; } // Tied shortcut
-		if( strcasestr( word, "save" ) ) { w = 1; cd->save = 1; } // Tied shortcut
+		if( strcasestr( word, "save" ) ) { w = 1; cd->save = 1; }
+		if( strcasestr( word, "pargen" ) ) { w = 1; cd->pargen = 1; }
 		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
 		if( strcasestr( word, "eval=" ) ) { w = 1; sscanf( word, "eval=%d", &cd->maxeval ); }
 		if( strcasestr( word, "case=" ) ) { w = 1; sscanf( word, "case=%d", &cd->ireal ); }
@@ -207,6 +209,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( w == 0 ) { printf( "\nERROR: Unknown keyword \'%s\'!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); return( -1 ); }
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
+	if( cd->seed_init != 0 ) cd->seed_init *= -1; // Modify the seed to show that is imported
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 	if( ( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) && cd->nreal == 0 ) cd->nreal = 100;
 	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) cd->paranoid = 1;
@@ -977,6 +980,7 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->c_background > 0 ) fprintf( outfile, " background=%g", cd->c_background );
 	if( cd->tied ) fprintf( outfile, " tied" );
 	if( cd->save ) fprintf( outfile, " save" );
+	if( cd->seed_init < 0 ) fprintf( outfile, " seed=%d", cd->seed_init * -1 );
 	if( cd->nretries > 0 ) fprintf( outfile, " retry=%d", cd->nretries );
 	if( cd->init_particles > 1 ) fprintf( outfile, " particles=%d", cd->init_particles );
 	else if( cd->init_particles < 0 ) fprintf( outfile, " particles" );
