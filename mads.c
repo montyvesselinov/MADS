@@ -2001,7 +2001,7 @@ int ppsd( struct opt_data *op )
 	if( op->cd->pargen )
 	{
 		for( i = 0; i < op->pd->nParam; i++ )
-			 op->pd->var_opt[i] = orig_opt[i];
+			op->pd->var_opt[i] = orig_opt[i];
 		free( orig_opt );
 	}
 	op->cd->neval = neval_total; // provide the correct number of total evaluations
