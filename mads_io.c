@@ -360,7 +360,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 {
 	FILE *infile;
-//	FILE *infileb;
+	//	FILE *infileb;
 	double x0, y0, x, y, d, alpha, beta;
 	char buf[1000], *file, **path, exec[1000], *word, *start;
 	char *separator = " \t\n";
@@ -575,7 +575,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				fclose( infileb );
 			}
 		}
-	*/
+	 */
 	pd->var_current = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
 	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
 	if( cd->solution_type[0] == EXTERNAL )
@@ -897,7 +897,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else( *gd ).dx = ( ( *gd ).max_x - ( *gd ).min_x ) / ( ( *gd ).nx - 1 );
 	if( ( *gd ).ny == 1 )( *gd ).dy = 0;
 	( *gd ).dy = ( ( *gd ).max_y - ( *gd ).min_y ) / ( ( *gd ).ny - 1 );
-//	if(( *gd ).nz == 1 )( *gd ).dz = ( *gd ).max_z - ( *gd ).min_z ); // In this way compute_grid computed for min_z
+	//	if(( *gd ).nz == 1 )( *gd ).dz = ( *gd ).max_z - ( *gd ).min_z ); // In this way compute_grid computed for min_z
 	if( ( *gd ).nz == 1 )( *gd ).dz = 0;
 	else( *gd ).dz = ( ( *gd ).max_z - ( *gd ).min_z ) / ( ( *gd ).nz - 1 );
 	if( cd->debug ) printf( "Breakthrough-curve time window: %g %g %g\n", ( *gd ).min_t, ( *gd ).max_t, ( *gd ).dt );
@@ -920,8 +920,8 @@ int save_problem( char *filename, struct opt_data *op )
 	gd = op->gd;
 	ed = op->ed;
 	FILE *outfile;
-//	FILE *outfileb;
-//	char buf[100];
+	//	FILE *outfileb;
+	//	char buf[100];
 	int  i, j;
 	if( ( outfile = fopen( filename, "w" ) ) == NULL )
 	{
@@ -937,7 +937,7 @@ int save_problem( char *filename, struct opt_data *op )
 			fwrite( (void *) (*pd).var, sizeof((*pd).var[i]), (*pd).nParam, outfileb );
 			fclose( outfileb );
 		}
-	*/
+	 */
 	i = 0;
 	fprintf( outfile, "Problem type: " );
 	switch( cd->problem_type )
@@ -964,9 +964,9 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->test_func >= 0 ) fprintf( outfile, " test=%d", cd->test_func );
 	if( cd->test_func_dim > 2 ) fprintf( outfile, " dim=%d", cd->test_func_dim );
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
-	fprintf( outfile, " sindx=%g", cd->sindx );
-	fprintf( outfile, " lindx=%g", cd->lindx );
-	fprintf( outfile, " pardx=%g", cd->lindx );
+	if( cd->sintrans ) fprintf( outfile, " sindx=%g", cd->sindx );
+	else fprintf( outfile, " lindx=%g", cd->lindx );
+	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, " pardx=%g", cd->pardx ); TODO when to print pardx?
 	if( cd->check_success ) fprintf( outfile, " success" );
 	fprintf( outfile, " " );
 	switch( cd->calib_type )
@@ -1067,12 +1067,12 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 		return;
 	}
 	fprintf( outfile, "# vtk DataFile Version 2.0\n" );
-	fprintf( outfile, "Anasol output\n" );
+	fprintf( outfile, "MADS output\n" );
 	fprintf( outfile, "ASCII\n" );
 	fprintf( outfile, "DATASET STRUCTURED_POINTS\n" );
 	fprintf( outfile, "DIMENSIONS %d %d %d\n", gd->nx, gd->ny, gd->nz );
 	fprintf( outfile, "ORIGIN %g %g %g\n", gd->min_x, gd->min_y, gd->min_z ); /* negative z */
-//	fprintf( outfile, "ORIGIN %g %g %g\n", gd->min_x, gd->min_y, -gd->max_z ); /* negative z */
+	//	fprintf( outfile, "ORIGIN %g %g %g\n", gd->min_x, gd->min_y, -gd->max_z ); /* negative z */
 	fprintf( outfile, "SPACING %g %g %g\n", gd->dx, gd->dy, gd->dz );
 	fprintf( outfile, "POINT_DATA %d\n", gd->nx * gd->ny * gd->nz );
 	fprintf( outfile, "SCALARS Cr_concentration_ppb float 1\n" );
@@ -1080,7 +1080,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 	max_conc = max_x = max_y = max_z = 0;
 	for( k = 0; k < gd->nz; k++ )
 	{
-//		z = gd->max_z - k * gd->dz; /* reverse z */
+		//		z = gd->max_z - k * gd->dz; /* reverse z */
 		z = k * gd->dz + gd->min_z;
 		for( j = 0; j < gd->ny; j++ )
 		{
@@ -1104,8 +1104,8 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 {
 	FILE *outfile;
-	double time, time_expected, c, max_source_conc, max_source_time, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye, v, v_apparent;
-	int  i, k;
+	double time, time_expected, c, max_source_conc, max_source_time, max_source_x, max_source_y, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye, v, v_apparent;
+	int  i, k, s;
 	struct grid_data *gd;
 	gd = op->gd;
 	if( gd->min_t <= 0 ) return;
@@ -1146,23 +1146,26 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	}
 	printf( "\nCompute source max concentration ..." );
 	max_source_conc = 0; max_source_time = op->pd->var[TIME_INIT];
-	for( k = 0; k < gd->nt; k++ )
-	{
-		time = gd->min_t + gd->dt * k;
-		c = func_solver( op->pd->var[SOURCE_X], op->pd->var[SOURCE_Y], op->pd->var[SOURCE_Z], op->pd->var[SOURCE_Z], time, ( void * ) op->cd );
-		if( max_source_conc < c ) { max_source_conc = c; max_source_time = time; }
-	}
-	printf( "\nPeak source concentration = %g @ %g\n", max_source_conc, max_source_time );
+	for( s = 0; s < op->cd->num_solutions; s++ )
+		for( k = 0; k < gd->nt; k++ )
+		{
+			time = gd->min_t + gd->dt * k;
+			c = func_solver( op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_X], op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_Y], op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_Z], op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_Z], time, ( void * ) op->cd );
+			if( max_source_conc < c ) { max_source_conc = c; max_source_x = op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_X]; max_source_y = op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_Y]; max_source_time = time; }
+		}
+	printf( "\nPeak source concentration (x = %g, y = %g, t = %g) = %g\n", max_source_x, max_source_y, max_source_time, max_source_conc );
 	for( i = 0; i < op->pd->nParam; i++ ) // IMPORTANT: Take care of log transformed variable
 		if( op->pd->var_opt[i] >= 1 && op->pd->var_log[i] == 1 )
 			op->pd->var[i] = pow( 10, op->pd->var[i] );
-	v = sqrt( op->pd->var[VX] * op->pd->var[VX] + op->pd->var[VY] * op->pd->var[VY] + op->pd->var[VZ] * op->pd->var[VZ] ); // Flow velocity
-	printf( "Flow velocity = %g (%g %g %g)\n", v, op->pd->var[VX], op->pd->var[VY], op->pd->var[VZ] );
+	i = ( op->cd->num_solutions - 1 ) * NUM_ANAL_PARAMS_SOURCE;
+	v = sqrt( op->pd->var[i + VX] * op->pd->var[i + VX] + op->pd->var[i + VY] * op->pd->var[i + VY] + op->pd->var[i + VZ] * op->pd->var[i + VZ] ); // Flow velocity
+	// printf( "Flow velocity pointers = (%d %d %d)\n", i+VX, i+VY, i+VZ );
+	printf( "Flow velocity = %g (%g %g %g)\n", v, op->pd->var[i + VX], op->pd->var[i + VY], op->pd->var[i + VZ] );
 	for( i = 0; i < op->wd->nW; i++ )
 	{
-		x0 = ( op->wd->x[i] - op->pd->var[SOURCE_X] );
-		y0 = ( op->wd->y[i] - op->pd->var[SOURCE_Y] );
-		d = ( -op->pd->var[FLOW_ANGLE] * M_PI ) / 180;
+		x0 = ( op->wd->x[i] - max_source_x );
+		y0 = ( op->wd->y[i] - max_source_y );
+		d = ( -op->pd->var[( op->cd->num_solutions - 1 ) * NUM_ANAL_PARAMS_SOURCE + FLOW_ANGLE] * M_PI ) / 180;
 		alpha = cos( d );
 		beta = sin( d );
 		xe = x0 * alpha - y0 * beta;
@@ -1172,8 +1175,8 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		if( time > DBL_EPSILON ) v_apparent = d / time; else { v_apparent = -1; if( time < 0 ) time = -1; };
 		c = max_conc[i] / max_source_conc; // Normalized concentration
 		if( v > DBL_EPSILON ) time_expected = d / v; else time_expected = -1;
-		printf( "%s\tPeak Concentration = %12g (%12g) @ time %12g (%12g) velocity = %12g (%g) distance = %g\n", op->wd->id[i], c, max_conc[i], time, time_expected, v_apparent, v, d );
-		fprintf( outfile, "%s\tPeak Conc = %12g @ time %12g (%g) velocity = %12g (%g) distance = %12g\n", op->wd->id[i], c, time, time_expected, v_apparent, v, d );
+		printf( "%s\tPeak Concentration  = %12g (%12g) @ time %12g (%12g exp %12g) velocity = %12g (%12g) distance = %12g\n", op->wd->id[i], max_conc[i], c, max_time[i], time, time_expected, v_apparent, v, d );
+		fprintf( outfile, "%s\tPeak Conc = %12g (%12g) @ time %12g (%12g exp %12g) velocity = %12g (%12g) distance = %12g\n", op->wd->id[i], max_conc[i], c, max_time[i], time, time_expected, v_apparent, v, d );
 	}
 	fclose( outfile );
 	printf( "Concentration peak data saved in %s\n", filename2 );

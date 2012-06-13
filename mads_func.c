@@ -463,16 +463,6 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
-		if( p->cd->tied ) // Hard wiring; Tied dispersivities
-		{
-			p1 = p->cd->num_solutions * NUM_ANAL_PARAMS_SOURCE + AY;
-			p2 = p->cd->num_solutions * NUM_ANAL_PARAMS_SOURCE + AZ;
-			if( k == p1 || k == p2 )
-			{
-				// printf( "divide %.12g %.12g\n", p->cd->var[AX], p->cd->var[k] );
-				p->cd->var[k] = p->cd->var[AX] / p->cd->var[k];
-			}
-		}
 		if( p->cd->fdebug >= 3 ) printf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
 	if( p->cd->fdebug >= 3 )
@@ -562,25 +552,23 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			j = p->od->time_index[k];
 			c1 = c2 = p->cd->c_background;
 			// printf( "HERE intern\n" );
+			l = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
+			p2 = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
+			for( p1 = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; p1 < l; p1++, p2++ )
+				p->ad->var[p2] = p->cd->var[p1];
+			if( p->cd->tied ) // Hard wiring; Tied dispersivities
+			{
+				// printf( "AY: divide %.12g by %.12g\n", p->ad->var[AX], p->ad->var[AY] );
+				p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY];
+				// printf( "AZ: divide %.12g by %.12g\n", p->ad->var[AY], p->ad->var[AZ] );
+				p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ];
+			}
 			for( s = 0; s < p->cd->num_solutions; s++ )
 			{
-				if( p->cd->num_solutions == 1 )
-					for( p1 = 0; p1 < NUM_ANAL_PARAMS; p1++ )
-						p->ad->var[p1] = p->cd->var[p1];
-				else
-				{
-					if( s == 0 )
-					{
-						l = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
-						p2 = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
-						for( p1 = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; p1 < l; p1++, p2++ )
-							p->ad->var[p2] = p->cd->var[p1];
-					}
-					l = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
-					p2 = 0;
-					for( p1 = NUM_ANAL_PARAMS_SOURCE * s; p1 < l; p1++, p2++ )
-						p->ad->var[p2] = p->cd->var[p1];
-				}
+				l = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+				p2 = 0;
+				for( p1 = NUM_ANAL_PARAMS_SOURCE * s; p1 < l; p1++, p2++ )
+					p->ad->var[p2] = p->cd->var[p1];
 				switch( p->cd->solution_type[s] )
 				{
 					case POINT:
@@ -762,25 +750,25 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 	struct calc_data *p = ( struct calc_data * )data;
 	struct anal_data ad;
 	c = p->c_background;
+	k = NUM_ANAL_PARAMS_SOURCE * p->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
+	j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
+	for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
+		ad.var[j] = p->var[i];
+	if( p->tied ) // Hard wiring; Tied dispersivities
+	{
+		// printf( "AY: divide %.12g by %.12g\n", ad.var[AX], ad.var[AY] );
+		ad.var[AY] = ad.var[AX] / ad.var[AY];
+		// printf( "AZ: divide %.12g by %.12g\n", ad.var[AY], ad.var[AZ] );
+		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
+	}
 	for( s = 0; s < p->num_solutions; s++ )
 	{
-		if( p->num_solutions == 1 )
-			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-				ad.var[i] = p->var[i];
-		else
-		{
-			if( s == 0 )
-			{
-				k = NUM_ANAL_PARAMS_SOURCE * p->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
-				j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
-				for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
-					ad.var[j] = p->var[i];
-			}
-			k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
-			j = 0;
-			for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
-				ad.var[j] = p->var[i];
-		}
+		k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+		j = 0;
+		for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
+			ad.var[j] = p->var[i];
+		// for( i = 0; i < NUM_ANAL_PARAMS; i++ )
+		// printf( "s#%d p#%d %g\n", s+1, i+1, ad.var[i] );
 		// printf( "HERE func_solver1\n" );
 		switch( p->solution_type[s] )
 		{
@@ -809,28 +797,26 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 	struct calc_data *p = ( struct calc_data * )data;
 	struct anal_data ad;
 	c1 = c2 = p->c_background;
+	k = NUM_ANAL_PARAMS_SOURCE * p->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
+	j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
+	for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
+		ad.var[j] = p->var[i];
+	if( p->tied ) // Hard wiring; Tied dispersivities
+	{
+		// printf( "AY: divide %.12g by %.12g\n", ad.var[AX], ad.var[AY] );
+		ad.var[AY] = ad.var[AX] / ad.var[AY];
+		// printf( "AZ: divide %.12g by %.12g\n", ad.var[AY], ad.var[AZ] );
+		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
+	}
 	for( s = 0; s < p->num_solutions; s++ )
 	{
-		if( p->num_solutions == 1 )
-			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-				ad.var[i] = p->var[i];
-		else
-		{
-			if( s == 0 )
-			{
-				k = NUM_ANAL_PARAMS_SOURCE * p->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
-				j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
-				for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
-					ad.var[j] = p->var[i];
-			}
-			k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
-			j = 0;
-			for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
-				ad.var[j] = p->var[i];
-		}
-		// printf( "HERE func_solver\n" );
+		k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+		j = 0;
+		for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
+			ad.var[j] = p->var[i];
 		// for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-		// printf( "p %g\n", ad.var[i] );
+		// printf( "s#%d p#%d %g\n", s+1, i+1, ad.var[i] );
+		// printf( "HERE func_solver\n" );
 		switch( p->solution_type[s] )
 		{
 			case POINT:

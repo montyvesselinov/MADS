@@ -189,6 +189,8 @@ int LEVMAR_DER(
 	jac_max = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	/* compute e=x - f(p) and its L2 norm */
 	maxnfev = op->cd->maxeval - op->cd->neval;
+	for( i = 0; i < m; ++i )
+		pDp[i] = p[i];
 	( *func )( p, hx, m, n, adata ); nfev = 1;
 	if( op->cd->check_success && op->success )
 	{
@@ -234,6 +236,7 @@ int LEVMAR_DER(
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	computejac = 0;
 	kmax = itmax * 100;
+	if( op->cd->ldebug ) printf( "Initial evaluation: OF %g\n", p_eL2 );
 	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
@@ -257,6 +260,18 @@ int LEVMAR_DER(
 				if( phi_decline ) printf( "OF declined substantially (%g << %g)", p_eL2, p_eL2_old );
 				if( computejac ) printf( "requested" );
 				printf( "\n\n" );
+			}
+			if( op->cd->ldebug )
+			{
+				DeTransform( pDp, op, jac_min );
+				printf( "Current parameter estimates:\n" );
+				for( i = 0; i < m; ++i )
+				{
+					j = op->pd->var_index[i];
+					if( op->pd->var_log[j] ) printf( "%s %g\n", op->pd->var_id[j], pow( 10, jac_min[i] ) );
+					else printf( "%s %g\n", op->pd->var_id[j], jac_min[i] );
+				}
+				printf( "\n" );
 			}
 			if( njap >= itmax ) { stop = 31; continue; }
 			if( nfev >= maxnfev ) { stop = 32; continue; }
@@ -410,14 +425,15 @@ int LEVMAR_DER(
 				diag_jacTjac[i] = jacTjac[i * m + i]; /* save diagonal entries so that augmentation can be later canceled */
 				p_L2 += p[i] * p[i];
 			}
-		}
-		/* check for convergence */
-		if( ( jacTe_inf <= eps1 ) )
-		{
-			Dp_L2 = 0.0; /* no increment for p in this case */
-			if( op->cd->ldebug ) printf( "CONVERGED: small increment for OF (%g < %g)\n", jacTe_inf, eps1 );
-			stop = 1;
-			break;
+			/* check for convergence */
+			if( op->cd->ldebug > 1 ) printf( "OF increment %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
+			if( ( jacTe_inf <= eps1 ) )
+			{
+				Dp_L2 = 0.0; /* no increment for p in this case */
+				if( op->cd->ldebug ) printf( "CONVERGED: small increment for OF (%g < %g)\n", jacTe_inf, eps1 );
+				stop = 1;
+				break;
+			}
 		}
 		/* compute initial damping factor */
 		if( k == 0 )
@@ -503,14 +519,14 @@ int LEVMAR_DER(
 				if( op->cd->ldebug > 1 ) printf( "LM acceleration performed (with acceleration %g vs without acceleration %g)\n", Dpa_L2, Dp_L2 );
 			}
 			Dpa_L2 = sqrt( Dpa_L2 );
-			// if( op->cd->ldebug ) printf( "CHECK CONVERGED: Relative change in the OF is small (%g < %g)\n", Dpa_L2, eps2_sq * p_L2 );
+			if( op->cd->ldebug > 1 ) printf( "Relative change in the OF %g (%g < %g to converge)\n", Dp_L2, Dp_L2, eps2_sq * p_L2 );
 			if( Dpa_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: Relative change in the OF is small (%g < %g)\n", Dpa_L2, eps2_sq * p_L2 );
 				stop = 2;
 				break;
 			}
-			// if( op->cd->ldebug ) printf( "CHECK CONVERGED: almost singular solution (%g > %g)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
+			if( op->cd->ldebug > 1 ) printf( "Solution singularity %g (%g > %g to terminate)\n", Dpa_L2, Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
 			if( Dpa_L2 >= ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) ) /* almost singular */
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: almost singular solution (%g > %g)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
@@ -896,6 +912,7 @@ int LEVMAR_DIF(
 	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	kmax = itmax * 100;
+	if( op->cd->ldebug ) printf( "Initial evaluation: OF %g\n", p_eL2 );
 	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
@@ -1022,14 +1039,15 @@ int LEVMAR_DIF(
 				p_L2 += p[i] * p[i];
 			}
 			//p_L2=sqrt(p_L2);
-		}
-		/* check for convergence */
-		if( ( jacTe_inf <= eps1 ) )
-		{
-			Dp_L2 = 0.0; /* no increment for p in this case */
-			if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
-			stop = 1;
-			break;
+			if( op->cd->ldebug > 1 ) printf( "OF increment %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
+			/* check for convergence */
+			if( ( jacTe_inf <= eps1 ) )
+			{
+				Dp_L2 = 0.0; /* no increment for p in this case */
+				if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
+				stop = 1;
+				break;
+			}
 		}
 		/* compute initial damping factor */
 		if( k == 0 )
@@ -1054,6 +1072,7 @@ int LEVMAR_DIF(
 				Dp_L2 += tmp * tmp;
 			}
 			// Dp_L2=sqrt(Dp_L2);
+			if( op->cd->ldebug > 1 ) printf( "Relative change in the OF %g (%g < %g to converge)\n", Dp_L2, Dp_L2, eps2_sq * p_L2 );
 			if( Dp_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
 			{
 				//if(Dp_L2<=eps2*(p_L2 + eps2)){ /* relative change in p is small, stop */
