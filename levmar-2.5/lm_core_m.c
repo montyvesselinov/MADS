@@ -86,7 +86,7 @@ int LEVMAR_DER(
                       */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac, kmax, maxnfev;
+	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac, changejac, kmax, maxnfev;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -261,21 +261,10 @@ int LEVMAR_DER(
 				if( computejac ) printf( "requested" );
 				printf( "\n\n" );
 			}
-			if( op->cd->ldebug )
-			{
-				DeTransform( pDp, op, jac_min );
-				printf( "Current parameter estimates:\n" );
-				for( i = 0; i < m; ++i )
-				{
-					j = op->pd->var_index[i];
-					if( op->pd->var_log[j] ) printf( "%s %g\n", op->pd->var_id[j], pow( 10, jac_min[i] ) );
-					else printf( "%s %g\n", op->pd->var_id[j], jac_min[i] );
-				}
-				printf( "\n" );
-			}
 			if( njap >= itmax ) { stop = 31; continue; }
 			if( nfev >= maxnfev ) { stop = 32; continue; }
 			computejac = 0;
+			changejac = 1;
 			mu_big = 0;
 			phi_decline = 0;
 			p_eL2_old = p_eL2;
@@ -425,6 +414,19 @@ int LEVMAR_DER(
 				diag_jacTjac[i] = jacTjac[i * m + i]; /* save diagonal entries so that augmentation can be later canceled */
 				p_L2 += p[i] * p[i];
 			}
+			if( ( op->cd->ldebug && changejac ) || op->cd->ldebug > 2 )
+			{
+				DeTransform( pDp, op, jac_min );
+				printf( "Current parameter estimates:\n" );
+				for( i = 0; i < m; ++i )
+				{
+					j = op->pd->var_index[i];
+					if( op->pd->var_log[j] ) printf( "%s %g (err %g)\n", op->pd->var_id[j], pow( 10, jac_min[i] ), diag_jacTjac[i] );
+					else printf( "%s %g (err %g)\n", op->pd->var_id[j], jac_min[i], diag_jacTjac[i] );
+				}
+				printf( "\n" );
+			}
+			changejac = 0;
 			/* check for convergence */
 			if( op->cd->ldebug > 1 ) printf( "OF increment %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
 			if( ( jacTe_inf <= eps1 ) )

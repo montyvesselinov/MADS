@@ -920,7 +920,7 @@ int optimize_lm( struct opt_data *op )
 			{ printf( "Not enough memory!\n" ); return( 0 ); }
 			for( i = 0; i < op->od->nObs; i++ ) res[i] = 0;
 			jacobian = work + op->pd->nOptParam + 2 * op->od->nObs;
-			opts[0] = 1e-3; opts[1] = 100; opts[2] = 1E-2;
+			opts[0] = 1e-3; opts[1] = 10; opts[2] = 1E-2;
 			opts[3] = op->cd->phi_cutoff;
 			if( op->cd->sintrans == 0 ) opts[4] = op->cd->lindx; // Forward difference; Central difference if negative; DO NOT USE CENTRAL DIFFERENCE
 			else opts[4] = op->cd->sindx;

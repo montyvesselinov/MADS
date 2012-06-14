@@ -1105,7 +1105,7 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 {
 	FILE *outfile;
 	double time, time_expected, c, max_source_conc, max_source_time, max_source_x, max_source_y, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye, v, v_apparent;
-	int  i, k, s;
+	int  i, k, s, p;
 	struct grid_data *gd;
 	gd = op->gd;
 	if( gd->min_t <= 0 ) return;
@@ -1117,6 +1117,8 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	printf( "\n" );
 	max_time = ( double * ) malloc( op->wd->nW * sizeof( double ) );
 	max_conc = ( double * ) malloc( op->wd->nW * sizeof( double ) );
+	max_source_conc = 0;
+	max_source_time = op->pd->var[TIME_INIT];
 	fprintf( outfile, "variable = \"Time [a]\"" );
 	for( i = 0; i < op->wd->nW; i++ )
 	{
@@ -1124,6 +1126,8 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		max_conc[i] = 0;
 		max_time[i] = -1;
 	}
+	for( s = 0; s < op->cd->num_solutions; s++ )
+		fprintf( outfile, " \"S%d\"", s + 1 );
 	fprintf( outfile, "\n" );
 	for( k = 0; k < gd->nt; k++ )
 	{
@@ -1135,25 +1139,23 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 			fprintf( outfile, " %g", c );
 			if( max_conc[i] < c ) { max_conc[i] = c; max_time[i] = time; }
 		}
+		for( s = 0; s < op->cd->num_solutions; s++ )
+		{
+			p = s * NUM_ANAL_PARAMS_SOURCE;
+			c = func_solver( op->pd->var[p + SOURCE_X], op->pd->var[p + SOURCE_Y], op->pd->var[p + SOURCE_Z], op->pd->var[p + SOURCE_Z], time, ( void * ) op->cd );
+			fprintf( outfile, " %g", c );
+			if( max_source_conc < c ) { max_source_conc = c; max_source_x = op->pd->var[p + SOURCE_X]; max_source_y = op->pd->var[p + SOURCE_Y]; max_source_time = time; }
+		}
 		fprintf( outfile, "\n" );
 	}
 	fclose( outfile );
 	printf( "Concentration breakthrough data saved in %s\n", filename );
+	printf( "\nPeak source concentration (x = %g, y = %g, t = %g) = %g\n", max_source_x, max_source_y, max_source_time, max_source_conc );
 	if( ( outfile = fopen( filename2, "w" ) ) == NULL )
 	{
 		printf( "Output file %s cannot be opened!\n", filename );
 		return;
 	}
-	printf( "\nCompute source max concentration ..." );
-	max_source_conc = 0; max_source_time = op->pd->var[TIME_INIT];
-	for( s = 0; s < op->cd->num_solutions; s++ )
-		for( k = 0; k < gd->nt; k++ )
-		{
-			time = gd->min_t + gd->dt * k;
-			c = func_solver( op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_X], op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_Y], op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_Z], op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_Z], time, ( void * ) op->cd );
-			if( max_source_conc < c ) { max_source_conc = c; max_source_x = op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_X]; max_source_y = op->pd->var[s * NUM_ANAL_PARAMS_SOURCE + SOURCE_Y]; max_source_time = time; }
-		}
-	printf( "\nPeak source concentration (x = %g, y = %g, t = %g) = %g\n", max_source_x, max_source_y, max_source_time, max_source_conc );
 	for( i = 0; i < op->pd->nParam; i++ ) // IMPORTANT: Take care of log transformed variable
 		if( op->pd->var_opt[i] >= 1 && op->pd->var_log[i] == 1 )
 			op->pd->var[i] = pow( 10, op->pd->var[i] );
