@@ -3,7 +3,7 @@
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
 // Dylan Harp, dharp@lanl.gov
 // Brianeisha Eure
-// Leif
+// Leif Zinn-Bjorkman
 //
 // http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -527,15 +527,7 @@ int main( int argn, char *argv[] )
 		if( cd.debug == 0 ) printf( "\n" );
 		print_results( &op, 1 );
 		save_results( "", &op, &gd );
-		if( od.nObs < od.nTObs )
-		{
-			predict = 1; // Produce outputs for predictions that are not calibration targets (see below PREDICT)
-			sprintf( filename, "%s.results", op.root );
-			out = Fappend( filename ); // Reopen results file
-			printf( "\nModel predictions that are not calibration targets:\n" );
-			fprintf( out, "\nModel predictions that are not calibration targets:\n" );
-		}
-		else predict = 0; // There are no observations that are not calibration targets
+		predict = 0;
 	}
 	strcpy( op.label, "" ); // No labels needed below
 	//
@@ -757,7 +749,7 @@ int optimize_lm( struct opt_data *op )
 	double opt_parm[4], *jacobian, *jacTjac, *covar, *work, eps, delta, *var_lhs;
 	double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
 	char buf[80];
-	debug = op->cd->debug;
+	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->standalone;
 	if( !standalone ) op->cd->paranoid = 0;
 	if( op->od->nObs == 0 ) { printf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
@@ -920,7 +912,7 @@ int optimize_lm( struct opt_data *op )
 			{ printf( "Not enough memory!\n" ); return( 0 ); }
 			for( i = 0; i < op->od->nObs; i++ ) res[i] = 0;
 			jacobian = work + op->pd->nOptParam + 2 * op->od->nObs;
-			opts[0] = 1e-3; opts[1] = 10; opts[2] = 1E-2;
+			opts[0] = 1e-3; opts[1] = 1e-5; opts[2] = 1E-5;
 			opts[3] = op->cd->phi_cutoff;
 			if( op->cd->sintrans == 0 ) opts[4] = op->cd->lindx; // Forward difference; Central difference if negative; DO NOT USE CENTRAL DIFFERENCE
 			else opts[4] = op->cd->sindx;
@@ -933,6 +925,7 @@ int optimize_lm( struct opt_data *op )
 				if( opts[4] > 0 ) maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 1 ) + 1 ); // Forward derivatives
 				else              maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 1 ) + 1 ); // Central derivatives
 				if( maxiter_levmar > maxiter ) maxiter_levmar = maxiter;
+				// dlevmar_der called by DEFAULT
 				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter_levmar, opts, info, work, covar, op );
 				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter_levmar, opts, info, work, covar, op );
 				if( info[6] == 4 || info[6] == 5 )
@@ -946,7 +939,7 @@ int optimize_lm( struct opt_data *op )
 				}
 				else break;
 			}
-			if( op->cd->ldebug > 1 )
+			if( op->cd->ldebug > 12 )
 			{
 				printf( "Levenberg-Marquardt Optimization completed after %g iteration (reason %g) (returned value %d)\n", info[5], info[6], ier );
 				printf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
@@ -1059,7 +1052,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	{ printf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( stddev = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); return( 0 ); }
-	debug = op->cd->debug;
+	debug = MAX( op->cd->leigen, op->cd->debug );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
 	Transform( opt_params, op, opt_params );
@@ -2874,7 +2867,7 @@ void print_results( struct opt_data *op, int verbosity )
 	}
 	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 && predict )
 	{
-		printf( "\nModel predictions:\n" );
+		printf( "\nModel predictions for not calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
 			for( i = 0; i < op->od->nObs; i++ )
 			{
@@ -2889,11 +2882,11 @@ void print_results( struct opt_data *op, int verbosity )
 			}
 		else
 		{
-			for( k = 0, i = 0; i < op->wd->nW; i++ )
+			for( i = 0; i < op->wd->nW; i++ )
 				for( j = 0; j < op->wd->nWellObs[i]; j++ )
 				{
 					if( op->wd->obs_weight[i][j] != 0 ) continue;
-					c = op->od->obs_current[k++];
+					c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
 					err = op->wd->obs_target[i][j] - c;
 					if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) success = 0;
 					else success = 1;
@@ -2951,11 +2944,16 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 					if( op->wd->obs_weight[i][j] != 0 )
 					{
 						c = op->od->obs_current[k++];
-						err = op->wd->obs_target[i][j] - c;
 						if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { success_all = 0; success = 0; }
 						else success = 1;
 					}
-					else success = 0;
+					else
+					{
+						c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
+						if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) success = 0;
+						else success = 1;
+					}
+					err = op->wd->obs_target[i][j] - c;
 					fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
 					fprintf( out2, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
 				}

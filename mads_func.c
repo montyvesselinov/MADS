@@ -35,7 +35,6 @@ int func_extrn( double *x, void *data, double *f );
 int func_extrn_write( int ieval, double *x, void *data );
 int func_extrn_read( int ieval, void *data, double *f );
 int func_extrn_check_read( int ieval, void *data );
-int func_extrn_r( double *x, void *data, double *f );
 int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
 void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data );

@@ -453,6 +453,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 		if( ( *cd ).num_solutions > 1 ) strcat( ( *cd ).solution_id, " " );
 	}
+	if( cd->c_background ) printf( " | background concentration = %g", cd->c_background );
 	printf( "\n" );
 	if( ( *cd ).solution_type[0] == TEST ) return( 1 );
 	// Read parameters
