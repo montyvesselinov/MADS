@@ -496,7 +496,7 @@ int LEVMAR_DER(
 				diag_jacTjac[i] = jacTjac[i * m + i]; /* save diagonal entries so that augmentation can be later canceled */
 				p_L2 += p[i] * p[i];
 			}
-			if( ( op->cd->ldebug && changejac ) || ( k > 0 ) )
+			if( op->cd->ldebug && ( changejac && ( k > 0 ) ) )
 			{
 				DeTransform( p, op, jac_min );
 				DeTransform( p_old2, op, jac_max );

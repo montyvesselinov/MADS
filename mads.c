@@ -71,7 +71,7 @@ int glue( struct opt_data *op );
 //
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op, int verbosity ); // Print final results
-void save_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
+void save_final_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
 void ave_sorted( double data[], int n, double *ave, double *ep );
 int sort_int( const void *x, const void *y );
@@ -522,11 +522,9 @@ int main( int argn, char *argv[] )
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = pd.var[i]; // Set all the initial values
 		success = optimize_func( &op ); // Optimize
 		if( success == 0 ) { printf( "ERROR: Optimization did not start!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-		sprintf( filename, "%s-rerun.mads", op.root );
-		if( cd.solution_type[0] != TEST ) save_problem( filename, &op );
 		if( cd.debug == 0 ) printf( "\n" );
 		print_results( &op, 1 );
-		save_results( "", &op, &gd );
+		save_final_results( "", &op, &gd );
 		predict = 0;
 	}
 	strcpy( op.label, "" ); // No labels needed below
@@ -660,7 +658,7 @@ int main( int argn, char *argv[] )
 		else    printf( "No calibration targets!\n" );
 		fclose( out );
 	}
-	if( cd.problem_type == FORWARD ) save_results( "", &op, &gd );
+	if( cd.problem_type == FORWARD ) save_final_results( "", &op, &gd );
 	if( cd.problem_type == FORWARD && od.nObs > 0 ) fclose( out2 );
 	if( cd.problem_type == FORWARD || cd.problem_type == CALIBRATE )
 	{
@@ -1560,7 +1558,8 @@ int igrnd( struct opt_data *op )
 		}
 		fprintf( out, "\n" );
 		fflush( out );
-		if( op->success && op->cd->nreal > 1 && op->cd->odebug > 1 ) save_results( "igrnd", op, op->gd );
+		if( op->success && op->cd->nreal > 1 && op->cd->save )
+			save_final_results( "igrnd", op, op->gd );
 		if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 		if( op->cd->ireal != 0 ) break;
 	}
@@ -1656,7 +1655,7 @@ int igrnd( struct opt_data *op )
 		free( opt_params_min ); free( opt_params_max ); free( opt_params_avg );
 		if( op->cd->phi_cutoff > DBL_EPSILON || op->cd->check_success ) { free( sel_params_min ); free( sel_params_max ); free( sel_params_avg ); }
 	}
-	save_results( "", op, op->gd );
+	save_final_results( "", op, op->gd );
 	return( 1 );
 }
 
@@ -1764,7 +1763,8 @@ int igpd( struct opt_data *op )
 			fprintf( out, "\n" );
 			fflush( out );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
-			if( op->success && op->cd->nreal > 1 && op->cd->odebug > 1 ) save_results( "igpd", op, op->gd );
+			if( op->success && op->cd->nreal > 1 && op->cd->save )
+				save_final_results( "igpd", op, op->gd );
 			if( op->cd->ireal != 0 ) break;
 		}
 		if( op->pd->nFlgParam == 0 || op->pd->nOptParam == 0 ) break;
@@ -1821,7 +1821,7 @@ int igpd( struct opt_data *op )
 	fclose( out ); fclose( out2 );
 	printf( "Results are saved in %s.igpd.results\n", op->root );
 	free( opt_params ); free( orig_params );
-	save_results( "", op, op->gd );
+	save_final_results( "", op, op->gd );
 	return( 1 );
 }
 
@@ -1966,15 +1966,8 @@ int ppsd( struct opt_data *op )
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			sprintf( filename, "%s-ppsd-%d.mads", op->root, count + 1 );
 			save_problem( filename, op );
-			if( op->success && op->cd->odebug > 1 )
-			{
-				save_results( "ppsd", op, op->gd );
-				if( op->cd->save && op->cd->solution_type[0] != TEST )
-				{
-					sprintf( filename, "%s-ppsd-%d.mads", op->root, count + 1 );
-					save_problem( filename, op );
-				}
-			}
+			if( op->success && op->cd->save )
+				save_final_results( "ppsd", op, op->gd );
 			if( op->cd->ireal != 0 ) break;
 		}
 		for( i = 0; i < op->pd->nParam; i++ )
@@ -2151,7 +2144,8 @@ int montecarlo( struct opt_data *op )
 				}
 			if( op->od->nObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
 			fflush( out );
-			if( ( success_all || op->od->nObs == 0 ) && op->cd->odebug > 1 ) save_results( "mcrnd", op, op->gd );
+			if( ( success_all || op->od->nObs == 0 ) && op->cd->save )
+				save_final_results( "mcrnd", op, op->gd );
 		}
 	}
 	else // Serial job
@@ -2209,7 +2203,8 @@ int montecarlo( struct opt_data *op )
 				}
 			if( op->od->nObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
 			fflush( out );
-			if( ( success_all || op->od->nObs == 0 ) && op->cd->odebug > 1 ) save_results( "mcrnd", op, op->gd );
+			if( ( success_all || op->od->nObs == 0 ) && op->cd->save )
+				save_final_results( "mcrnd", op, op->gd );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			if( op->cd->ireal != 0 ) break;
 		}
@@ -2240,7 +2235,7 @@ int montecarlo( struct opt_data *op )
 		else printf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
 	}
 	free( opt_params );
-	save_results( "", op, op->gd );
+	save_final_results( "", op, op->gd );
 	return( 1 );
 }
 
@@ -2896,17 +2891,23 @@ void print_results( struct opt_data *op, int verbosity )
 	}
 }
 
-void save_results( char *label, struct opt_data *op, struct grid_data *gd )
+void save_final_results( char *label, struct opt_data *op, struct grid_data *gd )
 {
 	FILE *out, *out2;
 	int i, j, k, success, success_all;
 	double c, err;
-	char filename[255], filename2[255], f[255];
+	char filename[255], filename2[255], fileroot[255];
 	success_all = 1;
+	// Generate general filename
 	sprintf( filename, "%s", op->root );
 	if( label[0] != 0 ) sprintf( filename, "%s.%s", filename, label );
 	if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
-	strcpy( f, filename );
+	strcpy( fileroot, filename ); // Save filename root
+	// Save MADS rerun file
+	sprintf( filename, "%s-rerun.mads", filename );
+	if( op->cd->solution_type[0] != TEST ) save_problem( filename, &op );
+	// Open results file
+	strcpy( filename, fileroot );
 	strcat( filename, ".results" );
 	out = Fwrite( filename );
 	fprintf( out, "Model parameters:\n" );
@@ -2919,7 +2920,8 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
 	{
 		fprintf( out, "\nModel predictions:\n" );
-		strcpy( filename, f );
+		// Open residuals file
+		strcpy( filename, fileroot );
 		strcat( filename, ".residuals" );
 		out2 = Fwrite( filename );
 		if( op->cd->solution_type[0] == EXTERNAL )
@@ -2992,8 +2994,8 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	{
 		printf( "\nCompute breakthrough curves at all the wells ..." );
 		fflush( stdout );
-		sprintf( filename, "%s.btc", f );
-		sprintf( filename2, "%s.btc-peak", f );
+		sprintf( filename, "%s.btc", fileroot );
+		sprintf( filename2, "%s.btc-peak", fileroot );
 		compute_btc2( filename, filename2, op );
 		//			compute_btc( filename, &op, &gd );
 	}
@@ -3001,7 +3003,7 @@ void save_results( char *label, struct opt_data *op, struct grid_data *gd )
 	{
 		printf( "\nCompute spatial distribution of predictions at t = %g ...\n", gd->time );
 		fflush( stdout );
-		sprintf( filename, "%s.vtk", f );
+		sprintf( filename, "%s.vtk", fileroot );
 		compute_grid( filename, op->cd, gd );
 	}
 }

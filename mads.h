@@ -125,6 +125,8 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	char *datetime_infile; // date & time of the input problem file (*.mads) (equivalent to time_infile but in different format)
 	char *restart_zip_file; // filename of the zip restart file
 	char *infile; // old results file from pssa to be read in to initialize kdtree
+	int resultscase; // read specific case
+	char *resultsfile; // read existing results file
 	double phi_cutoff; // objective function cutoff value (termination criteria)
 	int obsrange; // flag; observations are within predefined ranges (termination criteria)
 	double obserror; // absolute error from the known 'true' observation (termination criteria)
@@ -276,7 +278,7 @@ int optimize_pso( struct opt_data *op ); // PSO optimization
 int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op, int verbosity ); // Print final results
-void save_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
+void save_final_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
 void ave_sorted( double data[], int n, double *ave, double *ep );
 char *timestamp(); // create time stamp
