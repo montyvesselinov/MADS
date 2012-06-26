@@ -238,18 +238,18 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	printf( "Problem type: " );
 	switch( cd->problem_type )
 	{
-	case CREATE: printf( "create a calibration input file based on forward run (no calibration)" ); break;
-	case FORWARD: printf( "forward run (no calibration)" ); break;
-	case CALIBRATE: printf( "calibration" ); break;
-	case LOCALSENS: printf( "sensitivity analysis" ); break;
-	case EIGEN: printf( "eigen analysis" ); break;
-	case MONTECARLO: printf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
-	case GLOBALSENS: printf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
-	case ABAGUS: printf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
-	case GLUE: printf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
-	case INFOGAP: printf( "Info-gap decision analysis" ); break;
-	case POSTPUA: printf( "predictive uncertainty analysis of sampling results" ); break;
-	default: printf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
+		case CREATE: printf( "create a calibration input file based on forward run (no calibration)" ); break;
+		case FORWARD: printf( "forward run (no calibration)" ); break;
+		case CALIBRATE: printf( "calibration" ); break;
+		case LOCALSENS: printf( "sensitivity analysis" ); break;
+		case EIGEN: printf( "eigen analysis" ); break;
+		case MONTECARLO: printf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
+		case GLOBALSENS: printf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
+		case ABAGUS: printf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
+		case GLUE: printf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
+		case INFOGAP: printf( "Info-gap decision analysis" ); break;
+		case POSTPUA: printf( "predictive uncertainty analysis of sampling results" ); break;
+		default: printf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
 	printf( "\n" );
 	if( cd->resultscase )
@@ -262,11 +262,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		printf( "\nCalibration technique: " );
 		switch( cd->calib_type )
 		{
-		case IGRND: printf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
-		case IGPD: printf( "sequential calibration using a set discretized initial values" ); break;
-		case PPSD: printf( "sequential calibration using partial parameter parameter discretization" ); break;
-		case SIMPLE: printf( "single calibration using initial guesses provided in the input file" ); break;
-		default: printf( "WARNING: unknown calibration type ASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
+			case IGRND: printf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
+			case IGPD: printf( "sequential calibration using a set discretized initial values" ); break;
+			case PPSD: printf( "sequential calibration using partial parameter parameter discretization" ); break;
+			case SIMPLE: printf( "single calibration using initial guesses provided in the input file" ); break;
+			default: printf( "WARNING: unknown calibration type ASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
 		}
 		printf( "\nOptimization method: opt=%s | ", cd->opt_method );
 		if( strncasecmp( cd->opt_method, "squad", 5 ) == 0 || ( strcasestr( cd->opt_method, "pso" ) && strcasestr( cd->opt_method, "lm" ) ) )
@@ -304,11 +304,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		{
 			switch( cd->objfunc_type )
 			{
-			case SSR: printf( "sum of squared residuals" ); break;
-			case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
-			case SSDA: printf( "sum of squared discrepancies and residuals" ); break;
-			case SSD0: printf( "sum of squared discrepancies" ); break;
-			default: printf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
+				case SSR: printf( "sum of squared residuals" ); break;
+				case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
+				case SSDA: printf( "sum of squared discrepancies and residuals" ); break;
+				case SSD0: printf( "sum of squared discrepancies" ); break;
+				default: printf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
 			}
 		}
 		printf( "\n" );
@@ -455,13 +455,13 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( ( *cd ).num_solutions > 1 ) printf( " (%d) ", c + 1 );
 		switch( ( *cd ).solution_type[c] )
 		{
-		case EXTERNAL: { printf( "external" ); strcat( ( *cd ).solution_id, "external" ); break; }
-		case POINT: { printf( "internal | point contaminant source" ); strcat( ( *cd ).solution_id, "point" ); break; }
-		case PLANE: { printf( "internal | rectangular contaminant source" ); strcat( ( *cd ).solution_id, "rect" ); break; }
-		case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcat( ( *cd ).solution_id, "rect_vert" ); break; }
-		case BOX: { printf( "internal | box contaminant source" ); strcat( ( *cd ).solution_id, "box" ); break; }
-		case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); sprintf( ( *cd ).solution_id, "test=%d", ( *cd ).test_func ); break; }
-		default: printf( "WARNING! UNDEFINED model type!" ); break;
+			case EXTERNAL: { printf( "external" ); strcat( ( *cd ).solution_id, "external" ); break; }
+			case POINT: { printf( "internal | point contaminant source" ); strcat( ( *cd ).solution_id, "point" ); break; }
+			case PLANE: { printf( "internal | rectangular contaminant source" ); strcat( ( *cd ).solution_id, "rect" ); break; }
+			case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcat( ( *cd ).solution_id, "rect_vert" ); break; }
+			case BOX: { printf( "internal | box contaminant source" ); strcat( ( *cd ).solution_id, "box" ); break; }
+			case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); sprintf( ( *cd ).solution_id, "test=%d", ( *cd ).test_func ); break; }
+			default: printf( "WARNING! UNDEFINED model type!" ); break;
 		}
 		if( ( *cd ).num_solutions > 1 ) strcat( ( *cd ).solution_id, " " );
 	}
@@ -989,15 +989,15 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, "Problem type: " );
 	switch( cd->problem_type )
 	{
-	case CREATE: fprintf( outfile, "create" ); break;
-	case FORWARD: fprintf( outfile, "forward" ); break;
-	case CALIBRATE: fprintf( outfile, "calibration" ); break;
-	case LOCALSENS: fprintf( outfile, "lsens" ); break;
-	case GLOBALSENS: fprintf( outfile, "gsens" ); break;
-	case EIGEN: fprintf( outfile, "eigen" ); break;
-	case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
-	case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
-	case POSTPUA: fprintf( outfile, " postpua" ); break;
+		case CREATE: fprintf( outfile, "create" ); break;
+		case FORWARD: fprintf( outfile, "forward" ); break;
+		case CALIBRATE: fprintf( outfile, "calibration" ); break;
+		case LOCALSENS: fprintf( outfile, "lsens" ); break;
+		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
+		case EIGEN: fprintf( outfile, "eigen" ); break;
+		case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
+		case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
+		case POSTPUA: fprintf( outfile, " postpua" ); break;
 	}
 	if( cd->debug > 0 ) fprintf( outfile, " debug=%d", cd->debug );
 	if( cd->fdebug > 0 ) fprintf( outfile, " fdebug=%d", cd->fdebug );
@@ -1018,10 +1018,10 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, " " );
 	switch( cd->calib_type )
 	{
-	case SIMPLE: fprintf( outfile, "single" ); break;
-	case PPSD: fprintf( outfile, "ppsd" ); break;
-	case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
-	case IGPD: fprintf( outfile, "igpd" ); break;
+		case SIMPLE: fprintf( outfile, "single" ); break;
+		case PPSD: fprintf( outfile, "ppsd" ); break;
+		case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
+		case IGPD: fprintf( outfile, "igpd" ); break;
 	}
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
 	if( cd->c_background > 0 ) fprintf( outfile, " background=%g", cd->c_background );
@@ -1038,10 +1038,10 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, " " );
 	switch( cd->objfunc_type )
 	{
-	case SSR: fprintf( outfile, "ssr" ); break;
-	case SSDR: fprintf( outfile, "ssdr" ); break;
-	case SSD0: fprintf( outfile, "ssd0" ); break;
-	case SSDA: fprintf( outfile, "ssda" ); break;
+		case SSR: fprintf( outfile, "ssr" ); break;
+		case SSDR: fprintf( outfile, "ssdr" ); break;
+		case SSD0: fprintf( outfile, "ssd0" ); break;
+		case SSDA: fprintf( outfile, "ssda" ); break;
 	}
 	fprintf( outfile, "\n" );
 	fprintf( outfile, "Solution type: %s\n", ( *cd ).solution_id );
@@ -1282,7 +1282,7 @@ char **shellpath( void )
 	if( !path )
 		path = "/bin:/usr/bin:/usr/local/bin";
 	char **vector = // size is overkill
-			( char ** ) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
+		( char ** ) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
 	const char *p = path;
 	int next = 0;
 	while( p )
