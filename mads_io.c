@@ -129,90 +129,90 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
-		if( strcasestr( word, "crea" ) ) { w = 1; cd->problem_type = CREATE; }
-		if( strcasestr( word, "forw" ) ) { w = 1; cd->problem_type = FORWARD; }
-		if( strcasestr( word, "cali" ) ) { w = 1; cd->problem_type = CALIBRATE; }
-		if( strcasestr( word, "lsen" ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = LOCALSENS; }
-		if( strcasestr( word, "eige" ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = EIGEN; }
-		if( strcasestr( word, "mont" ) ) { w = 1; cd->problem_type = MONTECARLO; }
-		if( strcasestr( word, "gsen" ) ) { w = 1; cd->problem_type = GLOBALSENS; }
-		if( strcasestr( word, "glue" ) ) { w = 1; cd->problem_type = GLUE; }
-		if( strcasestr( word, "abag" ) ) { w = 1; cd->problem_type = ABAGUS; }
-		if( strcasestr( word, "infogap" ) ) { w = 1; cd->problem_type = INFOGAP; }
-		if( strcasestr( word, "postpua" ) ) { w = 1; cd->problem_type = POSTPUA; }
-		if( strcasestr( word, "sing" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-		if( strcasestr( word, "simple" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-		if( strcasestr( word, "igpd" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGPD; }
-		if( strcasestr( word, "ppsd" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = PPSD; }
-		if( strcasestr( word, "igrnd" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGRND; }
-		if( strcasestr( word, "leig" ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
-		if( strcasestr( word, "energy=" ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
-		if( strcasestr( word, "background=" ) ) { w = 1; sscanf( word, "background=%lf", &cd->c_background ); }
-		if( strcasestr( word, "lmfactor=" ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
-		if( strcasestr( word, "lmacc" ) ) { w = 1; cd->lm_acc = 1; }
-		if( strcasestr( word, "lmratio=" ) ) { w = 1; sscanf( word, "lmratio=%lf", &cd->lm_ratio ); }
-		if( strcasestr( word, "lmofdecline=" ) ) { w = 1; sscanf( word, "lmofdecline=%lf", &cd->lm_ofdecline ); }
-		if( strcasestr( word, "lmh=" ) ) { w = 1; sscanf( word, "lmh=%lf", &cd->lm_h ); cd->lm_acc = 1; }
-		if( strcasestr( word, "lmind" ) ) { w = 1; cd->lm_indir = 1; cd->lm_ofdecline = 2; }
-		if( strcasestr( word, "lmdir" ) ) { w = 1; cd->lm_indir = 0; cd->lm_ofdecline = 1; }
-		if( strcasestr( word, "lmmu=" ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
-		if( strcasestr( word, "lmnu=" ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
-		if( strcasestr( word, "lmiter=" ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->niter ); }
-		if( strcasestr( word, "infile=" ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
-		if( strcasestr( word, "tied" ) ) { w = 1; cd->tied = 1; } // Tied shortcut
-		if( strcasestr( word, "save" ) ) { w = 1; cd->save = 1; }
-		if( strcasestr( word, "pargen" ) ) { w = 1; cd->pargen = 1; }
-		if( strcasestr( word, "real=" ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
-		if( strcasestr( word, "eval=" ) ) { w = 1; sscanf( word, "eval=%d", &cd->maxeval ); }
-		if( strcasestr( word, "case=" ) ) { w = 1; sscanf( word, "case=%d", &cd->ireal ); }
-		if( strcasestr( word, "retry" ) ) { w = 1; sscanf( word, "retry=%d", &cd->nretries ); }
-		if( strcasestr( word, "particles" ) ) { w = 1; if( sscanf( word, "particles=%d", &cd->init_particles ) != 1 ) cd->init_particles = -1; }
-		if( strcasestr( word, "opt=" ) ) { w = 1; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; sscanf( word, "opt=%s", cd->opt_method ); }
-		if( strcasestr( word, "smp=" ) ) { w = 1; sscanf( word, "smp=%s", cd->smp_method ); }
-		if( strcasestr( word, "mslm" ) ) { w = 1; cd->paranoid = 1; sscanf( word, "mslm=%s", cd->paran_method ); }
-		if( strcasestr( word, "paran=" ) ) { w = 1; cd->paranoid = 1; sscanf( word, "paran=%s", cd->paran_method ); } // legacy
-		if( strcasestr( word, "paran" ) ) { w = 1; cd->paranoid = 1; } // legacy
+		if( !strncasecmp( word, "crea", 4 ) ) { w = 1; cd->problem_type = CREATE; }
+		if( !strncasecmp( word, "forw", 4 ) ) { w = 1; cd->problem_type = FORWARD; }
+		if( !strncasecmp( word, "cali", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "lsen", 4 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = LOCALSENS; }
+		if( !strncasecmp( word, "eige", 4 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = EIGEN; }
+		if( !strncasecmp( word, "mont", 4 ) ) { w = 1; cd->problem_type = MONTECARLO; }
+		if( !strncasecmp( word, "gsen", 4 ) ) { w = 1; cd->problem_type = GLOBALSENS; }
+		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
+		if( !strncasecmp( word, "abag", 4 ) ) { w = 1; cd->problem_type = ABAGUS; }
+		if( !strncasecmp( word, "infogap", 7 ) ) { w = 1; cd->problem_type = INFOGAP; }
+		if( !strncasecmp( word, "postpua", 7 ) ) { w = 1; cd->problem_type = POSTPUA; }
+		if( !strncasecmp( word, "sing", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
+		if( !strncasecmp( word, "simp", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
+		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGPD; }
+		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = PPSD; }
+		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGRND; }
+		if( !strncasecmp( word, "leig", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
+		if( !strncasecmp( word, "energy=", 7 ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
+		if( !strncasecmp( word, "background=", 11 ) ) { w = 1; sscanf( word, "background=%lf", &cd->c_background ); }
+		if( !strncasecmp( word, "lmfactor=", 9 ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
+		if( !strncasecmp( word, "lmacc", 5 ) ) { w = 1; cd->lm_acc = 1; }
+		if( !strncasecmp( word, "lmratio=", 8 ) ) { w = 1; sscanf( word, "lmratio=%lf", &cd->lm_ratio ); }
+		if( !strncasecmp( word, "lmofdecline=", 12 ) ) { w = 1; sscanf( word, "lmofdecline=%lf", &cd->lm_ofdecline ); }
+		if( !strncasecmp( word, "lmh=", 4 ) ) { w = 1; sscanf( word, "lmh=%lf", &cd->lm_h ); cd->lm_acc = 1; }
+		if( !strncasecmp( word, "lmind", 5 ) ) { w = 1; cd->lm_indir = 1; cd->lm_ofdecline = 2; }
+		if( !strncasecmp( word, "lmdir", 5 ) ) { w = 1; cd->lm_indir = 0; cd->lm_ofdecline = 1; }
+		if( !strncasecmp( word, "lmmu=", 5 ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
+		if( !strncasecmp( word, "lmnu=", 5 ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
+		if( !strncasecmp( word, "lmiter=", 7 ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->niter ); }
+		if( !strncasecmp( word, "infile=", 7 ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
+		if( !strncasecmp( word, "tied", 4 ) ) { w = 1; cd->tied = 1; } // Tied shortcut
+		if( !strncasecmp( word, "save", 4 ) ) { w = 1; cd->save = 1; }
+		if( !strncasecmp( word, "pargen", 6 ) ) { w = 1; cd->pargen = 1; }
+		if( !strncasecmp( word, "real=", 5 ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
+		if( !strncasecmp( word, "eval=", 5 ) ) { w = 1; sscanf( word, "eval=%d", &cd->maxeval ); }
+		if( !strncasecmp( word, "case=", 5 ) ) { w = 1; sscanf( word, "case=%d", &cd->ireal ); }
+		if( !strncasecmp( word, "retry", 5 ) ) { w = 1; sscanf( word, "retry=%d", &cd->nretries ); }
+		if( !strncasecmp( word, "particles", 9 ) ) { w = 1; if( sscanf( word, "particles=%d", &cd->init_particles ) != 1 ) cd->init_particles = -1; }
+		if( !strncasecmp( word, "opt=", 4 ) ) { w = 1; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; sscanf( word, "opt=%s", cd->opt_method ); }
+		if( !strncasecmp( word, "smp=", 4 ) ) { w = 1; sscanf( word, "smp=%s", cd->smp_method ); }
+		if( !strncasecmp( word, "mslm", 4 ) ) { w = 1; cd->paranoid = 1; sscanf( word, "mslm=%s", cd->paran_method ); }
+		if( !strncasecmp( word, "paran=", 6 ) ) { w = 1; cd->paranoid = 1; sscanf( word, "paran=%s", cd->paran_method ); } // legacy
+		if( !strncasecmp( word, "nosin", 5 ) ) { w = 1; cd->sintrans = 0; }
+		if( !strncasecmp( word, "plog", 4 ) ) { w = 1; if( sscanf( word, "plog=%d", &cd->plogtrans ) != 1 ) cd->plogtrans = 1; }
+		if( !strncasecmp( word, "olog", 4 ) ) { w = 1; if( sscanf( word, "olog=%d", &cd->ologtrans ) != 1 ) cd->ologtrans = 1; }
+		if( !strncasecmp( word, "oweight", 7 ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
+		if( !strncasecmp( word, "cutoff=", 7 ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); cd->check_success = cd->obsrange = cd->obserror = cd->parerror = 0; }
+		if( !strncasecmp( word, "obsrange", 8 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; }
+		if( !strncasecmp( word, "succ", 4 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; } // legacy
+		if( !strncasecmp( word, "truth", 5 ) ) { w = 1; sscanf( word, "truth=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; } // legacy
+		if( !strncasecmp( word, "parerror", 8 ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
+		if( !strncasecmp( word, "obserror", 8 ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->parerror = 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
+		if( !strncasecmp( word, "sindx=", 5 ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
+		if( !strncasecmp( word, "lindx=", 5 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
+		if( !strncasecmp( word, "pardx", 5 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
+		if( !strncasecmp( word, "pardomain=", 10 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardomain=%lf", &cd->pardomain ); if( cd->pardomain < DBL_EPSILON ) cd->pardomain = 100; }
+		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
+		if( !strncasecmp( word, "np", 2 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
+		if( !strncasecmp( word, "restart", 7 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
+		if( !strncasecmp( word, "rstfile=", 8 ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_zip_file ); cd->restart = -1; }
+		if( !strncasecmp( word, "resultsfile=", 12 ) ) { w = 1; sscanf( word, "resultsfile=%s", cd->resultsfile ); if( cd->resultscase == 0 ) cd->resultscase = 1; }
+		if( !strncasecmp( word, "resultscase=", 12 ) ) { w = 1; sscanf( word, "resultscase=%d", &cd->resultscase ); }
+		if( !strncasecmp( word, "debug", 5 ) ) { w = 1; if( sscanf( word, "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
+		if( !strncasecmp( word, "fdebug", 6 ) ) { w = 1; sscanf( word, "fdebug=%d", &cd->fdebug ); if( cd->fdebug == 0 ) cd->fdebug = 1; }
+		if( !strncasecmp( word, "ldebug", 6 ) ) { w = 1; sscanf( word, "ldebug=%d", &cd->ldebug ); if( cd->ldebug == 0 ) cd->ldebug = 1; }
+		if( !strncasecmp( word, "pdebug", 6 ) ) { w = 1; sscanf( word, "pdebug=%d", &cd->pdebug ); if( cd->pdebug == 0 ) cd->pdebug = 1; }
+		if( !strncasecmp( word, "mdebug", 6 ) ) { w = 1; sscanf( word, "mdebug=%d", &cd->mdebug ); if( cd->mdebug == 0 ) cd->mdebug = 1; }
+		if( !strncasecmp( word, "odebug", 6 ) ) { w = 1; sscanf( word, "odebug=%d", &cd->odebug ); if( cd->odebug != 1 ) cd->odebug = 1; }
+		if( !strncasecmp( word, "insdebug", 8 ) ) { w = 1; sscanf( word, "insdebug=%d", &cd->insdebug ); if( cd->insdebug == 0 ) cd->insdebug = 1; }
+		if( !strncasecmp( word, "tpldebug", 8 ) ) { w = 1; sscanf( word, "tpldebug=%d", &cd->tpldebug ); if( cd->tpldebug == 0 ) cd->tpldebug = 1; }
+		if( !strncasecmp( word, "pardebug", 8 ) ) { w = 1; sscanf( word, "pardebug=%d", &cd->pardebug ); if( cd->pardebug == 0 ) cd->pardebug = 1; }
+		if( !strncasecmp( word, "ssr", 3 ) ) { w = 1; cd->objfunc_type = SSR; }
+		if( !strncasecmp( word, "ssd0", 4 ) ) { w = 1; cd->objfunc_type = SSD0; }
+		if( !strncasecmp( word, "ssda", 4 ) ) { w = 1; cd->objfunc_type = SSDA; }
+		if( !strncasecmp( word, "ssdr", 4 ) ) { w = 1; cd->objfunc_type = SSDR; }
+		if( !strncasecmp( word, "test", 4 ) ) { w = 1; cd->test_func = 1; cd->test_func_dim = 2; sscanf( word, "test=%d", &cd->test_func ); ( *cd ).solution_type[0] = TEST; }
+		if( !strncasecmp( word, "dim=", 4 ) ) { w = 1; sscanf( word, "dim=%d", &cd->test_func_dim ); if( cd->test_func_dim < 2 ) cd->test_func_dim = 2; }
+		if( !strncasecmp( word, "npar=", 5 ) ) { w = 1; sscanf( word, "npar=%d", &cd->test_func_npar ); }
+		if( !strncasecmp( word, "nobs=", 5 ) ) { w = 1; sscanf( word, "nobs=%d", &cd->test_func_nobs ); }
+		if( !strncasecmp( word, "poi", 3 ) ) { w = 1; ( *cd ).solution_type[0] = POINT; }
+		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type[0] = PLANE3D; else( *cd ).solution_type[0] = PLANE; }
+		if( !strncasecmp( word, "box", 3 ) ) { w = 1; ( *cd ).solution_type[0] = BOX; }
+		if( !strncasecmp( word, "paran", 5 ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( strcasestr( word, "_ms" ) ) { w = 1; cd->paranoid = 1; } // legacy
-		if( strcasestr( word, "nosin" ) ) { w = 1; cd->sintrans = 0; }
-		if( strcasestr( word, "plog" ) ) { w = 1; if( sscanf( word, "plog=%d", &cd->plogtrans ) != 1 ) cd->plogtrans = 1; }
-		if( strcasestr( word, "olog" ) ) { w = 1; if( sscanf( word, "olog=%d", &cd->ologtrans ) != 1 ) cd->ologtrans = 1; }
-		if( strcasestr( word, "oweight" ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
-		if( strcasestr( word, "cutoff=" ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); cd->check_success = cd->obsrange = cd->obserror = cd->parerror = 0; }
-		if( strcasestr( word, "obsrange" ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; }
-		if( strcasestr( word, "succ" ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; } // legacy
-		if( strcasestr( word, "truth" ) ) { w = 1; sscanf( word, "truth=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; } // legacy
-		if( strcasestr( word, "parerror" ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
-		if( strcasestr( word, "obserror" ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->parerror = 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
-		if( strcasestr( word, "sindx=" ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
-		if( strcasestr( word, "lindx=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
-		if( strcasestr( word, "pardx" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
-		if( strcasestr( word, "pardomain=" ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardomain=%lf", &cd->pardomain ); if( cd->pardomain < DBL_EPSILON ) cd->pardomain = 100; }
-		if( strcasestr( word, "seed=" ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
-		if( strcasestr( word, "np" ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
-		if( strcasestr( word, "restart" ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
-		if( strcasestr( word, "rstfile=" ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_zip_file ); cd->restart = -1; }
-		if( strcasestr( word, "resultsfile=" ) ) { w = 1; sscanf( word, "resultsfile=%s", cd->resultsfile ); if( cd->resultscase == 0 ) cd->resultscase = 1; }
-		if( strcasestr( word, "resultscase=" ) ) { w = 1; sscanf( word, "resultscase=%d", &cd->resultscase ); if( cd->resultscase <= 0 ) cd->resultscase = 1; }
-		if( strncasecmp( word, "debug", 5 ) == 0 ) { w = 1; if( sscanf( word, "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
-		if( strcasestr( word, "fdebug" ) ) { w = 1; sscanf( word, "fdebug=%d", &cd->fdebug ); if( cd->fdebug == 0 ) cd->fdebug = 1; }
-		if( strcasestr( word, "ldebug" ) ) { w = 1; sscanf( word, "ldebug=%d", &cd->ldebug ); if( cd->ldebug == 0 ) cd->ldebug = 1; }
-		if( strcasestr( word, "pdebug" ) ) { w = 1; sscanf( word, "pdebug=%d", &cd->pdebug ); if( cd->pdebug == 0 ) cd->pdebug = 1; }
-		if( strcasestr( word, "mdebug" ) ) { w = 1; sscanf( word, "mdebug=%d", &cd->mdebug ); if( cd->mdebug == 0 ) cd->mdebug = 1; }
-		if( strcasestr( word, "odebug" ) ) { w = 1; sscanf( word, "odebug=%d", &cd->odebug ); if( cd->odebug != 1 ) cd->odebug = 1; }
-		if( strcasestr( word, "insdebug" ) ) { w = 1; sscanf( word, "insdebug=%d", &cd->insdebug ); if( cd->insdebug == 0 ) cd->insdebug = 1; }
-		if( strcasestr( word, "tpldebug" ) ) { w = 1; sscanf( word, "tpldebug=%d", &cd->tpldebug ); if( cd->tpldebug == 0 ) cd->tpldebug = 1; }
-		if( strcasestr( word, "pardebug" ) ) { w = 1; sscanf( word, "pardebug=%d", &cd->pardebug ); if( cd->pardebug == 0 ) cd->pardebug = 1; }
-		if( strcasecmp( word, "ssr" ) == 0 ) { w = 1; cd->objfunc_type = SSR; }
-		if( strcasecmp( word, "ssd0" ) == 0 ) { w = 1; cd->objfunc_type = SSD0; }
-		if( strcasecmp( word, "ssda" ) == 0 ) { w = 1; cd->objfunc_type = SSDA; }
-		if( strcasecmp( word, "ssdr" ) == 0 ) { w = 1; cd->objfunc_type = SSDR; }
-		if( strcasestr( word, "test" ) ) { w = 1; cd->test_func = 1; cd->test_func_dim = 2; sscanf( word, "test=%d", &cd->test_func ); ( *cd ).solution_type[0] = TEST; }
-		if( strcasestr( word, "dim=" ) ) { w = 1; sscanf( word, "dim=%d", &cd->test_func_dim ); if( cd->test_func_dim < 2 ) cd->test_func_dim = 2; }
-		if( strcasestr( word, "npar=" ) ) { w = 1; sscanf( word, "npar=%d", &cd->test_func_npar ); }
-		if( strcasestr( word, "nobs=" ) ) { w = 1; sscanf( word, "nobs=%d", &cd->test_func_nobs ); }
-		if( strcasestr( word, "poi" ) ) { w = 1; ( *cd ).solution_type[0] = POINT; }
-		if( strcasestr( word, "rec" ) ) { w = 1; if( strcasestr( word, "ver" ) )( *cd ).solution_type[0] = PLANE3D; else( *cd ).solution_type[0] = PLANE; }
-		if( strcasestr( word, "box" ) ) { w = 1; ( *cd ).solution_type[0] = BOX; }
 		if( w == 0 ) { printf( "\nERROR: Unknown keyword \'%s\'!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); return( -1 ); }
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
@@ -254,7 +254,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	printf( "\n" );
 	if( cd->resultscase )
 	{
-		if( Ftest( cd->resultsfile ) == 0 ) printf( "\nModel analyses based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
+		if( Ftest( cd->resultsfile ) == 0 ) printf( "\nModel analysis based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
 		else { cd->resultscase = 0; cd->resultsfile[0] = 0; }
 	}
 	if( cd->problem_type == CALIBRATE )
@@ -502,8 +502,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		else if( ( *pd ).var_opt[i] == 2 )
 		{
 			( *pd ).nFlgParam++;
-			if( ( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type != PPSD )
-				( *pd ).nOptParam++;
+			if( ( *cd ).calib_type != PPSD )( *pd ).nOptParam++;
 		}
 		if( ( *pd ).var_opt[i] >= 1 )
 		{
@@ -540,11 +539,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				else pd->var_dx[i] = log10( pd->var_dx[i] );
 			}
 			pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
-			if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretizations is ON
+			if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
 		}
 	}
 	if( bad_data ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
-	if( cd->resultscase )
+	if( cd->resultscase > 0 )
 	{
 		bad_data = 0;
 		printf( "\nModel parameters initiated based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
@@ -555,28 +554,34 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			{
 				bad_data = 1;
 				printf( "ERROR reading model parameters initiated based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
-				break;
+				return( 0 );
 			}
 			// else printf( "%s\n", buf );
 		}
 		fclose( infile2 );
-		if( bad_data ) return( 0 );
 		start = strstr( buf, "final var" );
-		if( start == NULL ) return( 0 );
+		if( start == NULL )
+		{
+			bad_data = 1;
+			printf( "ERROR Final model parameters cannot be located in %s (case %d)\n", cd->resultsfile, i + 1 );
+			return( 0 );
+		}
 		// printf( "%s\n", start );
 		strcpy( buf, start );
-		for( i = 0, c = -2, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
+		for( k = 0, i = 0, c = -2, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
 		{
 			if( c > -1 )
 			{
 				// printf( "Par #%d %s\n", c + 1, word );
 				while( pd->var_opt[i] == 0 ) i++;
 				sscanf( word, "%lf", &pd->var[i] );
+				k++;
 				if( pd->var_log[i] ) pd->var[i] = log10( pd->var[i] );
 				printf( "%s %g\n", pd->var_id[i], pd->var[i] );
 				i++;
 			}
 		}
+		printf( "Number of initialized parameters = %d\n\n", k );
 	}
 	if( ( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD && ( *pd ).nFlgParam == 0 )
 	{
@@ -601,7 +606,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else
 	{
 		if( cd->debug ) printf( "\n" );
-		printf( "Number of fixed parameters = %d\n", ( *pd ).nParam - ( *pd ).nOptParam );
+		printf( "Number of fixed parameters = %d\n", ( *pd ).nParam - ( *pd ).nOptParam - ( *pd ).nFlgParam );
 		for( i = 0; i < ( *pd ).nParam; i++ )
 			if( ( *pd ).var_opt[i] == 0 )
 				if( cd->debug ) printf( "%-26s: %g\n", pd->var_id[i], ( *pd ).var[i] );
@@ -1403,7 +1408,7 @@ char *str_replace( char *orig, char *rep, char *with )
 	if( !( ins = strstr( orig, rep ) ) ) return NULL;
 	if( !with ) with = "";
 	len_with = strlen( with );
-	for( count = 0; tmp = strstr( ins, rep ); ++count )
+	for( count = 0; ( tmp = strstr( ins, rep ) ); ++count )
 		ins = tmp + len_rep;
 	// first time through the loop, all the variable are set correctly
 	// from here on,

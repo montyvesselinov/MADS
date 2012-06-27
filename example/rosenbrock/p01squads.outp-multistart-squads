@@ -25,7 +25,7 @@ Debug level (general): debug=0
 
 Model: internal | test optimization problem #3: Rosenbrock - parameters 3 observations 3
 
-Execution date & time stamp: 20120607-071851
+Execution date & time stamp: 20120626-195036
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -64,11 +64,11 @@ Parameter #1 0.999995
 Parameter #2 0.999991
 Parameter #3 0.999977
 Objective function: 2.38279e-09 Success: 0 
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 3725
 Jacobian evaluations = 405
 Levenberg-Marquardt optimizations = 53
-Seed = 2096575428
-Execution  started  on Thu Jun  7 07:18:51 2012
-Execution completed on Thu Jun  7 07:18:51 2012
-Execution date & time stamp: 20120607-071851
+Functional evaluations per second = 3725
+Execution  started  on Tue Jun 26 19:50:36 2012
+Execution completed on Tue Jun 26 19:50:37 2012
+Execution date & time stamp: 20120626-195036

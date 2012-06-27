@@ -577,33 +577,121 @@ int main( int argn, char *argv[] )
 	//
 	if( cd.problem_type == FORWARD ) // Forward run
 	{
-		sprintf( filename, "%s.results", op.root );
-		out = Fwrite( filename );
-		fprintf( out, "Model parameter values:\n" );
-		for( i = 0; i < pd.nParam; i++ )
-			fprintf( out, "%s %g\n", pd.var_id[i], pd.var[i] );
-		if( od.nObs > 0 )
+		if( cd.resultscase < 0 )
 		{
-			printf( "\nModel predictions (forward run; no calibration):\n" );
-			fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
-			sprintf( filename, "%s.forward", op.root );
-			out2 = Fwrite( filename );
+			FILE *infile2;
+			char bigbuffer[1000], *start, *word, *separator = " ";
+			int cases = cd.resultscase * -1;
+			int caseid;
+			bad_data = 0;
+			printf( "\nModel parameters initiated based on previously saved results in file %s (first %d cases)\n", cd.resultsfile, cases );
+			infile2 = Fread( cd.resultsfile );
+			for( j = 0; j < cases; j++ )
+			{
+				if( fgets( bigbuffer, sizeof bigbuffer, infile2 ) == NULL )
+				{
+					bad_data = 1;
+					printf( "ERROR reading model parameters initiated based on previously saved results in file %s (case %d)\n", cd.resultsfile, i + 1 );
+					break;
+				}
+				sscanf( bigbuffer, "%d", &caseid );
+				printf( "\nCase ID %d\n", caseid );
+				start = strstr( bigbuffer, "final var" );
+				if( start == NULL )
+				{
+					bad_data = 1;
+					printf( "ERROR Final model parameters cannot be located in %s (case %d)\n", cd.resultsfile, i + 1 );
+					break;
+				}
+				// printf( "%s\n", start );
+				strcpy( bigbuffer, start );
+				for( k = 0, i = 0, c = -2, word = strtok( bigbuffer, separator ); word; c++, word = strtok( NULL, separator ) )
+				{
+					if( c > -1 )
+					{
+						// printf( "Par #%d %s\n", c + 1, word );
+						while( pd.var_opt[i] == 0 ) i++;
+						sscanf( word, "%lf", &pd.var[i] );
+						k++;
+						if( pd.var_log[i] ) pd.var[i] = log10( pd.var[i] );
+						cd.var[i] = pd.var[i];
+						printf( "%s %g\n", pd.var_id[i], pd.var[i] );
+						i++;
+					}
+				}
+				printf( "Number of initialized parameters = %d\n\n", k );
+				double *res;
+				if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
+				if( ( res = ( double * ) malloc( od.nObs * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
+				for( i = 0; i < pd.nOptParam; i++ )
+					opt_params[i] = pd.var[pd.var_index[i]];
+				// for( i = 0; i < pd.nOptParam; i++ )
+				// printf( "%s %g\n", pd.var_id[pd.var_index[i]], opt_params[i] );
+				Transform( opt_params, &op, opt_params );
+				func_global( opt_params, &op, res );
+				free( opt_params );
+				free( res );
+				print_results( &op, 1 );
+				if( cd.save )
+				{
+					sprintf( filename, "%d", caseid );
+					save_final_results( filename, &op, &gd );
+				}
+			}
+			fclose( infile2 );
+			predict = 0;
+		}
+		else
+		{
+			if( cd.resultscase ) sprintf( filename, "%s.%d.results", op.root, cd.resultscase );
+			else sprintf( filename, "%s.results", op.root );
+			out = Fwrite( filename );
+			fprintf( out, "Model parameter values:\n" );
+			for( i = 0; i < pd.nParam; i++ )
+			{
+				if( pd.var_opt[i] && pd.var_log[i] ) cd.var[i] = pow( 10, pd.var[i] );
+				else cd.var[i] = pd.var[i];
+				fprintf( out, "%s %g\n", pd.var_id[i], pd.var[i] );
+			}
+			if( od.nObs > 0 )
+			{
+				printf( "\nModel predictions (forward run; no calibration):\n" );
+				fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
+				if( cd.resultscase ) sprintf( filename, "%s.%d.forward", op.root, cd.resultscase );
+				else sprintf( filename, "%s.forward", op.root );
+				out2 = Fwrite( filename );
+			}
+			fflush( out );
+			predict = 1;
 		}
 	}
 	//
 	// ------------------------ CREATE
 	//
 	if( cd.problem_type == CREATE ) // Create a MADS file based on a forward run
+	{
 		printf( "\nModel predictions (forward run; no calibration):\n" );
+		predict = 1;
+	}
 	//
 	// ------------------------ PREDICT
 	//
-	if( cd.problem_type == FORWARD || cd.problem_type == CREATE || predict )
+	if( predict )
 	{
 		success_all = 1;
 		compare = 0;
 		phi = 0;
 		if( cd.solution_type[0] == EXTERNAL )
+		{
+			double *res;
+			if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( res = ( double * ) malloc( od.nObs * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
+			for( i = 0; i < pd.nOptParam; i++ )
+				opt_params[i] = pd.var[pd.var_index[i]];
+			Transform( opt_params, &op, opt_params );
+			func_extrn( opt_params, &op, res );
+			free( opt_params );
+			free( res );
 			for( i = 0; i < od.nObs; i++ )
 			{
 				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) continue;
@@ -611,13 +699,14 @@ int main( int argn, char *argv[] )
 				c = od.obs_current[i];
 				err = od.obs_target[i] - c;
 				phi += ( err * err ) * od.obs_weight[i];
-				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { success_all = 0; success = 0; }
+				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( od.obs_weight[i] > 0.0 ) ) { success_all = 0; success = 0; }
 				else success = 1;
 				if( od.nObs < 50 || ( i < 20 || i > od.nObs - 20 ) ) printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
 				if( od.nObs > 50 && i == 21 ) printf( "...\n" );
 				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
 				else od.obs_target[i] = c; // Save computed values as calibration targets
 			}
+		}
 		else if( cd.solution_type[0] != TEST )
 			for( i = 0; i < wd.nW; i++ )
 				for( j = 0; j < wd.nWellObs[i]; j++ )
@@ -638,6 +727,7 @@ int main( int argn, char *argv[] )
 					else wd.obs_target[i][j] = c; // Save computed values as calibration targets
 					if( cd.problem_type == FORWARD ) fprintf( out2, "%s(%g) %g\n", wd.id[i], wd.obs_time[i][j], c ); // Forward run
 				}
+		if( cd.problem_type == FORWARD && od.nObs > 0 ) fclose( out2 );
 		cd.neval++;
 		if( compare )
 		{
@@ -658,13 +748,13 @@ int main( int argn, char *argv[] )
 		else    printf( "No calibration targets!\n" );
 		fclose( out );
 	}
-	if( cd.problem_type == FORWARD ) save_final_results( "", &op, &gd );
-	if( cd.problem_type == FORWARD && od.nObs > 0 ) fclose( out2 );
-	if( cd.problem_type == FORWARD || cd.problem_type == CALIBRATE )
+	if( predict && cd.problem_type == FORWARD ) save_final_results( "", &op, &gd );
+	if( predict )
 	{
 		if( od.nObs > 0 )
 		{
-			sprintf( filename, "%s.phi", op.root );
+			if( cd.problem_type == FORWARD && cd.resultscase > 0 ) sprintf( filename, "%s.%d.phi", op.root, cd.resultscase );
+			else sprintf( filename, "%s.phi", op.root );
 			out2 = Fwrite( filename );
 			fprintf( out2, "%g\n", op.phi ); // Write phi in a separate file
 			fclose( out2 );
@@ -2902,10 +2992,11 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	sprintf( filename, "%s", op->root );
 	if( label[0] != 0 ) sprintf( filename, "%s.%s", filename, label );
 	if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
+	else if( op->cd->resultscase > 1 ) sprintf( filename, "%s.%d", filename, op->cd->resultscase );
 	strcpy( fileroot, filename ); // Save filename root
 	// Save MADS rerun file
 	sprintf( filename, "%s-rerun.mads", filename );
-	if( op->cd->solution_type[0] != TEST ) save_problem( filename, &op );
+	if( op->cd->solution_type[0] != TEST ) save_problem( filename, op );
 	// Open results file
 	strcpy( filename, fileroot );
 	strcat( filename, ".results" );

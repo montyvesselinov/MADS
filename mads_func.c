@@ -456,7 +456,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		else p->f_ofe = fopen( filename, "w" );
 	}
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) printf( "Model parameters:\n" );
+	if( p->cd->fdebug >= 3 ) printf( "Model parameters (%d):\n", p->pd->nOptParam );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
@@ -469,7 +469,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		if( p->pd->nParam == p->pd->nOptParam ) printf( "NO fixed parameters.\n" );
 		else
 		{
-			printf( "Fixed parameters:\n" );
+			printf( "Fixed parameters (%d):\n", p->pd->nParam - p->pd->nOptParam );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
 					printf( "%s: %.12g\n", p->pd->var_id[i], p->cd->var[i] );
@@ -766,9 +766,9 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 		j = 0;
 		for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
 			ad.var[j] = p->var[i];
-		// for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-		// printf( "s#%d p#%d %g\n", s+1, i+1, ad.var[i] );
-		// printf( "HERE func_solver1\n" );
+		if( p->fdebug )
+			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
+				printf( "source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
 		switch( p->solution_type[s] )
 		{
 			case POINT:
@@ -813,9 +813,9 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 		j = 0;
 		for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
 			ad.var[j] = p->var[i];
-		// for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-		// printf( "s#%d p#%d %g\n", s+1, i+1, ad.var[i] );
-		// printf( "HERE func_solver\n" );
+		if( p->fdebug )
+			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
+				printf( "source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
 		switch( p->solution_type[s] )
 		{
 			case POINT:
