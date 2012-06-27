@@ -746,17 +746,17 @@ int main( int argn, char *argv[] )
 			}
 		}
 		else    printf( "No calibration targets!\n" );
-		fclose( out );
+		if( cd.problem_type != CREATE ) fclose( out );
 	}
 	if( predict && cd.problem_type == FORWARD ) save_final_results( "", &op, &gd );
-	if( predict )
+	if( predict ) // Write phi in a separate file
 	{
 		if( od.nObs > 0 )
 		{
 			if( cd.problem_type == FORWARD && cd.resultscase > 0 ) sprintf( filename, "%s.%d.phi", op.root, cd.resultscase );
 			else sprintf( filename, "%s.phi", op.root );
 			out2 = Fwrite( filename );
-			fprintf( out2, "%g\n", op.phi ); // Write phi in a separate file
+			fprintf( out2, "%g\n", op.phi );
 			fclose( out2 );
 		}
 	}
@@ -766,6 +766,7 @@ int main( int argn, char *argv[] )
 		sprintf( filename, "%s-truth.mads", op.root );
 		save_problem( filename, &op );
 		printf( "\nMADS problem file named %s-truth.mads is created; modify the file if needed\n\n", op.root );
+		cd.problem_type = CREATE;
 	}
 	//
 	// Finalize the run
