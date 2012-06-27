@@ -51,7 +51,7 @@ levmar-2.5/lmblec.o: levmar-2.5/lmblec.c levmar-2.5/lmblec_core.c levmar-2.5/lev
 levmar-2.5/lmbleic.o: levmar-2.5/lmbleic.c levmar-2.5/lmbleic_core.c levmar-2.5/levmar.h levmar-2.5/misc.h
 
 clean:
-	rm -f $(PROG) $(OBJSPSO) $(OBJSMADS) $(OBJSLEVMAR) $(OBJSKDTREE)
+	rm -f $(PROG) $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSLEVMAR) $(OBJSKDTREE)
 
 
 examples:

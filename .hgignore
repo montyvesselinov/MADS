@@ -4,6 +4,7 @@ mads
 latex/*
 html/*
 Debug/*
+*.exe
 .settings/*
 *.results
 *-rerun.mads

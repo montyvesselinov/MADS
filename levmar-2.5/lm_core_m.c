@@ -485,7 +485,7 @@ int LEVMAR_DER(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}
@@ -501,7 +501,7 @@ int LEVMAR_DER(
 				DeTransform( p, op, jac_min );
 				DeTransform( p_old2, op, jac_max );
 				int ipar_max, ipar_min;
-				double max_change = 0, min_change = HUGE, p_diff;
+				double max_change = 0, min_change = HUGE_VAL, p_diff;
 				for( i = 0 ; i < m; ++i )
 				{
 					p_diff = fabs( jac_max[i] - jac_min[i] );
@@ -673,7 +673,7 @@ int LEVMAR_DER(
 				DeTransform( pDp, op, jac_min );
 				DeTransform( p_old, op, jac_max );
 				int ipar_max, ipar_min;
-				double max_change = 0, min_change = HUGE, p_diff;
+				double max_change = 0, min_change = HUGE_VAL, p_diff;
 				for( i = 0 ; i < m; ++i )
 				{
 					p_diff = fabs( jac_max[i] - jac_min[i] );
@@ -837,7 +837,7 @@ int LEVMAR_DER(
 		DeTransform( pDp, op, jac_min );
 		DeTransform( p_old, op, jac_max );
 		int ipar_max, ipar_min;
-		double max_change = 0, min_change = HUGE, p_diff;
+		double max_change = 0, min_change = HUGE_VAL, p_diff;
 		for( i = 0 ; i < m; ++i )
 		{
 			p_diff = fabs( jac_max[i] - jac_min[i] );
@@ -1172,7 +1172,7 @@ int LEVMAR_DIF(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}
