@@ -1046,7 +1046,7 @@ o1020 0.189808 1  dat1
 o1021 0.185904 1  dat1
 o1022 0.181885 1  dat1
 * model command line 
-wells linear >& /dev/null
+./wells linear >& /dev/null
 * model input/output
 linear.tpl linear.wells
 linear.inst linear.s_point
