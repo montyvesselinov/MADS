@@ -1645,8 +1645,8 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 			case 1: // Good swarm
 				if( ( *S ).size > 1 )
 				{
-					if( debug_level > 2 ) printf( "Good swarm: worst tribe %i is removed\n", tribe_worst + 1 );
 					tribe_worst = 0;
+					if( debug_level > 2 ) printf( "Good swarm: worst tribe %i is removed\n", tribe_worst + 1 );
 					for( tr = 1; tr < ( *S ).size; tr++ ) // Find the worst tribe
 					{
 						if( compare_particles( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, &( *S ).trib[tribe_worst].part[( *S ).trib[tribe_worst].best].xBest.f, compare_type ) == -1 )

@@ -174,6 +174,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 	max_iter_best = max_iter / 2; // max number of interations since the current best one
 	max_phi_range = max_iter / 4; // number of iterations to evaluate phi decline
 	max_bad_count = MAX( 10, ( int ) nParam / 3 ); // maximum number of iterations to avoid Jacobian singuliarity
+	relcon = pow( 10., ( double ) - nsig );
 	if( ( vphi = ( double * ) malloc( sizeof( double ) * max_eval ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); return( 1 ); }
 	if( ( hessian = ( double * ) malloc( sizeof( double ) * ( nParam + 1 ) * nParam / 2 ) ) == NULL )

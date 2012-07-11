@@ -219,8 +219,8 @@ int abagus( struct opt_data *op )
 	int enrgy_add; // energy to add for good position
 	int energy; // energy of swarm
 	int energy_prev; // energy from previous iteration
-	int kdsize; // size of kdset
-	int kdsizebad; // size of bad kdset
+	int kdsize = 0; // size of kdset
+	int kdsizebad = 0; // size of bad kdset
 	int old_pos = 0, old_bad_pos = 0, new_pos = 0; // number of particles visiting old and new positions each iteration
 	int t_old_pos = 0, t_old_bad_pos = 0, t_new_pos = 0; // total number of particles visiting old and new positions
 	//double expl_rate, old_expl_rate = 1; // rate of new to old positions
