@@ -1,13 +1,15 @@
 PROG = mads
-CC = gcc 
 # CC = g++ 
 ## rainier -L/usr/lib/gcc/x86_64-redhat-linux/4.1.1
 ifeq ($(OSTYPE),linux)
         DIRS = -I/home/monty/local/include -L/home/monty/local/lib
 	LG = -lgfortran
+	CC = /usr/lanl/bin/gcc 
+	CC = gcc 
 else
         # DIRS = -I/opt/local/include/ -L/opt/local/lib
         DIRS = -I/Users/monty/include -L/Users/monty/lib -I/opt/local/include/ -L/opt/local/lib
+	CC = gcc 
 endif
 CFLAGS = -g -Wall $(DIRS)
 LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas $(LG) $(DIRS)

@@ -1,6 +1,7 @@
 syntax: glob
 # MADS files
 mads
+wells
 latex/*
 html/*
 Debug/*
