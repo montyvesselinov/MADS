@@ -577,30 +577,92 @@ int main( int argn, char *argv[] )
 	//
 	if( cd.problem_type == FORWARD ) // Forward run
 	{
+		if( cd.resultsfile != NULL )
+		{
+			FILE *infile2;
+			char bigbuffer[5000];
+			infile2 = Fread( cd.resultsfile );
+			int lines = 0, caseid;
+			while( !feof( infile2 ) )
+			{
+				if( fgets( bigbuffer, sizeof bigbuffer, infile2 ) == NULL )
+					break;
+				if( sscanf( bigbuffer, "%d", &caseid ) ) lines++;
+			}
+			printf( "\nModel parameters will be initiated based on previously saved results in file %s (total number of cases %d)\n", cd.resultsfile, lines );
+			if( cd.resultscase < 0 ) printf( "Forward runs based on first %d cases.", -cd.resultscase );
+			else
+			{
+				int implemented = 0;
+				if( cd.phi_cutoff > DBL_EPSILON ) { printf( "Model analyses for cases with phi < %g.", cd.phi_cutoff ); implemented = 1; }
+				if( cd.obsrange ) { printf( "Model analyses for successful cases." ); implemented = 1; }
+				if( !implemented )
+				{
+					if( cd.resultscase == 0 ) cd.resultscase = 1;
+					if( cd.resultscase > 0 ) printf( "Model analyses for case #%d", cd.resultscase );
+					else printf( "Model analyses for first %d cases", -cd.resultscase );
+				}
+				else cd.resultscase = -lines;
+			}
+			printf( "\n\n" );
+		}
 		if( cd.resultscase < 0 )
 		{
 			FILE *infile2;
-			char bigbuffer[1000], *start, *word, *separator = " ";
+			char bigbuffer[5000], *start, *word, *separator = " ";
 			int cases = cd.resultscase * -1;
 			int caseid;
 			bad_data = 0;
-			printf( "\nModel parameters initiated based on previously saved results in file %s (first %d cases)\n", cd.resultsfile, cases );
 			infile2 = Fread( cd.resultsfile );
+			double *res;
+			if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( res = ( double * ) malloc( od.nObs * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
 			for( j = 0; j < cases; j++ )
 			{
+				if( feof( infile2 ) )
+				{
+					bad_data = 1;
+					printf( "ERROR File end reached (%s; case %d)\n", cd.resultsfile, j + 1 );
+					break;
+				}
 				if( fgets( bigbuffer, sizeof bigbuffer, infile2 ) == NULL )
 				{
 					bad_data = 1;
-					printf( "ERROR reading model parameters initiated based on previously saved results in file %s (case %d)\n", cd.resultsfile, i + 1 );
+					printf( "ERROR reading model parameters initiated based on previously saved results in file %s (case %d)\n", cd.resultsfile, j + 1 );
 					break;
 				}
 				sscanf( bigbuffer, "%d", &caseid );
-				printf( "\nCase ID %d\n", caseid );
+				// if( cd.debug ) printf( "\n" );
+				printf( "Case ID %d in %s (case %d)\n", caseid, cd.resultsfile, j + 1 );
+				start = strstr( bigbuffer, ": OF" );
+				if( start == NULL ) printf( "WARNING Objective function value is missing in %s (case %d)\n", cd.resultsfile, j + 1 );
+				else
+				{
+					sscanf( start, ": OF %lg", &phi );
+					printf( "Objective function = %g\n", phi );
+				}
+				if( cd.phi_cutoff > DBL_EPSILON && phi > cd.phi_cutoff )
+				{
+					printf( "Case skipped: phi %g > cutoff %g\n", phi, cd.phi_cutoff );
+					continue;
+				}
+				start = strstr( bigbuffer, "success" );
+				if( start == NULL ) printf( "WARNING Success value is missing in %s (case %d)\n", cd.resultsfile, j + 1 );
+				else
+				{
+					sscanf( start, "success %d", &success );
+					printf( "Success = %d\n", success );
+				}
+				if( cd.obsrange && !success )
+				{
+					printf( "Case skipped: no success\n" );
+					continue;
+				}
 				start = strstr( bigbuffer, "final var" );
 				if( start == NULL )
 				{
 					bad_data = 1;
-					printf( "ERROR Final model parameters cannot be located in %s (case %d)\n", cd.resultsfile, i + 1 );
+					printf( "ERROR Final model parameters cannot be located in %s (case %d)\n", cd.resultsfile, j + 1 );
 					break;
 				}
 				// printf( "%s\n", start );
@@ -615,29 +677,33 @@ int main( int argn, char *argv[] )
 						k++;
 						if( pd.var_log[i] ) pd.var[i] = log10( pd.var[i] );
 						cd.var[i] = pd.var[i];
-						printf( "%s %g\n", pd.var_id[i], pd.var[i] );
+						if( cd.debug ) printf( "%s %g\n", pd.var_id[i], pd.var[i] );
 						i++;
 					}
 				}
-				printf( "Number of initialized parameters = %d\n\n", k );
-				double *res;
-				if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
-				if( ( res = ( double * ) malloc( od.nObs * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
+				if( cd.debug ) printf( "Number of initialized parameters = %d\n\n", k );
+				if( pd.nOptParam != k )
+				{
+					bad_data = 1;
+					printf( "ERROR Number of optimized (%d) and initialized (%d) parameters in %s (case %d) do not match\n", pd.nOptParam, k, cd.resultsfile, j + 1 );
+					break;
+				}
 				for( i = 0; i < pd.nOptParam; i++ )
 					opt_params[i] = pd.var[pd.var_index[i]];
 				// for( i = 0; i < pd.nOptParam; i++ )
 				// printf( "%s %g\n", pd.var_id[pd.var_index[i]], opt_params[i] );
 				Transform( opt_params, &op, opt_params );
 				func_global( opt_params, &op, res );
-				free( opt_params );
-				free( res );
-				print_results( &op, 1 );
+				if( cd.debug ) print_results( &op, 1 );
 				if( cd.save )
 				{
 					sprintf( filename, "%d", caseid );
 					save_final_results( filename, &op, &gd );
 				}
+				printf( "\n" );
 			}
+			free( opt_params );
+			free( res );
 			fclose( infile2 );
 			predict = 0;
 		}

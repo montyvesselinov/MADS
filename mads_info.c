@@ -144,8 +144,13 @@ void mads_info()
 	printf( "   tpldebug=[0-3]     - Debug the writing of external files [default tpldebug=0]\n" );
 	printf( "   insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]\n" );
 	printf( "   pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]\n" );
-	printf( "   save               - Save MADS input files for successful parameter sets [default save=0]\n" );
-	printf( "   pargen             - Save MADS input files for independent multi-processor runs [default pargen=0]\n" );
+	printf( "\npre-/post-processing:\n" );
+	printf( "   resultsfile        - Post process results saved in resultsfile\n" );
+	printf( "   resultscase        - Post process specific case saved in resultsfile (if resultscase<0, first abs(resultscase) cases)\n" );
+	printf( "   cutoff=[real]      - Post process all cases saved in resultsfile with objective function below the cutoff value\n" );
+	printf( "   obsrange           - Post process all cases saved in resultsfile with model predictions within predefined calibration ranges\n" );
+	printf( "   pargen             - Generate MADS input files for independent multi-processor runs [default pargen=0]\n" );
+	printf( "   save               - Save MADS input/output files for successful parameter sets [default save=0]\n" );
 	printf( "\nExamples:\n" );
 	printf( "   mads a01 test=2 opt=lm igrnd real=1 (no input files are needed for execution)\n" );
 	printf( "   mads a01 test=2 opt=squads igrnd real=1\n" );

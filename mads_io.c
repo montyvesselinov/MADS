@@ -189,7 +189,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "np", 2 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( !strncasecmp( word, "restart", 7 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
 		if( !strncasecmp( word, "rstfile=", 8 ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_zip_file ); cd->restart = -1; }
-		if( !strncasecmp( word, "resultsfile=", 12 ) ) { w = 1; sscanf( word, "resultsfile=%s", cd->resultsfile ); if( cd->resultscase == 0 ) cd->resultscase = 1; }
+		if( !strncasecmp( word, "resultsfile=", 12 ) ) { w = 1; sscanf( word, "resultsfile=%s", cd->resultsfile ); cd->problem_type = FORWARD; }
 		if( !strncasecmp( word, "resultscase=", 12 ) ) { w = 1; sscanf( word, "resultscase=%d", &cd->resultscase ); }
 		if( !strncasecmp( word, "debug", 5 ) ) { w = 1; if( sscanf( word, "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
 		if( !strncasecmp( word, "fdebug", 6 ) ) { w = 1; sscanf( word, "fdebug=%d", &cd->fdebug ); if( cd->fdebug == 0 ) cd->fdebug = 1; }
@@ -252,10 +252,23 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		default: printf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
 	printf( "\n" );
-	if( cd->resultscase )
+	if( cd->resultsfile != NULL )
 	{
-		if( Ftest( cd->resultsfile ) == 0 ) printf( "\nModel analysis based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
-		else { cd->resultscase = 0; cd->resultsfile[0] = 0; }
+		if( Ftest( cd->resultsfile ) == 0 )
+		{
+			printf( "\nModel analyses based on previously saved results in file %s\n", cd->resultsfile );
+			int implemented = 0;
+			if( cd->phi_cutoff > DBL_EPSILON ) { printf( "Model analyses for cases with phi < %g.", cd->phi_cutoff ); implemented = 1; }
+			if( cd->obsrange ) { printf( "Model analyses for successful cases." ); implemented = 1; }
+			if( !implemented )
+			{
+				if( cd->resultscase == 0 ) cd->resultscase = 1;
+				if( cd->resultscase > 0 ) printf( "Model analyses for case #%d", cd->resultscase );
+				else printf( "Model analyses for first %d cases", -cd->resultscase );
+			}
+			printf( "\n" );
+		}
+		else { printf( "\nERROR Results file %s cannot be opened \n", cd->resultsfile ); cd->resultscase = 0; cd->resultsfile[0] = 0; }
 	}
 	if( cd->problem_type == CALIBRATE )
 	{
@@ -374,7 +387,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	FILE *infile, *infile2;
 	//	FILE *infileb;
 	double x0, y0, x, y, d, alpha, beta;
-	char buf[1000], *file, **path, exec[1000], *word, *start;
+	char buf[5000], *file, **path, exec[1000], *word, *start;
 	char *separator = " \t\n";
 	int  i, j, k, c, bad_data, nofile = 0, skip = 0;
 	struct calc_data *cd;
@@ -456,14 +469,14 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		switch( ( *cd ).solution_type[c] )
 		{
 			case EXTERNAL: { printf( "external" ); strcat( ( *cd ).solution_id, "external" ); break; }
-			case POINT: { printf( "internal | point contaminant source" ); strcat( ( *cd ).solution_id, "point" ); break; }
-			case PLANE: { printf( "internal | rectangular contaminant source" ); strcat( ( *cd ).solution_id, "rect" ); break; }
-			case PLANE3D: { printf( "internal | rectangular contaminant source with vertical flow component" ); strcat( ( *cd ).solution_id, "rect_vert" ); break; }
-			case BOX: { printf( "internal | box contaminant source" ); strcat( ( *cd ).solution_id, "box" ); break; }
-			case TEST: { printf( "internal | test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); sprintf( ( *cd ).solution_id, "test=%d", ( *cd ).test_func ); break; }
+			case POINT: { printf( "internal point contaminant source" ); strcat( ( *cd ).solution_id, "point" ); break; }
+			case PLANE: { printf( "internal rectangular contaminant source" ); strcat( ( *cd ).solution_id, "rect" ); break; }
+			case PLANE3D: { printf( "internal rectangular contaminant source with vertical flow component" ); strcat( ( *cd ).solution_id, "rect_vert" ); break; }
+			case BOX: { printf( "internal box contaminant source" ); strcat( ( *cd ).solution_id, "box" ); break; }
+			case TEST: { printf( "internal test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); sprintf( ( *cd ).solution_id, "test=%d", ( *cd ).test_func ); break; }
 			default: printf( "WARNING! UNDEFINED model type!" ); break;
 		}
-		if( ( *cd ).num_solutions > 1 ) strcat( ( *cd ).solution_id, " " );
+		if( ( *cd ).num_solutions > 1 ) { strcat( ( *cd ).solution_id, " " ); printf( ";" ); }
 	}
 	if( cd->c_background ) printf( " | background concentration = %g", cd->c_background );
 	printf( "\n" );
@@ -559,15 +572,35 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			// else printf( "%s\n", buf );
 		}
 		fclose( infile2 );
+		int caseid;
+		sscanf( buf, "%d", &caseid );
+		printf( "Case ID %d in %s (case %d)\n", caseid, cd->resultsfile, cd->resultscase );
+		start = strstr( buf, ": OF" );
+		if( start == NULL ) printf( "WARNING Objective function value is missing in %s (case %d)\n", cd->resultsfile, cd->resultscase );
+		else
+		{
+			double phi;
+			sscanf( start, ": OF %lg", &phi );
+			printf( "Objective function = %g\n", phi );
+		}
+		start = strstr( buf, "success" );
+		if( start == NULL ) printf( "WARNING Success value is missing in %s (case %d)\n", cd->resultsfile, cd->resultscase );
+		else
+		{
+			int success;
+			sscanf( start, "success %d", &success );
+			printf( "Success = %d\n", success );
+		}
 		start = strstr( buf, "final var" );
 		if( start == NULL )
 		{
 			bad_data = 1;
-			printf( "ERROR Final model parameters cannot be located in %s (case %d)\n", cd->resultsfile, i + 1 );
+			printf( "ERROR Final model parameters cannot be located in %s (case %d)\n", cd->resultsfile, cd->resultscase );
 			return( 0 );
 		}
 		// printf( "%s\n", start );
 		strcpy( buf, start );
+		printf( "\nInitialized model parameters:\n" );
 		for( k = 0, i = 0, c = -2, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
 		{
 			if( c > -1 )
@@ -582,6 +615,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 		}
 		printf( "Number of initialized parameters = %d\n\n", k );
+		if( pd->nOptParam != k )
+		{
+			bad_data = 1;
+			printf( "ERROR Number of optimized (%d) and initialized (%d) parameters in %s (case %d) do not match\n", pd->nOptParam, k, cd->resultsfile, cd->resultscase );
+			return( 0 );
+		}
 	}
 	if( ( *cd ).problem_type == CALIBRATE && ( *cd ).calib_type == PPSD && ( *pd ).nFlgParam == 0 )
 	{
