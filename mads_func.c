@@ -170,14 +170,14 @@ int func_extrn( double *x, void *data, double *f )
 		}
 		f[i] = err * p->od->obs_weight[i];
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
-		if( p->cd->obserror > 0 )
+		if( p->cd->obserror > DBL_EPSILON )
 		{
-			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		else // if( p->cd->obsrange )
 		{
-			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success = 0; if( p->od->obs_weight[i] > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
@@ -410,14 +410,14 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		f[i] = err * p->od->obs_weight[i];
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
-		if( p->cd->obserror > 0 )
+		if( p->cd->obserror > DBL_EPSILON )
 		{
-			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		else // if( p->cd->obsrange )
 		{
-			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success = 0; if( p->od->obs_weight[i] > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
@@ -444,7 +444,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 {
 	int i, j, k, p1, p2, l, s, success, success_all = 1;
-	double c, t, c1, c2, err, phi = 0.0;
+	double c, t, w, c1, c2, err, phi = 0.0;
 	struct opt_data *p = ( struct opt_data * )data;
 	char filename[255];
 	p->cd->neval++;
@@ -499,7 +499,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	{
 		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var, p->od->nObs, f );
 		if( p->cd->check_success && p->cd->obsrange ) success_all = 0;
-		if( p->cd->check_success && p->cd->parerror > 0 )
+		if( p->cd->check_success && p->cd->parerror > DBL_EPSILON )
 		{
 			success_all = 1;
 			for( k = 0; k < p->pd->nOptParam; k++ )
@@ -592,6 +592,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			c = ( c1 + c2 ) / 2;
 			p->od->obs_current[k] = c;
 			t = p->wd->obs_target[i][j];
+			w = p->wd->obs_weight[i][j];
 			if( p->wd->obs_log[i][j] == 0 )
 			{
 				err = c - t;
@@ -613,22 +614,22 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				if( t < DBL_EPSILON ) t = DBL_EPSILON;
 				err = log10( c ) - log10( t );
 			}
-			f[k] = err * p->wd->obs_weight[i][j];
+			f[k] = err * w;
 			if( p->cd->compute_phi ) phi += f[k] * f[k];
-			if( p->cd->obserror > 0 )
+			if( p->cd->obserror > DBL_EPSILON )
 			{
-				if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+				if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 				else success = 1;
 			}
 			else // if( p->cd->obsrange )
 			{
-				if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success_all = success = 0; if( p->od->obs_weight[i] > 0.0 ) success_all = 0; }
+				if( ( c < p->od->obs_min[k] || c > p->od->obs_max[k] ) ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 				else success = 1;
 			}
 			if( p->cd->fdebug >= 2 )
 			{
 				if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
-					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * p->od->obs_weight[k], success, p->od->obs_min[k], p->od->obs_max[k] );
+					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * w, success, p->od->obs_min[k], p->od->obs_max[k] );
 				if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 				if( !p->cd->compute_phi ) phi += f[i] * f[i];
 			}

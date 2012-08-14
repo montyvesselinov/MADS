@@ -1731,14 +1731,11 @@ int igrnd( struct opt_data *op )
 	for( i = 0; i < op->od->nObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
 	fprintf( out, "Minimum objective function: %g\n", phi_min );
 	printf( "Minimum objective function: %g\n", phi_min );
-	if( op->cd->debug )
-	{
-		printf( "Repeat the run producing the best results ...\n" );
-		debug_level = op->cd->fdebug; op->cd->fdebug = 1;
-		Transform( opt_params, op, opt_params );
-		func_global( opt_params, op, op->od->res );
-		op->cd->fdebug = debug_level;
-	}
+	printf( "Repeat the run producing the best results ...\n" );
+	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 1; }
+	Transform( opt_params, op, opt_params );
+	func_global( opt_params, op, op->od->res );
+	if( op->cd->debug ) op->cd->fdebug = debug_level;
 	if( op->cd->nreal > 1 )
 	{
 		if( op->cd->phi_cutoff > DBL_EPSILON )
@@ -1946,15 +1943,12 @@ int igpd( struct opt_data *op )
 	for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
 	for( i = 0; i < op->od->nObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
 	printf( "Minimum objective function: %g\n", phi_min );
+	printf( "Repeat the run producing the best results ...\n" );
+	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+	Transform( opt_params, op, opt_params );
+	func_global( opt_params, op, op->od->res );
+	if( op->cd->debug ) op->cd->fdebug = debug_level;
 	print_results( op, 1 );
-	if( op->cd->debug )
-	{
-		printf( "Repeat the run producing the best results ...\n" );
-		debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-		Transform( opt_params, op, opt_params );
-		func_global( opt_params, op, op->od->res );
-		op->cd->fdebug = debug_level;
-	}
 	fprintf( out, "Minimum objective function: %g\n", phi_min );
 	if( op->cd->nreal > 1 )
 	{
@@ -2373,15 +2367,12 @@ int montecarlo( struct opt_data *op )
 	for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
 	for( i = 0; i < op->od->nObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
 	printf( "\nMinimum objective function: %g\n", phi_min );
+	printf( "Repeat the run producing the best results ...\n" );
+	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+	Transform( opt_params, op, opt_params );
+	func_global( opt_params, op, op->od->res );
+	if( op->cd->debug ) op->cd->fdebug = debug_level;
 	print_results( op, 1 );
-	if( op->cd->debug )
-	{
-		printf( "Repeat the run producing the best results ...\n" );
-		debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-		Transform( opt_params, op, opt_params );
-		func_global( opt_params, op, op->od->res );
-		op->cd->fdebug = debug_level;
-	}
 	printf( "Results are saved in %s.mcrnd.results\n", op->root );
 	printf( "\nMinimum objective function: %g\n", phi_min );
 	if( success_global == 0 ) printf( "None of the Monte-Carlo runs produced predictions within calibration ranges!\n" );
