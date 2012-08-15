@@ -916,7 +916,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( op->pd->nOptParam > op->od->nObs ) { printf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
 	for( k = i = 0; i < ( *wd ).nW; i++ )
 		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
-			if( ( *wd ).obs_weight[i][j] > DBL_EPSILON  )
+			if( ( *wd ).obs_weight[i][j] > DBL_EPSILON )
 			{
 				od->obs_target[k] = ( *wd ).obs_target[i][j];
 				od->obs_weight[k] = ( *wd ).obs_weight[i][j];
