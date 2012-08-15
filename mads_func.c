@@ -63,7 +63,7 @@ int func_extrn( double *x, void *data, double *f )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000];
-	double c, t, err, phi = 0.0;
+	double c, t, w, err, phi = 0.0;
 	int i, k, success, success_all = 1, bad_data = 0;
 	if( p->cd->num_proc > 1 ) // Parallel execution of a serial job to archive all the intermediate results
 	{
@@ -147,6 +147,7 @@ int func_extrn( double *x, void *data, double *f )
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
+		w = p->od->obs_weight[i];
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
@@ -168,35 +169,39 @@ int func_extrn( double *x, void *data, double *f )
 			if( t < DBL_EPSILON ) t = DBL_EPSILON;
 			err = log10( c ) - log10( t );
 		}
-		f[i] = err * p->od->obs_weight[i];
+		f[i] = err * w;
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
 		if( p->cd->obserror > DBL_EPSILON )
 		{
-			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > DBL_EPSILON ) success_all = 0; }
+			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		else // if( p->cd->obsrange )
 		{
-			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success = 0; if( p->od->obs_weight[i] > DBL_EPSILON ) success_all = 0; }
+			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
 		{
 			if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
-				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * p->od->obs_weight[i], success, p->od->obs_min[i], p->od->obs_max[i] );
+				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
 			if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
+	p->success = success_all; // Just in case
 	if( p->cd->fdebug >= 2 ) printf( "Objective function %g\n", phi );
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = success_all; }
-	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
+	if( p->cd->phi_cutoff > DBL_EPSILON )
 	{
-		p->success = 1;
-		if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_extrn)!\n", phi, p->cd->phi_cutoff );
+		if( phi < p->cd->phi_cutoff )
+		{
+			p->success = 1;
+			if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+		}
+		else p->success = 0;
 	}
-	else p->success = 0;
 	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) printf( "SUCCESS: Model results are within the predefined ranges (func_extrn)!\n" ); }
 	return GSL_SUCCESS;
 }
@@ -349,7 +354,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
-	double c, t, err, phi = 0.0;
+	double c, t, w, err, phi = 0.0;
 	int i, success, success_all = 1, bad_data;
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
@@ -387,6 +392,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
+		w = p->od->obs_weight[i];
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
@@ -408,35 +414,39 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			if( t < DBL_EPSILON ) t = DBL_EPSILON;
 			err = log10( c ) - log10( t );
 		}
-		f[i] = err * p->od->obs_weight[i];
+		f[i] = err * w;
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
 		if( p->cd->obserror > DBL_EPSILON )
 		{
-			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( p->od->obs_weight[i] > DBL_EPSILON ) success_all = 0; }
+			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		else // if( p->cd->obsrange )
 		{
-			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success = 0; if( p->od->obs_weight[i] > DBL_EPSILON ) success_all = 0; }
+			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
 		{
 			if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
-				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * p->od->obs_weight[i], success, p->od->obs_min[i], p->od->obs_max[i] );
+				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
 			if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
+	p->success = success_all; // Just in case
 	if( p->cd->fdebug >= 2 ) printf( "Objective function %g\n", phi );
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = success_all; }
-	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
+	if( p->cd->phi_cutoff > DBL_EPSILON )
 	{
-		p->success = 1;
-		if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+		if( phi < p->cd->phi_cutoff )
+		{
+			p->success = 1;
+			if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+		}
+		else p->success = 0;
 	}
-	else p->success = 0;
 	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) printf( "SUCCESS: Model results are within the predefined ranges (func_extrn)!\n" ); }
 	return GSL_SUCCESS;
 }
@@ -444,7 +454,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 {
 	int i, j, k, p1, p2, l, s, success, success_all = 1;
-	double c, t, w, c1, c2, err, phi = 0.0;
+	double c, t, w, min, max, c1, c2, err, phi = 0.0;
 	struct opt_data *p = ( struct opt_data * )data;
 	char filename[255];
 	p->cd->neval++;
@@ -544,7 +554,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	else
 	{
 		if( p->cd->fdebug >= 2 ) printf( "\nModel predictions:\n" );
-		for( k = 0; k < p->od->nObs; k++ )
+		for( k = 0; k < p->od->nObs; k++ ) // for computational efficiency performed only for observations with weight > DBL_EPSILON
 		{
 			if( p->cd->oderiv != -1 ) { k = p->cd->oderiv; }
 			i = p->od->well_index[k];
@@ -591,8 +601,10 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			}
 			c = ( c1 + c2 ) / 2;
 			p->od->obs_current[k] = c;
-			t = p->wd->obs_target[i][j];
-			w = p->wd->obs_weight[i][j];
+			t = p->od->obs_target[k];
+			w = p->od->obs_weight[k];
+			min = p->od->obs_min[k];
+			max = p->od->obs_max[k];
 			if( p->wd->obs_log[i][j] == 0 )
 			{
 				err = c - t;
@@ -604,8 +616,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 						err = sqrt( fabs( err ) );
 						if( c < t ) err *= -1;
 					}
-					if( c < p->wd->obs_min[i][j] ) err += c - p->wd->obs_min[i][j];
-					else if( c > p->wd->obs_max[i][j] ) err += c - p->wd->obs_max[i][j];
+					if( c < min ) err += c - min;
+					else if( c > max ) err += c - max;
 				}
 			}
 			else
@@ -618,24 +630,25 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->cd->compute_phi ) phi += f[k] * f[k];
 			if( p->cd->obserror > DBL_EPSILON )
 			{
-				if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
+				if( fabs( c - t ) > p->cd->obserror ) { success = success_all = 0; } // weight should be > DBL_EPSILON by default; if( w > DBL_EPSILON ) is not needed
 				else success = 1;
 			}
 			else // if( p->cd->obsrange )
 			{
-				if( ( c < p->od->obs_min[k] || c > p->od->obs_max[k] ) ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
+				if( ( c < min || c > max ) ) { success = success_all = 0; } // weight should be > DBL_EPSILON by default; if( w > DBL_EPSILON ) is not needed
 				else success = 1;
 			}
 			if( p->cd->fdebug >= 2 )
 			{
 				if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
-					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * w, success, p->od->obs_min[k], p->od->obs_max[k] );
+					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * w, success, min , max );
 				if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
 				if( !p->cd->compute_phi ) phi += f[i] * f[i];
 			}
 			if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 		}
 	}
+	p->success = success_all; // Just in case
 	if( p->cd->odebug )
 	{
 		fprintf( p->f_ofe, "%d %g", p->cd->neval, phi ); // Print current best
@@ -646,12 +659,15 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	if( p->cd->fdebug >= 2 ) printf( "Objective function %g\n", phi );
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = success_all; }
-	if( p->cd->phi_cutoff > DBL_EPSILON && phi < p->cd->phi_cutoff )
+	if( p->cd->phi_cutoff > DBL_EPSILON )
 	{
-		p->success = 1;
-		if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+		if( phi < p->cd->phi_cutoff )
+		{
+			p->success = 1;
+			if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+		}
+		else p->success = 0;
 	}
-	else p->success = 0;
 	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) printf( "SUCCESS: Model results are within the predefined ranges (func_intrn)!\n" ); }
 	return GSL_SUCCESS;
 }
