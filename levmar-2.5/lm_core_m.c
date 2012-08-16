@@ -126,6 +126,8 @@ int LEVMAR_DER(
 	LM_REAL tau, eps1, eps2, eps2_sq, eps3, delta;
 	LM_REAL init_p_eL2;
 	int nu, nu2, stop = 0, nfev, njap = 0, nlss = 0, K = ( m >= 10 ) ? m : 10, updjac, updp = 1, newjac;
+	LM_REAL phi1[itmax], phi2[K];
+	int phi1c, phi2c;
 	int mu_big = 0, phi_decline = 0;
 	const int nm = n * m;
 	int ( *linsolver )( LM_REAL * A, LM_REAL * B, LM_REAL * x, int m ) = NULL;
@@ -243,6 +245,7 @@ int LEVMAR_DER(
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	computejac = 0;
 	kmax = itmax * 100;
+	phi1c = phi2c = 0;
 	if( op->cd->ldebug ) printf( "Initial evaluation: OF %g\n", p_eL2 );
 	for( k = 0; k < kmax && !stop; ++k )
 	{
@@ -274,7 +277,32 @@ int LEVMAR_DER(
 			changejac = 1;
 			mu_big = 0;
 			phi_decline = 0;
+			phi2c = 0;
 			p_eL2_old = p_eL2;
+			phi1[phi1c++] = p_eL2;
+			if( phi1c > 7 )
+			{
+				tmp = HUGE_VAL;
+				for( i = 0; i < phi1c; i++ )
+				{
+					if( phi1[i] < tmp ) tmp = phi1[i];
+					// printf( " %g", phi1[i] );
+				}
+				// printf( "d %g %d\n", tmp, phi1c );
+				j = 0;
+				for( i = phi1c - 1; i > phi1c - 8; i-- )
+				{
+					// printf( "d %g %g %g\n", tmp, phi1[i], ( phi1[i] - tmp ) / tmp );
+					if( ( phi1[i] - tmp ) / tmp < 1 ) j++;
+				}
+				// printf( "d %g %d\n", tmp, j );
+				if( j > 4 )
+				{
+					if( op->cd->ldebug ) printf( "CONVERGED: Best jacobian OF are very close\n" );
+					stop = 9;
+					break;
+				}
+			}
 			if( success ) op->cd->check_success = 0;
 			if( odebug ) op->cd->odebug = 0;
 			if( using_ffdif ) /* use forward differences */
@@ -369,7 +397,7 @@ int LEVMAR_DER(
 						if( jac_max[i] < fj ) jac_max[i] = fj;
 						if( jac_min[i] > fj ) jac_min[i] = fj;
 						if( fj > max ) { max = fj; imax = i; omax = j; }
-						if( fj < min && jac_min[i] > DBL_EPSILON ) { min = fj; imin = i; omin = j; }
+						if( fj < min && fj > DBL_EPSILON ) { min = fj; imin = i; omin = j; }
 					}
 				}
 				printf( "Highest absolute sensitivity - parameter: %s (p%d) - observation: %s (o%d): %g\n", op->pd->var_id[op->pd->var_index[imax]], imax + 1, op->od->obs_id[omax], omax + 1, max );
@@ -537,11 +565,11 @@ int LEVMAR_DER(
 			}
 			changejac = 0;
 			/* check for convergence */
-			if( op->cd->ldebug > 4 ) printf( "OF increment %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
+			if( op->cd->ldebug > 4 ) printf( "||J^T e||_inf %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
 			if( ( jacTe_inf <= eps1 ) )
 			{
 				Dp_L2 = 0.0; /* no increment for p in this case */
-				if( op->cd->ldebug ) printf( "CONVERGED: small increment for OF (%g < %g)\n", jacTe_inf, eps1 );
+				if( op->cd->ldebug ) printf( "CONVERGED: ||J^T e||_inf too small (%g < %g)\n", jacTe_inf, eps1 );
 				stop = 1;
 				break;
 			}
@@ -630,7 +658,7 @@ int LEVMAR_DER(
 				if( op->cd->ldebug > 1 ) printf( "LM acceleration performed (with acceleration %g vs without acceleration %g)\n", Dpa_L2, Dp_L2 );
 			}
 			Dpa_L2 = sqrt( Dpa_L2 );
-			if( op->cd->ldebug > 4 ) printf( "Relative change in the OF %g (%g < %g to converge)\n", Dp_L2, Dp_L2, eps2_sq * p_L2 );
+			if( op->cd->ldebug > 4 ) printf( "Relative change in the OF %g (%g < %g = %g * %g  to converge)\n", Dp_L2, Dpa_L2, eps2_sq * p_L2, eps2_sq, p_L2 );
 			if( Dpa_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: Relative change in the OF is small (%g < %g)\n", Dpa_L2, eps2_sq * p_L2 );
@@ -686,12 +714,27 @@ int LEVMAR_DER(
 					p_old[i] = pDp[i];
 			}
 			if( op->cd->ldebug ) printf( "OF %g lambda %g ", pDp_eL2, mu );
+			phi2[phi2c++] = pDp_eL2;
 			if( op->cd->ldebug == 5 )
 			{
 				DeTransform( pDp, op, jac_min );
 				printf( "Current estimates: " );
 				for( i = 0; i < m; ++i )
 					printf( "%g ", jac_min[i] );
+			}
+			if( phi2c > 5 )
+			{
+				tmp = phi2[phi2c - 1];
+				// for( i = 0; i < phi2c; i++ )
+					// printf( " %g", phi2[i] );
+				// printf( "a %g %d\n", tmp, phi2c );
+				j = 0;
+				for( i = phi2c - 2; i > phi2c - 6; i-- )
+				{
+					if( fabs( tmp - phi2[i] ) / tmp < 1 ) j++;
+					// printf( "a %g %g %g\n", tmp, phi2[i], fabs( tmp - phi2[i] ) / tmp );
+				}
+				if( j > 2 ) { if( op->cd->ldebug ) printf( "New jacobian: OF are very close\n" ); computejac = 1; }
 			}
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
@@ -882,6 +925,7 @@ int LEVMAR_DER(
 			case 6: printf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
 			case 7: printf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
 			case 8: printf( "model predictions are within predefined calibration ranges\n" ); break;
+			case 9: printf( "small OF changes\n" ); break;
 			default: printf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 2 )
@@ -1184,12 +1228,12 @@ int LEVMAR_DIF(
 				p_L2 += p[i] * p[i];
 			}
 			//p_L2=sqrt(p_L2);
-			if( op->cd->ldebug > 4 ) printf( "OF increment %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
+			if( op->cd->ldebug > 4 ) printf( "||J^T e||_inf %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
 			/* check for convergence */
 			if( ( jacTe_inf <= eps1 ) )
 			{
 				Dp_L2 = 0.0; /* no increment for p in this case */
-				if( op->cd->ldebug ) printf( "CONVERGED: no increment for OF in this case (%g < %g)\n", jacTe_inf, eps1 );
+				if( op->cd->ldebug ) printf( "CONVERGED: ||J^T e||_inf is too small (%g < %g)\n", jacTe_inf, eps1 );
 				stop = 1;
 				break;
 			}

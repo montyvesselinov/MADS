@@ -123,7 +123,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->lm_nu = 2; // default value
 	cd->lm_h = 0.1;
 	cd->lm_ratio = 0.75 * 0.75;
-	cd->lm_ofdecline = 2; // TODO Leif prefers to be 1; Original code is 2 and works better
+	cd->lm_ofdecline = 2; // TODO Leif prefers to be 1 and works better for Cr problem; Original code is 2 and works better for test cases
+	cd->lm_error = 1e-5;
 	cd->lm_indir = 1;
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
@@ -152,6 +153,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "lmacc", 5 ) ) { w = 1; cd->lm_acc = 1; }
 		if( !strncasecmp( word, "lmratio=", 8 ) ) { w = 1; sscanf( word, "lmratio=%lf", &cd->lm_ratio ); }
 		if( !strncasecmp( word, "lmofdecline=", 12 ) ) { w = 1; sscanf( word, "lmofdecline=%lf", &cd->lm_ofdecline ); }
+		if( !strncasecmp( word, "lmerror=", 8 ) ) { w = 1; sscanf( word, "lmerror=%lf", &cd->lm_error ); }
 		if( !strncasecmp( word, "lmh=", 4 ) ) { w = 1; sscanf( word, "lmh=%lf", &cd->lm_h ); cd->lm_acc = 1; }
 		if( !strncasecmp( word, "lmind", 5 ) ) { w = 1; cd->lm_indir = 1; cd->lm_ofdecline = 2; }
 		if( !strncasecmp( word, "lmdir", 5 ) ) { w = 1; cd->lm_indir = 0; cd->lm_ofdecline = 1; }
@@ -252,7 +254,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		default: printf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
 	printf( "\n" );
-	if( cd->resultsfile != NULL )
+	if( cd->resultsfile[0] != 0 )
 	{
 		if( Ftest( cd->resultsfile ) == 0 )
 		{
