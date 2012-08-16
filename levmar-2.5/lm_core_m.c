@@ -268,7 +268,7 @@ int LEVMAR_DER(
 				if( updjac >= K ) printf( "Maximum number of lambda iteration is reached (%d); ", K );
 				if( mu_big ) printf( "Lambda is constrained (%g); ", 1e3 );
 				if( phi_decline ) printf( "OF declined substantially (%g << %g)", p_eL2, p_eL2_old );
-				if( computejac ) printf( "requested" );
+				if( computejac ) printf( "OF do not change substantially" );
 				printf( "\n\n" );
 			}
 			if( njap >= itmax ) { stop = 31; continue; }
@@ -298,7 +298,7 @@ int LEVMAR_DER(
 				// printf( "d %g %d\n", tmp, j );
 				if( j > 4 )
 				{
-					if( op->cd->ldebug ) printf( "CONVERGED: Best jacobian OF are very close\n" );
+					if( op->cd->ldebug ) printf( "CONVERGED: Recent final Jacobian OF do not change substantially\n" );
 					stop = 9;
 					break;
 				}
@@ -513,7 +513,7 @@ int LEVMAR_DER(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}
@@ -724,17 +724,30 @@ int LEVMAR_DER(
 			}
 			if( phi2c > 5 )
 			{
-				tmp = phi2[phi2c - 1];
-				// for( i = 0; i < phi2c; i++ )
-					// printf( " %g", phi2[i] );
-				// printf( "a %g %d\n", tmp, phi2c );
-				j = 0;
-				for( i = phi2c - 2; i > phi2c - 6; i-- )
+				tmp = HUGE_VAL;
+				for( i = 0; i < phi2c; i++ )
 				{
-					if( fabs( tmp - phi2[i] ) / tmp < 1 ) j++;
-					// printf( "a %g %g %g\n", tmp, phi2[i], fabs( tmp - phi2[i] ) / tmp );
+					if( phi2[i] < tmp )
+					{
+						tmp = phi2[i];
+						if( i < phi2c - 6 ) j = 1;
+						else j = 0;
+					}
+					// printf( " %g", phi1[i] );
 				}
-				if( j > 2 ) { if( op->cd->ldebug ) printf( "New jacobian: OF are very close\n" ); computejac = 1; }
+				// for( i = 0; i < phi2c; i++ )
+				// printf( " %g", phi2[i] );
+				// printf( "a %g %d\n", tmp, phi2c );
+				for( i = phi2c - 1; i > phi2c - 6; i-- )
+				{
+					if( ( phi2[i] - tmp ) / tmp < 1 ) j++;
+					// printf( "a %g %g %g\n", tmp, phi2[i], ( phi2[i] - tmp ) / tmp );
+				}
+				if( j > 2 )
+				{
+					if( op->cd->ldebug ) printf( "\nNew jacobian: Lambda search OF are very similar\n" );
+					computejac = 1;
+				}
 			}
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
@@ -1216,7 +1229,7 @@ int LEVMAR_DIF(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}

@@ -42,6 +42,8 @@ void mads_info()
 	printf( "\ncalibration options:\n" );
 	printf( "   retry=[integer]    - number of optimization retries [default retry=0]\n" );
 	printf( "   particles=[integer]- number of initial particles or tribes [default particles=10+2*sqrt(Number_of_parameters)]\n" );
+	printf( "   leigen|eigen       - eigen analysis of the final optimized solution\n" );
+	printf( "\nLevenberg-Marquardt optimization options:\n" );
 	printf( "   lmfactor=[double]  - multiplier applied to compute when to initiate LM searches within SQUADS algorithm [default lmfactor=1]\n" );
 	printf( "   lmindirect         - Indirect computation of LM alpha coefficient [default DIRECT/Delayed gratification computation]\n" );
 	printf( "   lmmu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF decreases [default lmmu=0.1]\n" );
@@ -49,8 +51,8 @@ void mads_info()
 	printf( "   lmaccel            - LM geodesic acceleration as proposed by Transtrum et al (2011) [default NO acceleration]\n" );
 	printf( "   lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]\n" );
 	printf( "   lmh=[double]       - LM acceleration multiplier [default lmh=0.1]\n" );
-	printf( "   lmiter=[integer]   - number of Levenberg-Marquardt iterations [default computed internally based on number of evaluations]\n" );
-	printf( "   leigen|eigen       - eigen analysis of the final optimized solution\n" );
+	printf( "   lmiter=[integer]   - number of LM iterations [default computed internally based on number of evaluations]\n" );
+	printf( "   lmerror=[double]   - LM convergence error [default lmerror=1e-5]\n" );
 	printf( "\noptimization method (opt=[string]; various combinations are possible, e.g. pso_std_lm_gsl):\n" );
 	printf( "   opt=lm             - Local Levenberg-Marquardt optimization [default]\n" );
 	printf( "   opt=lm_levmar      - Local Levenberg-Marquardt optimization using LEVMAR library\n" );
