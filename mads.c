@@ -707,7 +707,7 @@ int main( int argn, char *argv[] )
 				// printf( "%s %g\n", pd.var_id[pd.var_index[i]], opt_params[i] );
 				Transform( opt_params, &op, opt_params );
 				func_global( opt_params, &op, res );
-				printf( "Rerun results:\n");
+				printf( "Rerun results:\n" );
 				printf( "Objective function = %g\n", op.phi );
 				printf( "Success = %d\n", op.success );
 				if( cd.debug )
