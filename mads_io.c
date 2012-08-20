@@ -391,7 +391,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	double x0, y0, x, y, d, alpha, beta;
 	char buf[5000], *file, **path, exec[1000], *word, *start;
 	char *separator = " \t\n";
-	int  i, j, k, c, bad_data, nofile = 0, skip = 0;
+	int  i, j, k, c, bad_data, status, nofile = 0, skip = 0;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct obs_data *od;
@@ -837,9 +837,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( cd->debug ) printf( "\nObservation data:\n" );
 	for( i = 0; i < ( *wd ).nW; i++ )
 	{
-		fscanf( infile, "%s %lf %lf %lf %lf %i ", wd->id[i], &( *wd ).x[i], &( *wd ).y[i], &( *wd ).z1[i], &( *wd ).z2[i], &( *wd ).nWellObs[i] );
+		status = fscanf( infile, "%s %lf %lf %lf %lf %i ", wd->id[i], &( *wd ).x[i], &( *wd ).y[i], &( *wd ).z1[i], &( *wd ).z2[i], &( *wd ).nWellObs[i] );
+		if( status != 6 ) { printf( "ERROR: Well %s data provided in the input file %s is incomplete; input file error!\n", wd->id[i], filename ); bad_data = 1; }
 		if( cd->debug ) printf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
-		if( ( *wd ).nWellObs[i] <= 0 ) { if( cd->debug ) printf( "Warning: no observations\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
+		if( ( *wd ).nWellObs[i] <= 0 ) { if( cd->debug ) printf( "WARNING: no observations!\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
 		wd->obs_target[i] = ( double * ) malloc( ( *wd ).nWellObs[i] * sizeof( double ) );
 		wd->obs_time[i] = ( double * ) malloc( ( *wd ).nWellObs[i] * sizeof( double ) );
 		wd->obs_log[i] = ( int * ) malloc( ( *wd ).nWellObs[i] * sizeof( int ) );
@@ -849,13 +850,21 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
 		{
 			wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
-			fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &( *wd ).obs_time[i][j], &( *wd ).obs_target[i][j], &( *wd ).obs_weight[i][j], &( *wd ).obs_log[i][j], &( *wd ).obs_min[i][j], &( *wd ).obs_max[i][j] );
+			status = fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &( *wd ).obs_time[i][j], &( *wd ).obs_target[i][j], &( *wd ).obs_weight[i][j], &( *wd ).obs_log[i][j], &( *wd ).obs_min[i][j], &( *wd ).obs_max[i][j] );
+			if( status != 6 ) {
+				printf( "ERROR:\tObservation data provided for well %s in the input file %s is incomplete; input file error!\n", wd->id[i], filename );
+				printf( "\tWell %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i\n", wd->id[i], wd->x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
+				printf( "\tObservation #%d: time %5g concentration %5g weight %7g log %1d acceptable range: min %5g max %5g\n\n", j + 1, ( *wd ).obs_time[i][j], ( *wd ).obs_target[i][j], ( *wd ).obs_weight[i][j], ( *wd ).obs_log[i][j], ( *wd ).obs_min[i][j], ( *wd ).obs_max[i][j] );
+				bad_data = 1;
+			}
+			if( cd->debug ) printf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
 			if( cd->ologtrans == 1 )( *wd ).obs_log[i][j] = 1;
 			else if( cd->ologtrans == 0 )( *wd ).obs_log[i][j] = 0;
 			if( cd->oweight == 1 )( *wd ).obs_weight[i][j] = 1;
 			else if( cd->oweight == 0 )( *wd ).obs_weight[i][j] = 0;
 			else if( cd->oweight == 2 ) { if( abs( ( *wd ).obs_target[i][j] ) > DBL_EPSILON )( *wd ).obs_weight[i][j] = ( double ) 1.0 / ( *wd ).obs_target[i][j]; else( *wd ).obs_weight[i][j] = HUGE_VAL; }
-			if( cd->debug ) printf( "t %5g c %5g weight %7g log %1d acceptable range: min %5g max %5g\n", ( *wd ).obs_time[i][j], ( *wd ).obs_target[i][j], ( *wd ).obs_weight[i][j], ( *wd ).obs_log[i][j], ( *wd ).obs_min[i][j], ( *wd ).obs_max[i][j] );
+			if( cd->debug )
+				printf( "t %5g c %5g weight %7g log %1d acceptable range: min %5g max %5g\n", ( *wd ).obs_time[i][j], ( *wd ).obs_target[i][j], ( *wd ).obs_weight[i][j], ( *wd ).obs_log[i][j], ( *wd ).obs_min[i][j], ( *wd ).obs_max[i][j] );
 			if( wd->obs_max[i][j] < wd->obs_target[i][j] || wd->obs_min[i][j] > wd->obs_target[i][j] )
 			{
 				printf( "ERROR: Observation target is outside the specified min/max range! " );
@@ -875,9 +884,16 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 	}
 	for( i = 0; i < ( *wd ).nW; i++ )
+	{
+		if( ( *wd ).nWellObs[i] <= 0 )
+			printf( "WARNING: Well %s has no observations!\n", wd->id[i] );
+		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
+			if( ( *wd ).obs_time[i][j] < DBL_EPSILON )
+				printf( "WARNING: Observation #%d time for well %s is too small (%g); potential error in the input file %s!\n", j + 1, wd->id[i], ( *wd ).obs_time[i][j], filename );
 		for( j = i + 1; j < ( *wd ).nW; j++ )
 			if( strcmp( wd->id[i], wd->id[j] ) == 0 )
 				printf( "WARNING: Well names #%i (%s) and #%i (%s) are identical!\n", i + 1, wd->id[i], j + 1, wd->id[j] );
+	}
 	if( pd->nParam == 0 || ( pd->nOptParam == 0 && pd->nFlgParam == 0 ) ) { printf( "\nERROR: Number of model parameters is zero!\n\n" ); bad_data = 1; }
 	if( bad_data ) return( 0 );
 	if( od->nObs == 0 )
@@ -1212,7 +1228,7 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	max_conc = ( double * ) malloc( op->wd->nW * sizeof( double ) );
 	max_source_conc = 0;
 	max_source_time = op->pd->var[TIME_INIT];
-	fprintf( outfile, "variable = \"Time [a]\"" );
+	fprintf( outfile, "variables = \"Time [a]\"" );
 	for( i = 0; i < op->wd->nW; i++ )
 	{
 		fprintf( outfile, " \"%s\"", op->wd->id[i] );

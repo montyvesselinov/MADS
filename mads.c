@@ -203,6 +203,12 @@ int main( int argn, char *argv[] )
 		printf( "Velimir Vesselinov (monty) vvv@lanl.gov\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
 	op.label = ( char * ) malloc( 10 * sizeof( char ) ); op.label[0] = 0;
 	if( cd.debug ) printf( "Argument[1]: %s\n", argv[1] );
+	else
+	{
+		if( cd.debug > 1 && argn > 2 )
+			for( i = 2; i < argn; i++ )
+				printf( "Argument[%d]: %s\n", i, argv[i] );
+	}
 	strcpy( root, argv[1] ); // Defined problem name (root)
 	dot = strrchr( root, '.' );
 	if( dot != NULL && dot[1] != '/' )
@@ -465,6 +471,13 @@ int main( int argn, char *argv[] )
 			system( buf );
 		}
 	}
+	sprintf( filename, "%s.cmdline_hist", op.root );
+	out = Fappend( filename );
+	fprintf( out, "%s\n", op.datetime_stamp );
+	for( i = 0; i < argn; i++ )
+		fprintf( out, "%s ", argv[i] );
+	fprintf( out, "\n" );
+	fclose( out );
 	//
 	// DONE with file reading and problem setup
 	//
@@ -694,9 +707,21 @@ int main( int argn, char *argv[] )
 				// printf( "%s %g\n", pd.var_id[pd.var_index[i]], opt_params[i] );
 				Transform( opt_params, &op, opt_params );
 				func_global( opt_params, &op, res );
-				if( cd.debug ) print_results( &op, 1 );
-				if( cd.save )
+				printf( "Rerun results:\n");
+				printf( "Objective function = %g\n", op.phi );
+				printf( "Success = %d\n", op.success );
+				if( cd.debug )
 				{
+					printf( "\n" );
+					print_results( &op, 1 );
+				}
+				if( cd.save && ( op.success || ( cd.phi_cutoff > DBL_EPSILON && op.phi <= cd.phi_cutoff ) ) )
+				{
+					if( !cd.debug )
+					{
+						printf( "\n" );
+						print_results( &op, 1 );
+					}
 					sprintf( filename, "%d", caseid );
 					save_final_results( filename, &op, &gd );
 				}
@@ -712,11 +737,13 @@ int main( int argn, char *argv[] )
 			if( cd.resultscase ) sprintf( filename, "%s.%d.results", op.root, cd.resultscase );
 			else sprintf( filename, "%s.results", op.root );
 			out = Fwrite( filename );
+			printf( "\nModel parameter values:\n" );
 			fprintf( out, "Model parameter values:\n" );
 			for( i = 0; i < pd.nParam; i++ )
 			{
 				if( pd.var_opt[i] && pd.var_log[i] ) cd.var[i] = pow( 10, pd.var[i] );
 				else cd.var[i] = pd.var[i];
+				printf( "%s %g\n", pd.var_id[i], pd.var[i] );
 				fprintf( out, "%s %g\n", pd.var_id[i], pd.var[i] );
 			}
 			if( od.nObs > 0 )

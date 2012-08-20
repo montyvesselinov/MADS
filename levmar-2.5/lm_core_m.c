@@ -247,6 +247,7 @@ int LEVMAR_DER(
 	kmax = itmax * 100;
 	phi1c = phi2c = 0;
 	if( op->cd->ldebug ) printf( "Initial evaluation: OF %g\n", p_eL2 );
+	else if( op->cd->standalone ) { printf( "OF %g -> ", p_eL2 ); fflush( stdout ); }
 	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
@@ -948,6 +949,7 @@ int LEVMAR_DER(
 			printf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 		}
 	}
+	else if( op->cd->standalone ) { printf( "%g", p_eL2 ); fflush( stdout ); }
 	/* covariance matrix */
 	if( covar )
 	{
