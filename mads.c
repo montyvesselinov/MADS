@@ -715,7 +715,7 @@ int main( int argn, char *argv[] )
 					printf( "\n" );
 					print_results( &op, 1 );
 				}
-				if( cd.save && ( op.success || ( cd.phi_cutoff > DBL_EPSILON && op.phi <= cd.phi_cutoff ) ) )
+				if( cd.save || ( op.success || ( cd.phi_cutoff > DBL_EPSILON && op.phi <= cd.phi_cutoff ) ) )
 				{
 					if( !cd.debug )
 					{
