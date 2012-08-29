@@ -14,6 +14,7 @@ Debug/*
 *.mads-input
 *.*-restart-*
 *.restart_info
+*.cmdline_hist
 *.eigen*
 *.covar*
 *.correl*

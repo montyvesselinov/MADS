@@ -28,7 +28,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define iswhite(c) ((c)== ' ' || (c)=='\t' || (c)=='\n')
+#define iswhite(c) ((c)== ' ' || (c)=='\t' || (c)=='\n' || (c)=='\r' )
 
 char **char_matrix( int maxCols, int maxRows );
 float **float_matrix( int maxCols, int maxRows );

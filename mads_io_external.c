@@ -772,7 +772,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 						else
 							sprintf( number, "%-20.12g", par[i] );
 						if( space ) fprintf( out, " %s", number );
-						else { space = 1; fprintf( out, "%s", number ); }
+						else { space = 0; fprintf( out, "%s", number ); } // TODO originally was space = 1
 						if( debug ) printf( "replaced with \'%s\' (parameter \'%s\')\n", number, par_id[i] );
 						break;
 					}
@@ -787,7 +787,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 			else
 			{
 				if( space ) fprintf( out, " %s", word );
-				else { space = 1; fprintf( out, "%s", word ); }
+				else { space = 0; fprintf( out, "%s", word ); }  // TODO originally was space = 1
 			}
 		}
 		fprintf( out, "\n" );

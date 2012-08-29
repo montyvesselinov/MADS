@@ -110,6 +110,8 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int lm_indir;
 	double lm_mu;
 	int lm_nu;
+	int lm_nlamof;
+	int lm_njacof;
 	double lm_h;
 	double lm_ratio;
 	double lm_ofdecline;

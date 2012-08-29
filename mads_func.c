@@ -86,7 +86,7 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
 		if( p->cd->fdebug >= 3 )
-			printf( "m %s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
+			printf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
 	if( p->cd->fdebug >= 3 )
 	{

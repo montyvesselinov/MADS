@@ -113,8 +113,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->test_func_dim = 0;
 	cd->energy = 0;
 	cd->ireal = 0;
-	cd->sindx = 0.0000001;
-	cd->lindx = 0.001;
+	cd->sindx = 0;
+	cd->lindx = 0;
 	cd->pardx = 0;
 	cd->pardomain = 100;
 	cd->lm_factor = 10.0;
@@ -126,6 +126,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->lm_ofdecline = 2; // TODO Leif prefers to be 1 and works better for Cr problem; Original code is 2 and works better for test cases
 	cd->lm_error = 1e-5;
 	cd->lm_indir = 1;
+	cd->lm_njacof = 3;
+	cd->lm_nlamof = 3;
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -160,6 +162,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "lmmu=", 5 ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
 		if( !strncasecmp( word, "lmnu=", 5 ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
 		if( !strncasecmp( word, "lmiter=", 7 ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->niter ); }
+		if( !strncasecmp( word, "lmnlamof=", 9 ) ) { w = 1; sscanf( word, "lmnlamof=%d", &cd->lm_nlamof ); }
+		if( !strncasecmp( word, "lmnjacof=", 9 ) ) { w = 1; sscanf( word, "lmnjacof=%d", &cd->lm_njacof ); }
 		if( !strncasecmp( word, "infile=", 7 ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
 		if( !strncasecmp( word, "tied", 4 ) ) { w = 1; cd->tied = 1; } // Tied shortcut
 		if( !strncasecmp( word, "save", 4 ) ) { w = 1; cd->save = 1; }
@@ -299,7 +303,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 			if( cd->init_particles > 1 ) printf( "Number of particles = %d\n", cd->init_particles );
 			if( cd->init_particles == -1 ) printf( "Number of particles = will be computed internally\n" );
 		}
-		if( cd->leigen == 1 ) printf( "Eigen analysis will be performed of the final optimization results\n" );
+		if( cd->leigen == 1 ) printf( "Eigen analysis will be performed for the final optimization results\n" );
 		printf( "\nGlobal termination criteria:\n" );
 		printf( "1: Maximum number of evaluations = %d\n", cd->maxeval );
 		printf( "2: Objective function cutoff value: " );
@@ -344,8 +348,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		cd->sintrans = 0; printf( "\nsine tranformation disabled for ABAGUS runs" );
 	}
 	if( cd->problem_type == ABAGUS && cd->infile[0] != 0 ) { printf( "\nResults in %s to be read into kdtree\n", cd->infile );}
-	if( cd->problem_type == INFOGAP && cd->infile[0] == 0 ) { printf( "\nInfile must be specified for infogap run\n" ); exit( 0 ); }
-	if( cd->problem_type == POSTPUA && cd->infile[0] == 0 ) { printf( "\nInfile must be specified for postpua run\n" ); exit( 0 ); }
+	if( cd->problem_type == INFOGAP && cd->infile[0] == 0 ) { printf( "\nInfile must be specified for infogap run\n" ); return( 0 ); }
+	if( cd->problem_type == POSTPUA && cd->infile[0] == 0 ) { printf( "\nInfile must be specified for postpua run\n" ); return( 0 ); }
 	if( cd->smp_method[0] != 0 )
 	{
 		printf( "\nSampling method: " );
@@ -364,23 +368,24 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		else if( strncasecmp( cd->paran_method, "random", 5 ) == 0 ) printf( "Pure random\n" );
 		else { printf( "WARNING: Unknown (rnd=%s); Optimal Latin Hyper Cube selected (if real <= 500 IDLHS; if real > 500 LHS)\n", cd->paran_method ); strcpy( cd->paran_method, "olhs" ); }
 	}
-	printf( "\nDebug level (general): debug=%d\n", cd->debug );
-	if( cd->debug || cd->fdebug ) printf( "Debug level for functional evaluations: fdebug=%d\n", cd->fdebug );
+	printf( "\nGlobal debug (verbosity) level: debug=%d\n", cd->debug );
+	if( cd->debug || cd->fdebug ) printf( "Debug (verbosity) level for the analytical model evaluations: fdebug=%d\n", cd->fdebug );
 	if( cd->debug && cd->problem_type == CALIBRATE )
 	{
-		printf( "Debug level for Levenberg-Marquardt optimization progress: ldebug= %d\n", cd->ldebug );
-		printf( "Debug level for Particle-Swarm optimization progress: pdebug= %d\n", cd->pdebug );
-		printf( "Debug level for objective function progress: odebug=%d\n", cd->odebug );
+		printf( "Debug (verbosity) level for Levenberg-Marquardt optimization progress: ldebug= %d\n", cd->ldebug );
+		printf( "Debug (verbosity) level for Particle-Swarm optimization progress: pdebug= %d\n", cd->pdebug );
+		printf( "Debug (verbosity) level for objective function progress: odebug=%d\n", cd->odebug );
 	}
 	if( ( cd->debug || cd->mdebug ) && cd->problem_type != CREATE && cd->problem_type != EIGEN )
-		printf( "Debug level for random sets: mdebug=%d\n", cd->mdebug );
+		printf( "Debug (verbosity) level for random sets: mdebug=%d\n", cd->mdebug );
 	if( ( cd->debug || cd->pardebug ) && cd->num_proc > 1 )
-		printf( "Debug level for parallel execution: pardebug=%d\n", cd->pardebug );
+		printf( "Debug (verbosity) level for parallel execution: pardebug=%d\n", cd->pardebug );
 	if( ( cd->debug || cd->tpldebug || cd->insdebug ) && cd->solution_type[0] == EXTERNAL )
 	{
-		printf( "Debug level for template file: tpldebug=%d\n", cd->tpldebug );
-		printf( "Debug level for instruction file: insdebug=%d\n", cd->insdebug );
+		printf( "Debug (verbosity) level for template file: tpldebug=%d\n", cd->tpldebug );
+		printf( "Debug (verbosity) level for instruction file: insdebug=%d\n", cd->insdebug );
 	}
+	printf( "\n" );
 	return( 1 );
 }
 
@@ -428,12 +433,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	( *cd ).solution_id[0] = 0;
 	( *cd ).num_solutions = 1;
 	( *cd ).solution_type = ( int * ) malloc( sizeof( int ) );
-	if( parse_cmd( buf, cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	if( parse_cmd( buf, cd ) == -1 ) return( 0 );
 	// Read Solution Type
 	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fgets( ( *cd ).solution_id, 150, infile ); /*fscanf( infile, "%s\n", ( *cd ).solution_id );*/ }
 	strcpy( buf, ( *cd ).solution_id );
 	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
-		printf( "Model #%d %s\n", c + 1, word );
+		if( ( *cd ).debug > 1 ) printf( "Model #%d %s\n", c + 1, word );
 	( *cd ).num_solutions = c;
 	if( ( *cd ).num_solutions > 1 )
 	{
@@ -464,7 +469,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	( *cd ).solution_id[0] = 0;
 	if( ( *cd ).num_solutions > 1 ) printf( "\nModels:" );
-	else printf( "\nModel: " );
+	else printf( "Model: " );
 	for( c = 0; c < ( *cd ).num_solutions; c++ )
 	{
 		if( ( *cd ).num_solutions > 1 ) printf( " (%d) ", c + 1 );
@@ -539,7 +544,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			{
 				if( pd->var_min[i] < 0 || pd->var[i] < 0 )
 				{
-					printf( "ERROR: Parameter cannot be log transformed\n" );
+					printf( "ERROR: Parameter cannot be log transformed (negative values)!\n" );
 					printf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
 					if( cd->plogtrans ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; continue; }
 					else bad_data = 1;
@@ -557,7 +562,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
 		}
 	}
-	if( bad_data ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); exit( 0 ); }
+	if( bad_data ) return( 0 );
 	if( cd->resultscase > 0 )
 	{
 		bad_data = 0;
@@ -683,6 +688,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				}
 		if( bad_data ) return( 0 );
 		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &od->nObs );
+		printf( "Number of total observations = %d\n", ( *od ).nObs );
 		od->nTObs = od->nObs;
 		od->obs_id = char_matrix( ( *od ).nObs, 50 );
 		od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
@@ -694,6 +700,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		// if( ( od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) ) ) == NULL ) printf( "***\nNO MEMORY!!!!\n***\n" );
 		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+		k = 0;
 		for( i = 0; i < od->nObs; i++ )
 		{
 			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0;
@@ -710,17 +717,18 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				printf( "Observation %s: min %g max %g\n", od->obs_id[i], od->obs_min[i], od->obs_max[i] );
 				bad_data = 1;
 			}
+			if( cd->ologtrans == 1 ) od->obs_log[i] = 1;
+			else if( cd->ologtrans == 0 ) od->obs_log[i] = 0;
+			if( cd->oweight == 1 )( *od ).obs_weight[i] = 1;
+			else if( cd->oweight == 0 )( *od ).obs_weight[i] = 0;
+			else if( cd->oweight == 2 ) { if( abs( ( *od ).obs_target[i] ) > DBL_EPSILON )( *od ).obs_weight[i] = ( double ) 1.0 / ( *od ).obs_target[i]; else( *od ).obs_weight[i] = HUGE_VAL; }
+			if( od->obs_weight[i] > DBL_EPSILON ) k++;
 		}
+		printf( "Number of calibration targets = %d\n", k );
 		if( bad_data ) return( 0 );
-		if( cd->ologtrans == 1 ) od->obs_log[i] = 1;
-		else if( cd->ologtrans == 0 ) od->obs_log[i] = 0;
-		if( cd->oweight == 1 )( *od ).obs_weight[i] = 1;
-		else if( cd->oweight == 0 )( *od ).obs_weight[i] = 0;
-		else if( cd->oweight == 2 ) { if( abs( ( *od ).obs_target[i] ) > DBL_EPSILON )( *od ).obs_weight[i] = ( double ) 1.0 / ( *od ).obs_target[i]; else( *od ).obs_weight[i] = HUGE_VAL; }
-		if( cd->debug ) printf( "\n" );
-		printf( "Number of calibration targets = %d\n", ( *od ).nObs );
 		if( cd->debug )
 		{
+			printf( "\n" );
 			for( i = 0; i < od->nObs; i++ )
 			{
 				if( cd->debug > 10 || od->nObs <= 50 || ( i < 20 || i > od->nObs - 20 ) )
@@ -742,8 +750,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( sscanf( ed->cmdline, "%i", &i ) == -1 )
 		{
 			printf( "ERROR: Execution command is not valid!\n" );
-			sprintf( buf, "rm -f %s.running", op->root ); system( buf );
-			exit( 0 );
+			bad_data = 1;
 		}
 		strcpy( buf, ed->cmdline );
 		file = &buf[0];
@@ -773,7 +780,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( k == 0 )
 		{
 			printf( "ERROR: Program \'%s\' does not exist or cannot be executed!\n", file );
-			exit( 0 );
+			bad_data = 1;
 		}
 		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %d\n", &ed->ntpl );
 		ed->fn_tpl = char_matrix( ed->ntpl, 80 );
@@ -784,7 +791,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( access( ed->fn_tpl[i], R_OK ) == -1 )
 			{
 				printf( "ERROR: File \'%s\' does not exist!\n", ed->fn_tpl[i] );
-				exit( 0 );
+				bad_data = 1;
 			}
 		}
 		printf( "External files:\n" );
@@ -800,7 +807,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( access( ed->fn_ins[i], R_OK ) == -1 )
 			{
 				printf( "ERROR: File \'%s\' does not exist!\n", ed->fn_ins[i] );
-				exit( 0 );
+				bad_data = 1;
 			}
 		}
 		printf( "- to read current model predictions:\n" );
@@ -808,7 +815,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			printf( "%s <- %s\n", ed->fn_ins[i], ed->fn_obs[i] );
 		fclose( infile );
 		( *gd ).min_t = ( *gd ).time = 0;
-		return( 1 ); // EXIT; Done with external problem
+		printf( "\n" );
+		if( bad_data ) return ( 0 );
+		else return( 1 ); // EXIT; Done with external problem
 	}
 	// check parameter name uniqueness
 	for( i = 0; i < pd->nParam; i++ )
@@ -1074,8 +1083,8 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->test_func >= 0 ) fprintf( outfile, " test=%d", cd->test_func );
 	if( cd->test_func_dim > 2 ) fprintf( outfile, " dim=%d", cd->test_func_dim );
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
-	if( cd->sintrans ) fprintf( outfile, " sindx=%g", cd->sindx );
-	else fprintf( outfile, " lindx=%g", cd->lindx );
+	if( cd->sintrans ) { if( cd->sindx > DBL_EPSILON ) fprintf( outfile, " sindx=%g", cd->sindx ); }
+	else { if( cd->lindx > DBL_EPSILON ) fprintf( outfile, " lindx=%g", cd->lindx ); }
 	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, " pardx=%g", cd->pardx ); TODO when to print pardx?
 	if( cd->check_success ) fprintf( outfile, " success" );
 	fprintf( outfile, " " );
@@ -1141,7 +1150,7 @@ int save_problem( char *filename, struct opt_data *op )
 		fprintf( outfile, "Number of execution templates: %d\n", ed->ntpl );
 		for( i = 0; i < ed->ntpl; i++ )
 			fprintf( outfile, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
-		fprintf( outfile, "Number of execution instructions: %d\n", ed->ntpl );
+		fprintf( outfile, "Number of execution instructions: %d\n", ed->nins );
 		for( i = 0; i < ed->nins; i++ )
 			fprintf( outfile, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );
 	}

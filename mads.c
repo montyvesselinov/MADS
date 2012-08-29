@@ -1,4 +1,4 @@
-// MADS: Model Analyses & Decision Support (v1.1) 2011
+// MADS: Model Analyses & Decision Support (v1.1) 2012
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
 // Dylan Harp, dharp@lanl.gov
@@ -192,7 +192,7 @@ int main( int argn, char *argv[] )
 	op.phi = HUGE_VAL;
 	op.success = 0;
 	op.f_ofe = NULL;
-	printf( "MADS: Model Analyses & Decision Support (v1.1) 2011\n" );
+	printf( "MADS: Model Analyses & Decision Support (v1.1) 2012\n" );
 	printf( "---------------------------------------------------\n" );
 	if( argn < 2 )
 	{
@@ -405,6 +405,13 @@ int main( int argn, char *argv[] )
 			exit( 0 );
 		}
 		free( opt_params );
+		if( cd.sintrans ) { if( cd.sindx < DBL_EPSILON ) cd.sindx = 0.1; else if( cd.sindx < 1e-3 ) printf( "WARNING: sindx (%g) is potentially too small for external problems; consider increasing sindx (add sindx=1e-2)\n", cd.sindx ); }
+		else { if( cd.lindx < DBL_EPSILON ) cd.lindx = 0.01; }
+	}
+	else
+	{
+		if( cd.sintrans ) { if( cd.sindx < DBL_EPSILON ) cd.sindx = 1e-7; else if( cd.sindx > 1e-5 ) printf( "WARNING: sindx (%g) is potentially too large for internal problems; consider decreasing sindx (add sindx=1e-6)\n", cd.sindx ); }
+		else { if( cd.lindx < DBL_EPSILON ) cd.lindx = 0.001; }
 	}
 	/*
 	 *  Check for restart conditions
@@ -1027,7 +1034,7 @@ int optimize_lm( struct opt_data *op )
 			Transform( opt_params, op, opt_params );
 			fflush( stdout );
 		}
-		if( debug > 1 && standalone )
+		if( ( op->cd->debug > 1 || op->cd->ldebug > 12 ) && standalone )
 		{
 			printf( "\n-------------------- Initial state:\n" );
 			op->cd->pderiv = op->cd->oderiv = -1;
@@ -3103,14 +3110,10 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		if( op->cd->solution_type[0] == EXTERNAL )
 			for( i = 0; i < op->od->nObs; i++ )
 			{
-				if( op->od->obs_weight[i] != 0 )
-				{
-					c = op->od->obs_current[i];
-					err = op->od->obs_target[i] - c;
-					if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
-					else success = 1;
-				}
-				else success = 0;
+				c = op->od->obs_current[i];
+				err = op->od->obs_target[i] - c;
+				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { if( op->od->obs_weight[i] != 0 ) success_all = 0; success = 0; }
+				else success = 1;
 				fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
 				fprintf( out2, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
 			}

@@ -57,12 +57,14 @@ void mads_info()
 	printf( "   lmfactor=[double]  - multiplier applied to compute when to initiate LM searches within SQUADS algorithm [default lmfactor=1]\n" );
 	printf( "   lmindirect         - Indirect computation of LM alpha coefficient [default DIRECT/Delayed gratification computation]\n" );
 	printf( "   lmmu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF decreases [default lmmu=0.1]\n" );
-	printf( "   lmnu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF increases [default lmnu=10]\n" );
+	printf( "   lmnu=[integer]     - LM alpha multiplier for direct computation of LM alpha coefficient when OF increases [default lmnu=10]\n" );
 	printf( "   lmaccel            - LM geodesic acceleration as proposed by Transtrum et al (2011) [default NO acceleration]\n" );
 	printf( "   lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]\n" );
 	printf( "   lmh=[double]       - LM acceleration multiplier [default lmh=0.1]\n" );
 	printf( "   lmiter=[integer]   - number of LM iterations [default computed internally based on number of evaluations]\n" );
 	printf( "   lmerror=[double]   - LM convergence error [default lmerror=1e-5]\n" );
+	printf( "   lmnlamof=[integer] - Number of acceptable linear solves (lambda searches) with similar OF's during LM optimization [default lmnlamof=3]\n" );
+	printf( "   lmnjacof=[integer] - Number of acceptable jacobian iterations with similar OF's during LM optimization [default lmnjacof=3]\n" );
 	printf( "\nsampling method (smp=[string] OR mslm=[string] for Multi-Start Levenberg-Marquardt (MSLM) analysis using multiple retries):\n" );
 	printf( "   smp=olhs           - Optimal Latin Hyper Cube sampling [default] (if real = 1 RANDOM; if real > IDLHS; if real > 500 LHS)\n" );
 	printf( "   smp=lhs            - Latin Hyper Cube sampling (LHS)\n" );
@@ -79,7 +81,8 @@ void mads_info()
 	printf( "   ssdr               - sum of the squared discrepancies and squared residuals\n" );
 	printf( "\ntransformation of parameter space and observations:\n" );
 	printf( "   nosin              - Sin transformation of optimized parameters is not applied [parameters are sin transformed by default]\n" );
-	printf( "   sindx              - Parameter space step for numerical derivatives of sin transformed parameters [default sindx=0.0000001]\n" );
+	printf( "   sindx              - Parameter space step for numerical derivatives of sin transformed parameters\n" );
+	printf( "                        [default sindx=1e-7 for internal problems; sindx=0.1 for external problems]\n" );
 	printf( "   lindx              - Parameter space step for numerical derivatives of not transformed parameters [default lindx=0.001]\n" );
 	printf( "   pardx              - Parameter space step for parameter space discretization [default pardx=0.1]\n" );
 	printf( "   plog=[-1,0,1]      - Log transformation of all optimized parameters is enforced (1) or disabled (0)\n" );
