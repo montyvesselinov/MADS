@@ -253,12 +253,11 @@ int LEVMAR_DER(
 		for( i = 0; i < m; i++ )
 		{
 			j = op->pd->var_index[i];
-			printf( "%s:", op->pd->var_id[j] );
+			printf( "%-20s:", op->pd->var_id[j] );
 			if( op->pd->var_log[j] ) printf( " %g", pow( 10, jac_min[i] ) );
 			else printf( " %g", jac_min[i] );
 			printf( "\n" );
 		}
-		printf( "\n" );
 	}
 	if( op->cd->ldebug ) printf( "Initial evaluation: OF %g\n", p_eL2 );
 	else if( op->cd->standalone ) { printf( "OF %g -> ", p_eL2 ); fflush( stdout ); }
@@ -579,7 +578,7 @@ int LEVMAR_DER(
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
 			{
 				if( diag_jacTjac[i] > tmp ) tmp = diag_jacTjac[i]; /* find max diagonal element */
-				if( op->cd->ldebug > 2 && diag_jacTjac[i] > 1e6 ) printf( "Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
+				if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) printf( "Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
 				if( diag_jacTjac[i] < DBL_EPSILON ) printf( "WARNING: Parameter %s is not impacting model predictions (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
 			}
 			if( tmp > 1e4 ) tmp = 1e4;
@@ -711,20 +710,20 @@ int LEVMAR_DER(
 						printf( "%-20s:", op->pd->var_id[j] );
 						if( op->cd->ldebug > 3 )
 						{
-							if( op->pd->var_log[j] ) printf( " %11g", pow( 10, jac_max[i] ) );
-							else printf( " %11g", jac_max[i] );
+							if( op->pd->var_log[j] ) printf( " %12g", pow( 10, jac_max[i] ) );
+							else printf( " %12g", jac_max[i] );
 							printf( " =>" );
 						}
-						if( op->pd->var_log[j] ) printf( " %11g", pow( 10, jac_min[i] ) );
-						else printf( " %11g", jac_min[i] );
+						if( op->pd->var_log[j] ) printf( " %12g", pow( 10, jac_min[i] ) );
+						else printf( " %12g", jac_min[i] );
 						if( op->cd->ldebug > 3 )
 						{
 							printf( " change" );
-							if( op->pd->var_log[j] ) printf( " %11g",  pow( 10, jac_min[i] ) - pow( 10, jac_max[i] ) );
-							else printf( " %11g", jac_min[i] - jac_max[i] );
+							if( op->pd->var_log[j] ) printf( " %12g",  pow( 10, jac_min[i] ) - pow( 10, jac_max[i] ) );
+							else printf( " %12g", jac_min[i] - jac_max[i] );
 						}
 						printf( "  (JTJ diagonal term %g)", diag_jacTjac[i] );
-						if( diag_jacTjac[i] > 1e6 ) printf( " not very sensitive" );
+						if( diag_jacTjac[i] < 1 ) printf( " not very sensitive" );
 						else if( diag_jacTjac[i] < DBL_EPSILON ) printf( " WARNING: not impacting model predictions" );
 						printf( "\n" );
 					}

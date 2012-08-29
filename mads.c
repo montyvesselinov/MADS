@@ -794,7 +794,7 @@ int main( int argn, char *argv[] )
 			free( res );
 			for( i = 0; i < od.nObs; i++ )
 			{
-				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) continue;
+				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nObs > 50 && i == 21 ) printf( "...\n" ); continue; }
 				compare = 1;
 				c = od.obs_current[i];
 				err = od.obs_target[i] - c;
@@ -2999,7 +2999,7 @@ void print_results( struct opt_data *op, int verbosity )
 		if( op->cd->solution_type[0] == EXTERNAL )
 			for( i = 0; i < op->od->nObs; i++ )
 			{
-				if( op->od->obs_weight[i] == 0 ) { predict = 1; continue; }
+				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nObs > 50 && i == 21 ) printf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
 				err = op->od->obs_target[i] - c;
 				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
@@ -3046,17 +3046,23 @@ void print_results( struct opt_data *op, int verbosity )
 	{
 		printf( "\nModel predictions for not calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
+		{
+			predict = 0;
+			for( i = 0; i < op->od->nObs; i++ ) if( op->od->obs_weight[i] == 0 ) predict++;
+			j = 0;
 			for( i = 0; i < op->od->nObs; i++ )
 			{
-				if( op->od->obs_weight[i] != 0 ) continue;
+				if( op->od->obs_weight[i] != 0 ) { if( predict > 50 && j == 21 ) printf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
 				err = op->od->obs_target[i] - c;
 				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) success = 0;
 				else success = 1;
-				if( op->od->nObs < 50 || ( i < 20 || i > op->od->nObs - 20 ) )
+				if( predict < 50 || ( j < 20 || j > predict - 20 ) )
 					printf( "%-20s:%12g - %12g = %12g success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, success, op->od->obs_min[i], op->od->obs_max[i] );
-				if( op->od->nObs > 50 && i == 21 ) printf( "...\n" );
+				if( predict > 50 && j == 21 ) printf( "...\n" );
+				j++;
 			}
+		}
 		else
 		{
 			for( i = 0; i < op->wd->nW; i++ )
