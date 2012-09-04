@@ -384,11 +384,11 @@ int main( int argn, char *argv[] )
 				printf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_id[i], ( int ) opt_params[i] );
 		}
 		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the instruction files for errors ...\n" );
-		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
+		for( i = 0; i < od.nTObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
-			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
+			if( check_ins_obs( od.nTObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
 				bad_data = 1;
-		for( i = 0; i < od.nObs; i++ )
+		for( i = 0; i < od.nTObs; i++ )
 		{
 			if( od.obs_current[i] < 0 )
 			{
@@ -785,24 +785,24 @@ int main( int argn, char *argv[] )
 		{
 			double *res;
 			if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
-			if( ( res = ( double * ) malloc( od.nObs * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( res = ( double * ) malloc( od.nTObs * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( 0 ); }
 			for( i = 0; i < pd.nOptParam; i++ )
 				opt_params[i] = pd.var[pd.var_index[i]];
 			Transform( opt_params, &op, opt_params );
 			func_extrn( opt_params, &op, res );
 			free( opt_params );
 			free( res );
-			for( i = 0; i < od.nObs; i++ )
+			for( i = 0; i < od.nTObs; i++ )
 			{
-				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nObs > 50 && i == 21 ) printf( "...\n" ); continue; }
+				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nTObs > 50 && i == 21 ) printf( "...\n" ); continue; }
 				compare = 1;
 				c = od.obs_current[i];
 				err = od.obs_target[i] - c;
 				phi += ( err * err ) * od.obs_weight[i];
 				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( od.obs_weight[i] > 0.0 ) ) { success_all = 0; success = 0; }
 				else success = 1;
-				if( od.nObs < 50 || ( i < 20 || i > od.nObs - 20 ) ) printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
-				if( od.nObs > 50 && i == 21 ) printf( "...\n" );
+				if( od.nTObs < 50 || ( i < 20 || i > od.nTObs - 20 ) ) printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
+				if( od.nTObs > 50 && i == 21 ) printf( "...\n" );
 				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
 				else od.obs_target[i] = c; // Save computed values as calibration targets
 			}
@@ -2999,14 +2999,14 @@ void print_results( struct opt_data *op, int verbosity )
 		if( op->cd->solution_type[0] == EXTERNAL )
 			for( i = 0; i < op->od->nObs; i++ )
 			{
-				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nObs > 50 && i == 21 ) printf( "...\n" ); continue; }
+				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nCObs > 50 && i == 21 ) printf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
 				err = op->od->obs_target[i] - c;
 				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
 				else success = 1;
-				if( op->od->nObs < 50 || ( i < 20 || i > op->od->nObs - 20 ) )
+				if( op->od->nCObs < 50 || ( i < 20 || i > op->od->nCObs - 20 ) )
 					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
-				if( op->od->nObs > 50 && i == 21 ) printf( "...\n" );
+				if( op->od->nCObs > 50 && i == 21 ) printf( "...\n" );
 			}
 		else
 		{
@@ -3047,8 +3047,7 @@ void print_results( struct opt_data *op, int verbosity )
 		printf( "\nModel predictions for not calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
 		{
-			predict = 0;
-			for( i = 0; i < op->od->nObs; i++ ) if( op->od->obs_weight[i] == 0 ) predict++;
+			predict = op->od->nObs - op->od->nCObs;
 			j = 0;
 			for( i = 0; i < op->od->nObs; i++ )
 			{

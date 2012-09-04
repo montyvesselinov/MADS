@@ -186,8 +186,11 @@ struct param_data // data structure for model parameters
 
 struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 {
-	int nObs; // number of observation for calibration: nObs = nTObs - nPreds
-	int nTObs; // total number of observations: nTObs = nObs + nPreds
+	int nTObs; // total number of observations
+	int nObs; // number of observations (internal problem: nObs = nTObs - nPreds; external problem: nObs = nTObs)
+	int nCObs; // total number of calibration targets observations with weight greater than zero
+	// IMPORTANT internal problem: nCObs = nObs
+	// IMPORTANT external problem: nTObs = nObs
 	int nPreds; // number of performance criterion prediction: nPreds = nTObs - nObs
 	char **obs_id; // observation identifier (name) 
 	char **preds_id; // performance criterion identifier (name)

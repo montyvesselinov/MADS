@@ -123,11 +123,11 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->cd->tpldebug || p->cd->insdebug ) printf( "Execute external model \'%s\' ... ", p->ed->cmdline );
 	system( p->ed->cmdline );
 	if( p->cd->tpldebug || p->cd->insdebug ) printf( "done!\n" );
-	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
+	for( i = 0; i < p->od->nTObs; i++ ) p->od->res[i] = -1;
 	for( i = 0; i < p->ed->nins; i++ )
-		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug ) == -1 )
+		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug ) == -1 )
 			exit( -1 );
-	for( i = 0; i < p->od->nObs; i++ )
+	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		if( p->od->res[i] < 0 )
 		{
@@ -143,7 +143,7 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	if( bad_data ) exit( -1 );
 	if( p->cd->fdebug >= 2 ) printf( "\nModel predictions:\n" );
-	for( i = 0; i < p->od->nObs; i++ )
+	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
@@ -183,9 +183,9 @@ int func_extrn( double *x, void *data, double *f )
 		}
 		if( p->cd->fdebug >= 2 )
 		{
-			if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
+			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
 				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
-			if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
+			if( p->od->nTObs > 50 && i == 21 ) printf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
@@ -312,7 +312,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
 	int i, bad_data;
-	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
+	for( i = 0; i < p->od->nTObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	if( p->cd->pardebug > 2 )
 	{
@@ -323,11 +323,11 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
 		if( Ftest( buf ) == 1 ) { if( p->cd->pardebug ) printf( "File %s does not exist.", buf ); return( 0 ); }
-		else if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
+		else if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
 			return( 0 );
 	}
 	bad_data = 0;
-	for( i = 0; i < p->od->nObs; i++ )
+	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		if( p->od->res[i] < 0 )
 		{
@@ -356,16 +356,16 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	char buf[1000], dir[500];
 	double c, t, w, err, phi = 0.0;
 	int i, success, success_all = 1, bad_data;
-	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
+	for( i = 0; i < p->od->nTObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
-		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
+		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
 			exit( -1 );
 	}
 	bad_data = 0;
-	for( i = 0; i < p->od->nObs; i++ )
+	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		if( p->od->res[i] < 0 )
 		{
@@ -388,7 +388,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	if( p->cd->pardebug > 3 ) printf( "Results from parallel run #%d are archived!\n", ieval );
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
 	if( p->cd->fdebug >= 2 ) printf( "\nModel predictions (model run = %d):\n", ieval );
-	for( i = 0; i < p->od->nObs; i++ )
+	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
@@ -428,9 +428,9 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		if( p->cd->fdebug >= 2 )
 		{
-			if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
+			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
 				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
-			if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
+			if( p->od->nTObs > 50 && i == 21 ) printf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }

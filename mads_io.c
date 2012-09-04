@@ -687,21 +687,21 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					bad_data = 1;
 				}
 		if( bad_data ) return( 0 );
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &od->nObs );
-		printf( "Number of total observations = %d\n", ( *od ).nObs );
-		od->nTObs = od->nObs;
-		od->obs_id = char_matrix( ( *od ).nObs, 50 );
-		od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		// if( ( od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) ) ) == NULL ) printf( "***\nNO MEMORY!!!!\n***\n" );
-		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-		k = 0;
-		for( i = 0; i < od->nObs; i++ )
+		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &od->nTObs );
+		printf( "Number of total observations = %d\n", ( *od ).nTObs );
+		od->nObs = od->nTObs;
+		od->obs_id = char_matrix( ( *od ).nTObs, 50 );
+		od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_weight = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_min = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_max = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_current = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		// if( ( od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) ) ) == NULL ) printf( "***\nNO MEMORY!!!!\n***\n" );
+		od->res = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_log = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
+		od->nCObs = 0;
+		for( i = 0; i < od->nTObs; i++ )
 		{
 			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0;
 			fscanf( infile, "%s %lf %lf %d %lf %lf\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i], &od->obs_log[i], &od->obs_min[i], &od->obs_max[i] );
@@ -722,22 +722,22 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( cd->oweight == 1 )( *od ).obs_weight[i] = 1;
 			else if( cd->oweight == 0 )( *od ).obs_weight[i] = 0;
 			else if( cd->oweight == 2 ) { if( abs( ( *od ).obs_target[i] ) > DBL_EPSILON )( *od ).obs_weight[i] = ( double ) 1.0 / ( *od ).obs_target[i]; else( *od ).obs_weight[i] = HUGE_VAL; }
-			if( od->obs_weight[i] > DBL_EPSILON ) k++;
+			if( od->obs_weight[i] > DBL_EPSILON ) od->nCObs++;
 		}
-		printf( "Number of calibration targets = %d\n", k );
+		printf( "Number of calibration targets = %d\n", od->nCObs );
 		if( bad_data ) return( 0 );
 		if( cd->debug )
 		{
 			printf( "\n" );
-			for( i = 0; i < od->nObs; i++ )
+			for( i = 0; i < od->nTObs; i++ )
 			{
-				if( cd->debug > 10 || od->nObs <= 50 || ( i < 20 || i > od->nObs - 20 ) )
+				if( cd->debug > 10 || od->nTObs <= 50 || ( i < 20 || i > od->nTObs - 20 ) )
 					printf( "%-20s: %15g weight %7g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
-				if( ( !( cd->debug > 10 ) || od->nObs > 50 ) && i == 21 ) printf( "...\n" );
+				if( ( !( cd->debug > 10 ) || od->nTObs > 50 ) && i == 21 ) printf( "...\n" );
 			}
 		}
-		for( i = 0; i < od->nObs; i++ )
-			for( j = i + 1; j < od->nObs; j++ )
+		for( i = 0; i < od->nTObs; i++ )
+			for( j = i + 1; j < od->nTObs; j++ )
 				if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
 				{
 					printf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
@@ -893,6 +893,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( j + 1 < ( *wd ).nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) printf( "\t\t\t\t\t\t\t      " ); }
 		}
 	}
+	od->nCObs = od->nObs;
 	for( i = 0; i < ( *wd ).nW; i++ )
 	{
 		if( ( *wd ).nWellObs[i] <= 0 )
