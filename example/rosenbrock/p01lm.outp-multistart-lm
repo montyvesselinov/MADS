@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v1.1) 2011
+MADS: Model Analyses & Decision Support (v1.1) 2012
 ---------------------------------------------------
 Velimir Vesselinov (monty) vvv@lanl.gov
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -22,11 +22,11 @@ Objective function: test function 3
 
 Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
 
-Debug level (general): debug=0
+Global debug (verbosity) level: debug=0
 
 Model: internal test optimization problem #3: Rosenbrock - parameters 3 observations 3
 
-Execution date & time stamp: 20120823-213638
+Execution date & time stamp: 20120904-100124
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -34,26 +34,113 @@ Imported seed: 2096575428
 Random sampling (variables 3; realizations 10) using 
 Improved Distributed LHS method (number of realizations < 500) ... done.
 
-Random set #1: Levenberg-Marquardt Optimization ... OF 1.42311e+10 -> 10918.4Evaluations: 32 Jacobians: 6 Objective function: 10918.4 Success: 0
-Random set #2: Levenberg-Marquardt Optimization ... OF 4.08981e+09 -> 0.241882Evaluations: 96 Jacobians: 15 Objective function: 0.241882 Success: 0
-Random set #3: Levenberg-Marquardt Optimization ... OF 1.46217e+09 -> 98.3541Evaluations: 66 Jacobians: 10 Objective function: 98.3541 Success: 0
-Random set #4: Levenberg-Marquardt Optimization ... OF 5.28401e+09 -> 389120Evaluations: 54 Jacobians: 7 Objective function: 389120 Success: 0
-Random set #5: Levenberg-Marquardt Optimization ... OF 4.14281e+09 -> 8025.43Evaluations: 60 Jacobians: 9 Objective function: 8025.43 Success: 0
-Random set #6: Levenberg-Marquardt Optimization ... OF 1.03857e+10 -> 2.46882Evaluations: 105 Jacobians: 14 Objective function: 2.46882 Success: 0
-Random set #7: Levenberg-Marquardt Optimization ... OF 1.55601e+09 -> 10095Evaluations: 65 Jacobians: 9 Objective function: 10095 Success: 0
+Random set #1: Levenberg-Marquardt Optimization ... OF 1.42311e+10 -> WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+10918.4Evaluations: 34 Jacobians: 6 Objective function: 10918.4 Success: 0
+Random set #2: Levenberg-Marquardt Optimization ... OF 4.08981e+09 -> WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+0.258452Evaluations: 76 Jacobians: 13 Objective function: 0.258452 Success: 0
+Random set #3: Levenberg-Marquardt Optimization ... OF 1.46217e+09 -> 
+
+
+156.639Evaluations: 37 Jacobians: 7 Objective function: 156.639 Success: 0
+Random set #4: Levenberg-Marquardt Optimization ... OF 5.28401e+09 -> WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+418999Evaluations: 32 Jacobians: 5 Objective function: 418999 Success: 0
+Random set #5: Levenberg-Marquardt Optimization ... OF 4.14281e+09 -> 
+
+
+
+
+
+
+
+
+
+8897.26Evaluations: 41 Jacobians: 7 Objective function: 8897.26 Success: 0
+Random set #6: Levenberg-Marquardt Optimization ... OF 1.03857e+10 -> 
+
+
+
+
+
+
+
+
+
+72.2644Evaluations: 53 Jacobians: 9 Objective function: 72.2644 Success: 0
+Random set #7: Levenberg-Marquardt Optimization ... OF 1.55601e+09 -> 
+
+
+11958.1Evaluations: 34 Jacobians: 6 Objective function: 11958.1 Success: 0
 Random set #8: Levenberg-Marquardt Optimization ... OF 2.62602e+08 -> 2.19572e-07Evaluations: 18 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
-Random set #9: Levenberg-Marquardt Optimization ... OF 1.31716e+09 -> 7741.2Evaluations: 67 Jacobians: 9 Objective function: 7741.2 Success: 0
-Random set #10: Levenberg-Marquardt Optimization ... OF 1.63604e+07 -> 2.46872Evaluations: 84 Jacobians: 12 Objective function: 2.46872 Success: 0
-Total number of evaluations = 647
-Total number of jacobians = 95
+Random set #9: Levenberg-Marquardt Optimization ... OF 1.31716e+09 -> 
+
+
+
+
+
+7744.17Evaluations: 45 Jacobians: 7 Objective function: 7744.17 Success: 0
+Random set #10: Levenberg-Marquardt Optimization ... OF 1.63604e+07 -> 
+
+
+
+
+
+
+
+
+
+2.55673Evaluations: 62 Jacobians: 10 Objective function: 2.55673 Success: 0
+Total number of evaluations = 432
+Total number of jacobians = 74
 Minimum objective function: 2.19572e-07
 Repeat the run producing the best results ...
 Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 1 (out of 10; success ratio 0.1)
-Statistics of total number of evaluations      : 18 - 54 [1m65[0m 84 - 105 : 10
+Statistics of total number of evaluations      : 18 - 34 [1m37[0m 53 - 76 : 10
 Statistics of all the model parameter estimates:
-Parameter #1                        : average   -0.0731137 min     -3.16394 max      1.80723
-Parameter #2                        : average      -2.4192 min     -9.97639 max       9.9994
-Parameter #3                        : average      35.2734 min      -62.124 max          100
+Parameter #1                        : average    -0.104177 min     -3.16733 max      3.01278
+Parameter #2                        : average     -1.55625 min     -9.92101 max      10.0379
+Parameter #3                        : average      40.9487 min     -63.9662 max          100
 Statistics of all the successful model parameter estimates:
 Parameter #1                        : average     0.999995 min     0.999995 max     0.999995
 Parameter #2                        : average     0.999988 min     0.999988 max     0.999988
@@ -67,9 +154,9 @@ Parameter #2 0.999988
 Parameter #3 0.999929
 Objective function: 2.19572e-07 Success: 0 
 Simulation time = 0 seconds
-Functional evaluations = 648
-Jacobian evaluations = 95
+Functional evaluations = 433
+Jacobian evaluations = 74
 Levenberg-Marquardt optimizations = 10
-Execution  started  on Thu Aug 23 21:36:38 2012
-Execution completed on Thu Aug 23 21:36:38 2012
-Execution date & time stamp: 20120823-213638
+Execution  started  on Tue Sep  4 10:01:24 2012
+Execution completed on Tue Sep  4 10:01:24 2012
+Execution date & time stamp: 20120904-100124

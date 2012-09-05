@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v1.1) 2011
+MADS: Model Analyses & Decision Support (v1.1) 2012
 ---------------------------------------------------
 Velimir Vesselinov (monty) vvv@lanl.gov
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -23,11 +23,11 @@ Objective function: test function 3
 
 Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
 
-Debug level (general): debug=0
+Global debug (verbosity) level: debug=0
 
 Model: internal test optimization problem #3: Rosenbrock - parameters 3 observations 3
 
-Execution date & time stamp: 20120823-213638
+Execution date & time stamp: 20120904-100124
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -35,22 +35,499 @@ Imported seed: 2096575428
 Random sampling (variables 3; realizations 10) using 
 Improved Distributed LHS method (number of realizations < 500) ... done.
 
-Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 687 Jacobians: 100 Objective function: 2.38279e-09 Success: 1
-Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 486 Jacobians: 67 Objective function: 1.34936e-06 Success: 1
-Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 106 Jacobians: 14 Objective function: 4.17172e-09 Success: 1
-Random set #4: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 605 Jacobians: 93 Objective function: 4.05054e-06 Success: 1
-Random set #5: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 104 Jacobians: 12 Objective function: 4.01898e-07 Success: 1
-Random set #6: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 60 Jacobians: 6 Objective function: 3.5934e-06 Success: 1
-Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 173 Jacobians: 23 Objective function: 2.6318e-07 Success: 1
-Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 51 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
-Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 228 Jacobians: 27 Objective function: 8.37532e-05 Success: 1
-Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 327 Jacobians: 45 Objective function: 1.71077e-06 Success: 1
-Total number of evaluations = 2827
-Total number of jacobians = 391
-Minimum objective function: 2.38279e-09
+Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+Evaluations: 485 Jacobians: 81 Objective function: 2.38423e-09 Success: 1
+Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+Evaluations: 375 Jacobians: 56 Objective function: 1.34935e-06 Success: 1
+Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+Evaluations: 95 Jacobians: 13 Objective function: 4.17175e-09 Success: 1
+Random set #4: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Evaluations: 478 Jacobians: 83 Objective function: 4.05054e-06 Success: 1
+Random set #5: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+Evaluations: 82 Jacobians: 10 Objective function: 4.01898e-07 Success: 1
+Random set #6: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+Evaluations: 60 Jacobians: 6 Objective function: 3.5934e-06 Success: 1
+Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+Evaluations: 131 Jacobians: 19 Objective function: 2.63178e-07 Success: 1
+Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+Evaluations: 51 Jacobians: 4 Objective function: 2.19571e-07 Success: 1
+Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+Evaluations: 161 Jacobians: 21 Objective function: 8.37532e-05 Success: 1
+Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+WARNING: None of the model parameters is impacting model predictions!
+
+
+
+
+
+
+
+
+
+Evaluations: 267 Jacobians: 39 Objective function: 1.71077e-06 Success: 1
+Total number of evaluations = 2185
+Total number of jacobians = 332
+Minimum objective function: 2.38423e-09
 Repeat the run producing the best results ...
 Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 10 (out of 10; success ratio 1)
-Statistics of total number of evaluations      : 51 - 104 [1m173[0m 486 - 687 : 10
+Statistics of total number of evaluations      : 51 - 82 [1m131[0m 375 - 485 : 10
 Statistics of all the model parameter estimates:
 Parameter #1                        : average      0.99989 min     0.999102 max      1.00009
 Parameter #2                        : average     0.999748 min     0.998201 max      1.00001
@@ -66,11 +543,11 @@ Model parameters:
 Parameter #1 0.999995
 Parameter #2 0.999991
 Parameter #3 0.999977
-Objective function: 2.38279e-09 Success: 0 
+Objective function: 2.38423e-09 Success: 0 
 Simulation time = 0 seconds
-Functional evaluations = 2828
-Jacobian evaluations = 391
+Functional evaluations = 2186
+Jacobian evaluations = 332
 Levenberg-Marquardt optimizations = 53
-Execution  started  on Thu Aug 23 21:36:38 2012
-Execution completed on Thu Aug 23 21:36:38 2012
-Execution date & time stamp: 20120823-213638
+Execution  started  on Tue Sep  4 10:01:24 2012
+Execution completed on Tue Sep  4 10:01:24 2012
+Execution date & time stamp: 20120904-100124

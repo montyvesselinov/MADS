@@ -722,7 +722,17 @@ int main( int argn, char *argv[] )
 					printf( "\n" );
 					print_results( &op, 1 );
 				}
-				if( cd.save || ( op.success || ( cd.phi_cutoff > DBL_EPSILON && op.phi <= cd.phi_cutoff ) ) )
+				if( cd.phi_cutoff > DBL_EPSILON && phi > cd.phi_cutoff )
+				{
+					printf( "Case skipped: phi %g > cutoff %g\n", phi, cd.phi_cutoff );
+					continue;
+				}
+				if( cd.obsrange && !op.success )
+				{
+					printf( "Case skipped: no success\n" );
+					continue;
+				}
+				if( cd.save )
 				{
 					if( !cd.debug )
 					{
