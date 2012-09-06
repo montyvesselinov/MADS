@@ -116,7 +116,10 @@ int func_extrn( double *x, void *data, double *f )
 			exit( -1 );
 	strcpy( buf, "rm -f " );
 	for( i = 0; i < p->ed->nins; i++ )
+	{
 		strcat( buf, p->ed->fn_obs[i] );
+		strcat( buf, " " );
+	}
 	strcat( buf, " >& /dev/null" );
 	if( p->cd->tpldebug || p->cd->insdebug ) printf( "\nDelete the expected output files before execution (\'%s\')\n", buf );
 	system( buf );
@@ -248,7 +251,10 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	// Delete expected output files in the root directory to prevent the creation of links to these files in the "child" directories
 	strcpy( buf, "rm -f " );
 	for( i = 0; i < p->ed->nins; i++ )
+	{
 		strcat( buf, p->ed->fn_obs[i] );
+		strcat( buf, " " );
+	}
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
 	if( p->cd->pardebug > 2 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
 	system( buf );
@@ -271,7 +277,10 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	{
 		sprintf( buf, "cd ../%s; rm -f ", dir ); // Delete expected output files in the hosts directories
 		for( i = 0; i < p->ed->nins; i++ )
+		{
 			strcat( buf, p->ed->fn_obs[i] );
+			strcat( buf, " " );
+		}
 		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
 		if( p->cd->pardebug > 2 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
 		system( buf );
@@ -382,7 +391,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	if( bad_data ) return( bad_data );
 	sprintf( buf, "zip -u %s ", p->cd->restart_zip_file ); // Archive output files
 	for( i = 0; i < p->ed->nins; i++ )
-		sprintf( &buf[strlen( buf )], "../%s/%s", dir, p->ed->fn_obs[i] );
+		sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
 	system( buf );
 	if( p->cd->pardebug > 3 ) printf( "Results from parallel run #%d are archived!\n", ieval );
