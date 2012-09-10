@@ -611,6 +611,8 @@ int main( int argn, char *argv[] )
 				if( sscanf( bigbuffer, "%d", &caseid ) ) lines++;
 			}
 			printf( "\nModel parameters will be initiated based on previously saved results in file %s (total number of cases %d)\n", cd.resultsfile, lines );
+			if( cd.calib_type == PPSD ) printf( "PPSD format assumed\n" );
+			else if( cd.calib_type == IGRND ) printf( "IGRND format assumed\n" );
 			if( cd.resultscase < 0 ) printf( "Forward runs based on first %d cases.", -cd.resultscase );
 			else
 			{
@@ -630,7 +632,7 @@ int main( int argn, char *argv[] )
 		if( cd.resultscase < 0 )
 		{
 			FILE *infile2;
-			char bigbuffer[5000], *start, *word, *separator = " ";
+			char bigbuffer[5000], bigbufferorig[5000], dummy[50], *start, *word, *separator = " ";
 			int cases = cd.resultscase * -1;
 			int caseid;
 			bad_data = 0;
@@ -652,10 +654,37 @@ int main( int argn, char *argv[] )
 					printf( "ERROR reading model parameters initiated based on previously saved results in file %s (case %d)\n", cd.resultsfile, j + 1 );
 					break;
 				}
+				strcpy( bigbufferorig, bigbuffer );
 				sscanf( bigbuffer, "%d", &caseid );
 				// if( cd.debug ) printf( "\n" );
 				printf( "Case ID %d in %s (case %d)\n", caseid, cd.resultsfile, j + 1 );
-				start = strstr( bigbuffer, ": OF" );
+				k = 0;
+				if( cd.calib_type == PPSD )
+				{
+					start = strstr( bigbuffer, ":" );
+					word = strtok( start, separator ); // skip :
+					for( i = 0; i < pd.nParam; i++ )
+					{
+						while( pd.var_opt[i] != 2 ) { i++; if( i >= pd.nParam ) break; }
+						if( !( i < pd.nParam ) ) break;
+						word = strtok( NULL, separator );
+						// printf( "Par #%d Word %s\n", i, word );
+						sscanf( word, "%lf", &pd.var[i] );
+						k++;
+						if( pd.var_log[i] ) pd.var[i] = log10( pd.var[i] );
+						cd.var[i] = pd.var[i];
+						if( cd.debug ) printf( "%s %g\n", pd.var_id[i], pd.var[i] );
+					}
+					if( cd.debug ) printf( "Number of initialized fixed parameters in previous PPSD simulation = %d\n", k );
+					if( pd.nFlgParam != k )
+					{
+						bad_data = 1;
+						printf( "ERROR Number of flagged (%d) and initialized (%d) parameters in %s (case %d) do not match\n", pd.nFlgParam, k, cd.resultsfile, j + 1 );
+						break;
+					}
+				}
+				strcpy( bigbuffer, bigbufferorig );
+				start = strstr( bigbuffer, ": OF " );
 				if( start == NULL ) printf( "WARNING Objective function value is missing in %s (case %d)\n", cd.resultsfile, j + 1 );
 				else
 				{
@@ -667,11 +696,12 @@ int main( int argn, char *argv[] )
 					printf( "Case skipped: phi %g > cutoff %g\n", phi, cd.phi_cutoff );
 					continue;
 				}
-				start = strstr( bigbuffer, "success" );
+				// printf( "%s\n", bigbuffer );
+				start = strcasestr( bigbuffer, "success" );
 				if( start == NULL ) printf( "WARNING Success value is missing in %s (case %d)\n", cd.resultsfile, j + 1 );
 				else
 				{
-					sscanf( start, "success %d", &success );
+					sscanf( start, "%s %d", dummy, &success );
 					printf( "Success = %d\n", success );
 				}
 				if( cd.obsrange && !success )
@@ -679,7 +709,7 @@ int main( int argn, char *argv[] )
 					printf( "Case skipped: no success\n" );
 					continue;
 				}
-				start = strstr( bigbuffer, "final var" );
+				start = strcasestr( bigbuffer, "final var" );
 				if( start == NULL )
 				{
 					bad_data = 1;
@@ -688,12 +718,18 @@ int main( int argn, char *argv[] )
 				}
 				// printf( "%s\n", start );
 				strcpy( bigbuffer, start );
-				for( k = 0, i = 0, c = -2, word = strtok( bigbuffer, separator ); word; c++, word = strtok( NULL, separator ) )
+				// c = -2 final var
+				// c - word count
+				// k - number of processed variables
+				// i - variable index
+				for( i = 0, k = 0, c = -2, word = strtok( bigbuffer, separator ); word; c++, word = strtok( NULL, separator ) )
 				{
 					if( c > -1 )
 					{
 						// printf( "Par #%d %s\n", c + 1, word );
-						while( pd.var_opt[i] == 0 ) i++;
+						if( cd.calib_type == PPSD ) while( pd.var_opt[i] == 2 || pd.var_opt[i] == 0 ) i++;
+						else while( pd.var_opt[i] == 0 ) i++;
+						if( i >= pd.nParam ) break;
 						sscanf( word, "%lf", &pd.var[i] );
 						k++;
 						if( pd.var_log[i] ) pd.var[i] = log10( pd.var[i] );
