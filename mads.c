@@ -470,9 +470,9 @@ int main( int argn, char *argv[] )
 		{
 			sprintf( filename, "%s.restart_info", op.root );
 			out = Fwrite( filename );
-			fprintf( out, "%s\n", op.datetime_stamp );
+			fprintf( out, "%s :", op.datetime_stamp );
 			for( i = 0; i < argn; i++ )
-				fprintf( out, "%s ", argv[i] );
+				fprintf( out, " %s", argv[i] );
 			fprintf( out, "\n" );
 			fclose( out );
 			sprintf( buf, "zip %s %s.restart_info >& /dev/null", cd.restart_zip_file, op.root );
@@ -481,9 +481,9 @@ int main( int argn, char *argv[] )
 	}
 	sprintf( filename, "%s.cmdline_hist", op.root );
 	out = Fappend( filename );
-	fprintf( out, "%s\n", op.datetime_stamp );
+	fprintf( out, "%s :", op.datetime_stamp );
 	for( i = 0; i < argn; i++ )
-		fprintf( out, "%s ", argv[i] );
+		fprintf( out, " %s", argv[i] );
 	fprintf( out, "\n" );
 	fclose( out );
 	//
