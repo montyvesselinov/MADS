@@ -25,7 +25,6 @@
 // PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 #define _GNU_SOURCE
-#define iswhite(c) ((c)== ' ' || (c)=='\t' || (c)=='\n')
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -79,6 +78,7 @@ int load_pst( char *filename, struct opt_data *op )
 	sscanf( buf, "%d %d %d %*d %d", &( *pd ).nParam, &( *od ).nObs, &npar_groups, &nobs_groups );
 	printf( "Parameters = %d (groups %d)\n", pd->nParam, npar_groups );
 	printf( "Observations = %d (groups %d)\n", od->nObs, nobs_groups );
+	od->nTObs = od->nObs;
 	fgets( buf, 1000, in );
 	sscanf( buf, "%d %d", &( *ed ).ntpl, &( *ed ).nins );
 	printf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *ed ).ntpl, ( *ed ).nins );
@@ -197,14 +197,16 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	char *separator = " \t\n";
 	char *word_inst, *word_search, token_obs[2], token_search[2], comment[2], dummy_var[6], buf_inst[1000], *pnt_inst;
 	int i, c, bad_data = 0;
+	if( debug ) printf( "\nChecking instruction file \'%s\'.\n", fn_in_i );
+	fflush( stdout );
 	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
 		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
 		return( -1 );
 	}
-	if( debug ) printf( "\nChecking instruction file \'%s\'.\n", fn_in_i );
 	fgets( buf_inst, 1000, infile_inst );
-	if( debug ) printf( "Current instruction line: %s\n", buf_inst );
+	if( debug ) printf( "\nCurrent instruction line: %s\n", buf_inst );
+	fflush( stdout );
 	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
 	{
 		if( c == 0 ) // first entry
@@ -276,6 +278,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		printf( "Dummy observation: %s\n", dummy_var );
 		if( comment[0] ) printf( "Comment: %s\n", comment );
 	}
+	fflush( stdout );
 	while( !feof( infile_inst ) ) // IMPORTANT: strtok below modifies buf_inst by adding '\0's; if needed strcpy buf_inst
 	{
 		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) printf( "\nEND of instruction file: %s\n", buf_inst ); break; }
@@ -296,9 +299,9 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
 			if( pnt_inst[0] == token_search[0] ) // search for keyword
 			{
-				if( debug ) { printf( "SEARCH keyword " ); fflush( stdout ); }
+				if( debug ) { printf( "Keyword search " ); fflush( stdout ); }
 				word_search = strtok_r( NULL, token_search, &pnt_inst ); // read search keyword
-				if( debug ) { printf( " \'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
+				if( debug ) { printf( "\'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
 			}
 			else
 			{
@@ -381,6 +384,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	if( debug ) printf( "\nReading output file \'%s\' obtained from external model execution using instruction file \'%s\'.\n", fn_in_d, fn_in_i );
 	fgets( buf_inst, 1000, infile_inst );
 	if( debug > 1 ) printf( "Current instruction line: %s\n", buf_inst );
+	fflush( stdout );
 	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
 	{
 		if( c == 0 ) // first entry
@@ -450,15 +454,16 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		printf( "Dummy observation: %s\n", dummy_var );
 		if( comment[0] ) printf( "Comment: %s\n", comment );
 	}
+	fflush( stdout );
 	buf_data[0] = 0; word_data = pnt_data = NULL;
 	while( !feof( infile_inst ) )
 	{
 		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) printf( "\nEND of instruction file: %s\n", buf_inst ); break; }
 		pnt_inst = &buf_inst[0];
-		white_trim( pnt_inst ); white_skip( &pnt_inst );
 		word_inst = 0;
-		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
-		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
+		white_trim( pnt_inst ); white_skip( &pnt_inst );
+		if( debug ) printf( "\n\nCurrent instruction line: %s\n", pnt_inst );
+		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
 		if( strlen( pnt_inst ) == 0 ) { if( debug ) printf( "Empty line; will be skipped.\n" ); continue; }
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
@@ -480,16 +485,16 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			word_data = NULL;
 		}
 		if( debug > 1 ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'", word_data, pnt_data );
-		if( debug ) { if( pnt_data == NULL ) printf( "\n" ); else { if( pnt_data[strlen( pnt_data ) - 2] != '\n' ) printf( "\n" ); } }
+		if( debug ) { if( pnt_data != NULL ) { if( pnt_data[strlen( pnt_data ) - 2] != '\n' ) {} } }
 		c = 0;
 		while( 1 )
 		{
 			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
 			if( pnt_inst[0] == token_search[0] ) // search for keyword
 			{
-				if( debug ) { printf( "SEARCH keyword " ); fflush( stdout ); }
+				if( debug ) { printf( "Keyword search " ); fflush( stdout ); }
 				word_search = strtok_r( NULL, token_search, &pnt_inst ); // read search keyword
-				if( debug ) { printf( " \'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
+				if( debug ) { printf( "\'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
 				bad_data = 1;
 				while( !feof( infile_data ) )
 				{

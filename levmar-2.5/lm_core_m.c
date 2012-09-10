@@ -132,6 +132,8 @@ int LEVMAR_DER(
 	int mu_big = 0, phi_decline = 0;
 	int ipar_max, ipar_min;
 	double max_change, min_change, p_diff;
+	int imax, imin, omax, omin, ok;
+	double max = 0, min = HUGE_VAL;
 	const int nm = n * m;
 	int ( *linsolver )( LM_REAL * A, LM_REAL * B, LM_REAL * x, int m ) = NULL;
 	mu = jacTe_inf = p_L2 = 0.0; /* -Wall */
@@ -407,27 +409,34 @@ int LEVMAR_DER(
 					}
 				}
 			}
+			for( i = 0; i < op->pd->nOptParam; i++ )
+			{
+				jac_max[i] = 0;
+				jac_min[i] = HUGE_VAL;
+			}
+			max = 0; min = HUGE_VAL;
+			for( l = j = 0; j < op->od->nObs; j++ )
+			{
+				if( !( op->od->obs_weight > 0 ) ) continue;
+				for( i = 0; i < op->pd->nOptParam; i++, l++ )
+				{
+					double fj = fabs( jac[l] );
+					if( jac_max[i] < fj ) jac_max[i] = fj;
+					if( jac_min[i] > fj ) jac_min[i] = fj;
+					if( fj > max ) { max = fj; imax = i; omax = j; }
+					if( fj < min && fj > DBL_EPSILON ) { min = fj; imin = i; omin = j; }
+				}
+			}
+			ok = 0;
+			for( i = 0; i < op->pd->nOptParam; i++ )
+			{
+				if( jac_max[i] > DBL_EPSILON ) ok++;
+				else { if( op->cd->ldebug ) printf( "WARNING: Model parameter \'%s\' is not impacting model predictions!\n", op->pd->var_id[op->pd->var_index[i]] ); }
+			}
+			if( ok == 0 )
+				printf( "ERROR: None of the model parameters is impacting model predictions!\n" );
 			if( op->cd->ldebug > 1 )
 			{
-				for( i = 0; i < op->pd->nOptParam; i++ )
-				{
-					jac_max[i] = 0;
-					jac_min[i] = HUGE_VAL;
-				}
-				int imax, imin, omax, omin;
-				double max = 0, min = HUGE_VAL;
-				for( l = j = 0; j < op->od->nObs; j++ )
-				{
-					if( !( op->od->obs_weight > 0 ) ) continue;
-					for( i = 0; i < op->pd->nOptParam; i++, l++ )
-					{
-						double fj = fabs( jac[l] );
-						if( jac_max[i] < fj ) jac_max[i] = fj;
-						if( jac_min[i] > fj ) jac_min[i] = fj;
-						if( fj > max ) { max = fj; imax = i; omax = j; }
-						if( fj < min && fj > DBL_EPSILON ) { min = fj; imin = i; omin = j; }
-					}
-				}
 				printf( "Highest absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imax + 1, op->pd->var_id[op->pd->var_index[imax]], omax + 1, op->od->obs_id[omax], max );
 				printf( "Lowest  absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imin + 1, op->pd->var_id[op->pd->var_index[imin]], omin + 1, op->od->obs_id[omin], min );
 				if( op->cd->ldebug > 2 )
@@ -461,25 +470,6 @@ int LEVMAR_DER(
 				}
 				printf( "Min observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) printf( " %g", jac_min[i] ); printf( "\n" );
 				printf( "Max observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) printf( " %g", jac_max[i] ); printf( "\n\n" );
-				int ok = 0;
-				for( i = 0; i < op->pd->nOptParam; i++ )
-				{
-					if( fabs( jac_max[i] ) > DBL_EPSILON || fabs( jac_min[i] ) > DBL_EPSILON ) ok++;
-					else { if( op->cd->ldebug ) printf( "WARNING: Model parameter \'%s\' is not impacting model predictions!\n", op->pd->var_id[op->pd->var_index[i]] ); }
-				}
-				if( ok == 0 && !( op->cd->ldebug && op->cd->standalone ) )
-					printf( "WARNING: None of the model parameters is impacting model predictions!\n" );
-			}
-			else
-			{
-				int ok = 0;
-				for( i = 0; i < op->pd->nOptParam; i++ )
-				{
-					if( jac_max[i] > DBL_EPSILON ) ok++;
-					else { if( op->cd->ldebug ) printf( "WARNING: Model parameter \'%s\' is not impacting model predictions\n", op->pd->var_id[op->pd->var_index[i]] ); }
-				}
-				if( ok == 0 && !( op->cd->ldebug && op->cd->standalone ) )
-					printf( "WARNING: None of the model parameters is impacting model predictions!\n" );
 			}
 		}
 		if( newjac ) /* Jacobian has changed, recompute J^T J, J^t e, etc */
@@ -581,7 +571,7 @@ int LEVMAR_DER(
 			}
 			changejac = 0;
 		}
-		else printf( "\n" );
+		else if( op->cd->ldebug ) printf( "\n" );
 		/* compute initial damping factor */
 		if( k == 0 )
 		{
@@ -666,7 +656,7 @@ int LEVMAR_DER(
 				stop = 2;
 				break;
 			}
-			if( op->cd->ldebug > 6 ) printf( "Test for convergence: solution singularity (%g > %g to converge)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
+			if( op->cd->ldebug > 6 ) printf( "Test for convergence: Solution singularity (%g > %g to converge)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
 			if( Dpa_L2 >= ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) ) /* almost singular */
 			{
 				if( op->cd->ldebug ) printf( "CONVERGED: almost singular solution (%g > %g)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );

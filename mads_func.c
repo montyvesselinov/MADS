@@ -722,7 +722,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
-			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+			if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
 			func_extrn_write( ++ieval, x, data );
@@ -733,12 +733,15 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			printf( "ERROR: there is a problem with the parallel execution!\n" );
 			exit( 1 );
 		}
+		system( "sleep 2" );
 		ieval -= ( p->pd->nOptParam + compute_center );
 		if( compute_center ) func_extrn_read( ++ieval, data, f_x );
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			bad_data = func_extrn_read( ++ieval, data, f_xpdx );
 			if( bad_data ) exit( -1 );
+			if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+			else dx = p->cd->sindx;
 			for( i = 0; i < p->od->nObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
 		}
 	}
@@ -754,7 +757,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
-			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+			if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
 			func_global( x, data, f_xpdx );

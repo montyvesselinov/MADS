@@ -361,29 +361,30 @@ int main( int argn, char *argv[] )
 		if( cd.debug ) printf( "Working directory: %s (%s)\n", cwd, cd.mydir );
 		cd.mydir_hosts = dir_hosts( &op, op.datetime_stamp ); // Directories for parallel execution have unique name based on the execution time
 	}
+	printf( "\n" );
 	/*
 	 *  Problem based on external model
 	 */
 	if( cd.solution_type[0] == EXTERNAL ) // Check the files for external execution
 	{
-		if( ( opt_params = ( double * ) malloc( pd.nParam * sizeof( double ) ) ) == NULL ) { printf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the template files for errors ...\n" );
+		printf( "Checking the template files for errors ...\n" );
 		bad_data = 0;
-		for( i = 0; i < pd.nParam; i++ ) opt_params[i] = ( double ) - 1;
+		for( i = 0; i < pd.nParam; i++ ) pd.var_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
-			if( check_par_tpl( pd.nParam, pd.var_id, opt_params, ed.fn_tpl[i], cd.tpldebug ) == -1 )
+			if( check_par_tpl( pd.nParam, pd.var_id, pd.var_current, ed.fn_tpl[i], cd.tpldebug ) == -1 )
 				bad_data = 1;
 		for( i = 0; i < pd.nParam; i++ )
 		{
-			if( opt_params[i] < 0 )
+			if( pd.var_current[i] < 0 )
 			{
 				printf( "ERROR: Model parameter \'%s\' is not represented in the template file(s)!\n", pd.var_id[i] );
 				bad_data = 1;
 			}
-			else if( opt_params[i] > 1.5 )
+			else if( pd.var_current[i] > 1.5 )
 				printf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_id[i], ( int ) opt_params[i] );
 		}
-		if( cd.debug || cd.tpldebug || cd.insdebug ) printf( "Checking the instruction files for errors ...\n" );
+		if( !bad_data ) printf( "Template files are ok.\n" );
+		printf( "Checking the instruction files for errors ...\n" );
 		for( i = 0; i < od.nTObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
 			if( check_ins_obs( od.nTObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
@@ -398,13 +399,13 @@ int main( int argn, char *argv[] )
 			else if( od.obs_current[i] > 1.5 )
 				printf( "WARNING: Observation \'%s\' is defined more than once (%d times) in the instruction file(s)! Arithmetic average will be computed!\n", od.obs_id[i], ( int ) od.obs_current[i] );
 		}
+		if( !bad_data ) printf( "Instruction files are ok.\n" );
 		if( bad_data )
 		{
 			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			system( buf );
 			exit( 0 );
 		}
-		free( opt_params );
 		if( cd.sintrans ) { if( cd.sindx < DBL_EPSILON ) cd.sindx = 0.1; else if( cd.sindx < 1e-3 ) printf( "WARNING: sindx (%g) is potentially too small for external problems; consider increasing sindx (add sindx=1e-2)\n", cd.sindx ); }
 		else { if( cd.lindx < DBL_EPSILON ) cd.lindx = 0.01; }
 	}
