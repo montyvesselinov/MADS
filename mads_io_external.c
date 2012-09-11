@@ -323,7 +323,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 					else word_inst = &word_inst[1];
 					if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
 					else strtok_r( NULL, separator, &pnt_inst );
-					if( debug ) printf( "Observation keyword \'%s\' ... ", word_inst );
+					if( debug ) { printf( "Observation keyword \'%s\' ... ", word_inst ); fflush( stdout ); }
 					white_skip( &word_inst );
 					white_trim( word_inst );
 					for( i = 0; i < nobs; i++ )
@@ -332,19 +332,21 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 						{
 							if( check[i] < 0 ) { check[i] = 1; }
 							else { check[i] += 1; }
-							if( debug ) printf( "\'%s\' detected %g times\n", obs_id[i], check[i] );
+							if( debug ) { printf( "\'%s\' detected %g times\n", obs_id[i], check[i] ); fflush( stdout ); }
 							break;
 						}
 					}
 					if( nobs == i )
 					{
 						printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
+						fflush( stdout );
 						bad_data = 1;
 					}
 				}
 				else if( comment[0] && word_inst[0] == comment[0] ) // comment
 				{
 					if( debug ) printf( "Comment. Skip rest of the instruction line!\n" );
+					fflush( stdout );
 					break;
 				}
 				else

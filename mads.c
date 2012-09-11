@@ -369,19 +369,19 @@ int main( int argn, char *argv[] )
 	{
 		printf( "Checking the template files for errors ...\n" );
 		bad_data = 0;
-		for( i = 0; i < pd.nParam; i++ ) pd.var_current[i] = ( double ) - 1;
+		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
-			if( check_par_tpl( pd.nParam, pd.var_id, pd.var_current, ed.fn_tpl[i], cd.tpldebug ) == -1 )
+			if( check_par_tpl( pd.nParam, pd.var_id, cd.var, ed.fn_tpl[i], cd.tpldebug ) == -1 )
 				bad_data = 1;
 		for( i = 0; i < pd.nParam; i++ )
 		{
-			if( pd.var_current[i] < 0 )
+			if( cd.var[i] < 0 )
 			{
 				printf( "ERROR: Model parameter \'%s\' is not represented in the template file(s)!\n", pd.var_id[i] );
 				bad_data = 1;
 			}
-			else if( pd.var_current[i] > 1.5 )
-				printf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_id[i], ( int ) opt_params[i] );
+			else if( cd.var[i] > 1.5 )
+				printf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_id[i], ( int ) cd.var[i] );
 		}
 		if( !bad_data ) printf( "Template files are ok.\n" );
 		printf( "Checking the instruction files for errors ...\n" );
