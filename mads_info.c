@@ -100,10 +100,13 @@ void mads_info()
 	printf( "\nABAGUS (Agent-Based Global Uncertainty & Sensitivity Analysis) options:\n" );
 	printf( "   infile=[string]    - name of previous results file to be used to initialize Kd-tree [default=NULL]\n" );
 	printf( "   energy=[integer]   - initial energy for particles [default energy=10000]\n" );
-	printf( "\nbuild-in analytical solutions:\n" );
+	printf( "\noptions for the build-in analytical solutions:\n" );
 	printf( "   point              - point contaminant source in 3D flow domain\n" );
 	printf( "   plane              - areal contaminant source in 3D flow domain\n" );
 	printf( "   box                - brick contaminant source in 3D flow domain\n" );
+	printf( "   disp_tied          - lateral and vertical transverse dispersivities are fractions of the longitudinal dispersivity\n" );
+	printf( "   disp_scaled        - longitudinal dispersivity is scaled with the travel distance\n" );
+	printf( "   disp_scaled=2      - longitudinal, lateral and vertical transverse dispersivitoies are scaled with the travel distance\n" );
 	printf( "\nbuild-in test problems for optimization / uncertainty-quantification techniques (local and global methods):\n" );
 	printf( "   test=[integer]     - test problem ID [default=1]:\n" );
 	printf( "                           1: Parabola (Sphere) \n" );

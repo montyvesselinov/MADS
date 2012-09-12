@@ -97,7 +97,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->restart = 1;
 	cd->nreal = 0;
 	cd->niter = 0;
-	cd->tied = 0;
+	cd->disp_tied = 0;
+	cd->disp_scaled = 0;
 	cd->save = 0;
 	cd->pargen = 0;
 	cd->init_particles = -1;
@@ -165,7 +166,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "lmnlamof=", 9 ) ) { w = 1; sscanf( word, "lmnlamof=%d", &cd->lm_nlamof ); }
 		if( !strncasecmp( word, "lmnjacof=", 9 ) ) { w = 1; sscanf( word, "lmnjacof=%d", &cd->lm_njacof ); }
 		if( !strncasecmp( word, "infile=", 7 ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
-		if( !strncasecmp( word, "tied", 4 ) ) { w = 1; cd->tied = 1; } // Tied shortcut
+		if( !strncasecmp( word, "tied", 4 ) ) { w = 1; cd->disp_tied = 1; } // Tied dispersivities
+		if( !strncasecmp( word, "disp_tied", 9 ) ) { w = 1; cd->disp_tied = 1; } // Tied dispersivities
+		if( !strncasecmp( word, "disp_scaled", 10 ) ) { w = 1; if( sscanf( word, "disp_scaled=%d", &cd->disp_scaled ) != 1 ) cd->disp_scaled = 1; } // Scaled dispersivities
 		if( !strncasecmp( word, "save", 4 ) ) { w = 1; cd->save = 1; }
 		if( !strncasecmp( word, "pargen", 6 ) ) { w = 1; cd->pargen = 1; }
 		if( !strncasecmp( word, "real=", 5 ) ) { w = 1; sscanf( word, "real=%d", &cd->nreal ); }
@@ -411,6 +414,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	wd = op->wd;
 	gd = op->gd;
 	ed = op->ed;
+	pd->nParam = pd->nFlgParam = pd->nOptParam = 0;
+	od->nObs = od->nTObs = od->nCObs = 0;
+	wd->nW = 0;
+	ed->ntpl = ed->nins = 0;
 	bad_data = 0;
 	if( ( infile = fopen( filename, "r" ) ) == NULL )
 	{
@@ -487,7 +494,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	if( cd->c_background ) printf( " | background concentration = %g", cd->c_background );
 	printf( "\n" );
-	if( ( *cd ).solution_type[0] == TEST ) return( 1 );
+	//
+	if( ( *cd ).solution_type[0] == TEST ) return( 1 ); // DONE IF INTERNAL TEST PROBLEM
+	//
+	if( ( *cd ).solution_type[0] != EXTERNAL )
+	{
+		if( cd->disp_scaled > 1 && !cd->disp_tied ) printf( "Transverse dispersivities scaled!\n");
+		else if( cd->disp_tied ) printf( "Transverse dispersivities tied!\n");
+		else printf( "Transverse dispersivities not tied and not scaled!\n");
+	}
 	// Read parameters
 	if( skip == 0 ) fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &( *pd ).nParam );
 	printf( "\nNumber of model parameters: %d\n", ( *pd ).nParam );
@@ -500,6 +515,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			bad_data = 1;
 			return( -1 );
 		}
+
 	}
 	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
 	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
@@ -1098,7 +1114,8 @@ int save_problem( char *filename, struct opt_data *op )
 	}
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
 	if( cd->c_background > 0 ) fprintf( outfile, " background=%g", cd->c_background );
-	if( cd->tied ) fprintf( outfile, " tied" );
+	if( cd->disp_tied ) fprintf( outfile, " disp_tied" );
+	if( cd->disp_scaled ) fprintf( outfile, " disp_scaled" );
 	if( cd->save ) fprintf( outfile, " save" );
 	if( cd->seed_init < 0 ) fprintf( outfile, " seed=%d", cd->seed_init * -1 );
 	if( cd->nretries > 0 ) fprintf( outfile, " retry=%d", cd->nretries );

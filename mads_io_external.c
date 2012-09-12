@@ -60,6 +60,10 @@ int load_pst( char *filename, struct opt_data *op )
 	pd = op->pd;
 	od = op->od;
 	ed = op->ed;
+	pd->nParam = pd->nFlgParam = pd->nOptParam = 0;
+	od->nObs = od->nTObs = od->nCObs = 0;
+	ed->ntpl = ed->nins = 0;
+	bad_data = 0;
 	op->gd->min_t = op-> gd->time = 0;
 	if( ( in = fopen( filename, "r" ) ) == NULL )
 	{
@@ -105,6 +109,7 @@ int load_pst( char *filename, struct opt_data *op )
 	{
 		fscanf( in, "%s %s %*s %lf %lf %lf %*s %*f %*f %*f\n", pd->var_id[i], code, &pd->var[i], &pd->var_min[i], &pd->var_max[i] );
 		printf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], pd->var[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+		fflush( stdout );
 		if( strcmp( code, "fixed" ) == 0 ) pd->var_opt[i] = 0; else { pd->nOptParam++; pd->var_opt[i] = 1; }
 		if( strcmp( code, "log" ) == 0 ) pd->var_log[i] = 1; else pd->var_log[i] = 0;
 		if( ( *pd ).var_log[i] == 1 )
@@ -123,6 +128,7 @@ int load_pst( char *filename, struct opt_data *op )
 		{
 			if( ( *pd ).var_log[i] == 1 ) d = log10( pd->var[i] ); else d = pd->var[i];
 			printf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, ( *pd ).var_min[i], ( *pd ).var_max[i] );
+			fflush( stdout );
 			( *pd ).var_index[k++] = i;
 		}
 	for( i = 0; i < pd->nParam; i++ )
@@ -130,6 +136,7 @@ int load_pst( char *filename, struct opt_data *op )
 			if( strcmp( pd->var_id[i], pd->var_id[j] ) == 0 )
 			{
 				printf( "ERROR: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] );
+				fflush( stdout );
 				bad_data = 1;
 			}
 	if( bad_data ) return( 0 );
@@ -188,6 +195,7 @@ int load_pst( char *filename, struct opt_data *op )
 		printf( "%s <- %s\n", ed->fn_ins[i], ed->fn_obs[i] );
 	fclose( in );
 	printf( "\n" );
+	fflush( stdout );
 	return( 1 );
 }
 
@@ -353,6 +361,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 				{
 					printf( "\nERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
 					printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
+					fflush( stdout );
 					bad_data = 1;
 					break;
 				}
@@ -361,6 +370,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		}
 	}
 	fclose( infile_inst );
+	fflush( stdout );
 	if( bad_data ) return( -1 );
 	else return( 0 );
 }
@@ -465,6 +475,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		word_inst = 0;
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
 		if( debug ) printf( "\n\nCurrent instruction line: %s\n", pnt_inst );
+		fflush( stdout );
 		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
 		if( strlen( pnt_inst ) == 0 ) { if( debug ) printf( "Empty line; will be skipped.\n" ); continue; }
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
@@ -511,7 +522,8 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 						bad_data = 0;
 						break;
 					}
-					if( fgets( buf_data, 1000, infile_data ) == NULL ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
+					fflush( stdout );
+					if( fgets( buf_data, 1000, infile_data ) == NULL ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); fflush( stdout ); break; }
 					white_trim( buf_data );
 					pnt_data = &buf_data[0];
 					word_data = NULL; // Force reading
@@ -519,8 +531,10 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				if( bad_data == 1 )
 				{
 					printf( "\nERROR: Search keyword \'%s\' cannot be found in the data file \'%s\'!\n", word_search, fn_in_d );
+					fflush( stdout );
 					return( -1 );
 				}
+				fflush( stdout );
 			}
 			else // no keyword search
 			{
@@ -578,24 +592,29 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 							if( check[i] < 0 ) { obs[i] = v; check[i] = 1; }
 							else { obs[i] += v; check[i] += 1; }
 							if( debug ) printf( "\'%s\'=%g\n", obs_id[i], obs[i] );
+							fflush( stdout );
 							break;
 						}
 					}
 					if( nobs == i )
 					{
 						printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
+						fflush( stdout );
 						bad_data = 1;
 					}
+					fflush( stdout );
 				}
 				else if( comment[0] && word_inst[0] == comment[0] ) // comment
 				{
 					if( debug > 1 ) printf( "Comment. Skip rest of the instruction line!\n" );
+					fflush( stdout );
 					break;
 				}
 				else
 				{
 					printf( "\nERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
 					printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
+					fflush( stdout );
 					bad_data = 1;
 					break;
 				}
@@ -603,6 +622,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			if( pnt_inst == NULL || strlen( pnt_inst ) == 0 ) break;
 		}
 	}
+	fflush( stdout );
 	fclose( infile_data ); fclose( infile_inst );
 	if( bad_data ) return( -1 );
 	else return( 0 );
@@ -654,6 +674,7 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 	}
 	token[1] = 0;
 	if( debug ) printf( "Parameter separator: %s\n", token );
+	fflush( stdout );
 	while( !feof( in ) )
 	{
 		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) printf( "\nEND of template file: %s\n", buf ); break; }
@@ -683,11 +704,14 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 				{
 					if( debug ) printf( "ERROR: does not match defined model parameters!!!\n" );
 					else printf( "\nERROR: Parameter keyword \'%s\' in template file \'%s\' does not match defined model parameters!\n", word, fn_in_t );
+					fflush( stdout );
 					bad_data = 1;
 				}
 			}
+			fflush( stdout );
 		}
 	}
+	fflush( stdout );
 	fclose( in );
 	if( bad_data == 1 ) return( -1 );
 	else return( 0 );
@@ -747,6 +771,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	}
 	token[1] = 0;
 	if( debug ) printf( "Parameter separator: %s\n", token );
+	fflush( stdout );
 	while( !feof( in ) )
 	{
 		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) printf( "\nEND of template file: %s\n", buf ); break; }
@@ -781,6 +806,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 						if( space ) fprintf( out, " %s", number );
 						else { space = 0; fprintf( out, "%s", number ); } // TODO originally was space = 1
 						if( debug ) printf( "replaced with \'%s\' (parameter \'%s\')\n", number, par_id[i] );
+						fflush( stdout );
 						break;
 					}
 				}
@@ -788,6 +814,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 				{
 					if( debug ) printf( "ERROR: does not match defined model parameters!!!\n" );
 					else printf( "\nERROR: Parameter keyword \'%s\' in template file \'%s\' does not match defined model parameters!\n", word, fn_in_t );
+					fflush( stdout );
 					bad_data = 1;
 				}
 			}
@@ -796,9 +823,12 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 				if( space ) fprintf( out, " %s", word );
 				else { space = 0; fprintf( out, "%s", word ); }  // TODO originally was space = 1
 			}
+			fflush( stdout );
 		}
 		fprintf( out, "\n" );
+		fflush( stdout );
 	}
+	fflush( stdout );
 	fclose( in ); fclose( out );
 	if( bad_data == 1 ) return( -1 );
 	else return( 0 );

@@ -797,8 +797,8 @@ int main( int argn, char *argv[] )
 			{
 				if( pd.var_opt[i] && pd.var_log[i] ) cd.var[i] = pow( 10, pd.var[i] );
 				else cd.var[i] = pd.var[i];
-				printf( "%s %g\n", pd.var_id[i], pd.var[i] );
-				fprintf( out, "%s %g\n", pd.var_id[i], pd.var[i] );
+				printf( "%s %g\n", pd.var_id[i], cd.var[i] );
+				fprintf( out, "%s %g\n", pd.var_id[i], cd.var[i] );
 			}
 			if( od.nObs > 0 )
 			{
