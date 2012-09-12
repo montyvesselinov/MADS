@@ -499,9 +499,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	//
 	if( ( *cd ).solution_type[0] != EXTERNAL )
 	{
-		if( cd->disp_scaled > 1 && !cd->disp_tied ) printf( "Transverse dispersivities scaled!\n");
-		else if( cd->disp_tied ) printf( "Transverse dispersivities tied!\n");
-		else printf( "Transverse dispersivities not tied and not scaled!\n");
+		if( cd->disp_scaled > 1 && !cd->disp_tied ) printf( "Transverse dispersivities scaled!\n" );
+		else if( cd->disp_tied ) printf( "Transverse dispersivities tied!\n" );
+		else printf( "Transverse dispersivities not tied and not scaled!\n" );
 	}
 	// Read parameters
 	if( skip == 0 ) fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &( *pd ).nParam );
@@ -515,7 +515,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			bad_data = 1;
 			return( -1 );
 		}
-
 	}
 	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
 	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );

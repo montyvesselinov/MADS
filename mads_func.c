@@ -563,20 +563,20 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	else
 	{
 		if( p->cd->fdebug >= 2 ) printf( "\nModel predictions:\n" );
-        l = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE ); // copy model parameters
-        p2 = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
-        for( p1 = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; p1 < l; p1++, p2++ )
-            p->ad->var[p2] = p->cd->var[p1];
-        if( p->cd->disp_tied && p->cd->disp_scaled == 0 ) // Tied dispersivities
-        {
-            if( p->cd->fdebug >= 5 )
-            {
-            	printf( "Tied AY %.12g = %.12g / %.12g\n", p->ad->var[AX] / p->ad->var[AY], p->ad->var[AX], p->ad->var[AY] );
-            	printf( "Tied AZ %.12g = %.12g / %.12g\n", p->ad->var[AY] / p->ad->var[AZ], p->ad->var[AY], p->ad->var[AZ] );
-            }
-            p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY];
-            p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ];
-        }
+		l = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE ); // copy model parameters
+		p2 = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
+		for( p1 = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; p1 < l; p1++, p2++ )
+			p->ad->var[p2] = p->cd->var[p1];
+		if( p->cd->disp_tied && p->cd->disp_scaled == 0 ) // Tied dispersivities
+		{
+			if( p->cd->fdebug >= 5 )
+			{
+				printf( "Tied AY %.12g = %.12g / %.12g\n", p->ad->var[AX] / p->ad->var[AY], p->ad->var[AX], p->ad->var[AY] );
+				printf( "Tied AZ %.12g = %.12g / %.12g\n", p->ad->var[AY] / p->ad->var[AZ], p->ad->var[AY], p->ad->var[AZ] );
+			}
+			p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY];
+			p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ];
+		}
 		for( k = 0; k < p->od->nObs; k++ ) // for computational efficiency performed only for observations with weight > DBL_EPSILON
 		{
 			if( p->cd->oderiv != -1 ) { k = p->cd->oderiv; }
@@ -589,26 +589,26 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				p2 = 0;
 				for( p1 = NUM_ANAL_PARAMS_SOURCE * s; p1 < l; p1++, p2++ )
 					p->ad->var[p2] = p->cd->var[p1];
-		        if( p->cd->disp_scaled ) // Scaled dispersivities
-		        {
-		        	dx = p->ad->var[AX]; dy = p->ad->var[AY]; dz = p->ad->var[AZ];
-		        	x1 = p->wd->x[i] - p->ad->var[SOURCE_X];
-		        	y1 = p->wd->y[i] - p->ad->var[SOURCE_Y];
-		        	z1 = ( p->wd->z1[i] + p->wd->z2[i] ) - p->ad->var[SOURCE_Z];
-		        	dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
-		        	if( p->cd->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", p->ad->var[AX] * dist, p->ad->var[AX], dist );
-		        	p->ad->var[AX] *= dist;
-		        	if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) { p->ad->var[AY] *= dist; p->ad->var[AZ] *= dist; }
-		        	else if( p->cd->disp_tied ) { p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY]; p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ]; };
-		        	if( p->cd->fdebug >= 5 )
-		        	{
-			        	if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) printf( "Transverse dispersivities scaled!\n");
-			        	else if( p->cd->disp_tied ) printf( "Transverse dispersivities tied!\n");
-			        	else printf( "Transverse dispersivities not tied and not scaled!\n");
-		        		printf( "AY %.12g\n", p->ad->var[AY] );
-		        		printf( "AZ %.12g\n", p->ad->var[AZ] );
-		        	}
-		        }
+				if( p->cd->disp_scaled ) // Scaled dispersivities
+				{
+					dx = p->ad->var[AX]; dy = p->ad->var[AY]; dz = p->ad->var[AZ];
+					x1 = p->wd->x[i] - p->ad->var[SOURCE_X];
+					y1 = p->wd->y[i] - p->ad->var[SOURCE_Y];
+					z1 = ( p->wd->z1[i] + p->wd->z2[i] ) - p->ad->var[SOURCE_Z];
+					dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
+					if( p->cd->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", p->ad->var[AX] * dist, p->ad->var[AX], dist );
+					p->ad->var[AX] *= dist;
+					if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) { p->ad->var[AY] *= dist; p->ad->var[AZ] *= dist; }
+					else if( p->cd->disp_tied ) { p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY]; p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ]; };
+					if( p->cd->fdebug >= 5 )
+					{
+						if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) printf( "Transverse dispersivities scaled!\n" );
+						else if( p->cd->disp_tied ) printf( "Transverse dispersivities tied!\n" );
+						else printf( "Transverse dispersivities not tied and not scaled!\n" );
+						printf( "AY %.12g\n", p->ad->var[AY] );
+						printf( "AZ %.12g\n", p->ad->var[AZ] );
+					}
+				}
 				switch( p->cd->solution_type[s] )
 				{
 					case POINT:
@@ -629,10 +629,10 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 						c2 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 						break;
 				}
-		        if( p->cd->disp_scaled ) // Scaled dispersivities
-		        {
-		        	p->ad->var[AX] = dx; p->ad->var[AY] = dy; p->ad->var[AZ] = dz;
-		        }
+				if( p->cd->disp_scaled ) // Scaled dispersivities
+				{
+					p->ad->var[AX] = dx; p->ad->var[AY] = dy; p->ad->var[AZ] = dz;
+				}
 			}
 			c = ( c1 + c2 ) / 2;
 			p->od->obs_current[k] = c;
@@ -808,13 +808,13 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 	j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
 	for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
 		ad.var[j] = p->var[i];
- 	if( p->disp_tied && p->disp_scaled == 0 ) // Tied dispersivities
+	if( p->disp_tied && p->disp_scaled == 0 ) // Tied dispersivities
 	{
- 		if( p->fdebug >= 5 )
- 		{
- 			printf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
- 			printf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
- 		}
+		if( p->fdebug >= 5 )
+		{
+			printf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
+			printf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
+		}
 		ad.var[AY] = ad.var[AX] / ad.var[AY];
 		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
 	}
@@ -824,27 +824,27 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 		j = 0;
 		for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
 			ad.var[j] = p->var[i];
-        if( p->disp_scaled ) // Scaled dispersivities
-        {
-        	dx = ad.var[AX]; dy = ad.var[AY]; dz = ad.var[AZ];
-        	x1 = x - ad.var[SOURCE_X];
-        	y1 = y - ad.var[SOURCE_Y];
-        	z1 = z - ad.var[SOURCE_Z];
-        	dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
-            // printf( "func_solver1\n" );
-        	if( p->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
-        	ad.var[AX] *= dist;
-        	if( p->disp_scaled > 1 && !p->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
-        	else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
-        	if( p->fdebug >= 5 )
-        	{
-        		if( p->disp_scaled > 1 && !p->disp_tied ) printf( "Transverse dispersivities scaled!\n");
-        		else if( p->disp_tied ) printf( "Transverse dispersivities tied!\n");
-        		else printf( "Transverse dispersivities not tied and not scaled!\n");
-        		printf( "AY %.12g\n", ad.var[AY] );
-        		printf( "AZ %.12g\n", ad.var[AZ] );
-        	}
-        }
+		if( p->disp_scaled ) // Scaled dispersivities
+		{
+			dx = ad.var[AX]; dy = ad.var[AY]; dz = ad.var[AZ];
+			x1 = x - ad.var[SOURCE_X];
+			y1 = y - ad.var[SOURCE_Y];
+			z1 = z - ad.var[SOURCE_Z];
+			dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
+			// printf( "func_solver1\n" );
+			if( p->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
+			ad.var[AX] *= dist;
+			if( p->disp_scaled > 1 && !p->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
+			else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
+			if( p->fdebug >= 5 )
+			{
+				if( p->disp_scaled > 1 && !p->disp_tied ) printf( "Transverse dispersivities scaled!\n" );
+				else if( p->disp_tied ) printf( "Transverse dispersivities tied!\n" );
+				else printf( "Transverse dispersivities not tied and not scaled!\n" );
+				printf( "AY %.12g\n", ad.var[AY] );
+				printf( "AZ %.12g\n", ad.var[AZ] );
+			}
+		}
 		if( p->fdebug > 6 )
 			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
 				printf( "source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
@@ -864,10 +864,10 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 				c += box_source( x, y, z, t, ( void * ) &ad );
 				break;
 		}
-        if( p->disp_scaled ) // Scaled dispersivities
-        {
-        	ad.var[AX] = dx; ad.var[AY] = dy; ad.var[AZ] = dz;
-        }
+		if( p->disp_scaled ) // Scaled dispersivities
+		{
+			ad.var[AX] = dx; ad.var[AY] = dy; ad.var[AZ] = dz;
+		}
 	}
 	return( c );
 }
@@ -883,13 +883,13 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 	j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
 	for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
 		ad.var[j] = p->var[i];
- 	if( p->disp_tied && p->disp_scaled == 0 ) // Tied dispersivities
+	if( p->disp_tied && p->disp_scaled == 0 ) // Tied dispersivities
 	{
- 		if( p->fdebug >= 5 )
- 		{
- 			printf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
- 			printf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
- 		}
+		if( p->fdebug >= 5 )
+		{
+			printf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
+			printf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
+		}
 		ad.var[AY] = ad.var[AX] / ad.var[AY];
 		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
 	}
@@ -899,30 +899,30 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 		j = 0;
 		for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
 			ad.var[j] = p->var[i];
-		if( p->fdebug >=6 )
+		if( p->fdebug >= 6 )
 			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
 				printf( "source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
-        if( p->disp_scaled ) // Scaled dispersivities
-        {
-        	dx = ad.var[AX]; dy = ad.var[AY]; dz = ad.var[AZ];
-        	x1 = x - ad.var[SOURCE_X];
-        	y1 = y - ad.var[SOURCE_Y];
-        	z3 = ( z1 + z2 ) - ad.var[SOURCE_Z];
-        	dist = sqrt( x1 * x1 + y1 * y1 + z3 * z3 );
-            // printf( "func_solver\n" );
-        	if( p->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
-        	ad.var[AX] *= dist;
-        	if( p->disp_scaled > 1 && !p->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
-        	else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
-        	if( p->fdebug >= 5 )
-        	{
-	        	if( p->disp_scaled > 1 && !p->disp_tied ) printf( "Transverse dispersivities scaled!\n");
-	        	else if( p->disp_tied ) printf( "Transverse dispersivities tied!\n");
-	        	else printf( "Transverse dispersivities not tied and not scaled!\n");
-        		printf( "AY %.12g\n", ad.var[AY] );
-        		printf( "AZ %.12g\n", ad.var[AZ] );
-        	}
-        }
+		if( p->disp_scaled ) // Scaled dispersivities
+		{
+			dx = ad.var[AX]; dy = ad.var[AY]; dz = ad.var[AZ];
+			x1 = x - ad.var[SOURCE_X];
+			y1 = y - ad.var[SOURCE_Y];
+			z3 = ( z1 + z2 ) - ad.var[SOURCE_Z];
+			dist = sqrt( x1 * x1 + y1 * y1 + z3 * z3 );
+			// printf( "func_solver\n" );
+			if( p->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
+			ad.var[AX] *= dist;
+			if( p->disp_scaled > 1 && !p->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
+			else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
+			if( p->fdebug >= 5 )
+			{
+				if( p->disp_scaled > 1 && !p->disp_tied ) printf( "Transverse dispersivities scaled!\n" );
+				else if( p->disp_tied ) printf( "Transverse dispersivities tied!\n" );
+				else printf( "Transverse dispersivities not tied and not scaled!\n" );
+				printf( "AY %.12g\n", ad.var[AY] );
+				printf( "AZ %.12g\n", ad.var[AZ] );
+			}
+		}
 		switch( p->solution_type[s] )
 		{
 			case POINT:
@@ -943,10 +943,10 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 				c2 += box_source( x, y, z2, t, ( void * ) &ad );
 				break;
 		}
-        if( p->disp_scaled ) // Scaled dispersivities
-        {
-        	ad.var[AX] = dx; ad.var[AY] = dy; ad.var[AZ] = dz;
-        }
+		if( p->disp_scaled ) // Scaled dispersivities
+		{
+			ad.var[AX] = dx; ad.var[AY] = dy; ad.var[AZ] = dz;
+		}
 	}
 	return( ( c1 + c2 ) / 2 );
 }
