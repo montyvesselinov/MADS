@@ -800,7 +800,7 @@ int main( int argn, char *argv[] )
 				printf( "%s %g\n", pd.var_id[i], cd.var[i] );
 				fprintf( out, "%s %g\n", pd.var_id[i], cd.var[i] );
 			}
-			if( od.nObs > 0 )
+			if( od.nTObs > 0 )
 			{
 				printf( "\nModel predictions (forward run; no calibration):\n" );
 				fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
@@ -1599,7 +1599,7 @@ int igrnd( struct opt_data *op )
 	double c, phi_min, *orig_params, *opt_params,
 		   *opt_params_min, *opt_params_max, *opt_params_avg,
 		   *sel_params_min, *sel_params_max, *sel_params_avg,
-		   *var_lhs;
+		   *var_lhs, v;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	FILE *out, *out2;
@@ -1664,6 +1664,22 @@ int igrnd( struct opt_data *op )
 		}
 		fclose( out );
 		printf( "Random sampling set saved in %s.igrnd_set\n", op->root );
+		sprintf( filename, "%s.igrnd_param", op->root );
+		out = Fwrite( filename );
+		for( count = 0; count < op->cd->nreal; count ++ )
+		{
+			for( k = i = 0; i < op->pd->nParam; i++ )
+				if( op->pd->var_opt[i] == 2 || ( op->pd->var_opt[i] == 1 && op->pd->nFlgParam == 0 ) )
+				{
+					v = var_lhs[k + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
+					if( op->pd->var_log[i] == 0 ) fprintf( out, "%.15g ", v );
+					else fprintf( out, "%.15g ", pow( 10, v ) );
+					k++;
+				}
+			fprintf( out, "\n" );
+		}
+		fclose( out );
+		printf( "Randomly sampled parameters saved in %s.mcrnd_param\n", op->root );
 	}
 	for( i = 0; i < op->pd->nParam; i++ )
 		orig_params[i] = op->pd->var[i]; // Save original initial values for all parameters
@@ -2241,7 +2257,7 @@ int ppsd( struct opt_data *op )
 int montecarlo( struct opt_data *op )
 {
 	int i, j, k, npar, phi_global, success_global, success_all, count, debug_level, bad_data = 0;
-	double phi_min, *opt_params, *var_lhs;
+	double phi_min, *opt_params, *var_lhs, v;
 	char filename[255], buf[255];
 	FILE *out;
 	strcpy( op->label, "mcrnd" );
@@ -2269,6 +2285,21 @@ int montecarlo( struct opt_data *op )
 		}
 		fclose( out );
 		printf( "Random sampling set saved in %s.mcrnd_set\n", op->root );
+		sprintf( filename, "%s.mcrnd_param", op->root );
+		out = Fwrite( filename );
+		for( count = 0; count < op->cd->nreal; count ++ )
+		{
+			for( i = 0; i < npar; i++ )
+			{
+				k = op->pd->var_index[i];
+				v = var_lhs[i + count * npar] * op->pd->var_range[k] + op->pd->var_min[k];
+				if( op->pd->var_log[k] == 0 ) fprintf( out, "%.15g ", v );
+				else fprintf( out, "%.15g ", pow( 10, v ) );
+			}
+			fprintf( out, "\n" );
+		}
+		fclose( out );
+		printf( "Randomly sampled parameters saved in %s.mcrnd_param\n", op->root );
 	}
 	sprintf( filename, "%s.mcrnd.zip", op->root );
 	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
@@ -3040,11 +3071,11 @@ void print_results( struct opt_data *op, int verbosity )
 		else printf( "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
 	if( verbosity == 0 ) return;
-	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
+	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{
 		printf( "\nModel predictions for calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
-			for( i = 0; i < op->od->nObs; i++ )
+			for( i = 0; i < op->od->nTObs; i++ )
 			{
 				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nCObs > 50 && i == 21 ) printf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
@@ -3094,9 +3125,9 @@ void print_results( struct opt_data *op, int verbosity )
 		printf( "\nModel predictions for not calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
 		{
-			predict = op->od->nObs - op->od->nCObs;
+			predict = op->od->nTObs - op->od->nCObs;
 			j = 0;
-			for( i = 0; i < op->od->nObs; i++ )
+			for( i = 0; i < op->od->nTObs; i++ )
 			{
 				if( op->od->obs_weight[i] != 0 ) { if( predict > 50 && j == 21 ) printf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
@@ -3152,7 +3183,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		if( op->pd->var_log[k] == 0 ) fprintf( out, "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
 		else fprintf( out, "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
 	}
-	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
+	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{
 		fprintf( out, "\nModel predictions:\n" );
 		// Open residuals file
@@ -3160,7 +3191,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		strcat( filename, ".residuals" );
 		out2 = Fwrite( filename );
 		if( op->cd->solution_type[0] == EXTERNAL )
-			for( i = 0; i < op->od->nObs; i++ )
+			for( i = 0; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
 				err = op->od->obs_target[i] - c;

@@ -499,9 +499,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	//
 	if( ( *cd ).solution_type[0] != EXTERNAL )
 	{
-		if( cd->disp_scaled > 1 && !cd->disp_tied ) printf( "Transverse dispersivities scaled!\n" );
-		else if( cd->disp_tied ) printf( "Transverse dispersivities tied!\n" );
-		else printf( "Transverse dispersivities not tied and not scaled!\n" );
+		if( cd->disp_scaled ) printf( "Longitudinal dispersivity is scaled!\n" );
+		if( cd->disp_scaled > 1 && !cd->disp_tied ) printf( "Transverse dispersivities are scaled!\n" );
+		else if( cd->disp_tied ) printf( "Transverse dispersivities are tied!\n" );
+		else printf( "Transverse dispersivities are neither tied or scaled!\n" );
 	}
 	// Read parameters
 	if( skip == 0 ) fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &( *pd ).nParam );

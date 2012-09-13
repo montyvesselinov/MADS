@@ -28,7 +28,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: Rosenbrock - parameters 3 observations 3
 
 
-Execution date & time stamp: 20120912-134316
+Execution date & time stamp: 20120912-162232
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -36,19 +36,19 @@ Imported seed: 2096575428
 Random sampling (variables 3; realizations 10) using 
 Improved Distributed LHS method (number of realizations < 500) ... done.
 
-Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 485 Jacobians: 81 Objective function: 2.38423e-09 Success: 1
-Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 375 Jacobians: 56 Objective function: 1.34935e-06 Success: 1
-Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 95 Jacobians: 13 Objective function: 4.17175e-09 Success: 1
+Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 485 Jacobians: 81 Objective function: 2.38279e-09 Success: 1
+Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 375 Jacobians: 56 Objective function: 1.34936e-06 Success: 1
+Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 95 Jacobians: 13 Objective function: 4.17172e-09 Success: 1
 Random set #4: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 478 Jacobians: 83 Objective function: 4.05054e-06 Success: 1
 Random set #5: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 82 Jacobians: 10 Objective function: 4.01898e-07 Success: 1
 Random set #6: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 60 Jacobians: 6 Objective function: 3.5934e-06 Success: 1
-Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 131 Jacobians: 19 Objective function: 2.63178e-07 Success: 1
-Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 51 Jacobians: 4 Objective function: 2.19571e-07 Success: 1
+Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 131 Jacobians: 19 Objective function: 2.6318e-07 Success: 1
+Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 51 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
 Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 161 Jacobians: 21 Objective function: 8.37532e-05 Success: 1
 Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 267 Jacobians: 39 Objective function: 1.71077e-06 Success: 1
 Total number of evaluations = 2185
 Total number of jacobians = 332
-Minimum objective function: 2.38423e-09
+Minimum objective function: 2.38279e-09
 Repeat the run producing the best results ...
 Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 10 (out of 10; success ratio 1)
 Statistics of total number of evaluations      : 51 - 82 [1m131[0m 375 - 485 : 10
@@ -67,11 +67,11 @@ Model parameters:
 Parameter #1 0.999995
 Parameter #2 0.999991
 Parameter #3 0.999977
-Objective function: 2.38423e-09 Success: 0 
+Objective function: 2.38279e-09 Success: 0 
 Simulation time = 0 seconds
 Functional evaluations = 2186
 Jacobian evaluations = 332
 Levenberg-Marquardt optimizations = 53
-Execution  started  on Wed Sep 12 13:43:16 2012
-Execution completed on Wed Sep 12 13:43:16 2012
-Execution date & time stamp: 20120912-134316
+Execution  started  on Wed Sep 12 16:22:32 2012
+Execution completed on Wed Sep 12 16:22:32 2012
+Execution date & time stamp: 20120912-162232

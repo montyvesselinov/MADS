@@ -602,9 +602,9 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 					else if( p->cd->disp_tied ) { p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY]; p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ]; };
 					if( p->cd->fdebug >= 5 )
 					{
-						if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) printf( "Transverse dispersivities scaled!\n" );
-						else if( p->cd->disp_tied ) printf( "Transverse dispersivities tied!\n" );
-						else printf( "Transverse dispersivities not tied and not scaled!\n" );
+						if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) printf( "Transverse dispersivities are scaled!\n" );
+						else if( p->cd->disp_tied ) printf( "Transverse dispersivities are tied!\n" );
+						else printf( "Transverse dispersivities are neither tied nor scaled!\n" );
 						printf( "AY %.12g\n", p->ad->var[AY] );
 						printf( "AZ %.12g\n", p->ad->var[AZ] );
 					}
@@ -838,16 +838,16 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 			else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
 			if( p->fdebug >= 5 )
 			{
-				if( p->disp_scaled > 1 && !p->disp_tied ) printf( "Transverse dispersivities scaled!\n" );
-				else if( p->disp_tied ) printf( "Transverse dispersivities tied!\n" );
-				else printf( "Transverse dispersivities not tied and not scaled!\n" );
+				if( p->disp_scaled > 1 && !p->disp_tied ) printf( "Transverse dispersivities are scaled!\n" );
+				else if( p->disp_tied ) printf( "Transverse dispersivities are tied!\n" );
+				else printf( "Transverse dispersivities are neither tied nor scaled!\n" );
 				printf( "AY %.12g\n", ad.var[AY] );
 				printf( "AZ %.12g\n", ad.var[AZ] );
 			}
 		}
 		if( p->fdebug > 6 )
 			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-				printf( "source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
+				printf( "func_solver1 source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
 		switch( p->solution_type[s] )
 		{
 			case POINT:
@@ -901,7 +901,7 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 			ad.var[j] = p->var[i];
 		if( p->fdebug >= 6 )
 			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-				printf( "source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
+				printf( "func_solver source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
 		if( p->disp_scaled ) // Scaled dispersivities
 		{
 			dx = ad.var[AX]; dy = ad.var[AY]; dz = ad.var[AZ];
