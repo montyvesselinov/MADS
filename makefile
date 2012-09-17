@@ -117,19 +117,19 @@ verify:
 	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2.1: Problem example/contamination/s01 ..."
-	mads example/contamination/s01 sindx=0.01 > /dev/null
+	mads example/contamination/s01 > /dev/null
 	@./compare-results example/contamination/s01.results example/contamination/s01.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2.2: Problem example/contamination/s01 with tied dispersivities ..."
-	mads example/contamination/s01 sindx=0.01 > /dev/null
+	mads example/contamination/s01-tied_dispersivities > /dev/null
 	@./compare-results example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2.3: Problem example/contamination/s01 with scaled dispersivities ..."
-	mads example/contamination/s01 sindx=0.01 > /dev/null
+	mads example/contamination/s01-scaled_dispersivities > /dev/null
 	@./compare-results example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
-	mads example/contamination/s01 sindx=0.01 > /dev/null
+	mads example/contamination/s01-scaled+tied_dispersivities > /dev/null
 	@./compare-results example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2: DONE"
@@ -203,19 +203,19 @@ create-verify:
 	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2.1: Problem example/contamination/s01 ..."
-	mads example/contamination/s01 sindx=0.01 > /dev/null
+	mads example/contamination/s01 > /dev/null
 	@cp example/contamination/s01.results example/contamination/s01.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2.2: Problem example/contamination/s01 with tied dispersivities ..."
-	mads example/contamination/s01 sindx=0.01 > /dev/null
+	mads example/contamination/s01-tied_dispersivities > /dev/null
 	@cp example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2.3: Problem example/contamination/s01 with scaled dispersivities ..."
-	mads example/contamination/s01 sindx=0.01 > /dev/null
+	mads example/contamination/s01-scaled_dispersivities > /dev/null
 	@cp example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
-	mads example/contamination/s01 sindx=0.01 > /dev/null
+	mads example/contamination/s01-scaled+tied_dispersivities > /dev/null
 	@cp example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2: DONE"

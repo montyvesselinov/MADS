@@ -27,7 +27,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: Rosenbrock - parameters 3 observations 3
 
 
-Execution date & time stamp: 20120912-134315
+Execution date & time stamp: 20120912-162232
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -36,7 +36,7 @@ Random sampling (variables 3; realizations 10) using
 Improved Distributed LHS method (number of realizations < 500) ... done.
 
 Random set #1: Levenberg-Marquardt Optimization ... OF 1.42311e+10 -> 10918.4Evaluations: 34 Jacobians: 6 Objective function: 10918.4 Success: 0
-Random set #2: Levenberg-Marquardt Optimization ... OF 4.08981e+09 -> 0.258452Evaluations: 76 Jacobians: 13 Objective function: 0.258452 Success: 0
+Random set #2: Levenberg-Marquardt Optimization ... OF 4.08981e+09 -> 0.258451Evaluations: 76 Jacobians: 13 Objective function: 0.258451 Success: 0
 Random set #3: Levenberg-Marquardt Optimization ... OF 1.46217e+09 -> 156.639Evaluations: 37 Jacobians: 7 Objective function: 156.639 Success: 0
 Random set #4: Levenberg-Marquardt Optimization ... OF 5.28401e+09 -> 418999Evaluations: 32 Jacobians: 5 Objective function: 418999 Success: 0
 Random set #5: Levenberg-Marquardt Optimization ... OF 4.14281e+09 -> 8897.26Evaluations: 41 Jacobians: 7 Objective function: 8897.26 Success: 0
@@ -67,11 +67,10 @@ Parameter #1 0.999995
 Parameter #2 0.999988
 Parameter #3 0.999929
 Objective function: 2.19572e-07 Success: 0 
-Simulation time = 1 seconds
+Simulation time = 0 seconds
 Functional evaluations = 433
 Jacobian evaluations = 74
 Levenberg-Marquardt optimizations = 10
-Functional evaluations per second = 433
-Execution  started  on Wed Sep 12 13:43:15 2012
-Execution completed on Wed Sep 12 13:43:16 2012
-Execution date & time stamp: 20120912-134315
+Execution  started  on Wed Sep 12 16:22:32 2012
+Execution completed on Wed Sep 12 16:22:32 2012
+Execution date & time stamp: 20120912-162232
