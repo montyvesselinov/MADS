@@ -57,6 +57,7 @@ int create_mprun_dir( char *dir );
 int delete_mprun_dir( char *dir );
 int mprun( int nJob, void *data );
 int Ftest( char *filename );
+int Ftestread( char *filename );
 time_t Fdatetime_t( char *filename, int debug );
 
 int func_extrn( double *x, void *data, double *f )
@@ -331,8 +332,8 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
-		if( Ftest( buf ) == 1 ) { if( p->cd->pardebug ) printf( "File %s does not exist.", buf ); return( 0 ); }
-		else if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
+		if( Ftestread( buf ) == 1 ) { if( p->cd->pardebug ) printf( "File %s cannot be opened to read.", buf ); return( 0 ); }
+		else if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, 0 ) == -1 )
 			return( 0 );
 	}
 	bad_data = 0;

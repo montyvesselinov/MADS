@@ -114,8 +114,6 @@ int count_cols( char *filename, int row );
 // External IO
 int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
-int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
-int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 // Random sampling
 double epsilon();
 void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x[] );

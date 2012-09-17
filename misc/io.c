@@ -33,6 +33,7 @@
 
 /* Functions here */
 int Ftest( char *filename );
+int Ftestread( char *filename );
 FILE *Fread( char *filename );
 FILE *Fwrite( char *filename );
 FILE *Fappend( char *filename );
@@ -42,6 +43,14 @@ time_t Fdatetime_t( char *filename, int debug );
 int Ftest( char *filename )
 {
 	return( access( filename, R_OK ) );
+}
+
+int Ftestread( char *filename )
+{
+	FILE *in;
+	if( ( in = fopen( filename, "rb" ) ) == NULL ) return( 1 );
+	fclose( in );
+	return( 0 );
 }
 
 FILE *Fread( char *filename )

@@ -578,8 +578,8 @@ int LEVMAR_DER(
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
 			{
 				if( diag_jacTjac[i] > tmp ) tmp = diag_jacTjac[i]; /* find max diagonal element */
-				if( diag_jacTjac[i] < DBL_EPSILON ) printf( "WARNING: Parameter %s is not impacting model predictions (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
-				else if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) printf( "Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
+				if( diag_jacTjac[i] < DBL_EPSILON ) printf( "WARNING: Parameter %s is NOT impacting model predictions (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
+				else if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) printf( "WARNING: Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
 			}
 			if( tmp > 1e4 ) tmp = 1e4;
 			mu = tau * tmp;
