@@ -133,23 +133,24 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
-		if( !strncasecmp( word, "crea", 4 ) ) { w = 1; cd->problem_type = CREATE; }
-		if( !strncasecmp( word, "forw", 4 ) ) { w = 1; cd->problem_type = FORWARD; }
-		if( !strncasecmp( word, "cali", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; }
-		if( !strncasecmp( word, "lsen", 4 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = LOCALSENS; }
-		if( !strncasecmp( word, "eige", 4 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = EIGEN; }
-		if( !strncasecmp( word, "mont", 4 ) ) { w = 1; cd->problem_type = MONTECARLO; }
-		if( !strncasecmp( word, "gsen", 4 ) ) { w = 1; cd->problem_type = GLOBALSENS; }
+		if( !strncasecmp( word, "check", 5 ) ) { w = 1; cd->problem_type = CHECK; }
+		if( !strncasecmp( word, "create", 6 ) ) { w = 1; cd->problem_type = CREATE; }
+		if( !strncasecmp( word, "forward", 7 ) ) { w = 1; cd->problem_type = FORWARD; }
+		if( !strncasecmp( word, "calib", 5 ) ) { w = 1; cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "lsens", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = LOCALSENS; }
+		if( !strncasecmp( word, "eigen", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = EIGEN; }
+		if( !strncasecmp( word, "monte", 5 ) ) { w = 1; cd->problem_type = MONTECARLO; }
+		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; }
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
-		if( !strncasecmp( word, "abag", 4 ) ) { w = 1; cd->problem_type = ABAGUS; }
+		if( !strncasecmp( word, "abagus", 6 ) ) { w = 1; cd->problem_type = ABAGUS; }
 		if( !strncasecmp( word, "infogap", 7 ) ) { w = 1; cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "postpua", 7 ) ) { w = 1; cd->problem_type = POSTPUA; }
-		if( !strncasecmp( word, "sing", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-		if( !strncasecmp( word, "simp", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
+		if( !strncasecmp( word, "single", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
+		if( !strncasecmp( word, "simple", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGPD; }
 		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = PPSD; }
 		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGRND; }
-		if( !strncasecmp( word, "leig", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
+		if( !strncasecmp( word, "leigen", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( !strncasecmp( word, "energy=", 7 ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( !strncasecmp( word, "background=", 11 ) ) { w = 1; sscanf( word, "background=%lf", &cd->c_background ); }
 		if( !strncasecmp( word, "lmfactor=", 9 ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
@@ -186,7 +187,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "oweight", 7 ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
 		if( !strncasecmp( word, "cutoff=", 7 ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); cd->check_success = cd->obsrange = cd->obserror = cd->parerror = 0; }
 		if( !strncasecmp( word, "obsrange", 8 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; }
-		if( !strncasecmp( word, "succ", 4 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; } // legacy
+		if( !strncasecmp( word, "success", 7 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; } // legacy
 		if( !strncasecmp( word, "truth", 5 ) ) { w = 1; sscanf( word, "truth=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; } // legacy
 		if( !strncasecmp( word, "parerror", 8 ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
 		if( !strncasecmp( word, "obserror", 8 ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->parerror = 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
@@ -247,7 +248,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	printf( "Problem type: " );
 	switch( cd->problem_type )
 	{
-		case CREATE: printf( "create a calibration input file based on forward run (no calibration)" ); break;
+		case CHECK: printf( "check model setup and input/output files (no model execution)" ); break;
+		case CREATE: printf( "create a calibration input file based on a forward run (no calibration)" ); break;
 		case FORWARD: printf( "forward run (no calibration)" ); break;
 		case CALIBRATE: printf( "calibration" ); break;
 		case LOCALSENS: printf( "sensitivity analysis" ); break;

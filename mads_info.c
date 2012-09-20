@@ -17,10 +17,11 @@ void mads_info()
 	printf( "PEST_input_file:      problem input file in PEST format (PEST control file; *.pst)\n\n" );
 	printf( "keywords & options (can be provided in any order):\n\n" );
 	printf( "problem type keywords:\n" );
-	printf( "   create             - create calibration problem based on provided model parameters\n" );
-	printf( "   forward            - forward model run\n" );
-	printf( "   calibrate          - calibration run [default]\n" );
-	printf( "   montecarlo         - Monte Carlo analysis\n" );
+	printf( "   check              - check model setup and input/output files (no model execution)\n" );
+	printf( "   create             - create calibration problem based on provided model parameters (single model execution to compute calibration targets)\n" );
+	printf( "   forward            - forward model run (no calibration); recommended for model setup checking\n" );
+	printf( "   calibrate          - calibration run [default if no problem type keyword is provided]\n" );
+	printf( "   montecarlo         - Monte-Carlo analysis\n" );
 	printf( "   gsens              - global sensitivity analysis\n" );
 	printf( "   glue               - Generalized Likelihood Uncertainty Estimation\n" );
 	printf( "   lsens              - local sensitivity analysis (standalone or at the end of the calibration)\n" );
@@ -180,15 +181,15 @@ void mads_info()
 	printf( "   mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3\n" );
 	printf( "   mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3\n" );
 	printf( "\nComparisons with PEST (http://www.sspa.com/pest/):\n" );
-	printf( "   mads s02 ldebug (file s02.mads is located in example/contamination)\n" );
-	printf( "   pest s02pest (file s02pest.pst is located in example/contamination)\n" );
-	printf( "   mads w01 ldebug  (files associated with problem w01 are located in example/wells)\n" );
-	printf( "   pest w01pest (files associated with problem w01pest are located in example/wells)\n" );
-	printf( "   pest w02pest (files associated with problem w02pest are located in example/wells)\n" );
-	printf( "             (for w01 comparison, code WELLS can be obtained at http://wells.lanl.gov)\n" );
+	printf( "   mads s02 ldebug                   (file s02.mads is located in example/contamination)\n" );
+	printf( "   pest s02pest                   (file s02pest.pst is located in example/contamination)\n" );
+	printf( "   mads w01 ldebug      (files associated with problem w01 are located in example/wells)\n" );
+	printf( "   pest w01pest     (files associated with problem w01pest are located in example/wells)\n" );
+	printf( "   pest w02pest     (files associated with problem w02pest are located in example/wells)\n" );
+	printf( "               (for w01 comparison, code WELLS can be obtained at http://wells.lanl.gov)\n" );
 	printf( "\nFor additional information:\n" );
 	printf( "   web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n" );
-	printf( "   email: Velimir Vesselinov (monty) vvv@lanl.gov\n" );
+	printf( "   email: Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\n" );
 }
 
 

@@ -299,7 +299,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &pnt_inst[1], "%d", &c );
-			if( debug ) printf( "Skip %d lines\n", c );
+			if( debug > 1 ) printf( "Skip %d lines\n", c );
 			word_inst = strtok_r( NULL, separator, &pnt_inst ); // skip l command
 		}
 		while( 1 )
@@ -474,14 +474,14 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		pnt_inst = &buf_inst[0];
 		word_inst = 0;
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
-		if( debug ) printf( "\n\nCurrent instruction line: %s\n", pnt_inst );
+		if( debug > 1 ) printf( "\n\nCurrent instruction line: %s\n", pnt_inst );
 		fflush( stdout );
 		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
 		if( strlen( pnt_inst ) == 0 ) { if( debug ) printf( "Empty line; will be skipped.\n" ); continue; }
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &pnt_inst[1], "%d", &c );
-			if( debug ) printf( "Skip %d lines\n", c );
+			if( debug > 1 ) printf( "Skip %d lines\n", c );
 			for( i = 0; i < c; i++ )
 				if( fgets( buf_data, 1000, infile_data ) == NULL ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 			word_inst = strtok_r( NULL, separator, &pnt_inst ); // skip l command
@@ -497,7 +497,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			pnt_data = &buf_data[0];
 			word_data = NULL;
 		}
-		if( debug > 1 ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'", word_data, pnt_data );
+		if( debug > 1 ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
 		if( debug ) { if( pnt_data != NULL ) { if( pnt_data[strlen( pnt_data ) - 2] != '\n' ) {} } }
 		c = 0;
 		while( 1 )
@@ -505,20 +505,16 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
 			if( pnt_inst[0] == token_search[0] ) // search for keyword
 			{
-				if( debug ) { printf( "Keyword search " ); fflush( stdout ); }
+				if( debug > 1 ) { printf( "Keyword search " ); fflush( stdout ); }
 				word_search = strtok_r( NULL, token_search, &pnt_inst ); // read search keyword
-				if( debug ) { printf( "\'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
+				if( debug > 1 ) { printf( "\'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
 				bad_data = 1;
 				while( !feof( infile_data ) )
 				{
 					if( ( pnt_data = strstr( pnt_data, word_search ) ) != NULL )
 					{
 						pnt_data += strlen( word_search );
-						if( debug == 1 ) printf( "Matching data file location \'%s\'\n", pnt_data );
-						else
-						{
-							if( debug > 1 ) printf( "Matching data file line: \'%s\'\nLocation: \'%s\'\n", buf_data, pnt_data );
-						}
+						if( debug > 1 ) printf( "Matching data file location \'=>%s<=%s\'\n", word_search, pnt_data );
 						bad_data = 0;
 						break;
 					}
@@ -770,7 +766,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		}
 	}
 	token[1] = 0;
-	if( debug ) printf( "Parameter separator: %s\n", token );
+	if( debug > 1 ) printf( "Parameter separator: %s\n", token );
 	fflush( stdout );
 	while( !feof( in ) )
 	{
@@ -805,7 +801,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 							sprintf( number, "%-20.12g", par[i] );
 						if( space ) fprintf( out, " %s", number );
 						else { space = 0; fprintf( out, "%s", number ); } // TODO originally was space = 1
-						if( debug ) printf( "replaced with \'%s\' (parameter \'%s\')\n", number, par_id[i] );
+						if( debug ) printf( "replaced with \'%s\'\n", number );
 						fflush( stdout );
 						break;
 					}

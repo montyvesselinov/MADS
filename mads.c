@@ -59,6 +59,7 @@
 int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
 int optimize_pso( struct opt_data *op ); // PSO optimization
 int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
+int check( struct opt_data *op );
 int igrnd( struct opt_data *op );
 int igpd( struct opt_data *op );
 int ppsd( struct opt_data *op );
@@ -198,7 +199,7 @@ int main( int argn, char *argv[] )
 		exit( 1 );
 	}
 	else
-		printf( "Velimir Vesselinov (monty) vvv@lanl.gov\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
+		printf( "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
 	op.label = ( char * ) malloc( 10 * sizeof( char ) ); op.label[0] = 0;
 	if( cd.debug ) printf( "Argument[1]: %s\n", argv[1] );
 	else
@@ -489,6 +490,13 @@ int main( int argn, char *argv[] )
 	//
 	// Model analyses are performed below based on provided inputs
 	//
+	// ------------------------ CHECK
+	//
+	if( cd.problem_type == CHECK ) /* Check model input files */
+	{
+		status = check( &op );
+		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+	}
 	// ------------------------ IGRND
 	//
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
@@ -1585,6 +1593,31 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	gsl_matrix_free( eigenvec ); gsl_vector_free( eigenval ); gsl_eigen_symmv_free( eigenwork );
 	if( compute_jacobian ) gsl_matrix_free( gsl_jacobian );
 	if( compute_covar ) gsl_matrix_free( gsl_covar );
+	return( 1 );
+}
+
+// Check
+int check( struct opt_data *op )
+{
+	struct opt_data *p = ( struct opt_data * )op;
+	int i, bad_data = 0;
+
+	for( i = 0; i < p->ed->ntpl; i++ )
+		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug + 1 ) == -1 )
+			bad_data = 1;
+	for( i = 0; i < p->od->nTObs; i++ ) p->od->obs_current[i] = p->od->res[i] = 0;
+	for( i = 0; i < p->ed->nins; i++ )
+		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug + 1 ) == -1 )
+			bad_data = 1;
+	for( i = 0; i < p->od->nTObs; i++ )
+	{
+		if( p->od->res[i] < 0 )
+		{
+			printf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
+			bad_data = 1;
+		}
+	}
+	if( bad_data ) return( 0 );
 	return( 1 );
 }
 
