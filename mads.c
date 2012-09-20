@@ -1601,7 +1601,6 @@ int check( struct opt_data *op )
 {
 	struct opt_data *p = ( struct opt_data * )op;
 	int i, bad_data = 0;
-
 	for( i = 0; i < p->ed->ntpl; i++ )
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug + 1 ) == -1 )
 			bad_data = 1;
