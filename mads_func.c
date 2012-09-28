@@ -71,7 +71,7 @@ int func_extrn( double *x, void *data, double *f )
 		func_extrn_write( p->cd->neval + 1, x, data );
 		if( mprun( 1, data ) < 0 ) // Perform one (1) run in parallel
 		{
-			printf( "ERROR: there is a problem with the parallel execution!\n" );
+			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			exit( 1 );
 		}
 		bad_data = func_extrn_read( p->cd->neval, data, f ); // p->cd->eval was already incremented in mprun
@@ -80,36 +80,36 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	p->cd->neval++;
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) printf( "Model parameters:\n" );
+	if( p->cd->fdebug >= 3 ) tprintf( "Model parameters:\n" );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
 		if( p->cd->fdebug >= 3 )
-			printf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
+			tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nParam == p->pd->nOptParam ) printf( "NO fixed parameters.\n" );
+		if( p->pd->nParam == p->pd->nOptParam ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
-			printf( "Fixed parameters:\n" );
+			tprintf( "Fixed parameters:\n" );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
-					printf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
+					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
 		}
 	}
 	if( p->cd->fdebug >= 4 )
 	{
-		printf( "Objective function: " );
+		tprintf( "Objective function: " );
 		switch( p->cd->objfunc_type )
 		{
-			case SSR: printf( "sum of squared residuals" ); break;
-			case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
-			case SSDA: printf( "sum of squared discrepancies and absolute residuals" ); break;
-			case SSD0: printf( "sum of squared discrepancies" ); break;
-			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
+			case SSR: tprintf( "sum of squared residuals" ); break;
+			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
+			case SSDA: tprintf( "sum of squared discrepancies and absolute residuals" ); break;
+			case SSD0: tprintf( "sum of squared discrepancies" ); break;
+			default: tprintf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 		}
 	}
 	for( i = 0; i < p->ed->ntpl; i++ )
@@ -122,11 +122,11 @@ int func_extrn( double *x, void *data, double *f )
 		strcat( buf, " " );
 	}
 	strcat( buf, " >& /dev/null" );
-	if( p->cd->tpldebug || p->cd->insdebug ) printf( "\nDelete the expected output files before execution (\'%s\')\n", buf );
+	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "\nDelete the expected output files before execution (\'%s\')\n", buf );
 	system( buf );
-	if( p->cd->tpldebug || p->cd->insdebug ) printf( "Execute external model \'%s\' ... ", p->ed->cmdline );
+	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
 	system( p->ed->cmdline );
-	if( p->cd->tpldebug || p->cd->insdebug ) printf( "done!\n" );
+	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	for( i = 0; i < p->od->nTObs; i++ ) p->od->res[i] = -1;
 	for( i = 0; i < p->ed->nins; i++ )
 		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug ) == -1 )
@@ -135,18 +135,18 @@ int func_extrn( double *x, void *data, double *f )
 	{
 		if( p->od->res[i] < 0 )
 		{
-			printf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
+			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
 		}
 		else if( p->od->res[i] > 1.5 )
 		{
 			if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug )
-				printf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
+				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
 			p->od->obs_current[i] /= p->od->res[i];
 		}
 	}
 	if( bad_data ) exit( -1 );
-	if( p->cd->fdebug >= 2 ) printf( "\nModel predictions:\n" );
+	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		c = p->od->obs_current[i];
@@ -188,25 +188,25 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->cd->fdebug >= 2 )
 		{
 			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
-				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
-			if( p->od->nTObs > 50 && i == 21 ) printf( "...\n" );
+				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
+			if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
 	p->success = success_all; // Just in case
-	if( p->cd->fdebug >= 2 ) printf( "Objective function %g\n", phi );
+	if( p->cd->fdebug >= 2 ) tprintf( "Objective function %g\n", phi );
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = success_all; }
 	if( p->cd->phi_cutoff > DBL_EPSILON )
 	{
 		if( phi < p->cd->phi_cutoff )
 		{
 			p->success = 1;
-			if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+			if( p->cd->fdebug ) tprintf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
 		}
 		else p->success = 0;
 	}
-	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) printf( "SUCCESS: Model results are within the predefined ranges (func_extrn)!\n" ); }
+	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) tprintf( "SUCCESS: Model results are within the predefined ranges (func_extrn)!\n" ); }
 	return GSL_SUCCESS;
 }
 
@@ -216,36 +216,36 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	char buf[1000], dir[500];
 	int i, k;
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) printf( "Model parameters (model run = %d):\n", ieval );
+	if( p->cd->fdebug >= 3 ) tprintf( "Model parameters (model run = %d):\n", ieval );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
 		if( p->cd->fdebug >= 3 )
-			printf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
+			tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nParam == p->pd->nOptParam ) printf( "NO fixed parameters.\n" );
+		if( p->pd->nParam == p->pd->nOptParam ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
-			printf( "Fixed parameters:\n" );
+			tprintf( "Fixed parameters:\n" );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
-					printf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
+					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
 		}
 	}
 	if( p->cd->fdebug >= 4 )
 	{
-		printf( "Objective function: " );
+		tprintf( "Objective function: " );
 		switch( p->cd->objfunc_type )
 		{
-			case SSR: printf( "sum of squared residuals" ); break;
-			case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
-			case SSDA: printf( "sum of squared discrepancies and absolute residuals" ); break;
-			case SSD0: printf( "sum of squared discrepancies" ); break;
-			default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
+			case SSR: tprintf( "sum of squared residuals" ); break;
+			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
+			case SSDA: tprintf( "sum of squared discrepancies and absolute residuals" ); break;
+			case SSD0: tprintf( "sum of squared discrepancies" ); break;
+			default: tprintf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 		}
 	}
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
@@ -257,7 +257,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		strcat( buf, " " );
 	}
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
-	if( p->cd->pardebug > 2 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
+	if( p->cd->pardebug > 2 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
 	system( buf );
 	create_mprun_dir( dir ); // Create the child directory for parallel runs with link to the files in the working root directory
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
@@ -273,7 +273,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
 	system( buf );
-	if( p->cd->pardebug > 3 ) printf( "Input files for parallel run #%d are archived!\n", ieval );
+	if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
 	if( p->cd->restart == 0 ) // Do not delete if restart is attempted
 	{
 		sprintf( buf, "cd ../%s; rm -f ", dir ); // Delete expected output files in the hosts directories
@@ -283,7 +283,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 			strcat( buf, " " );
 		}
 		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
-		if( p->cd->pardebug > 2 ) printf( "Delete the expected output files before execution (\'%s\')\n", buf );
+		if( p->cd->pardebug > 2 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
 		system( buf );
 	}
 	else // Just in case; the restart file should have been already extracted
@@ -292,7 +292,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		for( i = 0; i < p->ed->nins; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
-		if( p->cd->pardebug > 2 ) printf( "Extract the expected output files before execution (\'%s\')\n", buf );
+		if( p->cd->pardebug > 2 ) tprintf( "Extract the expected output files before execution (\'%s\')\n", buf );
 		system( buf );
 	}
 	return GSL_SUCCESS;
@@ -304,16 +304,16 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 	char buf[1000], dir[500];
 	p->cd->neval++;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
-	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "\nWorking directory: ../%s\n", dir );
+	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "\nWorking directory: ../%s\n", dir );
 	if( p->cd->pardebug > 2 )
 	{
 		sprintf( buf, "cd ../%s; ls -altr ", dir ); // Check directory content
 		system( buf );
 	}
-	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "Execute external model \'%s\' ... ", p->ed->cmdline );
+	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
 	sprintf( buf, "cd ../%s; %s", dir, p->ed->cmdline );
 	system( buf );
-	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) printf( "done!\n" );
+	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	return GSL_SUCCESS;
 }
 
@@ -332,7 +332,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
-		if( Ftestread( buf ) == 1 ) { if( p->cd->pardebug ) printf( "File %s cannot be opened to read.", buf ); return( 0 ); }
+		if( Ftestread( buf ) == 1 ) { if( p->cd->pardebug ) tprintf( "File %s cannot be opened to read.", buf ); return( 0 ); }
 		else if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, 0 ) == -1 )
 			return( 0 );
 	}
@@ -341,20 +341,20 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	{
 		if( p->od->res[i] < 0 )
 		{
-			if( p->cd->pardebug ) printf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
+			if( p->cd->pardebug ) tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
 		}
 		else if( p->od->res[i] > 1.5 )
 		{
 			if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug || p->cd->pardebug )
-				printf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
+				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
 			p->od->obs_current[i] /= p->od->res[i];
 		}
 	}
 	if( bad_data ) return( 0 );
 	if( ( p->cd->time_infile - Fdatetime_t( buf, 0 ) ) > 0 )
 	{
-		if( p->cd->pardebug ) printf( "File %s is older than the MADS input file.\n", buf );
+		if( p->cd->pardebug ) tprintf( "File %s is older than the MADS input file.\n", buf );
 		if( p->cd->restart == -1 ) return( 1 ); else return( 0 );
 	}
 	return( 1 );
@@ -379,13 +379,13 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	{
 		if( p->od->res[i] < 0 )
 		{
-			printf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
+			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
 		}
 		else if( p->od->res[i] > 1.5 )
 		{
 			if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug )
-				printf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
+				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
 			p->od->obs_current[i] /= p->od->res[i];
 		}
 	}
@@ -395,9 +395,9 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null" );
 	system( buf );
-	if( p->cd->pardebug > 3 ) printf( "Results from parallel run #%d are archived!\n", ieval );
+	if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
-	if( p->cd->fdebug >= 2 ) printf( "\nModel predictions (model run = %d):\n", ieval );
+	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions (model run = %d):\n", ieval );
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		c = p->od->obs_current[i];
@@ -439,25 +439,25 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		if( p->cd->fdebug >= 2 )
 		{
 			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
-				printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
-			if( p->od->nTObs > 50 && i == 21 ) printf( "...\n" );
+				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
+			if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
 	p->success = success_all; // Just in case
-	if( p->cd->fdebug >= 2 ) printf( "Objective function %g\n", phi );
+	if( p->cd->fdebug >= 2 ) tprintf( "Objective function %g\n", phi );
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = success_all; }
 	if( p->cd->phi_cutoff > DBL_EPSILON )
 	{
 		if( phi < p->cd->phi_cutoff )
 		{
 			p->success = 1;
-			if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+			if( p->cd->fdebug ) tprintf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
 		}
 		else p->success = 0;
 	}
-	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) printf( "SUCCESS: Model results are within the predefined ranges (func_extrn)!\n" ); }
+	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) tprintf( "SUCCESS: Model results are within the predefined ranges (func_extrn)!\n" ); }
 	return GSL_SUCCESS;
 }
 
@@ -476,45 +476,45 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		else p->f_ofe = fopen( filename, "w" );
 	}
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) printf( "Model parameters (%d):\n", p->pd->nOptParam );
+	if( p->cd->fdebug >= 3 ) tprintf( "Model parameters (%d):\n", p->pd->nOptParam );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
-		if( p->cd->fdebug >= 3 ) printf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
+		if( p->cd->fdebug >= 3 ) tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nParam == p->pd->nOptParam ) printf( "NO fixed parameters.\n" );
+		if( p->pd->nParam == p->pd->nOptParam ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
-			printf( "Fixed parameters (%d):\n", p->pd->nParam - p->pd->nOptParam );
+			tprintf( "Fixed parameters (%d):\n", p->pd->nParam - p->pd->nOptParam );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
-					printf( "%s: %.12g\n", p->pd->var_id[i], p->cd->var[i] );
+					tprintf( "%s: %.12g\n", p->pd->var_id[i], p->cd->var[i] );
 		}
 	}
 	if( p->cd->fdebug >= 4 )
 	{
-		printf( "Objective function: " );
+		tprintf( "Objective function: " );
 		if( p->cd->solution_type[0] != TEST )
 		{
 			switch( p->cd->objfunc_type )
 			{
-				case SSR: printf( "sum of squared residuals" ); break;
-				case SSDR: printf( "sum of squared discrepancies and squared residuals" ); break;
-				case SSDA: printf( "sum of squared discrepancies and absolute residuals" ); break;
-				case SSD0: printf( "sum of squared discrepancies" ); break;
-				default: printf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
+				case SSR: tprintf( "sum of squared residuals" ); break;
+				case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
+				case SSDA: tprintf( "sum of squared discrepancies and absolute residuals" ); break;
+				case SSD0: tprintf( "sum of squared discrepancies" ); break;
+				default: tprintf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 			}
-			if( p->cd->compute_phi ) printf( " --- computed\n" );
+			if( p->cd->compute_phi ) tprintf( " --- computed\n" );
 		}
 		else
-			printf( "test function\n" );
+			tprintf( "test function\n" );
 	}
 	// p->cd->compute_phi = 1;
-	// if( p->cd->compute_phi ) printf( " --- computed!!!!\n" );
+	// if( p->cd->compute_phi ) tprintf( " --- computed!!!!\n" );
 	if( p->cd->solution_type[0] == TEST )
 	{
 		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var, p->od->nObs, f );
@@ -524,7 +524,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			success_all = 1;
 			for( k = 0; k < p->pd->nOptParam; k++ )
 				if( fabs( p->cd->var[k] - p->pd->var_truth[k] ) > p->cd->parerror ) success_all = 0;
-			if( p->cd->fdebug >= 4 ) printf( "Test OF %g Success %d\n", phi, success_all );
+			if( p->cd->fdebug >= 4 ) tprintf( "Test OF %g Success %d\n", phi, success_all );
 		}
 		if( p->cd->test_func >= 40 )
 		{
@@ -540,7 +540,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 					if( c < p->od->obs_min[k] || c > p->od->obs_max[k] ) { success_all = success = 0; }
 					else success = 1;
 				}
-				// printf( "e %g %g\n", err, p->od->obs_target[k] );
+				// tprintf( "e %g %g\n", err, p->od->obs_target[k] );
 				phi += err * err;
 			}
 			p->phi = phi;
@@ -550,20 +550,20 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->cd->check_success && p->cd->obserror > DBL_EPSILON ) success_all = 0;
 			if( p->cd->fdebug >= 5 )
 			{
-				printf( "Test OF %d %g\n", success_all, phi );
+				tprintf( "Test OF %d %g\n", success_all, phi );
 				c = 0;
 				for( k = 0; k < p->od->nObs; k++ )
 				{
-					printf( "%s %g\n", p->od->obs_id[k], f[k] );
+					tprintf( "%s %g\n", p->od->obs_id[k], f[k] );
 					c += f[k] * f[k];
 				}
-				printf( "Test OF ? %g\n", c );
+				tprintf( "Test OF ? %g\n", c );
 			}
 		}
 	}
 	else
 	{
-		if( p->cd->fdebug >= 2 ) printf( "\nModel predictions:\n" );
+		if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
 		l = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE ); // copy model parameters
 		p2 = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
 		for( p1 = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; p1 < l; p1++, p2++ )
@@ -572,8 +572,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		{
 			if( p->cd->fdebug >= 5 )
 			{
-				printf( "Tied AY %.12g = %.12g / %.12g\n", p->ad->var[AX] / p->ad->var[AY], p->ad->var[AX], p->ad->var[AY] );
-				printf( "Tied AZ %.12g = %.12g / %.12g\n", p->ad->var[AY] / p->ad->var[AZ], p->ad->var[AY], p->ad->var[AZ] );
+				tprintf( "Tied AY %.12g = %.12g / %.12g\n", p->ad->var[AX] / p->ad->var[AY], p->ad->var[AX], p->ad->var[AY] );
+				tprintf( "Tied AZ %.12g = %.12g / %.12g\n", p->ad->var[AY] / p->ad->var[AZ], p->ad->var[AY], p->ad->var[AZ] );
 			}
 			p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY];
 			p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ];
@@ -597,17 +597,17 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 					y1 = p->wd->y[i] - p->ad->var[SOURCE_Y];
 					z1 = ( p->wd->z1[i] + p->wd->z2[i] ) - p->ad->var[SOURCE_Z];
 					dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
-					if( p->cd->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", p->ad->var[AX] * dist, p->ad->var[AX], dist );
+					if( p->cd->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", p->ad->var[AX] * dist, p->ad->var[AX], dist );
 					p->ad->var[AX] *= dist;
 					if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) { p->ad->var[AY] *= dist; p->ad->var[AZ] *= dist; }
 					else if( p->cd->disp_tied ) { p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY]; p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ]; };
 					if( p->cd->fdebug >= 5 )
 					{
-						if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) printf( "Transverse dispersivities are scaled!\n" );
-						else if( p->cd->disp_tied ) printf( "Transverse dispersivities are tied!\n" );
-						else printf( "Transverse dispersivities are neither tied nor scaled!\n" );
-						printf( "AY %.12g\n", p->ad->var[AY] );
-						printf( "AZ %.12g\n", p->ad->var[AZ] );
+						if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) tprintf( "Transverse dispersivities are scaled!\n" );
+						else if( p->cd->disp_tied ) tprintf( "Transverse dispersivities are tied!\n" );
+						else tprintf( "Transverse dispersivities are neither tied nor scaled!\n" );
+						tprintf( "AY %.12g\n", p->ad->var[AY] );
+						tprintf( "AZ %.12g\n", p->ad->var[AZ] );
 					}
 				}
 				switch( p->cd->solution_type[s] )
@@ -677,8 +677,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->cd->fdebug >= 2 )
 			{
 				if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
-					printf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * w, success, min , max );
-				if( p->od->nObs > 50 && i == 21 ) printf( "...\n" );
+					tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * w, success, min , max );
+				if( p->od->nObs > 50 && i == 21 ) tprintf( "...\n" );
 				if( !p->cd->compute_phi ) phi += f[i] * f[i];
 			}
 			if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
@@ -693,18 +693,18 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		fprintf( p->f_ofe, "\n" );
 		fflush( p->f_ofe );
 	}
-	if( p->cd->fdebug >= 2 ) printf( "Objective function %g\n", phi );
+	if( p->cd->fdebug >= 2 ) tprintf( "Objective function %g\n", phi );
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = success_all; }
 	if( p->cd->phi_cutoff > DBL_EPSILON )
 	{
 		if( phi < p->cd->phi_cutoff )
 		{
 			p->success = 1;
-			if( p->cd->fdebug ) printf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
+			if( p->cd->fdebug ) tprintf( "SUCCESS: OF is below predefined cutoff value (%g < %g; func_intrn)!\n", phi, p->cd->phi_cutoff );
 		}
 		else p->success = 0;
 	}
-	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) printf( "SUCCESS: Model results are within the predefined ranges (func_intrn)!\n" ); }
+	if( p->cd->check_success ) { p->success = success_all; p->phi = phi; if( p->cd->fdebug && success_all ) tprintf( "SUCCESS: Model results are within the predefined ranges (func_intrn)!\n" ); }
 	return GSL_SUCCESS;
 }
 
@@ -719,7 +719,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	double *jacobian;
 	int i, j, k;
 	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nObs ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	func_dx( x, f, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
 		for( i = 0; i < p->od->nObs; i++, k++ )
@@ -735,7 +735,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	int i, j, k, compute_center = 0, bad_data = 0, ieval;
 	ieval = p->cd->neval;
 	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); return( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); return( 1 ); }
 	p->cd->compute_phi = 0;
 	if( p->cd->num_proc > 1 && p->cd->solution_type[0] == EXTERNAL ) // Parallel execution of external runs
 	{
@@ -743,7 +743,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		{
 			compute_center = 1;
 			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); return( 1 ); }
+			{ tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_extrn_write( ++ieval, x, data );
 		}
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
@@ -757,7 +757,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		}
 		if( mprun( p->pd->nOptParam + compute_center, data ) < 0 ) // Perform all the runs in parallel
 		{
-			printf( "ERROR: there is a problem with the parallel execution!\n" );
+			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			exit( 1 );
 		}
 		system( "sleep 2" );
@@ -778,7 +778,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		{
 			compute_center = 1;
 			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
-			{ printf( "Not enough memory!\n" ); return( 1 ); }
+			{ tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_global( x, data, f_x );
 		}
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
@@ -813,8 +813,8 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 	{
 		if( p->fdebug >= 5 )
 		{
-			printf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
-			printf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
+			tprintf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
+			tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
 		}
 		ad.var[AY] = ad.var[AX] / ad.var[AY];
 		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
@@ -832,23 +832,23 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 			y1 = y - ad.var[SOURCE_Y];
 			z1 = z - ad.var[SOURCE_Z];
 			dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
-			// printf( "func_solver1\n" );
-			if( p->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
+			// tprintf( "func_solver1\n" );
+			if( p->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
 			ad.var[AX] *= dist;
 			if( p->disp_scaled > 1 && !p->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
 			else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
 			if( p->fdebug >= 5 )
 			{
-				if( p->disp_scaled > 1 && !p->disp_tied ) printf( "Transverse dispersivities are scaled!\n" );
-				else if( p->disp_tied ) printf( "Transverse dispersivities are tied!\n" );
-				else printf( "Transverse dispersivities are neither tied nor scaled!\n" );
-				printf( "AY %.12g\n", ad.var[AY] );
-				printf( "AZ %.12g\n", ad.var[AZ] );
+				if( p->disp_scaled > 1 && !p->disp_tied ) tprintf( "Transverse dispersivities are scaled!\n" );
+				else if( p->disp_tied ) tprintf( "Transverse dispersivities are tied!\n" );
+				else tprintf( "Transverse dispersivities are neither tied nor scaled!\n" );
+				tprintf( "AY %.12g\n", ad.var[AY] );
+				tprintf( "AZ %.12g\n", ad.var[AZ] );
 			}
 		}
 		if( p->fdebug > 6 )
 			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-				printf( "func_solver1 source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
+				tprintf( "func_solver1 source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
 		switch( p->solution_type[s] )
 		{
 			case POINT:
@@ -888,8 +888,8 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 	{
 		if( p->fdebug >= 5 )
 		{
-			printf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
-			printf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
+			tprintf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
+			tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
 		}
 		ad.var[AY] = ad.var[AX] / ad.var[AY];
 		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
@@ -902,7 +902,7 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 			ad.var[j] = p->var[i];
 		if( p->fdebug >= 6 )
 			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-				printf( "func_solver source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
+				tprintf( "func_solver source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
 		if( p->disp_scaled ) // Scaled dispersivities
 		{
 			dx = ad.var[AX]; dy = ad.var[AY]; dz = ad.var[AZ];
@@ -910,18 +910,18 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 			y1 = y - ad.var[SOURCE_Y];
 			z3 = ( z1 + z2 ) - ad.var[SOURCE_Z];
 			dist = sqrt( x1 * x1 + y1 * y1 + z3 * z3 );
-			// printf( "func_solver\n" );
-			if( p->fdebug >= 5 ) printf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
+			// tprintf( "func_solver\n" );
+			if( p->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
 			ad.var[AX] *= dist;
 			if( p->disp_scaled > 1 && !p->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
 			else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
 			if( p->fdebug >= 5 )
 			{
-				if( p->disp_scaled > 1 && !p->disp_tied ) printf( "Transverse dispersivities scaled!\n" );
-				else if( p->disp_tied ) printf( "Transverse dispersivities tied!\n" );
-				else printf( "Transverse dispersivities not tied and not scaled!\n" );
-				printf( "AY %.12g\n", ad.var[AY] );
-				printf( "AZ %.12g\n", ad.var[AZ] );
+				if( p->disp_scaled > 1 && !p->disp_tied ) tprintf( "Transverse dispersivities scaled!\n" );
+				else if( p->disp_tied ) tprintf( "Transverse dispersivities tied!\n" );
+				else tprintf( "Transverse dispersivities not tied and not scaled!\n" );
+				tprintf( "AY %.12g\n", ad.var[AY] );
+				tprintf( "AZ %.12g\n", ad.var[AZ] );
 			}
 		}
 		switch( p->solution_type[s] )
@@ -963,10 +963,10 @@ void Transform( double *v, void *data, double *vt )
 		for( i = 0; i < p->pd->nOptParam; i++ )
 		{
 			k = p->pd->var_index[i];
-			//			printf( "trans %s %g %g %g -> ", p->pd->var_id[p->pd->var_index[i]], v[i], p->pd->var_range[k], p->pd->var_min[k] );
+			// tprintf( "trans %s %g %g %g -> ", p->pd->var_id[p->pd->var_index[i]], v[i], p->pd->var_range[k], p->pd->var_min[k] );
 			vt[i] = ( v[i] - p->pd->var_min[k] ) / p->pd->var_range[k];
 			vt[i] = asin( ( double ) vt[i] * 2.0 - 1.0 );
-			//			printf( "%g\n", vt[i] );
+			// tprintf( "%g\n", vt[i] );
 		}
 }
 
@@ -978,7 +978,7 @@ void DeTransform( double *v, void *data, double *vt )
 		for( i = 0; i < p->pd->nOptParam; i++ )
 		{
 			vt[i] = v[i];
-			//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
+			// tprintf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
 		}
 	else
 		for( i = 0; i < p->pd->nOptParam; i++ )
@@ -986,6 +986,6 @@ void DeTransform( double *v, void *data, double *vt )
 			k = p->pd->var_index[i];
 			vt[i] = ( ( double ) sin( v[i] ) + 1.0 ) / 2.0;
 			vt[i] = p->pd->var_min[k] + vt[i] * p->pd->var_range[k];
-			//			printf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
+			// tprintf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
 		}
 }

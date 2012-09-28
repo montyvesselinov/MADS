@@ -233,16 +233,16 @@ int abagus( struct opt_data *op )
 	int iter = 0;
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	eval_max = op->cd->maxeval; // Max number of evaluations for each run
 	if( ( finv = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	if( ( finvbad = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	irand_seed = &op->cd->seed;
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
-	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed ); }
 	E = exp( 1 );
 	pi = acos( -1 );
 	//----------------------------------------------- PROBLEM
@@ -314,7 +314,7 @@ int abagus( struct opt_data *op )
 		if( op->cd->pdebug )printf( "Max OF within success: %g\n", eps );
 	}
 	else eps = op->cd->phi_cutoff; // If success option is not selected, use phi_cutoff
-	if( eps < op->cd->phi_cutoff ) { printf( "phi_cutoff > Max OF within success (%lf > %lf), abagus will use phi_cutoff\n", op->cd->phi_cutoff, eps ); eps = op->cd->phi_cutoff;  } // If max eps within success is less than phi_cutoff
+	if( eps < op->cd->phi_cutoff ) { tprintf( "phi_cutoff > Max OF within success (%lf > %lf), abagus will use phi_cutoff\n", op->cd->phi_cutoff, eps ); eps = op->cd->phi_cutoff;  } // If max eps within success is less than phi_cutoff
 	f_min = 0; // Objective value
 	n_exec_max = 1; // Numbers of runs
 	// Read in previous results
@@ -326,7 +326,7 @@ int abagus( struct opt_data *op )
 	// Write accepted locations from input file to output file
 	// Open output file
 	sprintf( filename, "%s.abagus", op->root ); // TODO rename pssa to abagus to avoid confusion
-	if( ( f_run = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+	if( ( f_run = fopen( filename, "w" ) ) == NULL ) { tprintf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
 	fprintf( f_run, "Number OF parameters...\n" ); // Write header
 	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] ); // Determine center parameter space for search
 	if( op->cd->infile[0] != 0 )
@@ -348,11 +348,11 @@ int abagus( struct opt_data *op )
 				//fprintf( f_run, "\n" );
 				kd_res_next( kdset );
 			}
-			printf( "\n%d locations accepted from %s\n\n", kd_res_size( kdset ), op->cd->infile );
+			tprintf( "\n%d locations accepted from %s\n\n", kd_res_size( kdset ), op->cd->infile );
 			kd_res_free( kdset );
 		}
-		else if( op->cd->check_success ) printf( "\nNo solutions found in %s within target ranges\n\n", op->cd->infile );
-		else printf( "\nNo solutions found in %s at phi cutoff = %g\n\n", op->cd->infile, eps );
+		else if( op->cd->check_success ) tprintf( "\nNo solutions found in %s within target ranges\n\n", op->cd->infile );
+		else tprintf( "\nNo solutions found in %s at phi cutoff = %g\n\n", op->cd->infile, eps );
 	}
 	if( n_exec_max > R_max ) n_exec_max = R_max;
 	//-----------------------------------------------------  PARAMETERS
@@ -361,8 +361,8 @@ int abagus( struct opt_data *op )
 	//w = 1 / ( 2 * log( 2 ) ); c = 0.5 + log( 2 );
 	//w = 1.2; c = 1.7;
 	w = 0.5; c = 0.7;
-	if( op->cd->pdebug ) printf( "\n Swarm size %i", S );
-	if( op->cd->pdebug ) printf( "\n coefficients %f %f \n", w, c );
+	if( op->cd->pdebug ) tprintf( "\n Swarm size %i", S );
+	if( op->cd->pdebug ) tprintf( "\n coefficients %f %f \n", w, c );
 	//----------------------------------------------------- INITIALISATION
 	//t1 = clock(); // Init time
 	// Initialisation of information variables
@@ -374,10 +374,10 @@ int abagus( struct opt_data *op )
 		X[0].x[d] = op->pd->var[op->pd->var_index[d]];
 	if( op->cd->pdebug )
 	{
-		printf( "\nParticle 1 position from initial values:\n" );
+		tprintf( "\nParticle 1 position from initial values:\n" );
 		for( d = 0; d < D; d++ )
-			printf( "%g\n", X[0].x[d] );
-		printf( "\n" );
+			tprintf( "%g\n", X[0].x[d] );
+		tprintf( "\n" );
 	}
 	// Randomly initialize remaining particles
 	for( s = 1; s < S; s++ )   // Positions and velocities
@@ -412,7 +412,7 @@ int abagus( struct opt_data *op )
 				pch = ( double * ) kd_res_item( kdsetbad, X[s].x );
 				X[s].f = *pch;
 			}
-			else	printf( "Warning: Point(s) within grid resolution of proposal point!\n" );
+			else tprintf( "Warning: Point(s) within grid resolution of proposal point!\n" );
 			kd_res_free( kdset );
 			kd_res_free( kdsetbad );
 		}
@@ -538,7 +538,7 @@ loop:
 				old_bad_pos++;
 				//op->success = 0;
 			}
-			else	printf( "Warning: Multiple points within grid resolution of proposal point!\n" );
+			else tprintf( "Warning: Multiple points within grid resolution of proposal point!\n" );
 			kd_res_free( kdset );
 			kd_res_free( kdsetbad );
 		}
@@ -596,7 +596,7 @@ loop:
 		init_links = 0;
 	}
 	energy_prev = energy;
-	if( op->cd->pdebug > 1 ) printf( "evals: %d; n_found: %d; old_pos: %d; new_pos: %d; old_bad_pos: %d; energy: %d\n", nb_eval, f_ind, old_pos, new_pos, old_bad_pos, energy );
+	if( op->cd->pdebug > 1 ) tprintf( "evals: %d; n_found: %d; old_pos: %d; new_pos: %d; old_bad_pos: %d; energy: %d\n", nb_eval, f_ind, old_pos, new_pos, old_bad_pos, energy );
 	t_new_pos += new_pos; t_old_pos += old_pos; t_old_bad_pos += old_bad_pos;
 	// Check if dx can be reduced
 	nb_eval_left = eval_max - nb_eval;
@@ -609,10 +609,10 @@ loop:
 			cell_size *= dx[d];
 			if( dxmin > dx[d] ) dxmin = dx[d];
 		}
-		printf( "Decreasing discretization intervals by factor of 2.\n" );
-		printf( "dx = [" );
-		for( d = 0; d < D; d++ ) printf( " %g", dx[d] );
-		printf( " ]\n" );
+		tprintf( "Decreasing discretization intervals by factor of 2.\n" );
+		tprintf( "dx = [" );
+		for( d = 0; d < D; d++ ) tprintf( " %g", dx[d] );
+		tprintf( " ]\n" );
 		energy = 1;
 		// Reset finv to f for recollection
 		for( i = 0; i < f_ind; i++ )
@@ -626,11 +626,11 @@ loop:
 	if( op->cd->pdebug == 10 )
 	{
 		sprintf( filename, "%s-%08d.collected", op->root, iter );
-		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { tprintf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
 		print_collected( kd, &eps, &dmax, &dxmin, f_out );
 		fclose( f_out );
 		sprintf( filename, "%s-%08d.particles", op->root, iter );
-		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { printf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { tprintf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
 		print_particles( X, f_out );
 		fclose( f_out );
 	}
@@ -639,11 +639,11 @@ loop:
 	//if( nb_eval < eval_max ) goto loop;
 	if( error > eps ) n_failure = n_failure + 1;
 	// Result display
-	if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed );
+	if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed );
 	if( op->cd->infile[0] != 0 )
 	{
-		printf( "\n%d solutions from %s\n", f_ind_old, op->cd->infile );
-		printf( "%d new solutions\n", f_ind - f_ind_old );
+		tprintf( "\n%d solutions from %s\n", f_ind_old, op->cd->infile );
+		tprintf( "%d new solutions\n", f_ind - f_ind_old );
 	}
 	kdset = kd_nearest_range( kd, X[s].x, dmax );
 	kdsetbad = kd_nearest_range( kdbad, X[s].x, dmax );
@@ -651,17 +651,17 @@ loop:
 	kdsizebad = kd_res_size( kdsetbad );
 	kd_res_free( kdset );
 	kd_res_free( kdsetbad );
-	printf( "\n%d total solutions collected\n", f_ind );
-	printf( "%d total solutions rejected\n", f_ind_bad );
-	printf( "%d calculated solutions\n", nb_eval );
-	printf( "%d revisits to saved solutions\n", t_old_pos );
-	printf( "%d revisits to bad solutions\n", t_old_bad_pos );
-	printf( "\nFraction of domain with collected solutions: %g\n", ( double ) f_ind * cell_size / domain_size );
-	if( energy > 0 ) printf( "\nExploration may not be complete! Swarm energy still left (energy = %d)! Increase evals!\n\n", energy );
+	tprintf( "\n%d total solutions collected\n", f_ind );
+	tprintf( "%d total solutions rejected\n", f_ind_bad );
+	tprintf( "%d calculated solutions\n", nb_eval );
+	tprintf( "%d revisits to saved solutions\n", t_old_pos );
+	tprintf( "%d revisits to bad solutions\n", t_old_bad_pos );
+	tprintf( "\nFraction of domain with collected solutions: %g\n", ( double ) f_ind * cell_size / domain_size );
+	if( energy > 0 ) tprintf( "\nExploration may not be complete! Swarm energy still left (energy = %d)! Increase evals!\n\n", energy );
 	else
 	{
-		printf( "cell_size / domain_size = %g\n", cell_size / domain_size );
-		printf( "Swarm energy used up: energy = %d\n\n", energy );
+		tprintf( "cell_size / domain_size = %g\n", cell_size / domain_size );
+		tprintf( "Swarm energy used up: energy = %d\n\n", energy );
 	}
 	/*	// Save result
 		for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] );
@@ -683,10 +683,11 @@ loop:
 				kd_res_next( kdset );
 			}
 			kd_res_free( kdset );
-			printf( "\nResults written to %s\n\n", filename );
+			tprintf( "\nResults written to %s\n\n", filename );
 		}
-		else if( op->cd->check_success ) printf( "\nNo solutions found within observation ranges (success)\n\n");
-		else printf( "\nNo solutions found at phi cutoff = %g\n\n", eps );*/
+		else if( op->cd->check_success ) tprintf( "\nNo solutions found within observation ranges (success)\n\n");
+		else tprintf( "\nNo solutions found at phi cutoff = %g\n\n", eps );
+	*/
 	kd_free( kd );
 	fclose( f_run );
 	/*    // Compute some statistical information
@@ -699,21 +700,21 @@ loop:
 
 	    // END. Display some statistical information
 	    t2 = clock();
-	    printf( "\n\n Total clocks %.0f", t2 - t1 );
+	    tprintf( "\n\n Total clocks %.0f", t2 - t1 );
 	    eval_mean = eval_mean / ( double )n_exec;
 	    eps_mean = eps_mean / ( double )n_exec;
-	    printf( "\n\n Eval. (mean)= %f", eval_mean );
-	    printf( "\n Error (mean) = %f", eps_mean );
+	    tprintf( "\n\n Eval. (mean)= %f", eval_mean );
+	    tprintf( "\n Error (mean) = %f", eps_mean );
 
 	    // Variance
 	    variance = 0;
 	    for ( d = 0; d < n_exec_max; d++ ) variance = variance + ( mean_best[d] - eps_mean ) * ( mean_best[d] - eps_mean );
 	    variance = sqrt( variance / n_exec_max );
-	    printf( "\n Std. dev. %f", variance );
+	    tprintf( "\n Std. dev. %f", variance );
 
 	    // Success rate and minimum value
-	    printf( "\n Success rate = %.2f%%\n", 100 * ( 1 - n_failure / ( double )n_exec ) );
-	    if ( n_exec > 1 ) printf( "\n Best min value = %f", min );
+	    tprintf( "\n Success rate = %.2f%%\n", 100 * ( 1 - n_failure / ( double )n_exec ) );
+	    if ( n_exec > 1 ) tprintf( "\n Best min value = %f", min );
 	*/
 	op->cd->compute_phi = 0;
 	return 0;
@@ -765,10 +766,10 @@ void read_in( void *kdtree, int size, double eps, int check_success, double *fin
 	char buf[500];
 	double of, pars[size];
 	int i;
-	if( check_success ) printf( "\nAssuming samples in %s meet current criteria for success!", file );
-	printf( "\nReading previous results from %s...", file );
+	if( check_success ) tprintf( "\nAssuming samples in %s meet current criteria for success!", file );
+	tprintf( "\nReading previous results from %s...", file );
 	fl = fopen( file, "r" );
-	if( fl == NULL ) { printf( "\nError opening %s\n", file ); exit( 0 ); }
+	if( fl == NULL ) { tprintf( "\nError opening %s\n", file ); exit( 0 ); }
 	fgets( buf, sizeof buf, fl );
 	while( fscanf( fl, "%*d %lf", &of ) > 0 )
 	{
@@ -783,7 +784,7 @@ void read_in( void *kdtree, int size, double eps, int check_success, double *fin
 		}
 	}
 	fclose( fl );
-	printf( "Done\n" );
+	tprintf( "Done\n" );
 }
 
 void write_loc( double of, double *x, int x_size, int *ind )

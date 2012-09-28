@@ -44,10 +44,10 @@ int create_mprun_dir( char *dir )
 	int r;
 	sprintf( buf, "mkdir ../%s >& /dev/null", dir );
 	r = system( buf );
-	if( r == -1 || r == 127 ) { printf( "ERROR: System call failed!\n" ); return( -1 ); }
+	if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	sprintf( buf, "ln -s $PWD/* ../%s >& /dev/null", dir );
 	r = system( buf );
-	if( r == -1 || r == 127 ) { printf( "ERROR: System call failed!\n" ); return( -1 ); }
+	if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	return( 0 );
 }
 
@@ -57,7 +57,7 @@ int delete_mprun_dir( char *dirs )
 	int r;
 	sprintf( buf, "rm -fR ../%s >& /dev/null", dirs );
 	r = system( buf );
-	if( r == -1 || r == 127 ) { printf( "ERROR: System call failed!\n" ); return( -1 ); }
+	if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	return( 0 );
 }
 
@@ -69,10 +69,10 @@ int create_mprun_dirs( int nDir, char **dirs )
 	{
 		sprintf( buf, "mkdir ../%s  >& /dev/null", dirs[i] );
 		r = system( buf );
-		if( r == -1 || r == 127 ) { printf( "ERROR: System call failed!\n" ); return( -1 ); }
+		if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 		sprintf( buf, "ln -s $cwd/* ../%s", dirs[i] );
 		r = system( buf );
-		if( r == -1 || r == 127 ) { printf( "ERROR: System call failed!\n" ); return( -1 ); }
+		if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	}
 	return( 0 );
 }
@@ -85,7 +85,7 @@ int delete_mprun_dirs( int nDir, char **dirs )
 	{
 		sprintf( buf, "rm -fR ../%s >& /dev/null", dirs[i] );
 		r = system( buf );
-		if( r == -1 || r == 127 ) { printf( "ERROR: System call failed!\n" ); return( -1 ); }
+		if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	}
 	return( 0 );
 }

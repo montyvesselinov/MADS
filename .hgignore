@@ -38,6 +38,7 @@ Debug/*
 *.s_well
 *.ofe
 *.igpd-opt*
+*.mads_output_*
 # Genereal files
 *.vtk
 *.btc

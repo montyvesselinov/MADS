@@ -66,29 +66,29 @@ int LEVMAR_DER(
 	int n,              /* I: measurement vector dimension */
 	int itmax,          /* I: maximum number of iterations */
 	LM_REAL opts[4],    /* I: minim. options [\mu, \epsilon1, \epsilon2, \epsilon3]. Respectively the scale factor for initial \mu,
-		 * stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2. Set to NULL for defaults to be used
-		 */
+	 * stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2. Set to NULL for defaults to be used
+	 */
 	LM_REAL info[LM_INFO_SZ],
 	/* O: information regarding the minimization. Set to NULL if don't care
-	 * info[0]= ||e||_2 at initial p.
-	 * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
-	 * info[5]= # iterations,
-	 * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
-	 *                                 2 - stopped by small Dp
-	 *                                 3 - stopped by itmax
-	 *                                 4 - singular matrix. Restart from current p with increased mu
-	 *                                 5 - no further error reduction is possible. Restart with increased mu
-	 *                                 6 - stopped by small ||e||_2
-	 *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
-	 * info[7]= # function evaluations
-	 * info[8]= # Jacobian evaluations
-	 * info[9]= # linear systems solved, i.e. # attempts for reducing error
-	 */
+	* info[0]= ||e||_2 at initial p.
+	* info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
+	* info[5]= # iterations,
+	* info[6]=reason for terminating: 1 - stopped by small gradient J^T e
+	*                                 2 - stopped by small Dp
+	*                                 3 - stopped by itmax
+	*                                 4 - singular matrix. Restart from current p with increased mu
+	*                                 5 - no further error reduction is possible. Restart with increased mu
+	*                                 6 - stopped by small ||e||_2
+	*                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
+	* info[7]= # function evaluations
+	* info[8]= # Jacobian evaluations
+	* info[9]= # linear systems solved, i.e. # attempts for reducing error
+	*/
 	LM_REAL *work,     /* working memory at least LM_DER_WORKSZ() reals large, allocated if NULL */
 	LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
 	void *adata )       /* pointer to possibly additional data, passed uninterpreted to func & jacf.
-		 * Set to NULL if not needed
-		 */
+	 * Set to NULL if not needed
+	 */
 {
 	register int i, j, k, l;
 	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac, changejac, kmax, maxnfev;
@@ -208,23 +208,23 @@ int LEVMAR_DER(
 	( *func )( p, hx, m, n, adata ); nfev = 1;
 	if( op->cd->check_success && op->success )
 	{
-		if( op->cd->ldebug ) printf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
+		if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
 		stop = 8;
 	}
 #ifdef HAVE_LAPACK
 	/* 6 alternatives are available: LU, Cholesky, 2 variants of QR decomposition, SVD and LDLt.
-	 * Cholesky is the fastest but might be inaccurate; QR is slower but more accurate;
-	 * SVD is the slowest but most accurate; LU offers a tradeoff between accuracy and speed
-	 */
-	//linsolver = AX_EQ_B_BK; if( op->cd->ldebug ) printf( "BK decomposition\n" );
-	//linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) printf( "LU decomposition\n" );
-	//linsolver = AX_EQ_B_CHOL; if( op->cd->ldebug ) printf( "Cholesky decomposition\n" );
-	//linsolver = AX_EQ_B_QR; if( op->cd->ldebug ) printf( "QR decomposition\n" );
-	//linsolver = (int (*)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m))AX_EQ_B_QRLS; if( op->cd->ldebug ) printf( "QRLS decomposition\n" );
-	linsolver = AX_EQ_B_SVD; if( op->cd->ldebug ) printf( "LM using SVD decomposition\n" );
+	* Cholesky is the fastest but might be inaccurate; QR is slower but more accurate;
+	* SVD is the slowest but most accurate; LU offers a tradeoff between accuracy and speed
+	*/
+	//linsolver = AX_EQ_B_BK; if( op->cd->ldebug ) tprintf( "BK decomposition\n" );
+	//linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) tprintf( "LU decomposition\n" );
+	//linsolver = AX_EQ_B_CHOL; if( op->cd->ldebug ) tprintf( "Cholesky decomposition\n" );
+	//linsolver = AX_EQ_B_QR; if( op->cd->ldebug ) tprintf( "QR decomposition\n" );
+	//linsolver = (int (*)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m))AX_EQ_B_QRLS; if( op->cd->ldebug ) tprintf( "QRLS decomposition\n" );
+	linsolver = AX_EQ_B_SVD; if( op->cd->ldebug ) tprintf( "LM using SVD decomposition\n" );
 #else
 	/* use the LU included with levmar */
-	linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) printf( "LM using LU decomposition\n" );
+	linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) tprintf( "LM using LU decomposition\n" );
 #endif /* HAVE_LAPACK */
 	/* ### e=x-hx, p_eL2=||e|| */
 #if 0
@@ -238,10 +238,10 @@ int LEVMAR_DER(
 #endif
 	if( op->cd->ldebug )
 	{
-		if( op->cd->lm_acc ) printf( "LM with acceleration\n" );
-		else printf( "LM without LM acceleration\n" );
-		if( op->cd->lm_indir ) printf( "LM with indirect computation of lambda changes\n" );
-		else printf( "LM with direct computation of lambda changes\n" );
+		if( op->cd->lm_acc ) tprintf( "LM with acceleration\n" );
+		else tprintf( "LM without LM acceleration\n" );
+		if( op->cd->lm_indir ) tprintf( "LM with indirect computation of lambda changes\n" );
+		else tprintf( "LM with direct computation of lambda changes\n" );
 	}
 	init_p_eL2 = p_eL2_old = p_eL2;
 	if( !LM_FINITE( p_eL2 ) ) stop = 7;
@@ -254,41 +254,41 @@ int LEVMAR_DER(
 	if( op->cd->ldebug > 2 )
 	{
 		DeTransform( p, op, jac_min );
-		printf( "Initial parameter estimates:\n" );
+		tprintf( "Initial parameter estimates:\n" );
 		for( i = 0; i < m; i++ )
 		{
 			j = op->pd->var_index[i];
-			printf( "%-20s:", op->pd->var_id[j] );
-			if( op->pd->var_log[j] ) printf( " %g", pow( 10, jac_min[i] ) );
-			else printf( " %g", jac_min[i] );
-			printf( "\n" );
+			tprintf( "%-20s:", op->pd->var_id[j] );
+			if( op->pd->var_log[j] ) tprintf( " %g", pow( 10, jac_min[i] ) );
+			else tprintf( " %g", jac_min[i] );
+			tprintf( "\n" );
 		}
 	}
-	if( op->cd->ldebug ) printf( "Initial evaluation: OF %g\n", p_eL2 );
-	else if( op->cd->standalone ) { printf( "OF %g -> ", p_eL2 ); fflush( stdout ); }
+	if( op->cd->ldebug ) tprintf( "Initial evaluation: OF %g\n", p_eL2 );
+	else if( op->cd->standalone ) { tprintf( "OF %g -> ", p_eL2 ); fflush( stdout ); }
 	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
 		if( p_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 		{
-			if( op->cd->ldebug ) printf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
+			if( op->cd->ldebug ) tprintf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
 			stop = 6;
 			break;
 		}
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
-		 * The symmetry of J^T J is again exploited for speed
-		 */
+		* The symmetry of J^T J is again exploited for speed
+		*/
 		if( ( updp && nu > 16 ) || updjac >= K || mu_big || phi_decline || computejac ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug && k != 0 )
 			{
-				if( k != 0 ) printf( "New Jacobian requested because: " );
-				if( updp && nu > 16 && k != 0 ) printf( "Lambda multiplication factor too large (nu = %d > 16); ", nu );
-				if( updjac >= K ) printf( "Maximum number of lambda iteration is reached (%d); ", K );
-				if( mu_big ) printf( "Lambda is constrained (%g); ", 1e3 );
-				if( phi_decline ) printf( "OF estimate declined substantially (%g << %g)", p_eL2, p_eL2_old );
-				if( computejac ) printf( "Linear solve OF estimates do not change substantially" );
-				printf( "\n\n" );
+				if( k != 0 ) tprintf( "New Jacobian requested because: " );
+				if( updp && nu > 16 && k != 0 ) tprintf( "Lambda multiplication factor too large (nu = %d > 16); ", nu );
+				if( updjac >= K ) tprintf( "Maximum number of lambda iteration is reached (%d); ", K );
+				if( mu_big ) tprintf( "Lambda is constrained (%g); ", 1e3 );
+				if( phi_decline ) tprintf( "OF estimate declined substantially (%g << %g)", p_eL2, p_eL2_old );
+				if( computejac ) tprintf( "Linear solve OF estimates do not change substantially" );
+				tprintf( "\n\n" );
 			}
 			if( njap >= itmax ) { stop = 31; continue; }
 			if( nfev >= maxnfev ) { stop = 32; continue; }
@@ -305,19 +305,19 @@ int LEVMAR_DER(
 				for( i = 0; i < phi1c; i++ )
 				{
 					if( phi1[i] < tmp ) tmp = phi1[i];
-					// printf( " %g", phi1[i] );
+					// tprintf( " %g", phi1[i] );
 				}
-				// printf( "d %g %d\n", tmp, phi1c );
+				// tprintf( "d %g %d\n", tmp, phi1c );
 				j = 0;
 				for( i = 0; i < phi1c; i++ )
 				{
-					// printf( "d %g %g %g\n", tmp, phi1[i], ( phi1[i] - tmp ) / tmp );
+					// tprintf( "d %g %g %g\n", tmp, phi1[i], ( phi1[i] - tmp ) / tmp );
 					if( ( phi1[i] - tmp ) / tmp < 1 ) j++;
 				}
-				// printf( "d %g %d\n", tmp, j );
+				// tprintf( "d %g %d\n", tmp, j );
 				if( j >= op->cd->lm_njacof )
 				{
-					if( op->cd->ldebug ) printf( "\nCONVERGED: %d Jacobian OF estimates are very close to the best current OF (%g)\n", j, tmp );
+					if( op->cd->ldebug ) tprintf( "\nCONVERGED: %d Jacobian OF estimates are very close to the best current OF (%g)\n", j, tmp );
 					stop = 9;
 					break;
 				}
@@ -331,7 +331,7 @@ int LEVMAR_DER(
 			}
 			else  /* use central differences */
 			{
-				if( op->cd->ldebug ) printf( "Central Differences\n" );
+				if( op->cd->ldebug ) tprintf( "Central Differences\n" );
 				LEVMAR_FDIF_CENT_JAC_APPROX( func, p, wrk, wrk2, delta, jac, m, n, adata );
 				++njap; nfev += 2 * m;
 			}
@@ -340,18 +340,18 @@ int LEVMAR_DER(
 			nu = op->cd->lm_nu; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
-				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
-				else printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
+				if( k == 0 ) tprintf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
+				else tprintf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
 			}
 			if( op->cd->ldebug >= 4 )
 			{
-				printf( "\nJacobian matrix:\n" );
+				tprintf( "\nJacobian matrix:\n" );
 				char *s;
-				printf( "Parameter:" ); for( i = 0; i < op->pd->nOptParam; i++ )
+				tprintf( "Parameter:" ); for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					s = op->pd->var_id[op->pd->var_index[i]];
-					if( strlen( s ) < 7 ) printf( " %s", s );
-					else printf( " p%d", i );
+					if( strlen( s ) < 7 ) tprintf( " %s", s );
+					else tprintf( " p%d", i );
 				}
 				for( l = j = 0; j < op->od->nObs; j++ )
 				{
@@ -363,15 +363,15 @@ int LEVMAR_DER(
 						if( print )
 						{
 							l -= op->pd->nOptParam; // reset jacobian counter
-							printf( "\n%-12s: ", op->od->obs_id[j] );
+							tprintf( "\n%-12s: ", op->od->obs_id[j] );
 							for( i = 0; i < op->pd->nOptParam; i++, l++ )
-								printf( " %g", jac[l] );
+								tprintf( " %g", jac[l] );
 						}
 					}
 					else l += op->pd->nOptParam;
-					if( op->cd->ldebug == 4 && op->od->nObs >= 30 && j == 11 ) printf( "\n..." );
+					if( op->cd->ldebug == 4 && op->od->nObs >= 30 && j == 11 ) tprintf( "\n..." );
 				}
-				printf( "\n" );
+				tprintf( "\n" );
 			}
 			if( op->cd->ldebug > 1 )
 			{
@@ -389,22 +389,22 @@ int LEVMAR_DER(
 							skipped++;
 							if( op->cd->ldebug > 2 )
 							{
-								if( first ) { first = 0; printf( "WARNING: Observation(s) with zero sensitivities:" ); }
-								printf( " %s", op->od->obs_id[j] );
+								if( first ) { first = 0; tprintf( "WARNING: Observation(s) with zero sensitivities:" ); }
+								tprintf( " %s", op->od->obs_id[j] );
 							}
 						}
 					}
 					else l += op->pd->nOptParam;
 				}
-				if( skipped && op->cd->ldebug > 2 ) printf( "\n" );
+				if( skipped && op->cd->ldebug > 2 ) tprintf( "\n" );
 				if( skipped )
 				{
-					if( skipped > 1 ) printf( "\nWARNING: %d observations have zero sensitivities!\n", skipped );
-					else printf( "\nWARNING: %d observation has zero sensitivities!\n", skipped );
+					if( skipped > 1 ) tprintf( "\nWARNING: %d observations have zero sensitivities!\n", skipped );
+					else tprintf( "\nWARNING: %d observation has zero sensitivities!\n", skipped );
 					if( skipped >= op->od->nCObs )
 					{
-						printf( "\nERROR: All the calibration targets (%d observations with weight greater than zero) have zero sensitivities! Model setup error!\n", op->od->nCObs );
-						printf( "MADS quits!\n" );
+						tprintf( "\nERROR: All the calibration targets (%d observations with weight greater than zero) have zero sensitivities! Model setup error!\n", op->od->nCObs );
+						tprintf( "MADS quits!\n" );
 						exit( 0 );
 					}
 				}
@@ -431,26 +431,25 @@ int LEVMAR_DER(
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				if( jac_max[i] > DBL_EPSILON ) ok++;
-				else { if( op->cd->ldebug ) printf( "WARNING: Model parameter \'%s\' is not impacting model predictions!\n", op->pd->var_id[op->pd->var_index[i]] ); }
+				else { if( op->cd->ldebug ) tprintf( "WARNING: Model parameter \'%s\' is not impacting model predictions!\n", op->pd->var_id[op->pd->var_index[i]] ); }
 			}
-			if( ok == 0 )
-				printf( "ERROR: None of the model parameters is impacting model predictions!\n" );
+			if( ok == 0 && op->cd->ldebug && op->cd->paranoid ) tprintf( "ERROR: None of the model parameters is impacting model predictions!\n" );
 			if( op->cd->ldebug > 1 )
 			{
-				printf( "Highest absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imax + 1, op->pd->var_id[op->pd->var_index[imax]], omax + 1, op->od->obs_id[omax], max );
-				printf( "Lowest  absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imin + 1, op->pd->var_id[op->pd->var_index[imin]], omin + 1, op->od->obs_id[omin], min );
+				tprintf( "Highest absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imax + 1, op->pd->var_id[op->pd->var_index[imax]], omax + 1, op->od->obs_id[omax], max );
+				tprintf( "Lowest  absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imin + 1, op->pd->var_id[op->pd->var_index[imin]], omin + 1, op->od->obs_id[omin], min );
 				if( op->cd->ldebug > 2 )
 				{
 					char *s;
-					printf( "\nParameter:" ); for( i = 0; i < op->pd->nOptParam; i++ )
+					tprintf( "\nParameter:" ); for( i = 0; i < op->pd->nOptParam; i++ )
 					{
 						s = op->pd->var_id[op->pd->var_index[i]];
-						if( strlen( s ) < 7 ) printf( " %s", s );
-						else printf( " p%d", i );
+						if( strlen( s ) < 7 ) tprintf( " %s", s );
+						else tprintf( " p%d", i );
 					}
-					printf( "\n" );
-					printf( "Min absolute observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) printf( " %g", jac_min[i] ); printf( "\n" );
-					printf( "Max absolute observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) printf( " %g", jac_max[i] ); printf( "\n" );
+					tprintf( "\n" );
+					tprintf( "Min absolute observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_min[i] ); tprintf( "\n" );
+					tprintf( "Max absolute observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_max[i] ); tprintf( "\n" );
 				}
 			}
 			if( op->cd->ldebug > 3 )
@@ -468,8 +467,8 @@ int LEVMAR_DER(
 						if( jac_min[i] > jac[l] ) jac_min[i] = jac[l];
 					}
 				}
-				printf( "Min observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) printf( " %g", jac_min[i] ); printf( "\n" );
-				printf( "Max observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) printf( " %g", jac_max[i] ); printf( "\n\n" );
+				tprintf( "Min observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_min[i] ); tprintf( "\n" );
+				tprintf( "Max observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_max[i] ); tprintf( "\n\n" );
 			}
 		}
 		if( newjac ) /* Jacobian has changed, recompute J^T J, J^t e, etc */
@@ -479,23 +478,23 @@ int LEVMAR_DER(
 			if( nm <= __BLOCKSZ__SQ ) // this is a small problem
 			{
 				/* J^T*J_ij = \sum_l J^T_il * J_lj = \sum_l J_li * J_lj.
-				 * Thus, the product J^T J can be computed using an outer loop for
-				 * l that adds J_li*J_lj to each element ij of the result. Note that
-				 * with this scheme, the accesses to J and JtJ are always along rows,
-				 * therefore induces less cache misses compared to the straightforward
-				 * algorithm for computing the product (i.e., l loop is innermost one).
-				 * A similar scheme applies to the computation of J^T e.
-				 * However, for large minimization problems (i.e., involving a large number
-				 * of unknowns and measurements) for which J/J^T J rows are too large to
-				 * fit in the L1 cache, even this scheme incures many cache misses. In
-				 * such cases, a cache-efficient blocking scheme is preferable.
-				 *
-				 * Thanks to John Nitao of Lawrence Livermore Lab for pointing out this
-				 * performance problem.
-				 *
-				 * Note that the non-blocking algorithm is faster on small
-				 * problems since in this case it avoids the overheads of blocking.
-				 */
+				* Thus, the product J^T J can be computed using an outer loop for
+				* l that adds J_li*J_lj to each element ij of the result. Note that
+				* with this scheme, the accesses to J and JtJ are always along rows,
+				* therefore induces less cache misses compared to the straightforward
+				* algorithm for computing the product (i.e., l loop is innermost one).
+				* A similar scheme applies to the computation of J^T e.
+				* However, for large minimization problems (i.e., involving a large number
+				* of unknowns and measurements) for which J/J^T J rows are too large to
+				* fit in the L1 cache, even this scheme incures many cache misses. In
+				* such cases, a cache-efficient blocking scheme is preferable.
+				*
+				* Thanks to John Nitao of Lawrence Livermore Lab for pointing out this
+				* performance problem.
+				*
+				* Note that the non-blocking algorithm is faster on small
+				* problems since in this case it avoids the overheads of blocking.
+				*/
 				register int l, im;
 				register LM_REAL alpha, *jaclm;
 				/* looping downwards saves a few computations */
@@ -523,7 +522,7 @@ int LEVMAR_DER(
 			else  // this is a large problem
 			{
 				/* Cache efficient computation of J^T J based on blocking
-				 */
+				*/
 				LEVMAR_TRANS_MAT_MAT_MULT( jac, jacTjac, n, m );
 				/* cache efficient computation of J^T e */
 				for( i = 0; i < m; ++i )
@@ -555,35 +554,35 @@ int LEVMAR_DER(
 					if( max_change < p_diff ) { max_change = p_diff; ipar_max = i; }
 					if( min_change > p_diff ) { min_change = p_diff; ipar_min = i; }
 				}
-				printf( "Parameter with maximum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-				printf( "Parameter with minimum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+				tprintf( "Parameter with maximum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+				tprintf( "Parameter with minimum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 				for( i = 0 ; i < m; ++i ) /* update p's estimate */
 					p_old2[i] = p[i];
 			}
 			/* check for convergence */
-			if( op->cd->ldebug > 6 ) printf( "\nTest for convergence: Magnitude of the largest J^T e component (||J^T e||_inf = %g < %g to converge)\n", jacTe_inf, eps1 );
+			if( op->cd->ldebug > 6 ) tprintf( "\nTest for convergence: Magnitude of the largest J^T e component (||J^T e||_inf = %g < %g to converge)\n", jacTe_inf, eps1 );
 			if( ( jacTe_inf <= eps1 ) )
 			{
 				Dp_L2 = 0.0; /* no increment for p in this case */
-				if( op->cd->ldebug ) printf( "CONVERGED: Largest J^T e component ||J^T e||_inf is too small (%g < %g)\n", jacTe_inf, eps1 );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: Largest J^T e component ||J^T e||_inf is too small (%g < %g)\n", jacTe_inf, eps1 );
 				stop = 1;
 				break;
 			}
 			changejac = 0;
 		}
-		else if( op->cd->ldebug ) printf( "\n" );
+		else if( op->cd->ldebug ) tprintf( "\n" );
 		/* compute initial damping factor */
 		if( k == 0 )
 		{
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
 			{
 				if( diag_jacTjac[i] > tmp ) tmp = diag_jacTjac[i]; /* find max diagonal element */
-				if( diag_jacTjac[i] < DBL_EPSILON ) printf( "WARNING: Parameter %s is NOT impacting model predictions (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
-				else if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) printf( "WARNING: Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
+				if( diag_jacTjac[i] < DBL_EPSILON && op->cd->ldebug && op->cd->paranoid ) tprintf( "WARNING: Parameter %s is NOT impacting model predictions (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
+				else if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) tprintf( "WARNING: Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
 			}
 			if( tmp > 1e4 ) tmp = 1e4;
 			mu = tau * tmp;
-			if( op->cd->ldebug ) printf( "Computed initial lambda %g\n", mu );
+			if( op->cd->ldebug ) tprintf( "Computed initial lambda %g\n", mu );
 		}
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
@@ -646,20 +645,20 @@ int LEVMAR_DER(
 					tmp = Dp[i] + 0.5 * a[i];
 					Dpa_L2 += tmp * tmp;
 				}
-				if( op->cd->ldebug > 1 ) printf( "LM acceleration performed (with acceleration %g vs without acceleration %g)\n", Dpa_L2, Dp_L2 );
+				if( op->cd->ldebug > 1 ) tprintf( "LM acceleration performed (with acceleration %g vs without acceleration %g)\n", Dpa_L2, Dp_L2 );
 			}
 			Dpa_L2 = sqrt( Dpa_L2 );
-			if( op->cd->ldebug > 6 ) printf( "Test for convergence: Magnitude of the relative change in parameter space (%g < %g = %g * %g  to converge)\n", Dpa_L2, eps2_sq * p_L2, eps2_sq, p_L2 );
+			if( op->cd->ldebug > 6 ) tprintf( "Test for convergence: Magnitude of the relative change in parameter space (%g < %g = %g * %g  to converge)\n", Dpa_L2, eps2_sq * p_L2, eps2_sq, p_L2 );
 			if( Dpa_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
 			{
-				if( op->cd->ldebug ) printf( "CONVERGED: Relative change in parameter space is small (%g < %g)\n", Dpa_L2, eps2_sq * p_L2 );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: Relative change in parameter space is small (%g < %g)\n", Dpa_L2, eps2_sq * p_L2 );
 				stop = 2;
 				break;
 			}
-			if( op->cd->ldebug > 6 ) printf( "Test for convergence: Solution singularity (%g > %g to converge)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
+			if( op->cd->ldebug > 6 ) tprintf( "Test for convergence: Solution singularity (%g > %g to converge)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
 			if( Dpa_L2 >= ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) ) /* almost singular */
 			{
-				if( op->cd->ldebug ) printf( "CONVERGED: almost singular solution (%g > %g)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: almost singular solution (%g > %g)\n", Dpa_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
 				stop = 4;
 				break;
 			}
@@ -687,10 +686,10 @@ int LEVMAR_DER(
 #endif
 			}
 #endif
-			if( op->cd->ldebug == 1 ) printf( "OF %g lambda %g\n", pDp_eL2, mu );
+			if( op->cd->ldebug == 1 ) tprintf( "OF %g lambda %g\n", pDp_eL2, mu );
 			else if( op->cd->ldebug > 1 )
 			{
-				printf( "\nLinear solve (lambda search) #%d: OF %g lambda %g \n", phi2c + 1, pDp_eL2, mu );
+				tprintf( "\nLinear solve (lambda search) #%d: OF %g lambda %g \n", phi2c + 1, pDp_eL2, mu );
 				DeTransform( pDp, op, jac_min );
 				DeTransform( p_old, op, jac_max );
 				max_change = 0; min_change = HUGE_VAL;
@@ -704,33 +703,33 @@ int LEVMAR_DER(
 				}
 				if( op->cd->ldebug > 2 )
 				{
-					printf( "Current parameter estimates:\n" );
+					tprintf( "Current parameter estimates:\n" );
 					for( i = 0; i < m; i++ )
 					{
 						j = op->pd->var_index[i];
-						printf( "%-30s:", op->pd->var_id[j] );
+						tprintf( "%-30s:", op->pd->var_id[j] );
 						if( op->cd->ldebug > 3 )
 						{
-							if( op->pd->var_log[j] ) printf( " %12g", pow( 10, jac_max[i] ) );
-							else printf( " %12g", jac_max[i] );
-							printf( " =>" );
+							if( op->pd->var_log[j] ) tprintf( " %12g", pow( 10, jac_max[i] ) );
+							else tprintf( " %12g", jac_max[i] );
+							tprintf( " =>" );
 						}
-						if( op->pd->var_log[j] ) printf( " %12g", pow( 10, jac_min[i] ) );
-						else printf( " %12g", jac_min[i] );
+						if( op->pd->var_log[j] ) tprintf( " %12g", pow( 10, jac_min[i] ) );
+						else tprintf( " %12g", jac_min[i] );
 						if( op->cd->ldebug > 3 )
 						{
-							printf( " change" );
-							if( op->pd->var_log[j] ) printf( " %12g",  pow( 10, jac_min[i] ) - pow( 10, jac_max[i] ) );
-							else printf( " %12g", jac_min[i] - jac_max[i] );
+							tprintf( " change" );
+							if( op->pd->var_log[j] ) tprintf( " %12g",  pow( 10, jac_min[i] ) - pow( 10, jac_max[i] ) );
+							else tprintf( " %12g", jac_min[i] - jac_max[i] );
 						}
-						printf( "  (JTJ diagonal term %g)", diag_jacTjac[i] );
-						if( diag_jacTjac[i] < DBL_EPSILON ) printf( " WARNING: not impacting model predictions" );
-						else if( diag_jacTjac[i] < 1 ) printf( " not very sensitive" );
-						printf( "\n" );
+						tprintf( "  (JTJ diagonal term %g)", diag_jacTjac[i] );
+						if( diag_jacTjac[i] < DBL_EPSILON ) tprintf( " WARNING: not impacting model predictions" );
+						else if( diag_jacTjac[i] < 1 ) tprintf( " not very sensitive" );
+						tprintf( "\n" );
 					}
 				}
-				printf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-				printf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+				tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+				tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 				for( i = 0 ; i < m; i++ ) /* update p's estimate */
 					p_old[i] = pDp[i];
 			}
@@ -746,22 +745,22 @@ int LEVMAR_DER(
 						if( i < phi2c - op->cd->lm_nlamof ) j = 1;
 						else j = 0;
 					}
-					// printf( " %g", phi1[i] );
+					// tprintf( " %g", phi1[i] );
 				}
 				// for( i = 0; i < phi2c; i++ )
-				// printf( " %g", phi2[i] );
-				// printf( "a %g %d\n", tmp, phi2c );
+				// tprintf( " %g", phi2[i] );
+				// tprintf( "a %g %d\n", tmp, phi2c );
 				for( i = phi2c - op->cd->lm_nlamof; i < phi2c; i++ )
 				{
 					if( ( phi2[i] - tmp ) / tmp < 1 ) j++;
-					// printf( "a %g %g %g\n", tmp, phi2[i], ( phi2[i] - tmp ) / tmp );
+					// tprintf( "a %g %g %g\n", tmp, phi2[i], ( phi2[i] - tmp ) / tmp );
 				}
 				if( j >= op->cd->lm_nlamof )
 					computejac = 1; // New jacobian: Lambda search OF are very similar
 			}
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
-				if( op->cd->ldebug ) printf( "CONVERGED: OF below cutoff value (%g < %g)\n", pDp_eL2, eps3 );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: OF below cutoff value (%g < %g)\n", pDp_eL2, eps3 );
 				for( i = 0; i < m; i++ ) p[i] = pDp[i];
 				p_eL2 = pDp_eL2;
 				stop = 6;
@@ -769,7 +768,7 @@ int LEVMAR_DER(
 			}
 			if( op->cd->check_success && op->success )
 			{
-				if( op->cd->ldebug ) printf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
 				for( i = 0; i < m; i++ ) p[i] = pDp[i];
 				p_eL2 = pDp_eL2;
 				stop = 8;
@@ -778,22 +777,22 @@ int LEVMAR_DER(
 			if( !LM_FINITE( pDp_eL2 ) )
 			{
 				/* sum of squares is not finite, most probably due to a user error.
-				 * This check makes sure that the loop terminates early in the case
-				 * of invalid input. Thanks to Steve Danauskas for suggesting it */
-				if( op->cd->ldebug ) printf( "CONVERGED: sum of squares is not finite, most probably due to a user error\n" );
+				* This check makes sure that the loop terminates early in the case
+				* of invalid input. Thanks to Steve Danauskas for suggesting it */
+				if( op->cd->ldebug ) tprintf( "CONVERGED: sum of squares is not finite, most probably due to a user error\n" );
 				stop = 7;
 				break;
 			}
 			if( op->cd->lm_indir ) // original
 			{
 				tmp = p_eL2_old / pDp_eL2; // original code
-				//				printf( "Original tmp = %g\n", tmp );
+				// tprintf( "Original tmp = %g\n", tmp );
 				if( tmp > op->cd->lm_ofdecline ) phi_decline = 1; /* recompute jacobian because OF decreased */
 			}
 			else
 			{
 				tmp = p_eL2 / pDp_eL2;
-				//				printf( "Leif tmp = %g\n", tmp );
+				// tprintf( "Leif tmp = %g\n", tmp );
 				if( tmp > op->cd->lm_ofdecline && avRatio < lm_ratio ) phi_decline = 1; /* recompute jacobian because OF decreased */
 			}
 			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
@@ -831,7 +830,7 @@ int LEVMAR_DER(
 								{
 									if( mu_constrained > 500000 )
 									{
-										if( op->cd->ldebug ) printf( "lambda has been already constrained; new iteration" );
+										if( op->cd->ldebug ) tprintf( "lambda has been already constrained; new iteration" );
 										mu_big = 1;
 										mu_constrained = 0;
 									}
@@ -839,12 +838,12 @@ int LEVMAR_DER(
 									{
 										// mu = 1e3;
 										mu_constrained++;
-										if( op->cd->ldebug ) printf( "lambda is constrained to be less than %g", mu );
+										if( op->cd->ldebug ) tprintf( "lambda is constrained to be less than %g", mu );
 									}
 								}
 								else mu_constrained = 0;
-				 */
-				if( op->cd->ldebug > 3 ) printf( "Lambda change factor tmp (%g)\n", tmp );
+				*/
+				if( op->cd->ldebug > 3 ) tprintf( "Lambda change factor tmp (%g)\n", tmp );
 				nu = op->cd->lm_nu;
 				for( i = 0 ; i < m; ++i ) /* update p's estimate */
 					p[i] = pDp[i];
@@ -859,15 +858,15 @@ int LEVMAR_DER(
 			}
 		}
 		/* if this point is reached, either the linear system could not be solved or
-		 * the error did not reduce; in any case, the increment must be rejected
-		 */
+		* the error did not reduce; in any case, the increment must be rejected
+		*/
 		mu *= nu; // increase lambda
 		/*
 				if( mu > 1e3 )
 				{
 					if( mu_constrained > 5000000 )
 					{
-						if( op->cd->ldebug ) printf( "lambda has been already constrained; new iteration" );
+						if( op->cd->ldebug ) tprintf( "lambda has been already constrained; new iteration" );
 						mu_big = 1;
 						mu_constrained = 0;
 					}
@@ -875,18 +874,18 @@ int LEVMAR_DER(
 					{
 						// mu = 1e3;
 						mu_constrained++;
-						if( op->cd->ldebug ) printf( "lambda is constrained to be less than %g", mu );
+						if( op->cd->ldebug ) tprintf( "lambda is constrained to be less than %g", mu );
 					}
 				}
 				else mu_constrained = 0;
-		 */
-		if( op->cd->ldebug > 3 ) printf( "Lambda change factor (nu) %d\n", nu );
+		*/
+		if( op->cd->ldebug > 3 ) tprintf( "Lambda change factor (nu) %d\n", nu );
 		if( op->cd->lm_indir )
 		{
 			nu2 = nu << 1; // 2 * nu;
 			if( nu2 <= nu ) /* nu has wrapped around (overflown). Thanks to Frank Jordan for spotting this case */
 			{
-				if( op->cd->ldebug ) printf( "CONVERGED: lambda multiplication factor has wrapped around (overflown)\n" );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: lambda multiplication factor has wrapped around (overflown)\n" );
 				stop = 5;
 				break;
 			}
@@ -909,8 +908,8 @@ int LEVMAR_DER(
 			if( max_change < p_diff ) { max_change = p_diff; ipar_max = i; }
 			if( min_change > p_diff ) { min_change = p_diff; ipar_min = i; }
 		}
-		printf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-		printf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+		tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+		tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 		for( i = 0 ; i < m; ++i ) /* update p's estimate */
 			p_old[i] = pDp[i];
 	}
@@ -934,30 +933,30 @@ int LEVMAR_DER(
 	}
 	if( op->cd->ldebug )
 	{
-		printf( "LM optimization is completed. Reason: " );
+		tprintf( "LM optimization is completed. Reason: " );
 		switch( stop )
 		{
-			case 1: printf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
-			case 2: printf( "small Dp (%g)\n", Dp_L2 ); break;
-			case 3: printf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
-			case 31: printf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
-			case 32: printf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
-			case 4: printf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 5: printf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 6: printf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
-			case 7: printf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
-			case 8: printf( "model predictions are within predefined calibration ranges\n" ); break;
-			case 9: printf( "small OF changes\n" ); break;
-			default: printf( "UNKNOWN flag: %d\n", stop ); break;
+			case 1: tprintf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
+			case 2: tprintf( "small Dp (%g)\n", Dp_L2 ); break;
+			case 3: tprintf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
+			case 31: tprintf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
+			case 32: tprintf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
+			case 4: tprintf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+			case 5: tprintf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+			case 6: tprintf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
+			case 7: tprintf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
+			case 8: tprintf( "model predictions are within predefined calibration ranges\n" ); break;
+			case 9: tprintf( "small OF changes\n" ); break;
+			default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 2 )
 		{
-			printf( "Levenberg-Marquardt Optimization completed after %g iteration (reason %g) (returned value %d)\n", info[5], info[6], ( stop != 4 && stop != 7 ) ?  k : LM_ERROR );
-			printf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
-			printf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
+			tprintf( "Levenberg-Marquardt Optimization completed after %g iteration (reason %g) (returned value %d)\n", info[5], info[6], ( stop != 4 && stop != 7 ) ?  k : LM_ERROR );
+			tprintf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
+			tprintf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 		}
 	}
-	else if( op->cd->standalone ) { printf( "%g", p_eL2 ); fflush( stdout ); }
+	else if( op->cd->standalone ) { tprintf( "%g", p_eL2 ); fflush( stdout ); }
 	/* covariance matrix */
 	if( covar )
 	{
@@ -982,32 +981,32 @@ int LEVMAR_DIF(
 	int n,              /* I: measurement vector dimension */
 	int itmax,          /* I: maximum number of iterations */
 	LM_REAL opts[5],    /* I: opts[0-4] = minim. options [\mu, \epsilon1, \epsilon2, \epsilon3, \delta]. Respectively the
-		 * scale factor for initial \mu, stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2 and
-		 * the step used in difference approximation to the Jacobian. Set to NULL for defaults to be used.
-		 * If \delta<0, the Jacobian is approximated with central differences which are more accurate
-		 * (but slower!) compared to the forward differences employed by default.
-		 */
+	 * scale factor for initial \mu, stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2 and
+	 * the step used in difference approximation to the Jacobian. Set to NULL for defaults to be used.
+	 * If \delta<0, the Jacobian is approximated with central differences which are more accurate
+	 * (but slower!) compared to the forward differences employed by default.
+	 */
 	LM_REAL info[LM_INFO_SZ],
 	/* O: information regarding the minimization. Set to NULL if don't care
-	 * info[0]= ||e||_2 at initial p.
-	 * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
-	 * info[5]= # iterations,
-	 * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
-	 *                                 2 - stopped by small Dp
-	 *                                 3 - stopped by itmax
-	 *                                 4 - singular matrix. Restart from current p with increased mu
-	 *                                 5 - no further error reduction is possible. Restart with increased mu
-	 *                                 6 - stopped by small ||e||_2
-	 *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
-	 * info[7]= # function evaluations
-	 * info[8]= # Jacobian evaluations
-	 * info[9]= # linear systems solved, i.e. # attempts for reducing error
-	 */
+	* info[0]= ||e||_2 at initial p.
+	* info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
+	* info[5]= # iterations,
+	* info[6]=reason for terminating: 1 - stopped by small gradient J^T e
+	*                                 2 - stopped by small Dp
+	*                                 3 - stopped by itmax
+	*                                 4 - singular matrix. Restart from current p with increased mu
+	*                                 5 - no further error reduction is possible. Restart with increased mu
+	*                                 6 - stopped by small ||e||_2
+	*                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
+	* info[7]= # function evaluations
+	* info[8]= # Jacobian evaluations
+	* info[9]= # linear systems solved, i.e. # attempts for reducing error
+	*/
 	LM_REAL *work,     /* working memory at least LM_DIF_WORKSZ() reals large, allocated if NULL */
 	LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
 	void *adata )       /* pointer to possibly additional data, passed uninterpreted to func.
-		 * Set to NULL if not needed
-		 */
+	 * Set to NULL if not needed
+	 */
 {
 	register int i, j, k, l;
 	int worksz, freework = 0, issolved, success, odebug, kmax, maxnfev;
@@ -1090,23 +1089,23 @@ int LEVMAR_DIF(
 	( *func )( p, hx, m, n, adata ); nfev = 1;
 	if( op->cd->check_success && op->success )
 	{
-		if( op->cd->ldebug ) printf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
+		if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
 		stop = 8;
 	}
 #ifdef HAVE_LAPACK
 	/* 6 alternatives are available: LU, Cholesky, 2 variants of QR decomposition, SVD and LDLt.
-	 * Cholesky is the fastest but might be inaccurate; QR is slower but more accurate;
-	 * SVD is the slowest but most accurate; LU offers a tradeoff between accuracy and speed
-	 */
-	//linsolver = AX_EQ_B_BK; if( op->cd->ldebug ) printf( "BK decomposition\n" );
-	//linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) printf( "LU decomposition\n" );
-	//linsolver = AX_EQ_B_CHOL; if( op->cd->ldebug ) printf( "Cholesky decomposition\n" );
-	//linsolver = AX_EQ_B_QR; if( op->cd->ldebug ) printf( "QR decomposition\n" );
-	//linsolver = (int (*)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m))AX_EQ_B_QRLS; if( op->cd->ldebug ) printf( "QRLS decomposition\n" );
-	linsolver = AX_EQ_B_SVD; if( op->cd->ldebug ) printf( "LM using: SVD decomposition\n" );
+	* Cholesky is the fastest but might be inaccurate; QR is slower but more accurate;
+	* SVD is the slowest but most accurate; LU offers a tradeoff between accuracy and speed
+	*/
+	//linsolver = AX_EQ_B_BK; if( op->cd->ldebug ) tprintf( "BK decomposition\n" );
+	//linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) tprintf( "LU decomposition\n" );
+	//linsolver = AX_EQ_B_CHOL; if( op->cd->ldebug ) tprintf( "Cholesky decomposition\n" );
+	//linsolver = AX_EQ_B_QR; if( op->cd->ldebug ) tprintf( "QR decomposition\n" );
+	//linsolver = (int (*)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m))AX_EQ_B_QRLS; if( op->cd->ldebug ) tprintf( "QRLS decomposition\n" );
+	linsolver = AX_EQ_B_SVD; if( op->cd->ldebug ) tprintf( "LM using: SVD decomposition\n" );
 #else
 	/* use the LU included with levmar */
-	linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) printf( "LM using: LU decomposition\n" );
+	linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) tprintf( "LM using: LU decomposition\n" );
 #endif
 	/* ### e=x-hx, p_eL2=||e|| */
 #if 0
@@ -1124,20 +1123,20 @@ int LEVMAR_DIF(
 	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
 	kmax = itmax * 100;
-	if( op->cd->ldebug ) printf( "Initial evaluation: OF %g\n", p_eL2 );
+	if( op->cd->ldebug ) tprintf( "Initial evaluation: OF %g\n", p_eL2 );
 	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
-		 * The symmetry of J^T J is again exploited for speed
-		 */
+		* The symmetry of J^T J is again exploited for speed
+		*/
 		if( ( updp && nu > 16 ) || updjac == K ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug )
 			{
-				printf( "New Jacobian requested because: " );
-				if( nu > 16 ) printf( "Lambda multiplication factor too large (nu = %d > 16); ", nu );
-				if( updjac == K ) printf( "Maximum number of lambda iteration is reached (%d); ", K );
-				printf( "\n\n" );
+				tprintf( "New Jacobian requested because: " );
+				if( nu > 16 ) tprintf( "Lambda multiplication factor too large (nu = %d > 16); ", nu );
+				if( updjac == K ) tprintf( "Maximum number of lambda iteration is reached (%d); ", K );
+				tprintf( "\n\n" );
 			}
 			if( njap >= itmax ) { stop = 31; continue; }
 			if( nfev >= maxnfev ) { stop = 32; continue; }
@@ -1150,7 +1149,7 @@ int LEVMAR_DIF(
 			}
 			else  /* use central differences */
 			{
-				if( op->cd->ldebug ) printf( "Central Differences\n" );
+				if( op->cd->ldebug ) tprintf( "Central Differences\n" );
 				LEVMAR_FDIF_CENT_JAC_APPROX( func, p, wrk, wrk2, delta, jac, m, n, adata );
 				++njap; nfev += 2 * m;
 			}
@@ -1159,24 +1158,24 @@ int LEVMAR_DIF(
 			nu = 10; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
-				if( k == 0 ) printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
-				else printf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
+				if( k == 0 ) tprintf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
+				else tprintf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
 			}
 			if( op->cd->ldebug > 13 )
 			{
-				printf( "Jacobian matrix:\n" );
+				tprintf( "Jacobian matrix:\n" );
 				for( l = j = 0; j < op->od->nObs; j++ )
 				{
 					if( op->cd->ldebug > 14 || op->od->nObs < 50 || ( j < 20 || j > op->od->nObs - 20 ) )
 					{
-						printf( "Observation %i: ", j + 1 );
+						tprintf( "Observation %i: ", j + 1 );
 						for( i = 0; i < op->pd->nOptParam; i++, l++ )
-							printf( " %g", jac[l] );
+							tprintf( " %g", jac[l] );
 					}
 					else
 						for( i = 0; i < op->pd->nOptParam; i++, l++ );
-					if( ( !( op->cd->ldebug > 14 ) || op->od->nObs > 50 ) && j == 21 ) printf( "...\n" );
-					printf( "\n" );
+					if( ( !( op->cd->ldebug > 14 ) || op->od->nObs > 50 ) && j == 21 ) tprintf( "...\n" );
+					tprintf( "\n" );
 				}
 			}
 		}
@@ -1187,23 +1186,23 @@ int LEVMAR_DIF(
 			if( nm <= __BLOCKSZ__SQ ) // this is a small problem
 			{
 				/* J^T*J_ij = \sum_l J^T_il * J_lj = \sum_l J_li * J_lj.
-				 * Thus, the product J^T J can be computed using an outer loop for
-				 * l that adds J_li*J_lj to each element ij of the result. Note that
-				 * with this scheme, the accesses to J and JtJ are always along rows,
-				 * therefore induces less cache misses compared to the straightforward
-				 * algorithm for computing the product (i.e., l loop is innermost one).
-				 * A similar scheme applies to the computation of J^T e.
-				 * However, for large minimization problems (i.e., involving a large number
-				 * of unknowns and measurements) for which J/J^T J rows are too large to
-				 * fit in the L1 cache, even this scheme incures many cache misses. In
-				 * such cases, a cache-efficient blocking scheme is preferable.
-				 *
-				 * Thanks to John Nitao of Lawrence Livermore Lab for pointing out this
-				 * performance problem.
-				 *
-				 * Note that the non-blocking algorithm is faster on small
-				 * problems since in this case it avoids the overheads of blocking.
-				 */
+				* Thus, the product J^T J can be computed using an outer loop for
+				* l that adds J_li*J_lj to each element ij of the result. Note that
+				* with this scheme, the accesses to J and JtJ are always along rows,
+				* therefore induces less cache misses compared to the straightforward
+				* algorithm for computing the product (i.e., l loop is innermost one).
+				* A similar scheme applies to the computation of J^T e.
+				* However, for large minimization problems (i.e., involving a large number
+				* of unknowns and measurements) for which J/J^T J rows are too large to
+				* fit in the L1 cache, even this scheme incures many cache misses. In
+				* such cases, a cache-efficient blocking scheme is preferable.
+				*
+				* Thanks to John Nitao of Lawrence Livermore Lab for pointing out this
+				* performance problem.
+				*
+				* Note that the non-blocking algorithm is faster on small
+				* problems since in this case it avoids the overheads of blocking.
+				*/
 				register int l, im;
 				register LM_REAL alpha, *jaclm;
 				/* looping downwards saves a few computations */
@@ -1231,7 +1230,7 @@ int LEVMAR_DIF(
 			else  // this is a large problem
 			{
 				/* Cache efficient computation of J^T J based on blocking
-				 */
+				*/
 				LEVMAR_TRANS_MAT_MAT_MULT( jac, jacTjac, n, m );
 				/* cache efficient computation of J^T e */
 				for( i = 0; i < m; ++i )
@@ -1251,12 +1250,12 @@ int LEVMAR_DIF(
 				p_L2 += p[i] * p[i];
 			}
 			//p_L2=sqrt(p_L2);
-			if( op->cd->ldebug > 4 ) printf( "||J^T e||_inf %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
+			if( op->cd->ldebug > 4 ) tprintf( "||J^T e||_inf %g (%g < %g to converge)\n", jacTe_inf, jacTe_inf, eps1 );
 			/* check for convergence */
 			if( ( jacTe_inf <= eps1 ) )
 			{
 				Dp_L2 = 0.0; /* no increment for p in this case */
-				if( op->cd->ldebug ) printf( "CONVERGED: ||J^T e||_inf is too small (%g < %g)\n", jacTe_inf, eps1 );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: ||J^T e||_inf is too small (%g < %g)\n", jacTe_inf, eps1 );
 				stop = 1;
 				break;
 			}
@@ -1267,7 +1266,7 @@ int LEVMAR_DIF(
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
 				if( diag_jacTjac[i] > tmp ) tmp = diag_jacTjac[i]; /* find max diagonal element */
 			mu = tau * tmp;
-			if( op->cd->ldebug ) printf( "Computed initial lambda %g\n", mu );
+			if( op->cd->ldebug ) tprintf( "Computed initial lambda %g\n", mu );
 		}
 		/* determine increment using adaptive damping */
 		/* augment normal equations */
@@ -1284,18 +1283,18 @@ int LEVMAR_DIF(
 				Dp_L2 += tmp * tmp;
 			}
 			// Dp_L2=sqrt(Dp_L2);
-			if( op->cd->ldebug > 4 ) printf( "Relative change in the OF %g (%g < %g to converge)\n", Dp_L2, Dp_L2, eps2_sq * p_L2 );
+			if( op->cd->ldebug > 4 ) tprintf( "Relative change in the OF %g (%g < %g to converge)\n", Dp_L2, Dp_L2, eps2_sq * p_L2 );
 			if( Dp_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
 			{
 				//if(Dp_L2<=eps2*(p_L2 + eps2)){ /* relative change in p is small, stop */
-				if( op->cd->ldebug ) printf( "CONVERGED: Relative change in the OF is small (%g < %g)\n", Dp_L2, eps2_sq * p_L2 );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: Relative change in the OF is small (%g < %g)\n", Dp_L2, eps2_sq * p_L2 );
 				stop = 2;
 				break;
 			}
 			if( Dp_L2 >= ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) ) /* almost singular */
 			{
 				//if(Dp_L2>=(p_L2+eps2)/LM_CNST(EPSILON)){ /* almost singular */
-				if( op->cd->ldebug ) printf( "CONVERGED: almost singular solution (%g > %g)\n", Dp_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: almost singular solution (%g > %g)\n", Dp_L2, ( p_L2 + eps2 ) / ( LM_CNST( EPSILON )*LM_CNST( EPSILON ) ) );
 				stop = 4;
 				break;
 			}
@@ -1311,10 +1310,10 @@ int LEVMAR_DIF(
 				pDp_eL2 += tmp * tmp;
 			}
 #endif
-			if( op->cd->ldebug ) printf( "OF %g lambda %g ", pDp_eL2, mu );
+			if( op->cd->ldebug ) tprintf( "OF %g lambda %g ", pDp_eL2, mu );
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
-				if( op->cd->ldebug ) printf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: OF below cutoff value (%g < %g)\n", p_eL2, eps3 );
 				for( i = 0; i < m; i++ ) p[i] = pDp[i];
 				p_eL2 = pDp_eL2;
 				stop = 6;
@@ -1322,7 +1321,7 @@ int LEVMAR_DIF(
 			}
 			if( op->cd->check_success && op->success )
 			{
-				if( op->cd->ldebug ) printf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
+				if( op->cd->ldebug ) tprintf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
 				for( i = 0; i < m; i++ ) p[i] = pDp[i];
 				p_eL2 = pDp_eL2;
 				stop = 8;
@@ -1331,14 +1330,14 @@ int LEVMAR_DIF(
 			if( !LM_FINITE( pDp_eL2 ) )
 			{
 				/* sum of squares is not finite, most probably due to a user error.
-				 * This check makes sure that the loop terminates early in the case
-				 * of invalid input. Thanks to Steve Danauskas for suggesting it */
-				if( op->cd->ldebug ) printf( "CONVERGED: sum of squares is not finite, most probably due to a user error\n" );
+				* This check makes sure that the loop terminates early in the case
+				* of invalid input. Thanks to Steve Danauskas for suggesting it */
+				if( op->cd->ldebug ) tprintf( "CONVERGED: sum of squares is not finite, most probably due to a user error\n" );
 				stop = 7;
 				break;
 			}
 			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
-			// printf( "dF = %g (%g - %g)\n", dF, p_eL2, pDp_eL2 );
+			// tprintf( "dF = %g (%g - %g)\n", dF, p_eL2, pDp_eL2 );
 			if( updp || dF > 0.0 ) /* update jac because OF increases */
 			{
 				for( i = 0; i < n; ++i )
@@ -1360,8 +1359,8 @@ int LEVMAR_DIF(
 				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
 				tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 				mu = mu * tmp; // change lambda
-				if( op->cd->ldebug > 1 ) printf( "change factor (tmp) %g\n", tmp );
-				else if( op->cd->ldebug ) printf( "\n" );
+				if( op->cd->ldebug > 1 ) tprintf( "change factor (tmp) %g\n", tmp );
+				else if( op->cd->ldebug ) tprintf( "\n" );
 				nu = 2;
 				for( i = 0 ; i < m; ++i ) /* update p's estimate */
 					p[i] = pDp[i];
@@ -1376,15 +1375,15 @@ int LEVMAR_DIF(
 			}
 		}
 		/* if this point is reached, either the linear system could not be solved or
-		 * the error did not reduce; in any case, the increment must be rejected
-		 */
+		* the error did not reduce; in any case, the increment must be rejected
+		*/
 		mu *= nu; // increase lambda
-		if( op->cd->ldebug > 1 ) printf( "change factor (nu) %d\n", nu );
-		else if( op->cd->ldebug ) printf( "\n" );
+		if( op->cd->ldebug > 1 ) tprintf( "change factor (nu) %d\n", nu );
+		else if( op->cd->ldebug ) tprintf( "\n" );
 		nu2 = nu << 1; // 2*nu;
 		if( nu2 <= nu ) /* nu has wrapped around (overflown). Thanks to Frank Jordan for spotting this case */
 		{
-			if( op->cd->ldebug ) printf( "CONVERGED: lambda multiplication factor has wrapped around (overflown)\n" );
+			if( op->cd->ldebug ) tprintf( "CONVERGED: lambda multiplication factor has wrapped around (overflown)\n" );
 			stop = 5;
 			break;
 		}
@@ -1412,26 +1411,26 @@ int LEVMAR_DIF(
 	}
 	if( op->cd->ldebug )
 	{
-		printf( "LM optimization is completed. Reason: " );
+		tprintf( "LM optimization is completed. Reason: " );
 		switch( stop )
 		{
-			case 1: printf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
-			case 2: printf( "small Dp (%g)\n", Dp_L2 ); break;
-			case 3: printf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
-			case 31: printf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
-			case 32: printf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
-			case 4: printf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 5: printf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 6: printf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
-			case 7: printf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
-			case 8: printf( "model predictions are within predefined calibration ranges\n" ); break;
-			default: printf( "UNKNOWN flag: %d\n", stop ); break;
+			case 1:  tprintf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
+			case 2:  tprintf( "small Dp (%g)\n", Dp_L2 ); break;
+			case 3:  tprintf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
+			case 31: tprintf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
+			case 32: tprintf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
+			case 4:  tprintf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+			case 5:  tprintf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+			case 6:  tprintf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
+			case 7:  tprintf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
+			case 8:  tprintf( "model predictions are within predefined calibration ranges\n" ); break;
+			default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 2 )
 		{
-			printf( "Levenberg-Marquardt Optimization completed after %g iteration (reason %g) (returned value %d)\n", info[5], info[6], ( stop != 4 && stop != 7 ) ?  k : LM_ERROR );
-			printf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
-			printf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
+			tprintf( "Levenberg-Marquardt Optimization completed after %g iteration (reason %g) (returned value %d)\n", info[5], info[6], ( stop != 4 && stop != 7 ) ?  k : LM_ERROR );
+			tprintf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
+			tprintf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 		}
 	}
 	/* covariance matrix */

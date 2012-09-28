@@ -67,7 +67,7 @@ int load_pst( char *filename, struct opt_data *op )
 	op->gd->min_t = op-> gd->time = 0;
 	if( ( in = fopen( filename, "r" ) ) == NULL )
 	{
-		printf( "PEST control file %s cannot be opened to read problem data!\n", filename );
+		tprintf( "PEST control file %s cannot be opened to read problem data!\n", filename );
 		return( -1 );
 	}
 	cd->opt_method = ( char * ) malloc( 50 * sizeof( char ) );
@@ -80,12 +80,12 @@ int load_pst( char *filename, struct opt_data *op )
 	for( i = 0; i < 4; i++ ) // skip 4 lines
 		fgets( buf, 1000, in );
 	sscanf( buf, "%d %d %d %*d %d", &( *pd ).nParam, &( *od ).nObs, &npar_groups, &nobs_groups );
-	printf( "Parameters = %d (groups %d)\n", pd->nParam, npar_groups );
-	printf( "Observations = %d (groups %d)\n", od->nObs, nobs_groups );
+	tprintf( "Parameters = %d (groups %d)\n", pd->nParam, npar_groups );
+	tprintf( "Observations = %d (groups %d)\n", od->nObs, nobs_groups );
 	od->nTObs = od->nObs;
 	fgets( buf, 1000, in );
 	sscanf( buf, "%d %d", &( *ed ).ntpl, &( *ed ).nins );
-	printf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *ed ).ntpl, ( *ed ).nins );
+	tprintf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *ed ).ntpl, ( *ed ).nins );
 	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
 	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	pd->var_current = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
@@ -97,7 +97,7 @@ int load_pst( char *filename, struct opt_data *op )
 	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	printf( "Parameters = %d:\n", pd->nParam );
+	tprintf( "Parameters = %d:\n", pd->nParam );
 	for( i = 0; i < 6; i++ ) // skip 6 lines
 		fgets( buf, 1000, in );
 	for( i = 0; i < npar_groups; i++ )
@@ -108,8 +108,7 @@ int load_pst( char *filename, struct opt_data *op )
 	for( i = 0; i < pd->nParam; i++ )
 	{
 		fscanf( in, "%s %s %*s %lf %lf %lf %*s %*f %*f %*f\n", pd->var_id[i], code, &pd->var[i], &pd->var_min[i], &pd->var_max[i] );
-		printf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], pd->var[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
-		fflush( stdout );
+		tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], pd->var[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 		if( strcmp( code, "fixed" ) == 0 ) pd->var_opt[i] = 0; else { pd->nOptParam++; pd->var_opt[i] = 1; }
 		if( strcmp( code, "log" ) == 0 ) pd->var_log[i] = 1; else pd->var_log[i] = 0;
 		if( ( *pd ).var_log[i] == 1 )
@@ -122,21 +121,19 @@ int load_pst( char *filename, struct opt_data *op )
 		pd->var_dx[i] = pd->var_range[i] / 10;
 	}
 	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
-	printf( "Optimized parameters = %d\n", pd->nOptParam );
+	tprintf( "Optimized parameters = %d\n", pd->nOptParam );
 	for( k = i = 0; i < ( *pd ).nParam; i++ )
 		if( ( *pd ).var_opt[i] == 1 )
 		{
 			if( ( *pd ).var_log[i] == 1 ) d = log10( pd->var[i] ); else d = pd->var[i];
-			printf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, ( *pd ).var_min[i], ( *pd ).var_max[i] );
-			fflush( stdout );
+			tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, ( *pd ).var_min[i], ( *pd ).var_max[i] );
 			( *pd ).var_index[k++] = i;
 		}
 	for( i = 0; i < pd->nParam; i++ )
 		for( j = i + 1; j < pd->nParam; j++ )
 			if( strcmp( pd->var_id[i], pd->var_id[j] ) == 0 )
 			{
-				printf( "ERROR: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] );
-				fflush( stdout );
+				tprintf( "ERROR: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] );
 				bad_data = 1;
 			}
 	if( bad_data ) return( 0 );
@@ -155,12 +152,12 @@ int load_pst( char *filename, struct opt_data *op )
 	od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 	for( i = 0; i < od->nObs; i++ )
 		fscanf( in, "%s %lf %lf %*s\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i] );
-	printf( "Calibration targets = %d\n", ( *od ).nObs );
+	tprintf( "Calibration targets = %d\n", ( *od ).nObs );
 	for( i = 0; i < od->nObs; i++ )
 	{
 		if( od->nObs < 50 || ( i < 20 || i > od->nObs - 20 ) )
-			printf( "%-13s: value %15.12g weight %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i] );
-		if( od->nObs > 50 && i == 21 ) printf( "...\n" );
+			tprintf( "%-13s: value %15.12g weight %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i] );
+		if( od->nObs > 50 && i == 21 ) tprintf( "...\n" );
 		od->obs_min[i] = 0; od->obs_max[i] = od->obs_target[i] * 2;
 		od->obs_log[i] = 0;
 	}
@@ -168,7 +165,7 @@ int load_pst( char *filename, struct opt_data *op )
 		for( j = i + 1; j < od->nObs; j++ )
 			if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
 			{
-				printf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
+				tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
 				bad_data = 1;
 			}
 	if( bad_data ) return( 0 );
@@ -176,8 +173,8 @@ int load_pst( char *filename, struct opt_data *op )
 	ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
 	fgets( ed->cmdline, 80, in );
 	ed->cmdline[strlen( ed->cmdline ) - 1] = 0;
-	printf( "Execution command: %s\n", ed->cmdline );
-	printf( "External files:\n" );
+	tprintf( "Execution command: %s\n", ed->cmdline );
+	tprintf( "External files:\n" );
 	ed->fn_ins = char_matrix( ed->nins, 80 );
 	ed->fn_obs = char_matrix( ed->nins, 80 );
 	ed->fn_tpl = char_matrix( ed->ntpl, 80 );
@@ -185,17 +182,16 @@ int load_pst( char *filename, struct opt_data *op )
 	fgets( buf, 1000, in ); // skip line
 	for( i = 0; i < ed->ntpl; i++ )
 		fscanf( in, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
-	printf( "- to provide current model parameters:\n" );
+	tprintf( "- to provide current model parameters:\n" );
 	for( i = 0; i < ed->ntpl; i++ )
-		printf( "%s -> %s\n", ed->fn_tpl[i], ed->fn_out[i] );
+		tprintf( "%s -> %s\n", ed->fn_tpl[i], ed->fn_out[i] );
 	for( i = 0; i < ed->nins; i++ )
 		fscanf( in, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );
-	printf( "- to read current model predictions:\n" );
+	tprintf( "- to read current model predictions:\n" );
 	for( i = 0; i < ed->nins; i++ )
-		printf( "%s <- %s\n", ed->fn_ins[i], ed->fn_obs[i] );
+		tprintf( "%s <- %s\n", ed->fn_ins[i], ed->fn_obs[i] );
 	fclose( in );
-	printf( "\n" );
-	fflush( stdout );
+	tprintf( "\n" );
 	return( 1 );
 }
 
@@ -205,16 +201,14 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	char *separator = " \t\n";
 	char *word_inst, *word_search, token_obs[2], token_search[2], comment[2], dummy_var[6], buf_inst[1000], *pnt_inst;
 	int i, c, bad_data = 0;
-	if( debug ) printf( "\nChecking instruction file \'%s\'.\n", fn_in_i );
-	fflush( stdout );
+	if( debug ) tprintf( "\nChecking instruction file \'%s\'.\n", fn_in_i );
 	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
-		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
+		tprintf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
 		return( -1 );
 	}
 	fgets( buf_inst, 1000, infile_inst );
-	if( debug ) printf( "\nCurrent instruction line: %s\n", buf_inst );
-	fflush( stdout );
+	if( debug ) tprintf( "\nFirst instruction line: %s\n", buf_inst );
 	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
 	{
 		if( c == 0 ) // first entry
@@ -222,21 +216,21 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 			white_trim( word_inst );
 			if( strcasestr( word_inst, "pif" ) )
 			{
-				if( debug ) printf( "PEST Instruction file\n" );
+				if( debug ) tprintf( "PEST Instruction file\n" );
 				token_search[0] = '@'; // just in case
 				token_obs[0] = '!';
 				comment[0] = 0;
 			}
 			else if( strcasestr( word_inst, "instruction" ) )
 			{
-				if( debug ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
+				if( debug ) tprintf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
 				token_search[0] = '@'; // just in case
 				token_obs[0] = '!';
 				comment[0] = '#';
 			}
 			else
 			{
-				if( debug ) printf( "MADS Instruction file\n" );
+				if( debug ) tprintf( "MADS Instruction file\n" );
 				rewind( infile_inst );
 				token_search[0] = '@';
 				token_obs[0] = '!';
@@ -247,28 +241,28 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		else if( c == 1 ) // second entry; "search" token
 		{
 			white_trim( word_inst );
-			if( debug > 1 ) printf( "Search token %s\n", word_inst );
+			if( debug > 1 ) tprintf( "Search token %s\n", word_inst );
 			token_search[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
-				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+				tprintf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( token_search[0] == 0 ) token_search[0] = '@';
 		}
 		else if( c == 2 ) // third entry; "variable" token
 		{
 			white_trim( word_inst );
-			if( debug > 1 ) printf( "Variable token %s\n", word_inst );
+			if( debug > 1 ) tprintf( "Variable token %s\n", word_inst );
 			token_obs[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
-				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+				tprintf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( token_obs[0] == 0 ) token_obs[0] = '!';
 		}
 		else if( c == 3 ) // third entry; "comment" token
 		{
 			white_trim( word_inst );
-			if( debug > 1 ) printf( "Comment token %s\n", word_inst );
+			if( debug > 1 ) tprintf( "Comment token %s\n", word_inst );
 			comment[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
-				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+				tprintf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( comment[0] == 0 ) comment[0] = '#';
 		}
 	}
@@ -281,48 +275,47 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	token_obs[1] = token_search[1] = comment[1] = 0;
 	if( debug )
 	{
-		printf( "Search separator: %s\n", token_search );
-		printf( "Observation separator: %s\n", token_obs );
-		printf( "Dummy observation: %s\n", dummy_var );
-		if( comment[0] ) printf( "Comment: %s\n", comment );
+		tprintf( "Search separator: %s\n", token_search );
+		tprintf( "Observation separator: %s\n", token_obs );
+		tprintf( "Dummy observation: %s\n", dummy_var );
+		if( comment[0] ) tprintf( "Comment: %s\n", comment );
 	}
-	fflush( stdout );
 	while( !feof( infile_inst ) ) // IMPORTANT: strtok below modifies buf_inst by adding '\0's; if needed strcpy buf_inst
 	{
-		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) printf( "\nEND of instruction file: %s\n", buf_inst ); break; }
+		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of instruction file (%s).\n", buf_inst ); break; }
 		pnt_inst = &buf_inst[0];
 		word_inst = 0;
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
-		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "\nCurrent instruction line: %s\n", pnt_inst );  printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
-		else { if( debug ) printf( "\nCurrent instruction line: %s\n", pnt_inst ); }
-		if( strlen( pnt_inst ) == 0 ) { if( debug ) printf( "Empty line; will be skipped.\n" ); continue; }
+		if( debug ) tprintf( "\nCurrent instruction line: %s\n", pnt_inst );
+		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) tprintf( "Comment; skip this line.\n" ); continue; } // Instruction line is a comment
+		if( strlen( pnt_inst ) == 0 ) { if( debug ) tprintf( "Empty line; will be skipped.\n" ); continue; } // Empty line
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &pnt_inst[1], "%d", &c );
-			if( debug > 1 ) printf( "Skip %d lines\n", c );
+			if( debug > 1 ) tprintf( "Skip %d lines\n", c );
 			word_inst = strtok_r( NULL, separator, &pnt_inst ); // skip l command
 		}
 		while( 1 )
 		{
-			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
 			if( pnt_inst[0] == token_search[0] ) // search for keyword
 			{
-				if( debug ) { printf( "Keyword search " ); fflush( stdout ); }
+				if( debug ) tprintf( "KEYWORD search " );
 				word_search = strtok_r( NULL, token_search, &pnt_inst ); // read search keyword
-				if( debug ) { printf( "\'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
+				if( debug ) tprintf( "\'%s\' in the data file ...\n", word_search );
 			}
 			else
 			{
 				word_inst = strtok_r( NULL, separator, &pnt_inst ); // read TEMPLETE word
+				if( debug > 1 ) tprintf( "Current location in instruction input file: => \'%s\' <= \'%s\'\n", word_inst, pnt_inst );
 				white_trim( word_inst );
-				if( debug ) { printf( "INSTRUCTION word \'%s\' : ", word_inst ); fflush( stdout ); }
+				if( debug ) tprintf( "INSTRUCTION word \'%s\' : ", word_inst );
 				if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
 				{
-					if( debug ) printf( "Skip dummy data!\n" );
+					if( debug ) tprintf( "Skip dummy data!\n" );
 				}
 				else if( word_inst[0] == 'w' ) // white space
 				{
-					if( debug ) printf( "Skip white space!\n" );
+					if( debug ) tprintf( "Skip white space!\n" );
 				}
 				else if( word_inst[0] == token_obs[0] ) // observation variable
 				{
@@ -331,7 +324,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 					else word_inst = &word_inst[1];
 					if( word_inst[strlen( word_inst ) - 1] == token_obs[0] ) word_inst[strlen( word_inst ) - 1] = 0;
 					else strtok_r( NULL, separator, &pnt_inst );
-					if( debug ) { printf( "Observation keyword \'%s\' ... ", word_inst ); fflush( stdout ); }
+					if( debug ) tprintf( "Observation keyword \'%s\' ... ", word_inst );
 					white_skip( &word_inst );
 					white_trim( word_inst );
 					for( i = 0; i < nobs; i++ )
@@ -340,28 +333,25 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 						{
 							if( check[i] < 0 ) { check[i] = 1; }
 							else { check[i] += 1; }
-							if( debug ) { printf( "\'%s\' detected %g times\n", obs_id[i], check[i] ); fflush( stdout ); }
+							if( debug ) tprintf( "\'%s\' detected %g times\n", obs_id[i], check[i] );
 							break;
 						}
 					}
 					if( nobs == i )
 					{
-						printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
-						fflush( stdout );
+						tprintf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
 						bad_data = 1;
 					}
 				}
 				else if( comment[0] && word_inst[0] == comment[0] ) // comment
 				{
-					if( debug ) printf( "Comment. Skip rest of the instruction line!\n" );
-					fflush( stdout );
+					if( debug ) tprintf( "Comment. Skip rest of the instruction line!\n" );
 					break;
 				}
 				else
 				{
-					printf( "\nERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
-					printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
-					fflush( stdout );
+					tprintf( "\nERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
+					tprintf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
 					bad_data = 1;
 					break;
 				}
@@ -370,11 +360,9 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 		}
 	}
 	fclose( infile_inst );
-	fflush( stdout );
 	if( bad_data ) return( -1 );
 	else return( 0 );
 }
-
 
 int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i, char *fn_in_d, int debug )
 {
@@ -385,18 +373,17 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	double v;
 	if( ( infile_inst = fopen( fn_in_i, "r" ) ) == NULL )
 	{
-		printf( "\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
+		tprintf( "\nERROR: File %s cannot be opened to read template data!\n", fn_in_i );
 		return( -1 );
 	}
 	if( ( infile_data = fopen( fn_in_d, "r" ) ) == NULL )
 	{
-		printf( "\nERROR: File %s cannot be opened to read the model-predicted observations!\n", fn_in_d );
+		tprintf( "\nERROR: File %s cannot be opened to read the model-predicted observations!\n", fn_in_d );
 		return( -1 );
 	}
-	if( debug ) printf( "\nReading output file \'%s\' obtained from external model execution using instruction file \'%s\'.\n", fn_in_d, fn_in_i );
+	if( debug ) tprintf( "\nReading output file \'%s\' obtained from external model execution using instruction file \'%s\'.\n", fn_in_d, fn_in_i );
 	fgets( buf_inst, 1000, infile_inst );
-	if( debug > 1 ) printf( "Current instruction line: %s\n", buf_inst );
-	fflush( stdout );
+	if( debug > 1 ) tprintf( "First instruction line: %s\n", buf_inst );
 	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
 	{
 		if( c == 0 ) // first entry
@@ -404,21 +391,21 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			white_trim( word_inst );
 			if( strcasestr( word_inst, "pif" ) )
 			{
-				if( debug > 1 ) printf( "PEST Instruction file\n" );
+				if( debug > 1 ) tprintf( "PEST Instruction file\n" );
 				token_search[0] = '@'; // just in case
 				token_obs[0] = '!';
 				comment[0] = 0;
 			}
 			else if( strcasestr( word_inst, "instruction" ) )
 			{
-				if( debug > 1 ) printf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
+				if( debug > 1 ) tprintf( "MADS Instruction file; user-specified search/variable tokens are expected\n" );
 				token_search[0] = '@'; // just in case
 				token_obs[0] = '!';
 				comment[0] = '#';
 			}
 			else
 			{
-				if( debug > 1 ) printf( "MADS Instruction file\n" );
+				if( debug > 1 ) tprintf( "MADS Instruction file\n" );
 				rewind( infile_inst );
 				token_search[0] = '@';
 				token_obs[0] = '!';
@@ -431,7 +418,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			white_trim( word_inst );
 			token_search[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
-				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+				tprintf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( token_search[0] == 0 ) token_search[0] = '@';
 		}
 		else if( c == 2 ) // third entry; "variable" token
@@ -439,7 +426,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			white_trim( word_inst );
 			token_obs[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
-				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+				tprintf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( token_obs[0] == 0 ) token_obs[0] = '!';
 		}
 		else if( c == 3 ) // third entry; "comment" token
@@ -447,7 +434,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			white_trim( word_inst );
 			comment[0] = word_inst[0];
 			if( strlen( word_inst ) > 1 )
-				printf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
+				tprintf( "WARNING: expecting a single character as search separator on the first line of instruction file (\'%s\'; assumed \'%s\')\n", word_inst, token_search );
 			if( comment[0] == 0 ) comment[0] = '#';
 			break;
 		}
@@ -461,31 +448,29 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	token_obs[1] = token_search[1] = comment[1] = 0;
 	if( debug > 1 )
 	{
-		printf( "Search separator: %s\n", token_search );
-		printf( "Observation separator: %s\n", token_obs );
-		printf( "Dummy observation: %s\n", dummy_var );
-		if( comment[0] ) printf( "Comment: %s\n", comment );
+		tprintf( "Search separator: %s\n", token_search );
+		tprintf( "Observation separator: %s\n", token_obs );
+		tprintf( "Dummy observation: %s\n", dummy_var );
+		if( comment[0] ) tprintf( "Comment: %s\n", comment );
 	}
-	fflush( stdout );
 	buf_data[0] = 0; word_data = pnt_data = NULL;
 	while( !feof( infile_inst ) )
 	{
-		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) printf( "\nEND of instruction file: %s\n", buf_inst ); break; }
+		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of instruction file (%s).\n", buf_inst ); break; }
 		pnt_inst = &buf_inst[0];
 		word_inst = 0;
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
-		if( debug > 1 ) printf( "\n\nCurrent instruction line: %s\n", pnt_inst );
-		fflush( stdout );
-		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) { printf( "Comment; skip this line.\n" ); } continue; } // Instruction line is a comment
-		if( strlen( pnt_inst ) == 0 ) { if( debug ) printf( "Empty line; will be skipped.\n" ); continue; }
+		if( debug > 1 ) tprintf( "\n\nCurrent instruction line: %s\n", pnt_inst );
+		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) tprintf( "Comment; skip this line.\n" ); continue; } // Instruction line is a comment
+		if( strlen( pnt_inst ) == 0 ) { if( debug ) tprintf( "Empty line; will be skipped.\n" ); continue; }
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &pnt_inst[1], "%d", &c );
-			if( debug > 1 ) printf( "Skip %d lines\n", c );
+			if( debug > 1 ) tprintf( "Skip %d lines\n", c );
 			for( i = 0; i < c; i++ )
-				if( fgets( buf_data, 1000, infile_data ) == NULL ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
+				if( fgets( buf_data, 1000, infile_data ) == NULL ) { tprintf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 			word_inst = strtok_r( NULL, separator, &pnt_inst ); // skip l command
-			if( feof( infile_data ) ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
+			if( feof( infile_data ) ) { tprintf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 			white_trim( buf_data );
 			pnt_data = &buf_data[0];
 			word_data = NULL;
@@ -497,57 +482,53 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			pnt_data = &buf_data[0];
 			word_data = NULL;
 		}
-		if( debug > 1 ) printf( "Current location in model output file: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
+		if( debug > 1 ) tprintf( "Current location in model output file: => \'%s\' <= \'%s\'\n", word_data, pnt_data );
 		if( debug ) { if( pnt_data != NULL ) { if( pnt_data[strlen( pnt_data ) - 2] != '\n' ) {} } }
 		c = 0;
 		while( 1 )
 		{
-			if( debug > 1 ) printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
 			if( pnt_inst[0] == token_search[0] ) // search for keyword
 			{
-				if( debug > 1 ) { printf( "Keyword search " ); fflush( stdout ); }
+				if( debug > 1 ) tprintf( "KEYWORD search " );
 				word_search = strtok_r( NULL, token_search, &pnt_inst ); // read search keyword
-				if( debug > 1 ) { printf( "\'%s\' in the data file ...\n", word_search ); fflush( stdout ); }
+				if( debug > 1 ) tprintf( "\'%s\' in the data file ...\n", word_search );
 				bad_data = 1;
 				while( !feof( infile_data ) )
 				{
 					if( ( pnt_data = strstr( pnt_data, word_search ) ) != NULL )
 					{
 						pnt_data += strlen( word_search );
-						if( debug > 1 ) printf( "Matching data file location \'=>%s<=%s\'\n", word_search, pnt_data );
+						if( debug > 1 ) tprintf( "Matching data file location \'=>%s<=%s\'\n", word_search, pnt_data );
 						bad_data = 0;
 						break;
 					}
-					fflush( stdout );
-					if( fgets( buf_data, 1000, infile_data ) == NULL ) { printf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); fflush( stdout ); break; }
+					if( fgets( buf_data, 1000, infile_data ) == NULL ) { tprintf( "\nERROR: Model output file \'%s\' is incomplete or instruction file \'%s\' is inaccurate!\n       Model output file \'%s\' ended before instruction file \'%s\' is completely processed!\n", fn_in_d, fn_in_i, fn_in_d, fn_in_i ); break; }
 					white_trim( buf_data );
 					pnt_data = &buf_data[0];
 					word_data = NULL; // Force reading
 				}
 				if( bad_data == 1 )
 				{
-					printf( "\nERROR: Search keyword \'%s\' cannot be found in the data file \'%s\'!\n", word_search, fn_in_d );
-					fflush( stdout );
+					tprintf( "\nERROR: Search keyword \'%s\' cannot be found in the data file \'%s\'!\n", word_search, fn_in_d );
 					return( -1 );
 				}
-				fflush( stdout );
 			}
 			else // no keyword search
 			{
 				word_inst = strtok_r( NULL, separator, &pnt_inst ); // read TEMPLETE word
+				if( debug > 1 ) tprintf( "Current location in instruction input file: => \'%s\' <= \'%s\'\n", word_inst, pnt_inst );
 				white_trim( word_inst );
-				if( debug > 1 ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
-				if( debug > 1 ) printf( "INSTRUCTION word \'%s\' : ", word_inst ); fflush( stdout );
+				if( debug > 1 ) tprintf( "INSTRUCTION word \'%s\' : ", word_inst );
 				if( strncmp( word_inst, dummy_var, 5 ) == 0 ) // dummy variable
 				{
-					if( debug > 1 ) printf( "Skip dummy data!\n" );
+					if( debug > 1 ) tprintf( "Skip dummy data!\n" );
 					if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
 					word_data = strtok_r( NULL, separator, &pnt_data );
-					if( debug > 1 ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
+					if( debug > 1 ) tprintf( "Current location in model output file: => \'%s\' <= \'%s\'\n", word_data, pnt_data );
 				}
 				else if( word_inst[0] == 'w' ) // white space
 				{
-					if( debug > 1 ) printf( "Skip white space!\n" );
+					if( debug > 1 ) tprintf( "Skip white space!\n" );
 					if( pnt_data[0] != ' ' )
 					{
 						if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
@@ -557,7 +538,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 					{
 						word_data = strtok_r( NULL, separator, &pnt_data );
 					}
-					if( debug > 1 ) printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
+					if( debug > 1 ) tprintf( "Current location in model output file: => \'%s\' <= \'%s\'\n", word_data, pnt_data );
 				}
 				else if( word_inst[0] == token_obs[0] ) // observation variable
 				{
@@ -570,13 +551,13 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 					else strtok_r( NULL, separator, &pnt_inst );
 					white_skip( &word_inst );
 					white_trim( word_inst );
-					if( debug ) printf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
+					if( debug ) tprintf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
 					if( word_data == NULL || strlen( word_data ) == 0 )
 					{
-						printf( "\nERROR: Mismatch between the instruction file \'%s\' and the data file \'%s\'!\n", fn_in_i, fn_in_d );
-						printf( "INSTRUCTION word \'%s\'\n", word_inst );
-						printf( "Current location in instruction input file: \'%s\' Remaining line: \'%s\'\n", word_inst, pnt_inst );
-						printf( "Current data location: \'%s\' Remaining line: \'%s\'\n", word_data, pnt_data );
+						tprintf( "\nERROR: Mismatch between the instruction file \'%s\' and the data file \'%s\'!\n", fn_in_i, fn_in_d );
+						tprintf( "INSTRUCTION word \'%s\'\n", word_inst );
+						tprintf( "Current location in instruction input file: => \'%s\' <= \'%s\'\n", word_inst, pnt_inst );
+						tprintf( "Current location in model output file: => \'%s\' <= \'%s\'\n", word_data, pnt_data );
 						bad_data = 1;
 						break;
 					}
@@ -587,30 +568,25 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 							sscanf( word_data, "%lf", &v );
 							if( check[i] < 0 ) { obs[i] = v; check[i] = 1; }
 							else { obs[i] += v; check[i] += 1; }
-							if( debug ) printf( "\'%s\'=%g\n", obs_id[i], obs[i] );
-							fflush( stdout );
+							if( debug ) tprintf( "\'%s\'=%g\n", obs_id[i], obs[i] );
 							break;
 						}
 					}
 					if( nobs == i )
 					{
-						printf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
-						fflush( stdout );
+						tprintf( "\nERROR: Observation keyword \'%s\' does not match any of observation variables!\n", word_inst );
 						bad_data = 1;
 					}
-					fflush( stdout );
 				}
 				else if( comment[0] && word_inst[0] == comment[0] ) // comment
 				{
-					if( debug > 1 ) printf( "Comment. Skip rest of the instruction line!\n" );
-					fflush( stdout );
+					if( debug > 1 ) tprintf( "Comment. Skip rest of the instruction line!\n" );
 					break;
 				}
 				else
 				{
-					printf( "\nERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
-					printf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
-					fflush( stdout );
+					tprintf( "\nERROR: Instruction file %s does not follow the expected format!\n", fn_in_i );
+					tprintf( "White space (w), search (%s) or observation (%s) tokens are expected!\n", token_search, token_obs );
 					bad_data = 1;
 					break;
 				}
@@ -618,12 +594,10 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 			if( pnt_inst == NULL || strlen( pnt_inst ) == 0 ) break;
 		}
 	}
-	fflush( stdout );
 	fclose( infile_data ); fclose( infile_inst );
 	if( bad_data ) return( -1 );
 	else return( 0 );
 }
-
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug )
 {
 	FILE *in;
@@ -632,10 +606,10 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 	int i, l, c, start = 0, bad_data = 0;
 	if( ( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
-		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
+		tprintf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
 	}
-	if( debug ) printf( "\nChecking the template file \'%s\'.\n", fn_in_t );
+	if( debug ) tprintf( "\nChecking the template file \'%s\'.\n", fn_in_t );
 	fgets( buf, 1000, in );
 	for( c = 0, word = strtok( buf, sep ); word; c++, word = strtok( NULL, sep ) )
 	{
@@ -644,15 +618,15 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 			white_trim( word );
 			if( strstr( word, "ptf" ) )
 			{
-				if( debug ) printf( "PEST Template file\n" );
+				if( debug ) tprintf( "PEST Template file\n" );
 			}
 			else if( strcasestr( word, "template" ) )
 			{
-				if( debug ) printf( "MADS Template file; user-specified parameter token is expected\n" );
+				if( debug ) tprintf( "MADS Template file; user-specified parameter token is expected\n" );
 			}
 			else
 			{
-				if( debug ) printf( "MADS Template file\n" );
+				if( debug ) tprintf( "MADS Template file\n" );
 				rewind( in );
 				token[0] = '#'; // default tokes
 				break; // quit the loop; done
@@ -662,27 +636,26 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 		{
 			white_trim( word );
 			if( strlen( word ) > 1 )
-				printf( "WARNING: expecting a single character as parameter keyword separator on the first line of template file (\'%s\'; assumed \'%s\')\n", word, token );
+				tprintf( "WARNING: expecting a single character as parameter keyword separator on the first line of template file (\'%s\'; assumed \'%s\')\n", word, token );
 			token[0] = word[0];
 			if( token[0] == 0 ) token[0] = '#';
 			break;
 		}
 	}
 	token[1] = 0;
-	if( debug ) printf( "Parameter separator: %s\n", token );
-	fflush( stdout );
+	if( debug ) tprintf( "Parameter separator: %s\n", token );
 	while( !feof( in ) )
 	{
-		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) printf( "\nEND of template file: %s\n", buf ); break; }
+		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of template file (%s).\n", buf ); break; }
 		l = strlen( buf );
 		buf[l - 1] = 0;
 		if( buf[0] == token[0] ) start = 0; else start = 1;
 		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
 		{
-//			printf( "%d %s\n", c, word );
+//			tprintf( "%d %s\n", c, word );
 			if( c % 2 == start )
 			{
-				if( debug ) printf( "Parameter keyword \'%s\' ", word );
+				if( debug ) tprintf( "Parameter keyword \'%s\' ", word );
 				l = strlen( word );
 				white_skip( &word );
 				white_trim( word );
@@ -690,7 +663,7 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 				{
 					if( strcmp( word, par_id[i] ) == 0 )
 					{
-						if( debug ) printf( "will be replaced with the value of model parameter \'%s\'\n", par_id[i] );
+						if( debug ) tprintf( "will be replaced with the value of model parameter \'%s\'\n", par_id[i] );
 						if( par[i] < 0 ) par[i] = 1;
 						else par[i] += 1;
 						break;
@@ -698,21 +671,17 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 				}
 				if( i == npar )
 				{
-					if( debug ) printf( "ERROR: does not match defined model parameters!!!\n" );
-					else printf( "\nERROR: Parameter keyword \'%s\' in template file \'%s\' does not match defined model parameters!\n", word, fn_in_t );
-					fflush( stdout );
+					if( debug ) tprintf( "ERROR: does not match defined model parameters!!!\n" );
+					else tprintf( "\nERROR: Parameter keyword \'%s\' in template file \'%s\' does not match defined model parameters!\n", word, fn_in_t );
 					bad_data = 1;
 				}
 			}
-			fflush( stdout );
 		}
 	}
-	fflush( stdout );
 	fclose( in );
 	if( bad_data == 1 ) return( -1 );
 	else return( 0 );
 }
-
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug )
 {
 	FILE *in, *out;
@@ -721,18 +690,18 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	int i, l, l2, c, start, space = 0, bad_data = 0, preserve;
 	if( ( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
-		printf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
+		tprintf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
 	}
 	sprintf( buf, "rm -f %s >& /dev/null", fn_out );
-	if( debug ) printf( "Remove files for model inputs: %s\n", buf );
+	if( debug ) tprintf( "Remove files for model inputs: %s\n", buf );
 	system( buf );
 	if( ( out = fopen( fn_out, "w" ) ) == NULL )
 	{
-		printf( "\n\nERROR: File %s cannot be opened to write data!\n", fn_out );
+		tprintf( "\n\nERROR: File %s cannot be opened to write data!\n", fn_out );
 		return( -1 );
 	}
-	if( debug ) printf( "\nCreating model input file \'%s\' for external model execution using template file \'%s\'.\n", fn_out, fn_in_t );
+	if( debug ) tprintf( "\nCreating model input file \'%s\' for external model execution using template file \'%s\'.\n", fn_out, fn_in_t );
 	fgets( buf, 1000, in );
 	for( c = 0, word = strtok( buf, sep ); word; c++, word = strtok( NULL, sep ) )
 	{
@@ -741,15 +710,15 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 			white_trim( word );
 			if( strcasestr( word, "ptf" ) )
 			{
-				if( debug ) printf( "PEST Template file\n" );
+				if( debug ) tprintf( "PEST Template file\n" );
 			}
 			else if( strcasestr( word, "template" ) )
 			{
-				if( debug ) printf( "MADS Template file; user-specified parameter token is expected\n" );
+				if( debug ) tprintf( "MADS Template file; user-specified parameter token is expected\n" );
 			}
 			else
 			{
-				if( debug ) printf( "MADS Template file\n" );
+				if( debug ) tprintf( "MADS Template file\n" );
 				rewind( in );
 				token[0] = '#';
 				break; // quit the loop; done
@@ -759,18 +728,17 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		{
 			white_trim( word );
 			if( strlen( word ) > 1 )
-				printf( "WARNING: expecting a single character as parameter keyword separator on the first line of template file (\'%s\'; assumed \'%s\')\n", word, token );
+				tprintf( "WARNING: expecting a single character as parameter keyword separator on the first line of template file (\'%s\'; assumed \'%s\')\n", word, token );
 			token[0] = word[0];
 			if( token[0] == 0 ) token[0] = '#';
 			break;
 		}
 	}
 	token[1] = 0;
-	if( debug > 1 ) printf( "Parameter separator: %s\n", token );
-	fflush( stdout );
+	if( debug > 1 ) tprintf( "Parameter separator: %s\n", token );
 	while( !feof( in ) )
 	{
-		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) printf( "\nEND of template file: %s\n", buf ); break; }
+		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of template file (%s).\n", buf ); break; }
 		l = strlen( buf );
 		buf[l - 1] = 0; // remove 'new line' character
 		if( buf[0] == token[0] ) start = 0; else start = 1; // if first character is a token it will be not considered a separator
@@ -779,7 +747,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		{
 			if( c % 2 == start )
 			{
-				if( debug ) printf( "Parameter keyword \'%s\' ", word );
+				if( debug ) tprintf( "Parameter keyword \'%s\' ", word );
 				l = strlen( word );
 				white_skip( &word );
 				white_trim( word );
@@ -795,22 +763,20 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 							if( par[i] > 0 ) sprintf( number, "%-*.*g", l, l - 5, par[i] );
 							else sprintf( number, "%-*.*g", l, l - 6, par[i] );
 							l2 = strlen( number );
-							if( l2 > l ) printf( "ERROR: The parameter does not fit the requested field (%s length %d > %d)!\n", number, l2, l );
+							if( l2 > l ) tprintf( "ERROR: The parameter does not fit the requested field (%s length %d > %d)!\n", number, l2, l );
 						}
 						else
 							sprintf( number, "%-20.12g", par[i] );
 						if( space ) fprintf( out, " %s", number );
 						else { space = 0; fprintf( out, "%s", number ); } // TODO originally was space = 1
-						if( debug ) printf( "replaced with \'%s\'\n", number );
-						fflush( stdout );
+						if( debug ) tprintf( "replaced with \'%s\'\n", number );
 						break;
 					}
 				}
 				if( i == npar )
 				{
-					if( debug ) printf( "ERROR: does not match defined model parameters!!!\n" );
-					else printf( "\nERROR: Parameter keyword \'%s\' in template file \'%s\' does not match defined model parameters!\n", word, fn_in_t );
-					fflush( stdout );
+					if( debug )	tprintf( "ERROR: does not match defined model parameters!!!\n" );
+					else tprintf( "\nERROR: Parameter keyword \'%s\' in template file \'%s\' does not match defined model parameters!\n", word, fn_in_t );
 					bad_data = 1;
 				}
 			}
@@ -819,12 +785,9 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 				if( space ) fprintf( out, " %s", word );
 				else { space = 0; fprintf( out, "%s", word ); }  // TODO originally was space = 1
 			}
-			fflush( stdout );
 		}
 		fprintf( out, "\n" );
-		fflush( stdout );
 	}
-	fflush( stdout );
 	fclose( in ); fclose( out );
 	if( bad_data == 1 ) return( -1 );
 	else return( 0 );

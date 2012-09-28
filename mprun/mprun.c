@@ -56,19 +56,19 @@ int mprun( int nJob, void *data )
 	int i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
 	char *exec_name, **kidhost, **kiddir, **rerundir, dir[255], buf[255], *atime;
-	if( p->cd->num_proc <= 1 ) { printf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
-	else if( p->cd->paral_hosts == NULL ) { if( p->cd->pardebug > 3 ) printf( "\nWARNING: Local runs using %d processors! No parallel hosts!\n", p->cd->num_proc ); type = 0; }
-	else { if( p->cd->pardebug ) printf( "Parallel runs using %d hosts!\n", p->cd->num_proc ); type = 1; }
+	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
+	else if( p->cd->paral_hosts == NULL ) { if( p->cd->pardebug > 3 ) tprintf( "\nWARNING: Local runs using %d processors! No parallel hosts!\n", p->cd->num_proc ); type = 0; }
+	else { if( p->cd->pardebug ) tprintf( "Parallel runs using %d hosts!\n", p->cd->num_proc ); type = 1; }
 	nProc = nHosts = p->cd->num_proc; // Number of processors/hosts available initially
 	exec_name = p->ed->cmdline; // Executable / Execution command line
 	ieval = p->cd->neval; // Current number of model evaluations
 	kidhost = p->cd->paral_hosts; // List of processors/hosts
 	if( nJob > 1 )
 	{
-		printf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
-		if( p->cd->pardebug ) printf( "\n" );
+		tprintf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
+		if( p->cd->pardebug ) tprintf( "\n" );
 	}
-	else if( p->cd->pardebug ) printf( "Parallel execution of 1 job ...\n" );
+	else if( p->cd->pardebug ) tprintf( "Parallel execution of 1 job ...\n" );
 	skip_job = ( int * ) malloc( nJob * sizeof( int ) );
 	if( p->cd->restart ) // Check for already computed jobs (smart restart)
 	{
@@ -78,19 +78,19 @@ int mprun( int nJob, void *data )
 			done += skip_job[i] = func_extrn_check_read( ieval + i + 1, p );
 			if( p->cd->pardebug > 1 )
 			{
-				if( skip_job[i] == 1 ) printf( "Job %d is already completed; it will be skipped!\n", ieval + i + 1 );
-				else printf( "Job %d will be executed!\n", ieval + i + 1 );
+				if( skip_job[i] == 1 ) tprintf( "Job %d is already completed; it will be skipped!\n", ieval + i + 1 );
+				else tprintf( "Job %d will be executed!\n", ieval + i + 1 );
 			}
 		}
 		if( done == nJob ) // All the jobs will be skipped
 		{
 			p->cd->neval += nJob;
 			free( skip_job );
-			printf( "Restart: All %d jobs are already completed!\n", nJob );
+			tprintf( "Restart: All %d jobs are already completed!\n", nJob );
 			return( 1 );
 		}
 		else
-			printf( "Restart: %d jobs out of %d will be skipped because it appear to be already completed!\n", done, nJob );
+			tprintf( "Restart: %d jobs out of %d will be skipped because it appear to be already completed!\n", done, nJob );
 	}
 	debug = ( p->cd->pardebug > 3 ) ? 1 : 0; // Debug level
 	act.sa_handler = handler; // POSIX process handler
@@ -98,7 +98,7 @@ int mprun( int nJob, void *data )
 	act.sa_flags = 0;
 	if( sigaction( SIGCHLD, &act, NULL ) < 0 )
 	{
-		printf( "sigaction failed!!!\n" );
+		tprintf( "sigaction failed!!!\n" );
 		free( skip_job );
 		return( -1 );
 	}
@@ -118,7 +118,7 @@ int mprun( int nJob, void *data )
 //		if( rJob >= nJob || nProc <= 0 )
 		if( rJob > nJob || nProc <= 0 )
 		{
-			printf( "None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
+			tprintf( "None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 			free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
 			free( skip_job );
 			free_matrix( ( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
@@ -130,17 +130,17 @@ int mprun( int nJob, void *data )
 			if( p->cd->pardebug > 1 )
 			{
 				for( i = 0; i < nHosts; i++ )
-					printf( "Processor %i [%d] : status = %d %d\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
-				printf( "Free processor to rerun: " );
+					tprintf( "Processor %i [%d] : status = %d %d\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
+				tprintf( "Free processor to rerun: " );
 			}
 			for( j = 0; j < nHosts; j++ )
 				if( kidattempt[j] <= 0 )
 				{
 					j++;
-					if( p->cd->pardebug > 1 ) printf( "Processor %d\n", j );
+					if( p->cd->pardebug > 1 ) tprintf( "Processor %d\n", j );
 					job_wait = 0;
 				}
-			if( p->cd->pardebug > 1 ) printf( "NONE! %d %d %d %d\n", nKids, nHosts, nFailed, rJob );
+			if( p->cd->pardebug > 1 ) tprintf( "NONE! %d %d %d %d\n", nKids, nHosts, nFailed, rJob );
 		}
 		if( job_wait )
 		{
@@ -149,19 +149,19 @@ int mprun( int nJob, void *data )
 				if( nKids >= nProc )
 				{
 					wait = 1;
-					if( p->cd->pardebug > 2 ) printf( "Waiting ... %d %d %d %d\n", nKids, nHosts, nFailed, rJob );
-					else if( p->cd->pardebug > 1 ) printf( "Waiting ...\n" );
+					if( p->cd->pardebug > 2 ) tprintf( "Waiting ... %d %d %d %d\n", nKids, nHosts, nFailed, rJob );
+					else if( p->cd->pardebug > 1 ) tprintf( "Waiting ...\n" );
 					sigsuspend( &act.sa_mask );
 				}
 			}
 			else
 			{
-				if( wait != 2 && p->cd->pardebug > 1 ) printf( "All the jobs are started!\n" );
+				if( wait != 2 && p->cd->pardebug > 1 ) tprintf( "All the jobs are started!\n" );
 				if( nKids > 0 )
 				{
 					wait = 2;
-					if( p->cd->pardebug > 2 ) printf( "Waiting ... %d %d %d %d\n", nKids, nHosts, nFailed, rJob );
-					else if( p->cd->pardebug > 1 ) printf( "Waiting ... (%d)\n", nKids );
+					if( p->cd->pardebug > 2 ) tprintf( "Waiting ... %d %d %d %d\n", nKids, nHosts, nFailed, rJob );
+					else if( p->cd->pardebug > 1 ) tprintf( "Waiting ... (%d)\n", nKids );
 					sigsuspend( &act.sa_mask );
 				}
 				else
@@ -172,9 +172,9 @@ int mprun( int nJob, void *data )
 			{
 				if( p->cd->pardebug > 1 )
 				{
-					printf( "All the processors are busy! kids = %d\n", nKids );
+					tprintf( "All the processors are busy! kids = %d\n", nKids );
 					for( i = 0; i < nHosts; i++ )
-						printf( "Processor %i [%d] : status = %d %d\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
+						tprintf( "Processor %i [%d] : status = %d %d\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
 				}
 				continue;
 			}
@@ -182,14 +182,14 @@ int mprun( int nJob, void *data )
 		child1 = j; // available kid with status != 1
 		child  = j - 1;
 		atime = timestamp();
-		if( p->cd->pardebug > 1 ) printf( "Processor %i [%s:%d] %s : ", child1, kidhost[child], kidids[child], atime );
+		if( p->cd->pardebug > 1 ) tprintf( "Processor %i [%s:%d] %s : ", child1, kidhost[child], kidids[child], atime );
 		destroy = refresh = 0;
 		if( rJob > 0 ) { rerun = 1; next = 0; }
 		else           { rerun = 0; next = 1; }
 		if( kidstatus[child] == 0 ) // kid suspended
 		{
-			if( done && !rerun ) { if( p->cd->pardebug > 1 ) printf( "suspended; will be killed! " ); kiddir[child][0] = 0; destroy = 1; }
-			else { if( p->cd->pardebug > 1 ) printf( "suspended; new job " ); refork = 0; refresh = 1; }
+			if( done && !rerun ) { if( p->cd->pardebug > 1 ) tprintf( "suspended; will be killed! " ); kiddir[child][0] = 0; destroy = 1; }
+			else { if( p->cd->pardebug > 1 ) tprintf( "suspended; new job " ); refork = 0; refresh = 1; }
 		}
 		else if( kidstatus[child] == -1 ) // kid finished
 		{
@@ -199,7 +199,7 @@ int mprun( int nJob, void *data )
 				kidhost[child][0] = 0;
 				kidstatus[child] = 1;
 				kidattempt[child] = 0;
-				if( p->cd->pardebug > 1 ) printf( "finished!\n" );
+				if( p->cd->pardebug > 1 ) tprintf( "finished!\n" );
 				continue;
 			}
 			else
@@ -207,8 +207,8 @@ int mprun( int nJob, void *data )
 				nKids++;
 				refork = 1;  // refork; do not refresh
 				refresh = 0;
-				if( kidattempt[child] == -1 ) { if( p->cd->pardebug > 1 ) printf( "Initializing " ); }
-				else                          { if( p->cd->pardebug > 1 ) printf( "finished; Starting " ); }
+				if( kidattempt[child] == -1 ) { if( p->cd->pardebug > 1 ) tprintf( "Initializing " ); }
+				else                          { if( p->cd->pardebug > 1 ) tprintf( "finished; Starting " ); }
 				kidattempt[child] = 1;
 			}
 		}
@@ -216,25 +216,25 @@ int mprun( int nJob, void *data )
 		{
 			if( kiddir[child][0] != 0 )
 			{
-				if( p->cd->pardebug > 1 ) printf( "killed; " );
+				if( p->cd->pardebug > 1 ) tprintf( "killed; " );
 				if( kidattempt[child] >= MAXATTEMPTS ) // ignore the processor
 				{
 					nFailed++;
 					nProc--;
-					if( p->cd->pardebug > 1 ) printf( "(child %d on %s ignored)\n", child1, kidhost[child] );
+					if( p->cd->pardebug > 1 ) tprintf( "(child %d on %s ignored)\n", child1, kidhost[child] );
 					strcpy( rerundir[rJob], kiddir[child] );
 					rJob++;
 					kiddir[child][0] = 0;
 					kidhost[child][0] = 0;
 					kidstatus[child] = 1;
-					printf( "WARNING: The number of currently used processors is decreased: %d of %d!\n", nProc, nHosts );
+					tprintf( "WARNING: The number of currently used processors is decreased: %d of %d!\n", nProc, nHosts );
 					continue;
 				}
 				else // try to restart
 				{
 					nKids++;
 					kidattempt[child]++;
-					if( p->cd->pardebug > 1 ) printf( "restart (attempt %d of %d)", kidattempt[child], MAXATTEMPTS );
+					if( p->cd->pardebug > 1 ) tprintf( "restart (attempt %d of %d)", kidattempt[child], MAXATTEMPTS );
 					strcpy( dir, kiddir[child] );
 					rerun = 0;
 					next = 0;
@@ -243,13 +243,13 @@ int mprun( int nJob, void *data )
 //					sleep( kidattempt[child] );
 				}
 			}
-			else { if( p->cd->pardebug > 1 ) printf( "killed internally!\n" ); continue; }
+			else { if( p->cd->pardebug > 1 ) tprintf( "killed internally!\n" ); continue; }
 		}
 		if( destroy )
 		{
 			sleep( 1 );
 			kill( kidids[child] * -1, SIGCONT );
-			if( p->cd->pardebug > 1 ) printf( "\n" );
+			if( p->cd->pardebug > 1 ) tprintf( "\n" );
 			continue;
 		}
 		if( rerun )
@@ -263,11 +263,11 @@ int mprun( int nJob, void *data )
 			cJob++;
 			if( cJob >= nJob ) done = 1;
 			if( cJob > nJob ) continue;
-			if( p->cd->pardebug ) printf( "Job %d", cJob );
+			if( p->cd->pardebug ) tprintf( "Job %d", cJob );
 			if( skip_job[cJob - 1] == 1 )
 			{
 				nKids--;
-				if( p->cd->pardebug ) printf( " skipped because it is already completed!\n" );
+				if( p->cd->pardebug ) tprintf( " skipped because it is already completed!\n" );
 				continue;
 			}
 			else
@@ -276,8 +276,8 @@ int mprun( int nJob, void *data )
 				strcpy( kiddir[child], dir );
 			}
 		}
-		if( p->cd->pardebug > 1 ) printf( " : \'%s\' in \'%s\'\n", exec_name, dir );
-		else if( p->cd->pardebug ) { if( nJob > 1 ) printf( " ...\n" ); else printf( " ... " ); }
+		if( p->cd->pardebug > 1 ) tprintf( " : \'%s\' in \'%s\'\n", exec_name, dir );
+		else if( p->cd->pardebug ) { if( nJob > 1 ) tprintf( " ...\n" ); else tprintf( " ... " ); }
 		if( refork )
 		{
 			if( kidhost[child][0] == 0 ) continue;
@@ -287,7 +287,7 @@ int mprun( int nJob, void *data )
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
-				if( p->cd->pardebug > 3 ) printf( "Forked Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], pid, exec_name, dir );
+				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], pid, exec_name, dir );
 				if( type ) execlp( "bpsh", "bpsh", kidhost[child], "/bin/tcsh", "-f", "-c", buf, ( char * ) 0 );
 				else       execlp( "/bin/tcsh", "-f", "-c", buf, ( char * ) 0 );
 				exit( 7 );
@@ -301,18 +301,18 @@ int mprun( int nJob, void *data )
 			else
 			{
 				nKids--;
-				printf( "WARNING: fork failed!!!\n" );
+				tprintf( "WARNING: fork failed!!!\n" );
 			}
 		}
 		else if( refresh )
 		{
 			strcpy( kiddir[child], dir );
-			printf( "Refreshed Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], kidids[child], exec_name, kiddir[child] );
+			tprintf( "Refreshed Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], kidids[child], exec_name, kiddir[child] );
 			sleep( 1 );
 			kill( kidids[child] * -1, SIGCONT );
 		}
 	}
-	printf( "Done.\n" );
+	tprintf( "Done.\n" );
 	free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
 	free( skip_job );
 	free_matrix( ( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
@@ -332,21 +332,21 @@ static void handler( int sig )
 				child1 = i;
 				break;
 			}
-		if( debug ) printf( "PROCESS %d [%d] : ", child1, pid );
+		if( debug ) tprintf( "PROCESS %d [%d] : ", child1, pid );
 		child = child1 - 1;
 		if( WIFEXITED( status ) )
 		{
 			nKids--;
-			if( debug ) printf( "finished (exit %d)\n", WEXITSTATUS( status ) );
+			if( debug ) tprintf( "finished (exit %d)\n", WEXITSTATUS( status ) );
 			if( WEXITSTATUS( status ) == 1 ) kidstatus[child] = -2;
 			else kidstatus[child] = -1;
 		}
 		else if( WIFSIGNALED( status ) )
 		{
 			nKids--;
-			if( debug ) printf( "killed (signal %d)\n", WTERMSIG( status ) );
+			if( debug ) tprintf( "killed (signal %d)\n", WTERMSIG( status ) );
 			kidstatus[child] = -2;
 		}
-		else { if( debug ) printf( "EXIT STATUS IS NOT UNDERSTOOD?!?\n" ); }
+		else { if( debug ) tprintf( "EXIT STATUS IS NOT UNDERSTOOD?!?\n" ); }
 	}
 }
