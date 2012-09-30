@@ -65,7 +65,7 @@ void mads_info()
 	printf( "   lmiter=[integer]   - number of LM iterations [default computed internally based on number of evaluations]\n" );
 	printf( "   lmerror=[double]   - LM convergence error [default lmerror=1e-5]\n" );
 	printf( "   lmnlamof=[integer] - Number of acceptable linear solves (lambda searches) with similar OF's during LM optimization [default lmnlamof=3]\n" );
-	printf( "   lmnjacof=[integer] - Number of acceptable jacobian iterations with similar OF's during LM optimization [default lmnjacof=3]\n" );
+	printf( "   lmnjacof=[integer] - Number of acceptable jacobian iterations with similar OF's during LM optimization [default lmnjacof=4]\n" );
 	printf( "\nsampling method (smp=[string] OR mslm=[string] for Multi-Start Levenberg-Marquardt (MSLM) analysis using multiple retries):\n" );
 	printf( "   smp=olhs           - Optimal Latin Hyper Cube sampling [default] (if real = 1 RANDOM; if real > IDLHS; if real > 500 LHS)\n" );
 	printf( "   smp=lhs            - Latin Hyper Cube sampling (LHS)\n" );

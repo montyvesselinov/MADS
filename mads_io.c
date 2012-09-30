@@ -129,8 +129,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->lm_ofdecline = 2; // TODO Leif prefers to be 1 and works better for Cr problem; Original code is 2 and works better for test cases
 	cd->lm_error = 1e-5;
 	cd->lm_indir = 1;
-	cd->lm_njacof = 3;
+	cd->lm_njacof = 5;
 	cd->lm_nlamof = 3;
+	cd->squads = 0;
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	quiet = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
@@ -298,8 +299,16 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		}
 		tprintf( "\nOptimization method: opt=%s | ", cd->opt_method );
 		if( strncasecmp( cd->opt_method, "squad", 5 ) == 0 || ( strcasestr( cd->opt_method, "pso" ) && strcasestr( cd->opt_method, "lm" ) ) )
+		{
 			tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization\n" );
-		else if( strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) { tprintf( "Levenberg-Marquardt optimization\n" ); if( cd->calib_type == SIMPLE ) cd->leigen = 1; }
+			cd->squads = 1;
+		}
+		else if( strncasecmp( cd->opt_method, "lm", 2 ) == 0 )
+		{
+			if( cd->paranoid ) tprintf( "Multi-Start Levenberg-Marquardt optimization\n" );
+			else tprintf( "Levenberg-Marquardt optimization\n" );
+			if( cd->calib_type == SIMPLE ) cd->leigen = 1;
+		}
 		else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
 			tprintf( "Particle-Swarm optimization\n" );
 		else { tprintf( "WARNING: Unknown method (opt=%s)! Levenberg-Marquardt optimization assumed\n", cd->opt_method ); strcpy( cd->opt_method, "lm" ); }

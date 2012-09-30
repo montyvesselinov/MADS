@@ -84,13 +84,13 @@ int pso_tribes( struct opt_data *op );
 int pso_std( struct opt_data *op );
 int mopso( struct opt_data *op );
 int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double *x, double *f_x, void *data, double *jacobian ), void *data,
-			int nObs, int nParam, int nsig, double eps, double delta, int max_eval, int max_iter,
-			int iopt, double parm[], double x[], double *phi, double f[],
-			double jacobian[], int nian, double jacTjac[], int *infer );
+		int nObs, int nParam, int nsig, double eps, double delta, int max_eval, int max_iter,
+		int iopt, double parm[], double x[], double *phi, double f[],
+		double jacobian[], int nian, double jacTjac[], int *infer );
 int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
-			 int m, int n, int nsig, double eps, double delta, int maxfn,
-			 int iopt, double parm[], double x[], double *phi, double f[],
-			 double xjac[], int ixjac, double xjtj[], int *infer );
+		int m, int n, int nsig, double eps, double delta, int maxfn,
+		int iopt, double parm[], double x[], double *phi, double f[],
+		double xjac[], int ixjac, double xjtj[], int *infer );
 int lm_gsl( gsl_vector *x, struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *covar );
 // Info
 void mads_info();
@@ -251,8 +251,8 @@ int main( int argn, char *argv[] )
 	}
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
 	/*
-	*  Read input data
-	*/
+	 *  Read input data
+	 */
 	if( strcasecmp( extension, "pst" ) == 0 ) // PEST Problem
 	{
 		tprintf( "PEST problem:\n" );
@@ -292,8 +292,8 @@ int main( int argn, char *argv[] )
 		else func_global = func_intrn;
 	}
 	/*
-	*  Check for parallel environment
-	*/
+	 *  Check for parallel environment
+	 */
 	cd.paral_hosts = NULL;
 	hostlist = NULL;
 	if( ( nodelist = getenv( "NODELIST" ) ) != NULL )
@@ -374,8 +374,8 @@ int main( int argn, char *argv[] )
 	}
 	tprintf( "\n" );
 	/*
-	*  Problem based on external model
-	*/
+	 *  Problem based on external model
+	 */
 	if( cd.solution_type[0] == EXTERNAL ) // Check the files for external execution
 	{
 		tprintf( "Checking the template files for errors ...\n" );
@@ -426,8 +426,8 @@ int main( int argn, char *argv[] )
 		else { if( cd.lindx < DBL_EPSILON ) cd.lindx = 0.001; }
 	}
 	/*
-	*  Check for restart conditions
-	*/
+	 *  Check for restart conditions
+	 */
 	tprintf( "\nExecution date & time stamp: %s\n", op.datetime_stamp ); // Stamp will be applied to name / rename various output files
 	if( cd.solution_type[0] == EXTERNAL && cd.num_proc > 1 )
 	{
@@ -1006,10 +1006,9 @@ int optimize_lm( struct opt_data *op )
 	char buf[80];
 	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->standalone;
-	if( !standalone ) op->cd->paranoid = 0;
 	if( op->od->nObs == 0 ) { tprintf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( op->pd->nOptParam == 0 ) { tprintf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
-	if( ( op->pd->nOptParam > op->od->nObs ) && ( standalone && op->cd->calib_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
+	if( ( op->pd->nOptParam > op->od->nObs ) && ( !op->cd->squads && op->cd->calib_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
 	gsl_matrix *gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam );
 	gsl_matrix *gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
@@ -1030,7 +1029,7 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->ldebug && standalone ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
-	if( !standalone )
+	if( op->cd->squads  ) // No need to tranform if part SQUADS run
 	{
 		// for( i = 0; i < op->pd->nOptParam; i++ )
 		// tprintf( "%g\n", opt_params[i] );
@@ -1039,7 +1038,7 @@ int optimize_lm( struct opt_data *op )
 		Transform( opt_params, op, opt_params );
 	if( op->cd->paranoid )
 	{
-		if( standalone ) tprintf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " );
+		tprintf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " );
 		npar = op->pd->nOptParam;
 		if( op->cd->nretries <= 0 ) op->cd->nretries = ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * npar / 10 );
 		if( debug ) tprintf( "\nRandom sampling for MSLM optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
@@ -1065,12 +1064,30 @@ int optimize_lm( struct opt_data *op )
 		{
 			count++;
 			op->cd->retry_ind = count;
-			if( op->cd->calib_type == IGRND && count == 1 )
-				tprintf( "\nCALIBRATION %d: initial guesses from IGRND random set: ", count );
+			if( count == 1 )
+			{
+				if( op->cd->calib_type == IGRND )
+				{
+					if( debug ) tprintf( "\nCALIBRATION %d: initial guesses from IGRND random set: ", count );
+				}
+				else
+				{
+					if( debug ) tprintf( "\nCALIBRATION %d: initial guesses from MADS input file #: ", count );
+					for( i = 0; i < op->pd->nOptParam; i++ )
+					{
+						opt_params[i] = op->pd->var[op->pd->var_index[i]];
+						if( debug > 1 )
+						{
+							if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
+							else tprintf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
+						}
+					}
+				}
+			}
 			else if( count > 1 )
 			{
 				if( op->cd->ldebug ) tprintf( "\n********************************************************************\n" );
-				tprintf( "\nCALIBRATION %d: initial guesses from internal MSLM random set #%d: ", count, count_set + 1 );
+				if( debug ) tprintf( "\nCALIBRATION %d: initial guesses from internal MSLM random set #%d: ", count, count_set + 1 );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					k = op->pd->var_index[i];
@@ -1082,19 +1099,6 @@ int optimize_lm( struct opt_data *op )
 					}
 				}
 				count_set++;
-			}
-			else
-			{
-				tprintf( "\nCALIBRATION %d: initial guesses from MADS input file #: ", count );
-				for( i = 0; i < op->pd->nOptParam; i++ )
-				{
-					opt_params[i] = op->pd->var[op->pd->var_index[i]];
-					if( debug > 1 )
-					{
-						if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
-						else tprintf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
-					}
-				}
 			}
 			if( debug > 1 ) tprintf( "\n" );
 			Transform( opt_params, op, opt_params );
@@ -1209,7 +1213,7 @@ int optimize_lm( struct opt_data *op )
 			op->phi = phi = info[1];
 			free( work ); free( covar );
 		}
-		if( standalone ) // if LM is stand alone (not part of PSO run)
+		if( !op->cd->squads ) // if LM is not part of PSO (SQUADS) run
 		{
 			if( debug > 1 )
 			{
@@ -1233,13 +1237,13 @@ int optimize_lm( struct opt_data *op )
 				print_results( op, 1 );
 			}
 		}
-		else // if LM is part of PSO run
+		else // if LM is part of PSO (SQUADS) run
 			for( i = 0; i < op->pd->nOptParam; i++ )
 				op->pd->var[op->pd->var_index[i]] = opt_params[i];
 		if( op->cd->paranoid )
 		{
 			if( op->phi < phi_min ) { phi_min = op->phi; for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]]; }
-			if( debug ) tprintf( "Objective function: %g Success %d\n", op->phi, op->success );
+			if( debug ) tprintf( " Objective function: %g Success %d\n", op->phi, op->success );
 			if( phi_min < op->cd->phi_cutoff )
 			{
 				if( debug ) tprintf( "MSLM optimization objective function is below the cutoff value after %d random initial guess attempts\n", count );
@@ -1263,7 +1267,6 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->paranoid ) // Recompute for the best results
 	{
 		if( !debug ) tprintf( "(retries=%d) ", count );
-		op->phi = phi_min;
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			op->pd->var[op->pd->var_index[i]] = opt_params_best[i];
 		Transform( opt_params_best, op, opt_params );
@@ -1365,7 +1368,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 				if( op->od->nObs > 30 && j == 11 ) tprintf( " ..." );
 			}
 			tprintf( "\n" );
-			*/
+			 */
 		}
 	}
 	sprintf( filename, "%s", op->root );
@@ -1639,9 +1642,9 @@ int igrnd( struct opt_data *op )
 	int *eval_success, *eval_total;
 	unsigned long neval_total, njac_total;
 	double c, phi_min, *orig_params, *opt_params,
-		   *opt_params_min, *opt_params_max, *opt_params_avg,
-		   *sel_params_min, *sel_params_max, *sel_params_avg,
-		   *var_lhs, v;
+	*opt_params_min, *opt_params_max, *opt_params_avg,
+	*sel_params_min, *sel_params_max, *sel_params_avg,
+	*var_lhs, v;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	FILE *out, *out2;
@@ -1743,12 +1746,14 @@ int igrnd( struct opt_data *op )
 	phi_global = success_global = neval_total = njac_total = 0;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1; // applied if execution of a specific realization is requested (ncase)
 	else k = 0;
+	if( op->cd->debug || op->cd->mdebug ) op->cd->standalone = 1;
+	else op->cd->standalone = 0;
 	for( count = k; count < op->cd->nreal; count++ )
 	{
 		op->cd->neval = op->cd->njac = 0;
 		fprintf( out, "%d : init var", count + 1 );
 		tprintf( "\nRandom set #%d: ", count + 1 );
-		if( op->cd->debug || op->cd->nreal == 1 ) tprintf( "\n" );
+		if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "\n" );
 		op->counter = count + 1;
 		for( k = i = 0; i < op->pd->nParam; i++ )
 			if( op->pd->var_opt[i] == 2 || ( op->pd->var_opt[i] == 1 && op->pd->nFlgParam == 0 ) )
@@ -1756,12 +1761,12 @@ int igrnd( struct opt_data *op )
 				op->pd->var[i] = var_lhs[k + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
 				if( op->pd->var_log[i] )
 				{
-					if( op->cd->debug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_id[i], pow( 10, op->pd->var[i] ) );
+					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_id[i], pow( 10, op->pd->var[i] ) );
 					fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
 				}
 				else
 				{
-					if( op->cd->debug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_id[i], op->pd->var[i] );
+					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_id[i], op->pd->var[i] );
 					fprintf( out, " %.15g", op->pd->var[i] );
 				}
 				k++;
@@ -1802,7 +1807,7 @@ int igrnd( struct opt_data *op )
 			if( op->cd->njac > 0 ) tprintf( "Jacobians: %d ", op->cd->njac );
 			tprintf( "Objective function: %g Success: %d", op->phi, op->success );
 		}
-		if( op->cd->debug || op->cd->nreal == 1 )
+		if( op->cd->mdebug || op->cd->nreal == 1 )
 		{
 			tprintf( "\n" );
 			print_results( op, 0 );
@@ -2736,95 +2741,95 @@ int gsens( struct opt_data *op )
 		 	tprintf( "Total output variance = %g\n", gs.D_hat_t );
 			gs.D_hat_t = gsl_stats_variance( phis_full, 1, op->cd->nreal );
 		 	tprintf( "Total output variance = %g\n", gs.D_hat_t );
-	*/		free( phis_full );
-	// Collect matrix of phis for fmat_a
-	tprintf( "Computing phis for calculation of individual output variances:\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ )
-	{
-		tprintf( "Parameter %d...\n", i + 1 );
-		for( count = 0; count < n_sub; count ++ )
-		{
-			for( j = 0; j < op->pd->nOptParam; j++ )
-			{
-				k = op->pd->var_index[j];
-				if( i == j ) // then select from sample a
-					opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
-				else // else select from sample b
-					opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
-			}
-			Transform( opt_params, op, opt_params );
-			func_global( opt_params, op, op->od->res );
-			// Save phi to fmat_a
-			gs.fmat_a[i][count] = op->phi;
-		}
-	}
-	// Collect matrix of phis for fmat_b
-	tprintf( "Computing phis for calculation of individual plus interaction output variances:\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ )
-	{
-		tprintf( "Parameter %d...\n", i + 1 );
-		for( count = 0; count < n_sub; count ++ )
-		{
-			for( j = 0; j < op->pd->nOptParam; j++ )
-			{
-				k = op->pd->var_index[j];
-				if( i == j ) // then select from sample b
-					opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
-				else // else select from sample a
-					opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
-			}
-			Transform( opt_params, op, opt_params );
-			func_global( opt_params, op, op->od->res );
-			// Save phi to fmat_b
-			gs.fmat_b[i][count] = op->phi;
-		}
-	}
-	tprintf( "done.\n" );
-	// Calculate individual and interaction output variances
-	for( i = 0; i < op->pd->nOptParam; i++ )
-	{
-		fhat2 = 0;
-		for( j = 0; j < n_sub; j++ )
-		{
-			fhat2 += ( gs.f_a[j] * gs.fmat_a[i][j] );
-			phis_half[ j ] = ( gs.f_a[j] * gs.fmat_a[i][j] );
-		}
-		gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		gs.D_hat[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
-		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		gs.D_hat[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_a[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
-		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		var_sorted( gs.f_a, gs.fmat_a[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat[i] );
-		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		//gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		fhat2 = 0;
-		for( j = 0; j < n_sub; j++ )
-		{
-			fhat2 += ( gs.f_a[j] * gs.fmat_b[i][j] );
-			phis_half[ j ] = ( gs.f_a[j] * gs.fmat_b[i][j] );
-		}
-		gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		gs.D_hat_n[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
-		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		gs.D_hat_n[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_b[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
-		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		var_sorted( gs.f_a, gs.fmat_b[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat_n[i] );
-		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		//gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-	}
-	// Print sensitivity indices
-	tprintf( "\nParameter sensitivity indices:\n" );
-	tprintf( "parameter individual interaction\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, gs.D_hat[i] / gs.D_hat_t, 1 - ( gs.D_hat_n[i] / gs.D_hat_t ) );
-	tprintf( "\n" );
-	free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat ); free( gs.D_hat_n );
-	free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
-	free_matrix( ( void ** ) gs.var_b_lhs, n_sub );
-	free_matrix( ( void ** ) gs.fmat_a, op->pd->nOptParam );
-	free_matrix( ( void ** ) gs.fmat_b, op->pd->nOptParam );
-	return( 1 );
+	 */		free( phis_full );
+	 // Collect matrix of phis for fmat_a
+	 tprintf( "Computing phis for calculation of individual output variances:\n" );
+	 for( i = 0; i < op->pd->nOptParam; i++ )
+	 {
+		 tprintf( "Parameter %d...\n", i + 1 );
+		 for( count = 0; count < n_sub; count ++ )
+		 {
+			 for( j = 0; j < op->pd->nOptParam; j++ )
+			 {
+				 k = op->pd->var_index[j];
+				 if( i == j ) // then select from sample a
+					 opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
+				 else // else select from sample b
+					 opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
+			 }
+			 Transform( opt_params, op, opt_params );
+			 func_global( opt_params, op, op->od->res );
+			 // Save phi to fmat_a
+			 gs.fmat_a[i][count] = op->phi;
+		 }
+	 }
+	 // Collect matrix of phis for fmat_b
+	 tprintf( "Computing phis for calculation of individual plus interaction output variances:\n" );
+	 for( i = 0; i < op->pd->nOptParam; i++ )
+	 {
+		 tprintf( "Parameter %d...\n", i + 1 );
+		 for( count = 0; count < n_sub; count ++ )
+		 {
+			 for( j = 0; j < op->pd->nOptParam; j++ )
+			 {
+				 k = op->pd->var_index[j];
+				 if( i == j ) // then select from sample b
+					 opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
+				 else // else select from sample a
+					 opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
+			 }
+			 Transform( opt_params, op, opt_params );
+			 func_global( opt_params, op, op->od->res );
+			 // Save phi to fmat_b
+			 gs.fmat_b[i][count] = op->phi;
+		 }
+	 }
+	 tprintf( "done.\n" );
+	 // Calculate individual and interaction output variances
+	 for( i = 0; i < op->pd->nOptParam; i++ )
+	 {
+		 fhat2 = 0;
+		 for( j = 0; j < n_sub; j++ )
+		 {
+			 fhat2 += ( gs.f_a[j] * gs.fmat_a[i][j] );
+			 phis_half[ j ] = ( gs.f_a[j] * gs.fmat_a[i][j] );
+		 }
+		 gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+		 tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+		 gs.D_hat[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
+		 tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+		 gs.D_hat[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_a[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
+		 tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+		 var_sorted( gs.f_a, gs.fmat_a[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat[i] );
+		 tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+		 //gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+		 fhat2 = 0;
+		 for( j = 0; j < n_sub; j++ )
+		 {
+			 fhat2 += ( gs.f_a[j] * gs.fmat_b[i][j] );
+			 phis_half[ j ] = ( gs.f_a[j] * gs.fmat_b[i][j] );
+		 }
+		 gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+		 tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+		 gs.D_hat_n[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
+		 tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+		 gs.D_hat_n[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_b[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
+		 tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+		 var_sorted( gs.f_a, gs.fmat_b[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat_n[i] );
+		 tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+		 //gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+	 }
+	 // Print sensitivity indices
+	 tprintf( "\nParameter sensitivity indices:\n" );
+	 tprintf( "parameter individual interaction\n" );
+	 for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, gs.D_hat[i] / gs.D_hat_t, 1 - ( gs.D_hat_n[i] / gs.D_hat_t ) );
+	 tprintf( "\n" );
+	 free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat ); free( gs.D_hat_n );
+	 free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
+	 free_matrix( ( void ** ) gs.var_b_lhs, n_sub );
+	 free_matrix( ( void ** ) gs.fmat_a, op->pd->nOptParam );
+	 free_matrix( ( void ** ) gs.fmat_b, op->pd->nOptParam );
+	 return( 1 );
 }
 
 int infogap( struct opt_data *op )
@@ -3132,8 +3137,8 @@ void print_results( struct opt_data *op, int verbosity )
 	else
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			if( fabs( op->pd->var[i] - op->pd->var_truth[i] ) > op->cd->parerror ) success_all = 0;
-	op->success = success_all;
-	tprintf( "Objective function: %g Success: %d \n", op->phi, op->success );
+	if( op->phi < op->cd->phi_cutoff ) success_all = 1;
+	tprintf( "Objective function: %g Success: %d (%d)\n", op->phi, op->success, success_all );
 	if( op->cd->check_success > 0 && op->cd->obserror < 0 && op->cd->parerror < 0 )
 	{
 		if( success_all ) tprintf( "SUCCESS: All the model predictions are within calibration ranges!\n" );
@@ -3149,6 +3154,8 @@ void print_results( struct opt_data *op, int verbosity )
 		if( success_all ) tprintf( "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
 		else tprintf( "At least one of the estimated model parameters has an absolute error from the true parameters greater than %g!\n", op->cd->parerror );
 	}
+	if( op->cd->phi_cutoff > DBL_EPSILON && op->phi < op->cd->phi_cutoff )
+		tprintf( "SUCCESS: Objective function is below the predefined cutoff value (%g < %g)!\n", op->phi, op->cd->phi_cutoff );
 	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 && predict )
 	{
 		tprintf( "\nModel predictions for not calibration targets:\n" );
@@ -3193,15 +3200,25 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	char filename[255], filename2[255], fileroot[255];
 	success_all = 1;
 	// Generate general filename
-	sprintf( filename, "%s", op->root );
+	i = strlen( op->root ); // check for previous version number in the root name
+	k = -1;
+	if( label[0] == 0 && op->root[i - 4] == '-' && op->root[i - 3] == 'v' )
+	{
+		sscanf( &op->root[i - 2], "%d", &k );
+		tprintf( "Current MADS analysis version: %d\n", k );
+		strncpy( filename2, op->root, i - 4 );
+		filename2[i - 4] = 0;
+	}
+	strcpy( filename, op->root );
 	if( label[0] != 0 ) sprintf( filename, "%s.%s", filename, label );
 	if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
 	else if( op->cd->resultscase > 1 ) sprintf( filename, "%s.%d", filename, op->cd->resultscase );
 	strcpy( fileroot, filename ); // Save filename root
 	// Save MADS rerun file
-	sprintf( filename, "%s-rerun.mads", filename );
+	if( k == -1 ) sprintf( filename, "%s-rerun.mads", filename );
+	else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file
 	if( op->cd->solution_type[0] != TEST ) save_problem( filename, op );
-	// Open results file
+	// Save results file
 	strcpy( filename, fileroot );
 	strcat( filename, ".results" );
 	out = Fwrite( filename );
@@ -3215,7 +3232,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{
 		fprintf( out, "\nModel predictions:\n" );
-		// Open residuals file
+		// Save residuals file
 		strcpy( filename, fileroot );
 		strcat( filename, ".residuals" );
 		out2 = Fwrite( filename );
@@ -3261,8 +3278,8 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 				if( fabs( op->pd->var[i] - op->pd->var_truth[i] ) > op->cd->parerror ) success_all = 0;
 		}
 	}
-	op->success = success_all;
-	fprintf( out, "Objective function: %g Success: %d \n", op->phi, op->success );
+	if( op->phi < op->cd->phi_cutoff ) success_all = 1;
+	fprintf( out, "Objective function: %g Success: %d (%d)\n", op->phi, op->success, success_all );
 	if( op->cd->check_success > 0 && op->cd->obserror < 0 && op->cd->parerror < 0 )
 	{
 		if( success_all ) fprintf( out, "SUCCESS: All the model predictions are within calibration ranges!\n" );
@@ -3278,9 +3295,12 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		if( success_all ) fprintf( out, "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
 		else fprintf( out, "At least one of the estimated model parameters has an absolute error from the true parameters greater than %g!\n", op->cd->parerror );
 	}
+	if( op->cd->phi_cutoff > DBL_EPSILON && op->phi < op->cd->phi_cutoff )
+		fprintf( out, "SUCCESS: Objective function is below the predefined cutoff value (%g < %g)!\n", op->phi, op->cd->phi_cutoff );
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->neval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed_init );
 	fclose( out );
+	// Save breakthrough files
 	if( gd->min_t > 0 && op->cd->solution_type[0] != TEST )
 	{
 		tprintf( "\nCompute breakthrough curves at all the wells ..." );
@@ -3289,6 +3309,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		compute_btc2( filename, filename2, op );
 		//			compute_btc( filename, &op, &gd );
 	}
+	// Save grid files (VTK)
 	if( gd->time > 0 && op->cd->solution_type[0] != TEST )
 	{
 		tprintf( "\nCompute spatial distribution of predictions at t = %g ...\n", gd->time );

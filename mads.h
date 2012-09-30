@@ -95,6 +95,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int njac; // current number of jacobian evaluations
 	int maxeval; // maximum number of evaluations (termination criteria)
 	int standalone; // flag standalone LM run (yes/no)
+	int squads;
 	int seed; //random seed
 	int seed_init; //random seed
 	int test_func; // test function id

@@ -265,7 +265,7 @@ int LEVMAR_DER(
 		}
 	}
 	if( op->cd->ldebug ) tprintf( "Initial evaluation: OF %g\n", p_eL2 );
-	else if( op->cd->standalone ) { tprintf( "OF %g -> ", p_eL2 ); fflush( stdout ); }
+	else if( op->cd->standalone ) tprintf( "OF %g -> ", p_eL2 );
 	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
@@ -340,14 +340,15 @@ int LEVMAR_DER(
 			nu = op->cd->lm_nu; updjac = 0; updp = 0; newjac = 1;
 			if( op->cd->ldebug )
 			{
-				if( k == 0 ) tprintf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
-				else tprintf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
+				if( op->cd->ldebug > 1 ) tprintf( "\n\n" );
+				if( k == 0 ) tprintf( "Jacobian #%d: Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
+				else tprintf( "Jacobian #%d: Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
 			}
 			if( op->cd->ldebug >= 4 )
 			{
 				tprintf( "\nJacobian matrix:\n" );
 				char *s;
-				tprintf( "Parameter:" ); for( i = 0; i < op->pd->nOptParam; i++ )
+				tprintf( "Parameters:" ); for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					s = op->pd->var_id[op->pd->var_index[i]];
 					if( strlen( s ) < 7 ) tprintf( " %s", s );
@@ -441,15 +442,17 @@ int LEVMAR_DER(
 				if( op->cd->ldebug > 2 )
 				{
 					char *s;
-					tprintf( "\nParameter:" ); for( i = 0; i < op->pd->nOptParam; i++ )
+					tprintf( "\nTable of parameter sensitivities to observations:" );
+					tprintf( "\nModel parameters          :" );
+					for( i = 0; i < op->pd->nOptParam; i++ )
 					{
 						s = op->pd->var_id[op->pd->var_index[i]];
 						if( strlen( s ) < 7 ) tprintf( " %s", s );
 						else tprintf( " p%d", i );
 					}
 					tprintf( "\n" );
-					tprintf( "Min absolute observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_min[i] ); tprintf( "\n" );
-					tprintf( "Max absolute observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_max[i] ); tprintf( "\n" );
+					tprintf( "Min absolute sensitivities:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_min[i] ); tprintf( "\n" );
+					tprintf( "Max absolute sensitivities:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_max[i] ); tprintf( "\n" );
 				}
 			}
 			if( op->cd->ldebug > 3 )
@@ -467,8 +470,8 @@ int LEVMAR_DER(
 						if( jac_min[i] > jac[l] ) jac_min[i] = jac[l];
 					}
 				}
-				tprintf( "Min observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_min[i] ); tprintf( "\n" );
-				tprintf( "Max observation sensitivity:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_max[i] ); tprintf( "\n\n" );
+				tprintf( "Min overall  sensitivities:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_min[i] ); tprintf( "\n" );
+				tprintf( "Max overall  sensitivities:" ); for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( " %g", jac_max[i] ); tprintf( "\n\n" );
 			}
 		}
 		if( newjac ) /* Jacobian has changed, recompute J^T J, J^t e, etc */
@@ -554,8 +557,13 @@ int LEVMAR_DER(
 					if( max_change < p_diff ) { max_change = p_diff; ipar_max = i; }
 					if( min_change > p_diff ) { min_change = p_diff; ipar_min = i; }
 				}
-				tprintf( "Parameter with maximum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-				tprintf( "Parameter with minimum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+				if( jac_max[ipar_max] - jac_min[ipar_max] < DBL_EPSILON )
+					tprintf( "Parameters did not change between last two jacobian iterations.\n" );
+				else
+				{
+					tprintf( "Parameter with maximum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+					tprintf( "Parameter with minimum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+				}
 				for( i = 0 ; i < m; ++i ) /* update p's estimate */
 					p_old2[i] = p[i];
 			}
@@ -570,7 +578,6 @@ int LEVMAR_DER(
 			}
 			changejac = 0;
 		}
-		else if( op->cd->ldebug ) tprintf( "\n" );
 		/* compute initial damping factor */
 		if( k == 0 )
 		{
@@ -728,8 +735,13 @@ int LEVMAR_DER(
 						tprintf( "\n" );
 					}
 				}
-				tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-				tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+				if( jac_max[ipar_max] - jac_min[ipar_max] < DBL_EPSILON )
+					tprintf( "Parameters did not change between last two liner solves (lambda searches).\n" );
+				else
+				{
+					tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+					tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+				}
 				for( i = 0 ; i < m; i++ ) /* update p's estimate */
 					p_old[i] = pDp[i];
 			}
@@ -894,7 +906,7 @@ int LEVMAR_DER(
 		else { computejac = 0; }
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 			jacTjac[i * m + i] = diag_jacTjac[i];
-	}
+	} // END OF OPTIMIZATION LOOP
 	if( op->cd->ldebug > 3 )
 	{
 		DeTransform( pDp, op, jac_min );
@@ -949,7 +961,7 @@ int LEVMAR_DER(
 			case 9: tprintf( "small OF changes\n" ); break;
 			default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
 		}
-		if( op->cd->ldebug > 2 )
+		if( op->cd->ldebug > 14 )
 		{
 			tprintf( "Levenberg-Marquardt Optimization completed after %g iteration (reason %g) (returned value %d)\n", info[5], info[6], ( stop != 4 && stop != 7 ) ?  k : LM_ERROR );
 			tprintf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
@@ -1161,7 +1173,7 @@ int LEVMAR_DIF(
 				if( k == 0 ) tprintf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
 				else tprintf( "Jacobians %d Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
 			}
-			if( op->cd->ldebug > 13 )
+			if( op->cd->ldebug > 4 )
 			{
 				tprintf( "Jacobian matrix:\n" );
 				for( l = j = 0; j < op->od->nObs; j++ )

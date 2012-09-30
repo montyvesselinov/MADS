@@ -41,17 +41,19 @@ int int_min( int i1, int i2 );
 double float_uniform( int *seed );
 int *perm_uniform( int n, int base, int *seed );
 int int_uniform( int ilo, int ihi, int *seed );
+// Elsewhere ...
+void tprintf( char const *fmt, ... );
 
 void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x_int[] )
 {
 	int *avail, best, count, i, j, k, *list, *point, point_index;
 	double dist, min_all, min_can, opt;
 	if( ( avail = ( int * ) malloc( nvar * npoint * sizeof( int ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); return; }
+	{ tprintf( "Not enough memory!\n" ); return; }
 	if( ( list = ( int * ) malloc( d * npoint * sizeof( int ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); return; }
+	{ tprintf( "Not enough memory!\n" ); return; }
 	if( ( point = ( int * ) malloc( nvar * d * npoint * sizeof( int ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); return; }
+	{ tprintf( "Not enough memory!\n" ); return; }
 	opt = ( ( double ) npoint ) / pow( ( double ) npoint, ( double )( 1.0 / ( double ) nvar ) );
 	for( i = 0; i < nvar; i++ )
 		x_int[i + ( npoint - 1 )*nvar] = ( double ) int_uniform( 1, npoint, seed );
@@ -162,7 +164,7 @@ void lhs_edge( int nvar, int npoint, int *seed, double x[] )
 int *perm_uniform( int n, int base, int *seed )
 {
 	int i, j, k, *p;
-	if( ( p = ( int * ) malloc( n * sizeof( int ) ) ) == NULL ) { printf( "Not enough memory!\n" ); return( NULL ); }
+	if( ( p = ( int * ) malloc( n * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( NULL ); }
 	for( i = 0; i < n; i++ )
 		p[i] = i + base;
 	for( i = 0; i < n; i++ )
@@ -186,7 +188,7 @@ int nint( float x )
 double float_uniform( int *seed )
 {
 	int k;
-	if( *seed <= 0 ) { printf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
+	if( *seed <= 0 ) { tprintf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *seed / 127773;
 	*seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
 	if( *seed < 0 ) *seed += 2147483647;
@@ -198,7 +200,7 @@ int int_uniform( int a, int b, int *seed )
 	int k;
 	float r;
 	int value;
-	if( *seed <= 0 ) { printf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
+	if( *seed <= 0 ) { tprintf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *seed / 127773;
 	*seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
 	if( *seed < 0 ) *seed += 2147483647;
@@ -229,7 +231,7 @@ int get_seed( )
 	seed = seed + 1;
 	seed = ( int )( ( ( double ) seed ) * ( ( double ) 2147483647 ) / ( 60.0 * 60.0 * 12.0 ) ); 	//  Remap *seed from [1,43200] to [1,2147483647].
 	if( seed == 0 ) seed = 1;
-	printf( "Seed: %d\n", seed );
+	tprintf( "Seed: %d\n", seed );
 	return seed;
 }
 

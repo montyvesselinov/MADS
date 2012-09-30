@@ -175,18 +175,18 @@ int pso_std( struct opt_data *op )
 	char filename[255];
 	int lmo_flag, loop_count;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	irand_seed = &op->cd->seed;
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
-	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed ); }
 	lmo_flag = 0;
 	if( strstr( op->cd->opt_method, "lm" ) != NULL || strncmp( op->cd->opt_method, "squad", 5 ) == 0 ) lmo_flag = 1;
 	if( lmo_flag )
-		printf( "SQUADS: Coupled Particle-Swarm (Standard 2006) and Levenberg-Marquardt Optimization ... " );
+		tprintf( "SQUADS: Coupled Particle-Swarm (Standard 2006) and Levenberg-Marquardt Optimization ... " );
 	else
-		printf( "Particle-Swarm Optimization (Standard 2006) ... " );
-	if( op->cd->pdebug )  printf( "\n" );
+		tprintf( "Particle-Swarm Optimization (Standard 2006) ... " );
+	if( op->cd->pdebug )  tprintf( "\n" );
 	else fflush( stdout );
 	if( op->cd->pdebug > 2 )
 	{
@@ -239,8 +239,8 @@ int pso_std( struct opt_data *op )
 	if( S > S_max ) S = S_max;
 	K = 3;
 	w = 1 / ( 2 * log( 2 ) ); c = 0.5 + log( 2 );
-	if( op->cd->pdebug ) printf( "Swarm size %i\n", S );
-	if( op->cd->pdebug ) printf( "PSO coefficients %f %f\n\n", w, c );
+	if( op->cd->pdebug ) tprintf( "Swarm size %i\n", S );
+	if( op->cd->pdebug ) tprintf( "PSO coefficients %f %f\n\n", w, c );
 	//----------------------------------------------------- INITIALISATION
 	t1 = clock(); // Init time
 	// Initialization of information variables
@@ -255,10 +255,10 @@ init:
 	{
 		for( s = 0; s < 1; s++ ) // First particle only
 		{
-			printf( "Particle %i ", s + 1 );
+			tprintf( "Particle %i ", s + 1 );
 			for( d = 0; d < D; d++ )
-				printf( "%g ", X[s].x[d] );
-			printf( "\n" );
+				tprintf( "%g ", X[s].x[d] );
+			tprintf( "\n" );
 		}
 	}
 	Transform( X[0].x, op, X[0].x );
@@ -266,10 +266,10 @@ init:
 	{
 		for( s = 0; s < 1; s++ ) // First particle only
 		{
-			printf( "Particle %i ", s + 1 );
+			tprintf( "Particle %i ", s + 1 );
 			for( d = 0; d < D; d++ )
-				printf( "%g ", X[s].x[d] );
-			printf( "\n" );
+				tprintf( "%g ", X[s].x[d] );
+			tprintf( "\n" );
 		}
 	}
 	for( d = 0; d < D; d++ )
@@ -278,10 +278,10 @@ init:
 	{
 		for( s = 0; s < S; s++ )
 		{
-			printf( "Particle %i ", s + 1 );
+			tprintf( "Particle %i ", s + 1 );
 			for( d = 0; d < D; d++ )
-				printf( "x%d = %g v%d = %g", d + 1, X[s].x[d], d + 1, V[0].v[d] );
-			printf( "\n" );
+				tprintf( "x%d = %g v%d = %g", d + 1, X[s].x[d], d + 1, V[0].v[d] );
+			tprintf( "\n" );
 		}
 	}
 	for( s = 1; s < S; s++ )   // Positions and velocities
@@ -298,10 +298,10 @@ init:
 	{
 		for( s = 0; s < S; s++ )
 		{
-			printf( "Particle %i ", s + 1 );
+			tprintf( "Particle %i ", s + 1 );
 			for( d = 0; d < D; d++ )
-				printf( "x%d = %g v%d = %g", d + 1, X[s].x[d], d + 1, V[0].v[d] );
-			printf( "\n" );
+				tprintf( "x%d = %g v%d = %g", d + 1, X[s].x[d], d + 1, V[0].v[d] );
+			tprintf( "\n" );
 		}
 	}
 	// First evaluations
@@ -312,10 +312,10 @@ init:
 		P[s] = X[s]; // Best position = current one
 		if( op->cd->pdebug )
 		{
-			printf( "Particle %i ", s + 1 );
+			tprintf( "Particle %i ", s + 1 );
 			for( d = 0; d < D; d++ )
-				printf( "%g ", X[s].x[d] );
-			printf( "%g\n", X[s].f );
+				tprintf( "%g ", X[s].x[d] );
+			tprintf( "%g\n", X[s].f );
 		}
 	}
 	// Find the best
@@ -385,7 +385,7 @@ loop:
 		}
 	}
 	if( lmo_flag && ( loop_count > D * 10 || nb_eval * 2 > eval_max ) ) position_lm_std( op, &P[best] );
-	if( gop->cd->pdebug ) printf( "OF %g E %d\n", P[best].f, gop->cd->neval );
+	if( gop->cd->pdebug ) tprintf( "OF %g E %d\n", P[best].f, gop->cd->neval );
 	// If no improvement, information links will be reinitialized
 	error = P[best].f;
 	if( error >= error_prev ) init_links = 1;
@@ -396,9 +396,9 @@ loop:
 	// Result display
 	if( op->cd->pdebug )
 	{
-		printf( "Exec %i Eval %i Error %f ", n_exec, nb_eval, error );
-		printf( "\n Position :\n" );
-		for( d = 0; d < D; d++ ) printf( " %f", P[best].x[d] );
+		tprintf( "Exec %i Eval %i Error %f ", n_exec, nb_eval, error );
+		tprintf( "\n Position :\n" );
+		for( d = 0; d < D; d++ ) tprintf( " %f", P[best].x[d] );
 	}
 	// Save result
 	if( op->cd->pdebug > 2 )
@@ -416,21 +416,21 @@ loop:
 	if( n_exec < n_exec_max ) goto init;
 	// END. Display some statistical information
 	t2 = clock();
-	if( op->cd->pdebug ) printf( "\n\n Total clocks %.0f", t2 - t1 );
+	if( op->cd->pdebug ) tprintf( "\n\n Total clocks %.0f", t2 - t1 );
 	eval_mean = eval_mean / ( double )n_exec;
 	eps_mean = eps_mean / ( double )n_exec;
-	if( op->cd->pdebug ) printf( "\n\n Eval. (mean)= %f", eval_mean );
-	if( op->cd->pdebug ) printf( "\n Error (mean) = %f", eps_mean );
+	if( op->cd->pdebug ) tprintf( "\n\n Eval. (mean)= %f", eval_mean );
+	if( op->cd->pdebug ) tprintf( "\n Error (mean) = %f", eps_mean );
 	// Variance
 	variance = 0;
 	for( d = 0; d < n_exec_max; d++ ) variance = variance + ( mean_best[d] - eps_mean ) * ( mean_best[d] - eps_mean );
 	variance = sqrt( variance / n_exec_max );
-	if( op->cd->pdebug ) printf( "\n Std. dev. %f", variance );
+	if( op->cd->pdebug ) tprintf( "\n Std. dev. %f", variance );
 	// Success rate and minimum value
 	if( op->cd->pdebug )
 	{
-		printf( "\n Success rate = %.2f%%", 100 * ( 1 - n_failure / ( double )n_exec ) );
-		if( n_exec > 1 ) printf( "\n Best min value = %f", min );
+		tprintf( "\n Success rate = %.2f%%", 100 * ( 1 - n_failure / ( double )n_exec ) );
+		if( n_exec > 1 ) tprintf( "\n Best min value = %f", min );
 	}
 // end: LABEL THAT IS NOT USED
 	func_global( P[best].x, gop, res );
@@ -439,8 +439,8 @@ loop:
 		op->pd->var[op->pd->var_index[i]] = P[best].x[i];
 	if( op->cd->pdebug )
 	{
-		printf( "\n Position :\n" );
-		for( d = 0; d < D; d++ ) printf( " %f", P[best].x[d] );
+		tprintf( "\n Position :\n" );
+		for( d = 0; d < D; d++ ) tprintf( " %f", P[best].x[d] );
 	}
 	if( op->cd->pdebug > 2 ) fclose( f_run );
 	free( res );
@@ -650,7 +650,7 @@ void position_lm_std( struct opt_data *op, struct position *P )
 	optimize_lm( op );
 	gop->cd->standalone = 1;
 	nb_eval += gop->cd->neval - d; // add the number of evaluations performed within LM
-	if( gop->cd->pdebug ) printf( "%d %d %d OF %g -> %g\n", d, nb_eval, gop->cd->neval - d, ( *P ).f, op->phi );
+	if( gop->cd->pdebug ) tprintf( "%d %d %d OF %g -> %g\n", d, nb_eval, gop->cd->neval - d, ( *P ).f, op->phi );
 	for( d = 0; d < D; d++ )
 		( *P ).x[d] = asin( sin( op->pd->var[op->pd->var_index[d]] ) ); // keep the estimates within the initial range ...
 	( *P ).f = op->phi;

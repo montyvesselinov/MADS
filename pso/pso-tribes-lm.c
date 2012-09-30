@@ -173,14 +173,14 @@ int pso_tribes( struct opt_data *op )
 	pb.nPhi = 1;
 	gop = op;
 	irand_seed = &op->cd->seed;
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; printf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { printf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
-	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) printf( "Current seed: %d\n", op->cd->seed ); }
+	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed ); }
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	pb.lm_factor = op->cd->lm_factor;
 	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->pdebug )
 	{
 		sprintf( filename, "%s.runs", op->root );
@@ -224,10 +224,10 @@ int pso_tribes( struct opt_data *op )
 	lmo_flag = 0;
 	if( strstr( op->cd->opt_method, "lm" ) != NULL || strncmp( op->cd->opt_method, "squad", 5 ) == 0 ) lmo_flag = 1;
 	if( lmo_flag )
-		printf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... " );
+		tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... " );
 	else
-		printf( "Particle-Swarm Optimization TRIBES ... " );
-	if( op->cd->pdebug )  printf( "\n" );
+		tprintf( "Particle-Swarm Optimization TRIBES ... " );
+	if( op->cd->pdebug )  tprintf( "\n" );
 	else fflush( stdout );
 	for( i = 0; i < MAXRUNS; i++ )
 		set_objfunc( &pb, &phi_list[i] );
@@ -236,12 +236,12 @@ int pso_tribes( struct opt_data *op )
 		if( restart == 0 )
 		{
 			eval = 0;
-			if( pb.repeat > 1 ) printf( "\nRun #%i compare_type %i\n", r + 1, compare_type );
+			if( pb.repeat > 1 ) tprintf( "\nRun #%i compare_type %i\n", r + 1, compare_type );
 		}
 		else restart = 0;
 		pso_solver( &pb, compare_type, r, &S );
 		if( op->cd->pdebug )
-		{ printf( "\nFinal results: " ); swarm_print( &S ); }
+		{ tprintf( "\nFinal results: " ); swarm_print( &S ); }
 		for( i = 0; i < pb.nPhi; i++ )
 			phi_list[r].f[i] = S.best.f.f[i];
 		if( r < pb.repeat - 1 )
@@ -249,12 +249,12 @@ int pso_tribes( struct opt_data *op )
 		if( restart == 1 )
 		{
 			nRestarts = nRestarts + 1;
-			printf( "Restart at eval %d\n", eval );
+			tprintf( "Restart at eval %d\n", eval );
 			r--;
 		}
 		else
 		{
-			if( nRestarts > 0 ) printf( "Restarts = %i\n", nRestarts );
+			if( nRestarts > 0 ) tprintf( "Restarts = %i\n", nRestarts );
 			op->phi = S.best.f.f[0];
 			if( op->cd->pdebug > 1 )
 			{
@@ -262,7 +262,7 @@ int pso_tribes( struct opt_data *op )
 				func_global( S.best.x, gop, res ); // evaluate the best result
 				op->cd->fdebug = debug;
 				objfunc_print( &S.best.f );
-				printf( " current position %d: ", r ); position_print( &S.best );
+				tprintf( " current position %d: ", r ); position_print( &S.best );
 			}
 			if( op->cd->pdebug ) position_save( fRun, &S.best, r );
 			for( n = 0; n < pb.nPhi; n++ )
@@ -276,12 +276,12 @@ int pso_tribes( struct opt_data *op )
 	}
 	if( op->cd->pdebug )
 	{
-		if( lmo_flag ) printf( "\nOptimization completed after %i swarm steps, %d LM steps, %d evaluations:\n", iter, lmo_count, eval );
-		else printf( "\nOptimization completed after %i swarm steps and %d evaluations:\n", iter, eval );
+		if( lmo_flag ) tprintf( "\nOptimization completed after %i swarm steps, %d LM steps, %d evaluations:\n", iter, lmo_count, eval );
+		else tprintf( "\nOptimization completed after %i swarm steps and %d evaluations:\n", iter, eval );
 	}
 	if( op->cd->pdebug > 1 )
 	{
-		printf( "\nOptimization results:\n\n" );
+		tprintf( "\nOptimization results:\n\n" );
 		if( op->cd->fdebug < 3 ) { debug = op->cd->fdebug; op->cd->fdebug = 3; }
 		else debug = 0;
 	}
@@ -294,20 +294,20 @@ int pso_tribes( struct opt_data *op )
 	}
 	if( op->cd->pdebug && pb.repeat > 1 )
 	{
-		printf( "\nMean errors:" );
-		for( n = 0; n < pb.nPhi; n++ ) printf( " %g", errorMean[n] );
-		printf( "\nSuccess rate: " );
-		for( n = 0; n < pb.nPhi; n++ ) printf( " %g", successRate[n] );
-		printf( "\nBest result: " );
+		tprintf( "\nMean errors:" );
+		for( n = 0; n < pb.nPhi; n++ ) tprintf( " %g", errorMean[n] );
+		tprintf( "\nSuccess rate: " );
+		for( n = 0; n < pb.nPhi; n++ ) tprintf( " %g", successRate[n] );
+		tprintf( "\nBest result: " );
 		objfunc_print( &bestBest.f );
 	}
 	if( pb.repeat > 1 )
 	{
-		printf( "Number of optimization retries %d\n", pb.repeat );
-		printf( "Average number of evaluations per optimization %g\n", ( ( double ) eval_total / pb.repeat ) );
+		tprintf( "Number of optimization retries %d\n", pb.repeat );
+		tprintf( "Average number of evaluations per optimization %g\n", ( ( double ) eval_total / pb.repeat ) );
 	}
-	if( overSizeTribe > 0 ) printf( "WARNING: Tribe size has been constrained %i times\n", overSizeTribe );
-	if( overSizeSwarm > 0 ) printf( "WARNING: Swarm size has been constrained %i times\n", overSizeSwarm );
+	if( overSizeTribe > 0 ) tprintf( "WARNING: Tribe size has been constrained %i times\n", overSizeTribe );
+	if( overSizeSwarm > 0 ) tprintf( "WARNING: Swarm size has been constrained %i times\n", overSizeSwarm );
 	if( multiObj && op->cd->pdebug ) archive_save( archiv, nArchive, fArchive );
 	DeTransform( bestBest.x, op, bestBest.x );
 	for( i = 0; i < op->pd->nOptParam; i++ )
@@ -331,7 +331,7 @@ void set_swarm( struct problem *pb, struct swarm *S )
 	int i;
 	S->size = 0;
 	S->status = 0;
-	if( ( S->trib = ( struct tribe * ) malloc( MAXTRIBE * sizeof( struct tribe ) ) ) == NULL ) { printf( "No memory 1!\n" ); exit( 1 ); }
+	if( ( S->trib = ( struct tribe * ) malloc( MAXTRIBE * sizeof( struct tribe ) ) ) == NULL ) { tprintf( "No memory 1!\n" ); exit( 1 ); }
 	for( i = 0; i < MAXTRIBE; i++ )
 		set_tribe( pb, &S->trib[i] );
 	set_position( pb, &S->best );
@@ -364,7 +364,7 @@ void set_tribe( struct problem *pb, struct tribe *T )
 	int i;
 	T->size = 0;
 	T->status = 0;
-	if( ( T->part = ( struct particle * ) malloc( MAXPART * sizeof( struct particle ) ) ) == NULL ) { printf( "No memory 2!\n" ); exit( 1 ); }
+	if( ( T->part = ( struct particle * ) malloc( MAXPART * sizeof( struct particle ) ) ) == NULL ) { tprintf( "No memory 2!\n" ); exit( 1 ); }
 	for( i = 0; i < MAXPART; i++ )
 		set_particle( pb, &T->part[i] );
 	set_objfunc( pb, &T->fBestPrev );
@@ -426,7 +426,7 @@ void free_position( struct position *pos )
 void set_position( struct problem *pb, struct position *pos )
 {
 	pos->size = ( *pb ).D;
-	if( ( pos->x = ( double * ) malloc( ( *pos ).size * sizeof( double ) ) ) == NULL ) { printf( "No memory 3!\n" ); exit( 1 ); }
+	if( ( pos->x = ( double * ) malloc( ( *pos ).size * sizeof( double ) ) ) == NULL ) { tprintf( "No memory 3!\n" ); exit( 1 ); }
 	set_objfunc( pb, &pos->f );
 }
 
@@ -438,7 +438,7 @@ void free_objfunc( struct objfunc *phi )
 void set_objfunc( struct problem *pb, struct objfunc *phi )
 {
 	phi->size = ( *pb ).nPhi;
-	if( ( phi->f = ( double * ) malloc( ( *phi ).size * sizeof( double ) ) ) == NULL ) { printf( "No memory 4!\n" ); exit( 1 ); }
+	if( ( phi->f = ( double * ) malloc( ( *phi ).size * sizeof( double ) ) ) == NULL ) { tprintf( "No memory 4!\n" ); exit( 1 ); }
 }
 
 void position_eval( struct problem *pb, struct position *pos )
@@ -465,14 +465,14 @@ void position_eval( struct problem *pb, struct position *pos )
 	}
 	if( gop->cd->check_success && gop->success )
 	{
-		if( debug_level && gop->cd->fdebug == 0 ) printf( "PSO Success: Predictions are within the predefined calibration bounds (within position_eval)!\n" );
+		if( debug_level && gop->cd->fdebug == 0 ) tprintf( "PSO Success: Predictions are within the predefined calibration bounds (within position_eval)!\n" );
 		copy_position( pos, &( *pb ).pos_success );
 		( * pb ).success = 1;
 	}
 	if( debug_level > 2 )
 	{
-		if( debug_level == 3 ) { printf( "eval: " ); objfunc_print( &( *pos ).f ); }
-		else if( debug_level > 3 ) { printf( "eval: " ); position_print( pos ); }
+		if( debug_level == 3 ) { tprintf( "eval: " ); objfunc_print( &( *pos ).f ); }
+		else if( debug_level > 3 ) { tprintf( "eval: " ); position_print( pos ); }
 	}
 }
 
@@ -481,15 +481,15 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	int d;
 	double *opt_var, *tr_var;
 	( *pb ).D = op->pd->nOptParam;
-	if( ( opt_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if( ( tr_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->ival = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->min = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->max = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->dx = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->valSize = ( int * ) malloc( ( *pb ).D * sizeof( int ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->objective = ( float * ) malloc( MAXPHI * sizeof( float ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->code = ( int * ) malloc( MAXPHI * sizeof( int ) ) ) == NULL ) { printf( "No memory!\n" ); exit( 1 ); }
+	if( ( opt_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( tr_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->ival = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->min = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->max = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->dx = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->valSize = ( int * ) malloc( ( *pb ).D * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->objective = ( float * ) malloc( MAXPHI * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->code = ( int * ) malloc( MAXPHI * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	pb->val = float_matrix( ( *pb ).D, MAXVALUES );
 	set_objfunc( pb, &pb->maxError );
 	for( d = 0; d < ( *pb ).D; d++ )
@@ -515,7 +515,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 		}
 	if( ( *pb ).nPhi > MAXPHI - 1 )
 	{
-		printf( "MADS Quits: Too many functions: %i (max %i) \n", ( *pb ).nPhi, MAXPHI );
+		tprintf( "MADS Quits: Too many functions: %i (max %i) \n", ( *pb ).nPhi, MAXPHI );
 		exit( 1 );
 	}
 	( *pb ).code[0] = -1;
@@ -528,7 +528,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	op->cd->standalone = 0;
 	if( ( *pb ).repeat > MAXRUNS )
 	{
-		printf( "MADS Quits: Too many retries (max %i < %i) \n", MAXRUNS, ( *pb ).repeat );
+		tprintf( "MADS Quits: Too many retries (max %i < %i) \n", MAXRUNS, ( *pb ).repeat );
 		exit( 1 );
 	}
 	debug_level = op->cd->pdebug;
@@ -607,13 +607,13 @@ void archive_crowding_dist() // Compute the crowding distances in archive[n] (gl
 void archive_print()
 {
 	int n;
-	printf( "Archive %i positions\n", nArchive );
+	tprintf( "Archive %i positions\n", nArchive );
 	for( n = 0; n < nArchive; n++ )
 	{
 		position_print( &archiv[n].x );
-		printf( " crowd %g", archiv[n].crow_dist );
+		tprintf( " crowd %g", archiv[n].crow_dist );
 	}
-	printf( "\n" );
+	tprintf( "\n" );
 }
 
 struct objfunc archive_phi_var( struct problem *pb ) // Variance of the archive for each objfunc
@@ -669,7 +669,7 @@ void archive_local_search( struct problem *pb )
 	if( nArchive < nPhi + 1 ) return;
 	if( nArchive < MAXARCHIVE ) return;
 	if( nLocalSearchIter < nArchive ) return;
-	printf( "Iter %i Eval %d: Local search from archive\n", iter, eval );
+	tprintf( "Iter %i Eval %d: Local search from archive\n", iter, eval );
 	nLocalSearchIter = 0;
 	xIn.size = archiv[0].x.size;
 	xOut.size = xIn.size;
@@ -745,10 +745,10 @@ void archive_local_search( struct problem *pb )
 void archive_save( struct archived archiv[], int nArchive, FILE *fArchive )
 {
 	int D, nPhi, m, n;
-	printf( "Save archive (%i positions)\n", nArchive );
+	tprintf( "Save archive (%i positions)\n", nArchive );
 	D = archiv[0].x.size;
 	nPhi = archiv[0].x.f.size;
-	printf( "%i objfunces, and %i coordinates\n", nPhi, D );
+	tprintf( "%i objfunces, and %i coordinates\n", nPhi, D );
 	for( n = 0; n < nPhi; n++ ) fprintf( fArchive, "f%i ", n + 1 );
 	for( n = 0; n < D; n++ ) fprintf( fArchive, "x%i ", n + 1 );
 	fprintf( fArchive, "\n" );
@@ -947,7 +947,7 @@ int compare_particles( struct objfunc *phi1, struct objfunc *phi2, int compare_t
 				if( ( *phi1 ).f[n] < ( *phi2 ).f[n] - epsilon_vector[n] ) {better++; continue;}
 				if( ( *phi1 ).f[n] > ( *phi2 ).f[n] + epsilon_vector[n] ) {worse++; continue;}
 			}
-//			printf( "Compare %d %d: %f %f %f\n", better, worse, ( *phi1 ).f[0], ( *phi2 ).f[0], epsilon_vector[0] );
+//			tprintf( "Compare %d %d: %f %f %f\n", better, worse, ( *phi1 ).f[0], ( *phi2 ).f[0], epsilon_vector[0] );
 			if( better >  0 && worse == 0 ) return  1; // better
 			if( better == 0 && worse >  0 ) return -1; // worse
 			if( !multiObj ) return 0;                  // no change
@@ -989,14 +989,14 @@ void objfunc_print( struct objfunc *phi )
 	int i;
 	if( ( *phi ).size == 1 )
 	{
-		printf( "OF: %g", ( *phi ).f[0] );
+		tprintf( "OF: %g", ( *phi ).f[0] );
 		return;
 	}
-	printf( "OF (%d): ", ( *phi ).size );
+	tprintf( "OF (%d): ", ( *phi ).size );
 	for( i = 0; i < ( *phi ).size; i++ )
-		printf( " %g", ( *phi ).f[i] );
-	if( multiObj ) printf( " phi_spread %g\n", ( *phi ).f[( *phi ).size] );
-	else printf( "\n" );
+		tprintf( " %g", ( *phi ).f[i] );
+	if( multiObj ) tprintf( " phi_spread %g\n", ( *phi ).f[( *phi ).size] );
+	else tprintf( "\n" );
 }
 
 double objfunc_dist( struct objfunc *phi1,  struct objfunc *phi2 )
@@ -1196,13 +1196,13 @@ void position_archive( struct position *pos )
 void position_print( struct position *pos )
 {
 	int d;
-	printf( "position:" );
+	tprintf( "position:" );
 	for( d = 0; d < ( *pos ).size; d++ )
-		printf( " %g", ( *pos ).x[d] );
-	printf( " | OF:" );
+		tprintf( " %g", ( *pos ).x[d] );
+	tprintf( " | OF:" );
 	for( d = 0; d < ( *pos ).f.size; d++ )
-		printf( " %g", ( *pos ).f.f[d] );
-	if( multiObj ) printf( " phi_spread %g", ( *pos ).f.f[( *pos ).f.size] );
+		tprintf( " %g", ( *pos ).f.f[d] );
+	if( multiObj ) tprintf( " phi_spread %g", ( *pos ).f.f[( *pos ).f.size] );
 }
 
 void position_save( FILE *fRun, struct position *pos, int run )
@@ -1305,7 +1305,7 @@ void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 	for( d = 0; d < ( *pb ).D; d++ )
 		op->pd->var[op->pd->var_index[d]] = ( *P ).x[d];
 	// for( d = 0; d < ( *pb ).D; d++ )
-	// printf( "%g\n", op->pd->var[op->pd->var_index[d]] );
+	// tprintf( "%g\n", op->pd->var[op->pd->var_index[d]] );
 	d = gop->cd->neval;
 	op->phi = ( *P ).f.f[0];
 	optimize_lm( op );
@@ -1331,30 +1331,30 @@ void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 void problem_print( struct problem *pb )
 {
 	int d, n;
-	printf( "Number of parameters (parameter space dimensions) %i\n", ( *pb ).D );
+	tprintf( "Number of parameters (parameter space dimensions) %i\n", ( *pb ).D );
 	if( debug_level > 1 )
 	{
-		printf( "Search space:\n" );
+		tprintf( "Search space:\n" );
 		for( d = 0; d < ( *pb ).D; d++ )
 		{
 			if( ( *pb ).valSize[d] == 0 )
-				printf( "[%g  %g] dx=%g init=%g\n", ( *pb ).min[d], ( *pb ).max[d], ( *pb ).dx[d], ( *pb ).ival[d] );
+				tprintf( "[%g  %g] dx=%g init=%g\n", ( *pb ).min[d], ( *pb ).max[d], ( *pb ).dx[d], ( *pb ).ival[d] );
 			else
 			{
-				printf( "List: " );
+				tprintf( "List: " );
 				for( n = 0; n < ( *pb ).valSize[d]; n++ )
-					printf( "%g ", ( *pb ).val[d][n] );
-				printf( "\n" );
+					tprintf( "%g ", ( *pb ).val[d][n] );
+				tprintf( "\n" );
 			}
 		}
 	}
 	if( ( *pb ).nPhi > 1 )
 		for( n = 0; n < ( *pb ).nPhi; n++ )
-			printf( "Objective function #%d: Target %g Acceptable error %g\n", n, ( *pb ).objective[n], ( *pb ).maxError.f[n] );
+			tprintf( "Objective function #%d: Target %g Acceptable error %g\n", n, ( *pb ).objective[n], ( *pb ).maxError.f[n] );
 	else if( ( *pb ).objective[0] > 0 || ( *pb ).maxError.f[0] > 0 )
-		printf( "Objective function: Target %g Acceptable error %g\n", ( *pb ).objective[0], ( *pb ).maxError.f[0] );
-	printf( "Maximum number of functional evaluations: %d\n", ( *pb ).maxEval );
-	if( ( *pb ).repeat != 1 ) printf( "Number of optimization retries: %i\n", ( *pb ).repeat );
+		tprintf( "Objective function: Target %g Acceptable error %g\n", ( *pb ).objective[0], ( *pb ).maxError.f[0] );
+	tprintf( "Maximum number of functional evaluations: %d\n", ( *pb ).maxEval );
+	if( ( *pb ).repeat != 1 ) tprintf( "Number of optimization retries: %i\n", ( *pb ).repeat );
 }
 
 void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S )
@@ -1382,14 +1382,14 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 		{
 			lm_wait = 1;
 			phi_lm_wait = min / ( *pb ).lm_factor * 2;
-			if( debug_level ) printf( "Skip LM search because OF range of tribes' shamans is small till OF %g is less than %g (min %g max %g ratio %g < %g)!\n", min, phi_lm_wait, min, max, r1, r2 );
+			if( debug_level ) tprintf( "Skip LM search because OF range of tribes' shamans is small till OF %g is less than %g (min %g max %g ratio %g < %g)!\n", min, phi_lm_wait, min, max, r1, r2 );
 		}
-		else if( debug_level ) printf( "Do LM search because OF range of tribes' shamans is sufficient (min %g max %g ratio %g >= %g)!\n", min, max, r1, r2 );
+		else if( debug_level ) tprintf( "Do LM search because OF range of tribes' shamans is sufficient (min %g max %g ratio %g >= %g)!\n", min, max, r1, r2 );
 	}
 	if( debug_level ) swarm_print( S );
 	if( gop->cd->check_success && gop->success )
 	{
-		if( debug_level ) printf( "Success: Initial model predictions are within the predefined calibration bounds!\n" );
+		if( debug_level ) tprintf( "Success: Initial model predictions are within the predefined calibration bounds!\n" );
 		return;
 	}
 	iter = 0;
@@ -1400,68 +1400,68 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 		for( tr = 0; tr < ( *S ).size; tr++ ) nTribeAdaptIter[tr]++;
 		nSwarmAdaptIter++;
 		archiveVar = archive_phi_var( pb );
-		if( debug_level > 2 ) printf( "Swarm move ...\n" );
+		if( debug_level > 2 ) tprintf( "Swarm move ...\n" );
 		swarm_move( pb, S, compare_type, run ); // SWARM MOVE
 		if( debug_level > 2 )
 		{
-			printf( "MO " );
+			tprintf( "MO " );
 			for( tr = 0; tr < ( *S ).size; tr++ )
-				printf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
-			printf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
+				tprintf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
+			tprintf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 		}
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
-		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
-		if( debug_level > 2 ) printf( "Swarm adapt ...\n" );
+		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
+		if( debug_level > 2 ) tprintf( "Swarm adapt ...\n" );
 		swarm_adapt( pb, S, compare_type ); // SWARM ADAPT
 		if( debug_level > 2 )
 		{
-			printf( "AD " );
+			tprintf( "AD " );
 			for( tr = 0; tr < ( *S ).size; tr++ )
-				printf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
-			printf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
+				tprintf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
+			tprintf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 		}
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
-		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
+		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
 		if( gop->od->nObs > 0 && lmo_flag )
 		{
-			if( debug_level > 2 ) printf( "LM search ...\n" );
+			if( debug_level > 2 ) tprintf( "LM search ...\n" );
 			swarm_lm( pb, S ); // LM SEARCH
 			if( debug_level > 2 )
 			{
-				printf( "LM " );
+				tprintf( "LM " );
 				for( tr = 0; tr < ( *S ).size; tr++ )
-					printf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
-				printf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
+					tprintf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
+				tprintf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 			}
 		}
-		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
+		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) tprintf( "Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
-		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
-		if( debug_level > 2 ) printf( "Local search ...\n" );
+		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
+		if( debug_level > 2 ) tprintf( "Local search ...\n" );
 		if( multiObj ) archive_local_search( pb ); else swarm_local_search( pb, S ); // LOCAL SEARCH
 		if( debug_level > 2 )
 		{
-			printf( "LO " );
+			tprintf( "LO " );
 			for( tr = 0; tr < ( *S ).size; tr++ )
-				printf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
-			printf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
+				tprintf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
+			tprintf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 		}
 		//if( restart ) break; // For future automatic restart
-		if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "Maximum number of evaluations is achieved!\n" ); break; }
-		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
+		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
+		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) tprintf( "Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
 		iter++;
-		if( debug_level > 2 ) printf( "\n" );
+		if( debug_level > 2 ) tprintf( "\n" );
 	}
 	if( gop->cd->check_success && gop->success )
 	{
-		if( debug_level ) printf( "PSO Success: Predictions are within the predefined calibration bounds!\n" );
+		if( debug_level ) tprintf( "PSO Success: Predictions are within the predefined calibration bounds!\n" );
 		if( compare_particles( &( *S ).best.f, &( *pb ).pos_success.f, 0 ) == 1 )
-			if( debug_level ) printf( "Parameter space location producing predictions within the predefined calibration ranges does not have the lowest OF!\n" );
+			if( debug_level ) tprintf( "Parameter space location producing predictions within the predefined calibration ranges does not have the lowest OF!\n" );
 		/*
-				printf( "ggggggg\n" );
+				tprintf( "ggggggg\n" );
 				for( n = 0; n < ( *pb ).pos_success.size; n++ )
-					printf( "%g\n", ( *pb ).pos_success.x[n] );
+					tprintf( "%g\n", ( *pb ).pos_success.x[n] );
 				func( ( *pb ).pos_success.x, gop, res ); // evaluate the best BEST result
 		*/
 		copy_position( &( *pb ).pos_success, &( *S ).best );
@@ -1520,7 +1520,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				if( disturbPart )
 					if( ( *S ).trib[tr].size > 1 )
 					{
-						if( debug_level > 2 ) printf( "Bad tribe %i: one randomly selected particle is randomly disturbed ", tr + 1 );
+						if( debug_level > 2 ) tprintf( "Bad tribe %i: one randomly selected particle is randomly disturbed ", tr + 1 );
 						do { pa = random_int( 0, ( *S ).trib[tr].size - 1 ); }
 						while( pa == ( *S ).trib[tr].best ); // Do not disturb the best one ...
 						d = random_int( 0, ( *pb ).D - 1 );
@@ -1528,7 +1528,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 						( *S ).trib[tr].part[pa].x.x[d] = random_double( ( *pb ).min[d], ( *pb ).max[d] );
 						position_check( pb, &( *S ).trib[tr].part[pa].x );
 						position_eval( pb, &( *S ).trib[tr].part[pa].x );
-						// printf( "mmm %i %i\n", pa, ( *S ).trib[tr].best );
+						// tprintf( "mmm %i %i\n", pa, ( *S ).trib[tr].best );
 						// tribe_print( &( *S ).trib[tr] );
 						if( compare_particles( &( *S ).trib[tr].part[pa].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
 						{
@@ -1536,12 +1536,12 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 							copy_position( &( *S ).trib[tr].part[pa].x, &( *S ).trib[tr].part[pa].xBest ); // copy to tribes best position
 							if( debug_level > 2 )
 							{
-								printf( "best particle in tribe #%d is now #%i ", tr + 1, ( *S ).trib[tr].part[pa].id );
+								tprintf( "best particle in tribe #%d is now #%i ", tr + 1, ( *S ).trib[tr].part[pa].id );
 								objfunc_print( &( *S ).trib[tr].part[pa].x.f );
-								printf( "\n" );
+								tprintf( "\n" );
 							}
 						}
-						else if( debug_level > 2 ) printf( "\n" );
+						else if( debug_level > 2 ) tprintf( "\n" );
 						if( compare_particles( &( *S ).trib[tr].part[pa].x.f, &( *S ).best.f, compare_type ) == 1 ) // Possibly update swarm best
 						{
 							copy_position( &( *S ).trib[tr].part[pa].x, &( *S ).best ); // BEST COPY
@@ -1552,11 +1552,11 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				{
 					if( multiObj ) initOption = 3;
 					else initOption = random_int( 0, 3 );
-					if( debug_level > 2 ) printf( "Bad tribe %i: new particle is added ", tr + 1 );
+					if( debug_level > 2 ) tprintf( "Bad tribe %i: new particle is added ", tr + 1 );
 					add_part_count++;
 					particle_init( pb, initOption, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[nPart] );
 					( *S ).trib[tr].size++; // Add a new particle
-					// printf( "mmm %i %i\n ", initOption, nPart);
+					// tprintf( "mmm %i %i\n ", initOption, nPart);
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[nPart].xBest.f, compare_type ) == 1 ) // Possibly update particles best
 						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).trib[tr].part[nPart].xBest ); // copy to particles best position
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
@@ -1564,12 +1564,12 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 						( *S ).trib[tr].best = nPart; // By chance this particle is the best of the tribe
 						if( debug_level > 2 )
 						{
-							printf( "best particle in tribe #%d is now #%i ", tr + 1, ( *S ).trib[tr].part[nPart].id );
+							tprintf( "best particle in tribe #%d is now #%i ", tr + 1, ( *S ).trib[tr].part[nPart].id );
 							objfunc_print( &( *S ).trib[tr].part[nPart].x.f );
-							printf( "\n" );
+							tprintf( "\n" );
 						}
 					}
-					else if( debug_level > 2 ) printf( "\n" );
+					else if( debug_level > 2 ) tprintf( "\n" );
 					if( compare_particles( &( *S ).trib[tr].part[nPart].x.f, &( *S ).best.f, compare_type ) == 1 ) // Possibly update swarm best
 					{
 						copy_position( &( *S ).trib[tr].part[nPart].x, &( *S ).best ); // By chance this particle is the best of the swarm; BEST COPY
@@ -1580,7 +1580,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				else
 				{
 					overSizeTribe++;
-					if( debug_level > 0 ) printf( "\nWARNING: Cannot add a particle (increase MAXPART = %i)\n", MAXPART );
+					if( debug_level > 0 ) tprintf( "\nWARNING: Cannot add a particle (increase MAXPART = %i)\n", MAXPART );
 				}
 				break;
 			case 1: // Good tribe
@@ -1595,7 +1595,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				if( part_worst < ( *S ).trib[tr].size - 1 ) // Remove it from the tribe
 					for( pa = part_worst; pa < ( *S ).trib[tr].size - 1; pa++ )
 						copy_particle( &( *S ).trib[tr].part[pa + 1], &( *S ).trib[tr].part[pa] );
-				if( debug_level > 2 ) printf( "Good tribe %i: worst particle is removed %i\n", tr + 1, part_worst + 1 );
+				if( debug_level > 2 ) tprintf( "Good tribe %i: worst particle is removed %i\n", tr + 1, part_worst + 1 );
 				( *S ).trib[tr].size--;
 				break;
 		}
@@ -1623,11 +1623,11 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 			case 0: // Bad swarm
 				if( ( *S ).size < MAXTRIBE )
 				{
-					if( debug_level > 2 ) printf( "Bad swarm: tribe is added\n" );
+					if( debug_level > 2 ) tprintf( "Bad swarm: tribe is added\n" );
 					tribe_init( pb, 1, compare_type, S, &( *S ).trib[tr] );
 					tr = ( *S ).size++; // Add a new tribe
 					add_tribe_count++; // Add a new tribe
-					if( debug_level > 2 ) printf( "\n" );
+					if( debug_level > 2 ) tprintf( "\n" );
 					if( compare_particles( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, &( *S ).best.f, compare_type ) == 1 )
 					{
 						for( i = 0; i < ( *pb ).nPhi; i++ )
@@ -1639,14 +1639,14 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				else
 				{
 					overSizeSwarm++;
-					if( debug_level > 0 ) printf( "WARNING: Cannot add a tribe (increase MAXTRIBE = %i)\n", MAXTRIBE );
+					if( debug_level > 0 ) tprintf( "WARNING: Cannot add a tribe (increase MAXTRIBE = %i)\n", MAXTRIBE );
 				}
 				break;
 			case 1: // Good swarm
 				if( ( *S ).size > 1 )
 				{
 					tribe_worst = 0;
-					if( debug_level > 2 ) printf( "Good swarm: worst tribe %i is removed\n", tribe_worst + 1 );
+					if( debug_level > 2 ) tprintf( "Good swarm: worst tribe %i is removed\n", tribe_worst + 1 );
 					for( tr = 1; tr < ( *S ).size; tr++ ) // Find the worst tribe
 					{
 						if( compare_particles( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, &( *S ).trib[tribe_worst].part[( *S ).trib[tribe_worst].best].xBest.f, compare_type ) == -1 )
@@ -1701,23 +1701,23 @@ void swarm_print( struct swarm *S )
 	int nTotPart = 0, it;
 	for( it = 0; it < ( *S ).size; it++ )
 		nTotPart += ( *S ).trib[it].size; // Total number of particles
-	if( debug_level > 2 ) printf( "\n" );
-	if( nTotPart > 1 ) printf( "Swarm: %i tribes", ( *S ).size );
-	else printf( "Swarm: %i tribe", ( *S ).size );
+	if( debug_level > 2 ) tprintf( "\n" );
+	if( nTotPart > 1 ) tprintf( "Swarm: %i tribes", ( *S ).size );
+	else tprintf( "Swarm: %i tribe", ( *S ).size );
 	if( debug_level >= 1 )
 	{
-		printf( " [" );
+		tprintf( " [" );
 		for( it = 0; it < ( *S ).size; it++ )
-			printf( " %i", ( *S ).trib[it].size );
-		printf( " ]" );
+			tprintf( " %i", ( *S ).trib[it].size );
+		tprintf( " ]" );
 	}
-	if( ( *S ).size > 1 ) printf( " | %i particles | ", nTotPart );
-	else printf( " | %i particle | ", ( *S ).size );
-	if( gop->cd->pdebug ) printf( "OF %g E %d S %d\n", ( *S ).best.f.f[0], eval, gop->success );
+	if( ( *S ).size > 1 ) tprintf( " | %i particles | ", nTotPart );
+	else tprintf( " | %i particle | ", ( *S ).size );
+	if( gop->cd->pdebug ) tprintf( "OF %g E %d S %d\n", ( *S ).best.f.f[0], eval, gop->success );
 	if( debug_level > 3 )
 		for( it = 0; it < ( *S ).size; it++ )
 		{
-			printf( "Tribe %i: ", it + 1 );
+			tprintf( "Tribe %i: ", it + 1 );
 			tribe_print( &( *S ).trib[it] );
 		}
 }
@@ -1756,18 +1756,18 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 	int pa, nTotPart = 0;
 	int shaman, count_bad_tribes = 0;
 	int tr;
-	if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
+	if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 	if( lm_wait == 1 )
 	{
 		phi_current_best = ( *S ).best.f.f[0];
 		if( phi_lm_wait > phi_current_best )
 		{
-			if( debug_level ) printf( "Restart LM search because OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
+			if( debug_level ) tprintf( "Restart LM search because OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
 			lm_wait = 0;
 		}
 		else
 		{
-			if( debug_level ) printf( "Skip LM search until OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
+			if( debug_level ) tprintf( "Skip LM search until OF %g is less than %g!\n", phi_current_best, phi_lm_wait );
 			return;
 		}
 	}
@@ -1782,26 +1782,26 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			shaman = ( *S ).trib[tr].best;
 			if( debug_level )
 			{
-				printf( "Shaman move using LM (particle #%d in tribe #%d consisting of %d particles) ... ", shaman + 1, tr + 1, ( *S ).trib[tr].size );
+				tprintf( "Shaman move using LM (particle #%d in tribe #%d consisting of %d particles) ... ", shaman + 1, tr + 1, ( *S ).trib[tr].size );
 				fflush( stdout );
-				if( debug_level > 1 ) { printf( "\nold " ); position_print( &( *S ).trib[tr].part[shaman].xBest ); }
+				if( debug_level > 1 ) { tprintf( "\nold " ); position_print( &( *S ).trib[tr].part[shaman].xBest ); }
 			}
 			lmo_count++;
 			phi_current_best = ( *S ).trib[tr].part[shaman].xBest.f.f[0];
 			position_lm( gop, pb, &( *S ).trib[tr].part[shaman].xBest );
-			if( debug_level ) printf( " OF %g -> %g E %d", phi_current_best, ( *S ).trib[tr].part[shaman].xBest.f.f[0], eval );
-			if( debug_level > 1 ) { printf( "new " ); position_print( &( *S ).trib[tr].part[shaman].xBest ); }
+			if( debug_level ) tprintf( " OF %g -> %g E %d", phi_current_best, ( *S ).trib[tr].part[shaman].xBest.f.f[0], eval );
+			if( debug_level > 1 ) { tprintf( "new " ); position_print( &( *S ).trib[tr].part[shaman].xBest ); }
 			copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).trib[tr].part[shaman].x );
 			if( gop->cd->check_success && gop->success )
 			{
-				if( debug_level ) printf( "LM Success: Predictions are within the predefined calibration bounds!\n" );
+				if( debug_level ) tprintf( "LM Success: Predictions are within the predefined calibration bounds!\n" );
 				copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *pb ).pos_success );
 				gop->phi = ( *pb ).pos_success.f.f[0];
 				break;
 			}
 			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 )
 			{
-				if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] );
+				if( debug_level ) tprintf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] );
 				return;
 			}
 			if( compare_particles( &( *S ).trib[tr].part[shaman].xBest.f, &( *S ).best.f, 0 ) == 1 )
@@ -1811,12 +1811,12 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				gop->phi = ( *S ).best.f.f[0];
 				( *S ).tr_best = tr;
 			}
-			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
+			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) tprintf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
 			r1 = ( double ) 1 + ( *pb ).lm_factor / 20;
 			if( ( *S ).trib[tr].part[shaman].xBest.f.f[0] > phi_current_best / r1 )
 			{
 				count_bad_tribes++;
-				if( debug_level ) printf( " Bad shaman (%g > %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
+				if( debug_level ) tprintf( " Bad shaman (%g > %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
 				// ( *S ).trib[tr].status = -1; // Bad tribe IF LABELED BAD TRIBE PERFORMANCE DIMINISHES
 				particle_init( pb, 6, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] ); // reset shaman based on current shamans
 				if( debug_level > 1 ) position_print( &( *S ).trib[tr].part[shaman].x );
@@ -1836,15 +1836,15 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			else
 			{
 				count_not_good_tribes++;
-				if( debug_level ) printf( " Not very good shaman (%g <= %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
+				if( debug_level ) tprintf( " Not very good shaman (%g <= %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
 			}
-			if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
+			if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 		}
 		if( count_bad_tribes >= ( *S ).size )
 		{
 			lm_wait = 1;
 			phi_lm_wait = ( *S ).best.f.f[0] / ( *pb ).lm_factor;
-			if( debug_level ) printf( "Skip LM search till OF %g is less than %g!\n", ( *S ).best.f.f[0], phi_lm_wait );
+			if( debug_level ) tprintf( "Skip LM search till OF %g is less than %g!\n", ( *S ).best.f.f[0], phi_lm_wait );
 			( *S ).status = -1; // Bad swarm --- LM not happy with the swarm; try to add a tribe
 			nSwarmAdaptIter = ( *S ).size * ( *S ).size; // Force swarm adaption
 		}
@@ -1857,24 +1857,24 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 		{
 			if( debug_level )
 			{
-				printf( "Best particle move using LM ... (particles %d > %f * dimension %d) ", nTotPart, ( *pb ).lm_factor / 2, ( *pb ).D );
+				tprintf( "Best particle move using LM ... (particles %d > %f * dimension %d) ", nTotPart, ( *pb ).lm_factor / 2, ( *pb ).D );
 				fflush( stdout );
-				if( debug_level > 1 ) { printf( "\nold " ); position_print( &( *S ).best ); }
+				if( debug_level > 1 ) { tprintf( "\nold " ); position_print( &( *S ).best ); }
 			}
-			if( eval >= ( *pb ).maxEval ) { if( debug_level ) printf( "LM optimizaiton cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
+			if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "LM optimizaiton cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 			lmo_count++;
 			phi_current_best = ( *S ).best.f.f[0];
 			position_lm( gop, pb, &( *S ).best );
-			if( debug_level ) printf( "OF %g -> %g\n", phi_current_best, ( *S ).best.f.f[0] );
-			if( debug_level > 1 ) { printf( "new " ); position_print( &( *S ).best ); }
+			if( debug_level ) tprintf( "OF %g -> %g\n", phi_current_best, ( *S ).best.f.f[0] );
+			if( debug_level > 1 ) { tprintf( "new " ); position_print( &( *S ).best ); }
 			tr = ( *S ).tr_best;
 			shaman = ( *S ).trib[tr].best;
-			if( debug_level > 1 ) printf( "BEST Shaman moved (particle #%d in tribe #%d consisting of %d particles OF %g -> %g)!\n", shaman + 1, tr + 1, ( *S ).trib[tr].size, ( *S ).trib[tr].part[shaman].xBest.f.f[0], ( *S ).best.f.f[0] );
+			if( debug_level > 1 ) tprintf( "BEST Shaman moved (particle #%d in tribe #%d consisting of %d particles OF %g -> %g)!\n", shaman + 1, tr + 1, ( *S ).trib[tr].size, ( *S ).trib[tr].part[shaman].xBest.f.f[0], ( *S ).best.f.f[0] );
 			gop->phi = ( *S ).trib[tr].part[shaman].xBest.f.f[0] = ( *S ).best.f.f[0];
 			copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).trib[tr].part[shaman].xLast );
 			copy_position( &( *S ).best, &( *S ).trib[tr].part[shaman].xBest );
-			if( gop->cd->check_success && gop->success ) { copy_position( &( *S ).best, &( *pb ).pos_success ); if( debug_level ) printf( "LM Success: Predictions are within the predefined calibration bounds!\n" ); return; }
-			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) printf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); return; }
+			if( gop->cd->check_success && gop->success ) { copy_position( &( *S ).best, &( *pb ).pos_success ); if( debug_level ) tprintf( "LM Success: Predictions are within the predefined calibration bounds!\n" ); return; }
+			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) tprintf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); return; }
 			else
 			{
 				nSwarmAdaptIter = ( *S ).size * ( *S ).size;
@@ -1905,7 +1905,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 			for( tr = 0; tr < ( *S ).size; tr++ ) // For each tribe
 			{
 				if( ( *S ).trib[tr].size < ( *pb ).D + 1 ) continue; // If there is not enough particles do anything
-				if( debug_level > 2 ) printf( "Local search tribe %i ", tr + 1 );
+				if( debug_level > 2 ) tprintf( "Local search tribe %i ", tr + 1 );
 				mm = ( *S ).trib[tr].best; // Define a simplex
 				for( m = 0; m < ( *pb ).D + 1; m++ )
 				{
@@ -1918,7 +1918,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 				switch( out ) // Define a new point
 				{
 					case 0: // Inside the simplex
-						if( debug_level > 2 ) printf( "inside simplex " );
+						if( debug_level > 2 ) tprintf( "inside simplex " );
 						for( d = 0; d < new_position.size; d++ )
 						{
 							new_position.x[d] = 0;
@@ -1927,7 +1927,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 						for( d = 0; d < new_position.size; d++ ) new_position.x[d] /= ( ( *pb ).D + 1 );
 						break;
 					case 1: // Outside the simplex
-						if( debug_level > 2 ) printf( "outside simplex " );
+						if( debug_level > 2 ) tprintf( "outside simplex " );
 						for( d = 0; d < new_position.size; d++ )
 						{
 							new_position.x[d] = 0;
@@ -1941,7 +1941,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 				position_eval( pb, &new_position ); // if there is no improvement the new position will be forgotten
 				if( compare_particles( &new_position.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, 0 ) == 1 ) // Possibly update tribe best
 				{
-					if( debug_level > 2 ) printf( " SUCCESS" );
+					if( debug_level > 2 ) tprintf( " SUCCESS" );
 					copy_position( &new_position, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest );
 					copy_position( &new_position, &( *S ).trib[tr].part[( *S ).trib[tr].best].x );
 					if( compare_particles( &new_position.f, &( *S ).best.f, 0 ) == 1 ) // Possibly update swarm best
@@ -1950,7 +1950,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 						( *S ).tr_best = tr;
 					}
 				}
-				if( debug_level > 2 ) printf( "\n" );
+				if( debug_level > 2 ) tprintf( "\n" );
 			}
 			for( m = 0; m < MAXPHI + 1; m++ ) free_position( &simplex[m] );
 			break;
@@ -1958,7 +1958,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 			for( tr = 0; tr < ( *S ).size; tr++ )
 			{
 				if( ( *S ).trib[tr].size < ( *pb ).D ) continue; // Small size
-				if( debug_level > 2 ) printf( "Local search tribe %i near the shaman ", tr + 1 );
+				if( debug_level > 2 ) tprintf( "Local search tribe %i near the shaman ", tr + 1 );
 				shaman = ( *S ).trib[tr].best;
 				for( d = 0; d < ( *pb ).D; d++ ) // find the nearest position to the shaman
 				{
@@ -1976,7 +1976,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 				position_eval( pb, &new_position );
 				if( compare_particles( &new_position.f, &( *S ).trib[tr].part[shaman].xBest.f, 0 ) == 1 ) // Update bests
 				{
-					if( debug_level > 2 ) printf( " SUCCESS" );
+					if( debug_level > 2 ) tprintf( " SUCCESS" );
 					copy_position( &new_position, &( *S ).trib[tr].part[shaman].xBest );
 					copy_position( &new_position, &( *S ).trib[tr].part[shaman].x );
 					if( compare_particles( &new_position.f, &( *S ).best.f, 0 ) == 1 )
@@ -1985,7 +1985,7 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 						( *S ).tr_best = tr;
 					}
 				}
-				if( debug_level > 2 ) printf( "\n" );
+				if( debug_level > 2 ) tprintf( "\n" );
 			}
 			break;
 	}
@@ -2010,10 +2010,10 @@ void swarm_move( struct problem *pb, struct swarm( *S ), int compare_type, int r
 	{
 		if( debug_level > 2 )
 		{
-			printf( "Tribe %i move: (before) best particle is #%i ", tr + 1, ( *S ).trib[tr].best + 1 );
+			tprintf( "Tribe %i move: (before) best particle is #%i ", tr + 1, ( *S ).trib[tr].best + 1 );
 			if( debug_level == 3 ) objfunc_print( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f );
 			else position_print( &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest );
-			printf( "\n" );
+			tprintf( "\n" );
 		}
 		for( i = 0; i < ( *pb ).nPhi; i++ )
 			( *S ).trib[tr].fBestPrev.f[i] = ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[i]; // Save the previous best result for the tribe
@@ -2053,22 +2053,22 @@ void swarm_move( struct problem *pb, struct swarm( *S ), int compare_type, int r
 				}
 			}
 			if( debug_level > 2 )
-				printf( "Tribe %i move: particle #%i is informed by #%i ", tr + 1, ( *S ).trib[tr].part[pa].id, informer.id );
+				tprintf( "Tribe %i move: particle #%i is informed by #%i ", tr + 1, ( *S ).trib[tr].part[pa].id, informer.id );
 			if( ( *S ).trib[tr].part[pa].id == informer.id )( *S ).trib[tr].part[pa].strategy = -1; // the particle should inform itself ... random position
 			position_update( pb, &( *S ).trib[tr].part[pa], informer );
 			if( compare_particles( &( *S ).trib[tr].part[pa].x.f, &( *S ).trib[tr].part[pa].xBest.f, compare_type ) == 1 )
 			{
-				if( debug_level > 2 ) { printf( " improvement " ); objfunc_print( &( *S ).trib[tr].part[pa].xBest.f ); printf( " => " ); objfunc_print( &( *S ).trib[tr].part[pa].x.f ); printf( "\n" ); }
+				if( debug_level > 2 ) { tprintf( " improvement " ); objfunc_print( &( *S ).trib[tr].part[pa].xBest.f ); tprintf( " => " ); objfunc_print( &( *S ).trib[tr].part[pa].x.f ); tprintf( "\n" ); }
 				copy_position( &( *S ).trib[tr].part[pa].x, &( *S ).trib[tr].part[pa].xBest );
 			}
-			else if( debug_level > 2 ) printf( "\n" );
+			else if( debug_level > 2 ) tprintf( "\n" );
 			if( compare_particles( &( *S ).trib[tr].part[pa].x.f, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f, compare_type ) == 1 ) // Possibly update tribe best
 			{
 				( *S ).trib[tr].best = pa;
 				if( debug_level > 2 )
 				{
-					printf( "Tribe %i move: (after) the best particle is #%i ", tr + 1, ( *S ).trib[tr].part[pa].id );
-					objfunc_print( &( *S ).trib[tr].part[pa].x.f ); printf( "\n" );
+					tprintf( "Tribe %i move: (after) the best particle is #%i ", tr + 1, ( *S ).trib[tr].part[pa].id );
+					objfunc_print( &( *S ).trib[tr].part[pa].x.f ); tprintf( "\n" );
 				}
 			}
 			if( compare_particles( &( *S ).trib[tr].part[pa].x.f, &( *S ).best.f, compare_type ) == 1 ) // Possibly update swarm best
@@ -2103,17 +2103,17 @@ int tribe_shaman( struct tribe *T, int compare_type )
 void tribe_print( struct tribe *T )
 {
 	int pa;
-	printf( " %i particles\n", ( *T ).size );
-	printf( "Labels    :" );
+	tprintf( " %i particles\n", ( *T ).size );
+	tprintf( "Labels    :" );
 	for( pa = 0; pa < ( *T ).size; pa++ )
-		printf( " %3i", ( *T ).part[pa].id );
-	printf( "Labels    :" );
+		tprintf( " %3i", ( *T ).part[pa].id );
+	tprintf( "Labels    :" );
 	for( pa = 0; pa < ( *T ).size; pa++ )
-		printf( " %g", ( *T ).part[pa].xBest.f.f[0] );
-	printf( "\nStrategies:" );
+		tprintf( " %g", ( *T ).part[pa].xBest.f.f[0] );
+	tprintf( "\nStrategies:" );
 	for( pa = 0; pa < ( *T ).size; pa++ )
-		printf( " %3i", ( *T ).part[pa].strategy );
-	printf( "\n" );
+		tprintf( " %3i", ( *T ).part[pa].strategy );
+	tprintf( "\n" );
 }
 
 void tribe_init( struct problem *pb, int nPart, int compare_type, struct swarm( *S ), struct tribe *T ) // S is not needed here; it is needed by particle_init
@@ -2218,7 +2218,7 @@ unsigned int rand_kiss()
 double irand()
 {
 	int k;
-	if( *irand_seed <= 0 ) { printf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
+	if( *irand_seed <= 0 ) { tprintf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *irand_seed / 127773;
 	*irand_seed = 16807 * ( *irand_seed - k * 127773 ) - k * 2836;
 	if( *irand_seed < 0 ) *irand_seed += 2147483647;
