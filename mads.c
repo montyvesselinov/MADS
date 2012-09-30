@@ -84,13 +84,13 @@ int pso_tribes( struct opt_data *op );
 int pso_std( struct opt_data *op );
 int mopso( struct opt_data *op );
 int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double *x, double *f_x, void *data, double *jacobian ), void *data,
-		int nObs, int nParam, int nsig, double eps, double delta, int max_eval, int max_iter,
-		int iopt, double parm[], double x[], double *phi, double f[],
-		double jacobian[], int nian, double jacTjac[], int *infer );
+			int nObs, int nParam, int nsig, double eps, double delta, int max_eval, int max_iter,
+			int iopt, double parm[], double x[], double *phi, double f[],
+			double jacobian[], int nian, double jacTjac[], int *infer );
 int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
-		int m, int n, int nsig, double eps, double delta, int maxfn,
-		int iopt, double parm[], double x[], double *phi, double f[],
-		double xjac[], int ixjac, double xjtj[], int *infer );
+			 int m, int n, int nsig, double eps, double delta, int maxfn,
+			 int iopt, double parm[], double x[], double *phi, double f[],
+			 double xjac[], int ixjac, double xjtj[], int *infer );
 int lm_gsl( gsl_vector *x, struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *covar );
 // Info
 void mads_info();
@@ -1029,7 +1029,7 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->ldebug && standalone ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
-	if( op->cd->squads  ) // No need to tranform if part SQUADS run
+	if( op->cd->squads )  // No need to tranform if part SQUADS run
 	{
 		// for( i = 0; i < op->pd->nOptParam; i++ )
 		// tprintf( "%g\n", opt_params[i] );
@@ -1642,9 +1642,9 @@ int igrnd( struct opt_data *op )
 	int *eval_success, *eval_total;
 	unsigned long neval_total, njac_total;
 	double c, phi_min, *orig_params, *opt_params,
-	*opt_params_min, *opt_params_max, *opt_params_avg,
-	*sel_params_min, *sel_params_max, *sel_params_avg,
-	*var_lhs, v;
+		   *opt_params_min, *opt_params_max, *opt_params_avg,
+		   *sel_params_min, *sel_params_max, *sel_params_avg,
+		   *var_lhs, v;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	FILE *out, *out2;
@@ -2742,94 +2742,94 @@ int gsens( struct opt_data *op )
 			gs.D_hat_t = gsl_stats_variance( phis_full, 1, op->cd->nreal );
 		 	tprintf( "Total output variance = %g\n", gs.D_hat_t );
 	 */		free( phis_full );
-	 // Collect matrix of phis for fmat_a
-	 tprintf( "Computing phis for calculation of individual output variances:\n" );
-	 for( i = 0; i < op->pd->nOptParam; i++ )
-	 {
-		 tprintf( "Parameter %d...\n", i + 1 );
-		 for( count = 0; count < n_sub; count ++ )
-		 {
-			 for( j = 0; j < op->pd->nOptParam; j++ )
-			 {
-				 k = op->pd->var_index[j];
-				 if( i == j ) // then select from sample a
-					 opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
-				 else // else select from sample b
-					 opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
-			 }
-			 Transform( opt_params, op, opt_params );
-			 func_global( opt_params, op, op->od->res );
-			 // Save phi to fmat_a
-			 gs.fmat_a[i][count] = op->phi;
-		 }
-	 }
-	 // Collect matrix of phis for fmat_b
-	 tprintf( "Computing phis for calculation of individual plus interaction output variances:\n" );
-	 for( i = 0; i < op->pd->nOptParam; i++ )
-	 {
-		 tprintf( "Parameter %d...\n", i + 1 );
-		 for( count = 0; count < n_sub; count ++ )
-		 {
-			 for( j = 0; j < op->pd->nOptParam; j++ )
-			 {
-				 k = op->pd->var_index[j];
-				 if( i == j ) // then select from sample b
-					 opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
-				 else // else select from sample a
-					 opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
-			 }
-			 Transform( opt_params, op, opt_params );
-			 func_global( opt_params, op, op->od->res );
-			 // Save phi to fmat_b
-			 gs.fmat_b[i][count] = op->phi;
-		 }
-	 }
-	 tprintf( "done.\n" );
-	 // Calculate individual and interaction output variances
-	 for( i = 0; i < op->pd->nOptParam; i++ )
-	 {
-		 fhat2 = 0;
-		 for( j = 0; j < n_sub; j++ )
-		 {
-			 fhat2 += ( gs.f_a[j] * gs.fmat_a[i][j] );
-			 phis_half[ j ] = ( gs.f_a[j] * gs.fmat_a[i][j] );
-		 }
-		 gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		 tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		 gs.D_hat[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
-		 tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		 gs.D_hat[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_a[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
-		 tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		 var_sorted( gs.f_a, gs.fmat_a[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat[i] );
-		 tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		 //gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		 fhat2 = 0;
-		 for( j = 0; j < n_sub; j++ )
-		 {
-			 fhat2 += ( gs.f_a[j] * gs.fmat_b[i][j] );
-			 phis_half[ j ] = ( gs.f_a[j] * gs.fmat_b[i][j] );
-		 }
-		 gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		 tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		 gs.D_hat_n[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
-		 tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		 gs.D_hat_n[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_b[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
-		 tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		 var_sorted( gs.f_a, gs.fmat_b[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat_n[i] );
-		 tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		 //gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-	 }
-	 // Print sensitivity indices
-	 tprintf( "\nParameter sensitivity indices:\n" );
-	 tprintf( "parameter individual interaction\n" );
-	 for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, gs.D_hat[i] / gs.D_hat_t, 1 - ( gs.D_hat_n[i] / gs.D_hat_t ) );
-	 tprintf( "\n" );
-	 free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat ); free( gs.D_hat_n );
-	 free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
-	 free_matrix( ( void ** ) gs.var_b_lhs, n_sub );
-	 free_matrix( ( void ** ) gs.fmat_a, op->pd->nOptParam );
-	 free_matrix( ( void ** ) gs.fmat_b, op->pd->nOptParam );
-	 return( 1 );
+	// Collect matrix of phis for fmat_a
+	tprintf( "Computing phis for calculation of individual output variances:\n" );
+	for( i = 0; i < op->pd->nOptParam; i++ )
+	{
+		tprintf( "Parameter %d...\n", i + 1 );
+		for( count = 0; count < n_sub; count ++ )
+		{
+			for( j = 0; j < op->pd->nOptParam; j++ )
+			{
+				k = op->pd->var_index[j];
+				if( i == j ) // then select from sample a
+					opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
+				else // else select from sample b
+					opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
+			}
+			Transform( opt_params, op, opt_params );
+			func_global( opt_params, op, op->od->res );
+			// Save phi to fmat_a
+			gs.fmat_a[i][count] = op->phi;
+		}
+	}
+	// Collect matrix of phis for fmat_b
+	tprintf( "Computing phis for calculation of individual plus interaction output variances:\n" );
+	for( i = 0; i < op->pd->nOptParam; i++ )
+	{
+		tprintf( "Parameter %d...\n", i + 1 );
+		for( count = 0; count < n_sub; count ++ )
+		{
+			for( j = 0; j < op->pd->nOptParam; j++ )
+			{
+				k = op->pd->var_index[j];
+				if( i == j ) // then select from sample b
+					opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
+				else // else select from sample a
+					opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
+			}
+			Transform( opt_params, op, opt_params );
+			func_global( opt_params, op, op->od->res );
+			// Save phi to fmat_b
+			gs.fmat_b[i][count] = op->phi;
+		}
+	}
+	tprintf( "done.\n" );
+	// Calculate individual and interaction output variances
+	for( i = 0; i < op->pd->nOptParam; i++ )
+	{
+		fhat2 = 0;
+		for( j = 0; j < n_sub; j++ )
+		{
+			fhat2 += ( gs.f_a[j] * gs.fmat_a[i][j] );
+			phis_half[ j ] = ( gs.f_a[j] * gs.fmat_a[i][j] );
+		}
+		gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+		gs.D_hat[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
+		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+		gs.D_hat[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_a[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
+		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+		var_sorted( gs.f_a, gs.fmat_a[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat[i] );
+		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
+		//gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+		fhat2 = 0;
+		for( j = 0; j < n_sub; j++ )
+		{
+			fhat2 += ( gs.f_a[j] * gs.fmat_b[i][j] );
+			phis_half[ j ] = ( gs.f_a[j] * gs.fmat_b[i][j] );
+		}
+		gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+		gs.D_hat_n[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
+		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+		gs.D_hat_n[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_b[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
+		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+		var_sorted( gs.f_a, gs.fmat_b[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat_n[i] );
+		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
+		//gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
+	}
+	// Print sensitivity indices
+	tprintf( "\nParameter sensitivity indices:\n" );
+	tprintf( "parameter individual interaction\n" );
+	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, gs.D_hat[i] / gs.D_hat_t, 1 - ( gs.D_hat_n[i] / gs.D_hat_t ) );
+	tprintf( "\n" );
+	free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat ); free( gs.D_hat_n );
+	free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
+	free_matrix( ( void ** ) gs.var_b_lhs, n_sub );
+	free_matrix( ( void ** ) gs.fmat_a, op->pd->nOptParam );
+	free_matrix( ( void ** ) gs.fmat_b, op->pd->nOptParam );
+	return( 1 );
 }
 
 int infogap( struct opt_data *op )
