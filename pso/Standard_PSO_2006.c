@@ -646,9 +646,9 @@ void position_lm_std( struct opt_data *op, struct position *P )
 	for( d = 0; d < D; d++ )
 		op->pd->var[op->pd->var_index[d]] = ( *P ).x[d];
 	d = gop->cd->neval;
-	gop->cd->standalone = 0;
+	gop->cd->lmstandalone = 0;
 	optimize_lm( op );
-	gop->cd->standalone = 1;
+	gop->cd->lmstandalone = 1;
 	nb_eval += gop->cd->neval - d; // add the number of evaluations performed within LM
 	if( gop->cd->pdebug ) tprintf( "%d %d %d OF %g -> %g\n", d, nb_eval, gop->cd->neval - d, ( *P ).f, op->phi );
 	for( d = 0; d < D; d++ )

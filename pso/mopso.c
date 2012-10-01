@@ -327,7 +327,7 @@ int mopso( struct opt_data *op )
 	DeTransform( bestBest.x, op, bestBest.x );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		op->pd->var[op->pd->var_index[i]] = bestBest.x[i];
-	op->cd->standalone = 1;
+	op->cd->lmstandalone = 1;
 	if( op->cd->pdebug ) fclose( fRun );
 	if( op->cd->pdebug ) fclose( fArchive );
 	free( res );
@@ -417,7 +417,7 @@ static struct problem problemset( struct opt_data *op )
 	pb.evalMax = op->cd->maxeval;
 	if( op->cd->nretries == 0 ) pb.repeat = 1;
 	else pb.repeat = op->cd->nretries;
-	op->cd->standalone = 0;
+	op->cd->lmstandalone = 0;
 
 	if( pb.repeat > rMax )
 	{

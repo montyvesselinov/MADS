@@ -302,6 +302,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		{
 			tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization\n" );
 			cd->squads = 1;
+			cd->lmstandalone = 0;
 		}
 		else if( strncasecmp( cd->opt_method, "lm", 2 ) == 0 )
 		{

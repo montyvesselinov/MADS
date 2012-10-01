@@ -265,7 +265,7 @@ int LEVMAR_DER(
 		}
 	}
 	if( op->cd->ldebug ) tprintf( "Initial evaluation: OF %g\n", p_eL2 );
-	else if( op->cd->standalone ) tprintf( "OF %g -> ", p_eL2 );
+	else if( op->cd->lmstandalone ) tprintf( "OF %g -> ", p_eL2 );
 	for( k = 0; k < kmax && !stop; ++k )
 	{
 		/* Note that p and e have been updated at a previous iteration */
@@ -968,7 +968,7 @@ int LEVMAR_DER(
 			tprintf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 		}
 	}
-	else if( op->cd->standalone ) { tprintf( "%g", p_eL2 ); fflush( stdout ); }
+	else if( op->cd->lmstandalone ) { tprintf( "%g", p_eL2 ); fflush( stdout ); }
 	/* covariance matrix */
 	if( covar )
 	{

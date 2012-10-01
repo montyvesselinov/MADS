@@ -277,7 +277,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 			if( debug ) printf( "OF: last %g current best %g all-over best %g initial %g (evaluations %d)\n", *phi, phi_old, phi_best, phi_init, ieval );
 			if( func_data->cd->odebug )
 			{
-				if( func_data->cd->standalone )
+				if( func_data->cd->lmstandalone )
 				{
 					fprintf( func_data->f_ofe, "%d %g", func_data->cd->neval, phi_best ); // Print current best
 					for( i = 0; i < func_data->pd->nOptParam; i++ )

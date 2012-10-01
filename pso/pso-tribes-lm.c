@@ -322,7 +322,7 @@ int pso_tribes( struct opt_data *op )
 	free_matrix( ( void ** ) pb.val, pb.D );
 	for( i = 0; i < MAXRUNS; i++ )
 		free_objfunc( &phi_list[i] );
-	op->cd->standalone = 1;
+	op->cd->lmstandalone = 1;
 	return EXIT_SUCCESS;
 }
 
@@ -525,7 +525,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	( *pb ).maxEval = op->cd->maxeval;
 	if( op->cd->nretries == 0 )( *pb ).repeat = 1;
 	else( *pb ).repeat = op->cd->nretries;
-	op->cd->standalone = 0;
+	op->cd->lmstandalone = 0;
 	if( ( *pb ).repeat > MAXRUNS )
 	{
 		tprintf( "MADS Quits: Too many retries (max %i < %i) \n", MAXRUNS, ( *pb ).repeat );

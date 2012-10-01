@@ -184,7 +184,7 @@ int main( int argn, char *argv[] )
 	cd.neval = 0;
 	cd.njac = 0;
 	cd.nlmo = 0;
-	cd.standalone = 1; // LM variable; LM is stand-alone if not part of tribes optimization
+	cd.lmstandalone = 1; // LM variable; LM is stand-alone if not part of tribes optimization
 	cd.compute_phi = 1; // function calls compute OF (phi); turned off only when the jacobians are computed for LM
 	cd.pderiv = cd.oderiv = -1; // internal flags; do not compute parameter and observation derivatives
 	cd.c_background = 0;
@@ -1005,7 +1005,7 @@ int optimize_lm( struct opt_data *op )
 	double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
 	char buf[80];
 	debug = MAX( op->cd->debug, op->cd->ldebug );
-	standalone = op->cd->standalone;
+	standalone = op->cd->lmstandalone;
 	if( op->od->nObs == 0 ) { tprintf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( op->pd->nOptParam == 0 ) { tprintf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( ( op->pd->nOptParam > op->od->nObs ) && ( !op->cd->squads && op->cd->calib_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
@@ -1022,20 +1022,16 @@ int optimize_lm( struct opt_data *op )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( op->cd->niter <= 0 )
 	{
-		if( strcasestr( op->cd->opt_method, "lm" ) ) maxiter = 50;
-		if( strcasestr( op->cd->opt_method, "squad" ) ) maxiter = 8;
+		if( op->cd->squads ) maxiter = 8;
+		else maxiter = 50;
 	}
 	else maxiter = op->cd->niter;
 	if( op->cd->ldebug && standalone ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
-	if( op->cd->squads )  // No need to tranform if part SQUADS run
-	{
-		// for( i = 0; i < op->pd->nOptParam; i++ )
-		// tprintf( "%g\n", opt_params[i] );
-	}
-	else
-		Transform( opt_params, op, opt_params );
+	if( !op->cd->squads )  Transform( opt_params, op, opt_params ); // No need to transform if part of SQUADS runs
+	// for( i = 0; i < op->pd->nOptParam; i++ )
+	// tprintf( "%g\n", opt_params[i] );
 	if( op->cd->paranoid )
 	{
 		tprintf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " );
@@ -1053,8 +1049,7 @@ int optimize_lm( struct opt_data *op )
 		if( debug ) tprintf( "done.\n" );
 		op->cd->retry_ind = count = count_set = 0;
 	}
-	else
-	{ if( standalone ) tprintf( "Levenberg-Marquardt Optimization ... " ); }
+	else if( standalone ) tprintf( "Levenberg-Marquardt Optimization ... " );
 	phi_min = HUGE_VAL;
 	do // BEGIN Paranoid loop
 	{
@@ -1103,7 +1098,7 @@ int optimize_lm( struct opt_data *op )
 			if( debug > 1 ) tprintf( "\n" );
 			Transform( opt_params, op, opt_params );
 		}
-		if( ( op->cd->debug > 1 || op->cd->ldebug > 12 ) && standalone )
+		if( ( op->cd->debug > 1 || op->cd->ldebug > 5 ) && standalone )
 		{
 			tprintf( "\n-------------------- Initial state:\n" );
 			op->cd->pderiv = op->cd->oderiv = -1;
@@ -1197,7 +1192,7 @@ int optimize_lm( struct opt_data *op )
 				}
 				else break;
 			}
-			if( op->cd->ldebug > 12 )
+			if( op->cd->ldebug > 5 )
 			{
 				tprintf( "Levenberg-Marquardt Optimization completed after %g iteration (reason %g) (returned value %d)\n", info[5], info[6], ier );
 				tprintf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
@@ -1275,10 +1270,10 @@ int optimize_lm( struct opt_data *op )
 	if( ( op->cd->leigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->calib_type == SIMPLE )
 		if( eigen( op, gsl_jacobian, gsl_covar ) == 0 ) // Eigen analysis
 			return( 0 );
+	if( !debug && standalone && op->cd->calib_type == SIMPLE ) tprintf( "\n" );
 	if( op->cd->paranoid ) free( var_lhs );
 	free( opt_params ); free( opt_params_best ); free( x_c ); free( res );
 	gsl_matrix_free( gsl_jacobian ); gsl_matrix_free( gsl_covar ); gsl_vector_free( gsl_opt_params );
-	if( !debug && standalone && op->cd->calib_type == SIMPLE ) tprintf( "\n" );
 	return( 1 );
 }
 
@@ -1611,7 +1606,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	return( 1 );
 }
 
-// Check
+// Check consistency of input and output files
 int check( struct opt_data *op )
 {
 	struct opt_data *p = ( struct opt_data * )op;
@@ -1746,8 +1741,8 @@ int igrnd( struct opt_data *op )
 	phi_global = success_global = neval_total = njac_total = 0;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1; // applied if execution of a specific realization is requested (ncase)
 	else k = 0;
-	if( op->cd->debug || op->cd->mdebug ) op->cd->standalone = 1;
-	else op->cd->standalone = 0;
+	if( op->cd->debug || op->cd->mdebug ) op->cd->lmstandalone = 1;
+	else op->cd->lmstandalone = 0;
 	for( count = k; count < op->cd->nreal; count++ )
 	{
 		op->cd->neval = op->cd->njac = 0;
