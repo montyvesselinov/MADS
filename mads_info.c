@@ -169,12 +169,16 @@ void mads_info()
 	printf( "   mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)\n" );
 	printf( "   mads a01 test=3 abagus cutoff=20 eval=100000  (collect solutions of Rosenbrock function below phi cutoff)\n" );
 	printf( "   mads example/contamination/s01 ldebug (file s01.mads is located in example/contamination)\n" );
-	printf( "   mads example/contamination/s02 ldebug (file s02.mads is located in example/contamination)\n" );
 	printf( "   mads example/contamination/s01 ldebug igrnd real=1\n" );
 	printf( "   mads example/contamination/s01 seed=1549170842 obsrange igrnd real=1\n" );
 	printf( "   mads example/contamination/s01 opt=squads seed=1549170842 eigen obsrange pdebug igrnd real=1\n" );
 	printf( "   mads example/contamination/s01 opt=pso seed=1549170842 eigen obsrange igrnd real=1\n" );
-	printf( "   mads w01 np=2 ldebug pardebug=2 (files associated with problem w01 are located in example/wells)\n" );
+	printf( "   mads example/contamination/s01-flagged ppsd (Partial Parameter Space Discretization)\n" );
+	printf( "   mads example/contamination/s01-flagged igpd (Initial Guesses based on Discreetly distributed model parameters)\n" );
+	printf( "   mads example/contamination/s01 igrnd real=10 (Random Initial Guesses; all parameters)\n" );
+	printf( "   mads example/contamination/s01-flagged igrnd real=10 (Random Initial Guesses; only flagged parameters)\n" );
+	printf( "   mads example/contamination/s01 monte real=10 (Monte Carlo Analysis)\n" );
+	printf( "   mads w01 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors; files associated with problem w01 are located in example/wells)\n" );
 	printf( "             (for w01 example, code WELLS can be obtained at http://wells.lanl.gov)\n" );
 	printf( "\nComparisons between local and global methods:\n" );
 	printf( "   mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3\n" );

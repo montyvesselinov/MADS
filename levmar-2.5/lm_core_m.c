@@ -968,7 +968,7 @@ int LEVMAR_DER(
 			tprintf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 		}
 	}
-	else if( op->cd->lmstandalone ) { tprintf( "%g", p_eL2 ); fflush( stdout ); }
+	else if( op->cd->lmstandalone ) { tprintf( "%g ", p_eL2 ); fflush( stdout ); }
 	/* covariance matrix */
 	if( covar )
 	{

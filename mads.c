@@ -1238,7 +1238,7 @@ int optimize_lm( struct opt_data *op )
 		if( op->cd->paranoid )
 		{
 			if( op->phi < phi_min ) { phi_min = op->phi; for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]]; }
-			if( debug ) tprintf( " Objective function: %g Success %d\n", op->phi, op->success );
+			if( debug ) tprintf( "Objective function: %g Success %d\n", op->phi, op->success );
 			if( phi_min < op->cd->phi_cutoff )
 			{
 				if( debug ) tprintf( "MSLM optimization objective function is below the cutoff value after %d random initial guess attempts\n", count );
@@ -2253,10 +2253,14 @@ int ppsd( struct opt_data *op )
 				fprintf( out, " : OF %g Success %d\n", op->phi, op->success );
 			fflush( out );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
-			sprintf( filename, "%s-ppsd-%d.mads", op->root, count + 1 );
-			save_problem( filename, op );
 			if( op->success && op->cd->save )
+			{
+				op->cd->calib_type = SIMPLE;
+				sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
+				save_problem( filename, op );
+				op->cd->calib_type = PPSD;
 				save_final_results( "ppsd", op, op->gd );
+			}
 			if( op->cd->ireal != 0 ) break;
 		}
 		for( i = 0; i < op->pd->nParam; i++ )
