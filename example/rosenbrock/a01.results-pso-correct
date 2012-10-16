@@ -1,6 +1,6 @@
 Model parameters:
 Parameter #1 1.00009
 Parameter #2 1.00015
-Objective function: 4.57653e-08 Success: 1 
-Number of function evaluations = 5005
-Seed = 2096575428
+Objective function: 4.57653e-08 Success: 1 (1)
+Number of function evaluations = 5006
+Seed = -2096575428

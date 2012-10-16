@@ -1,18 +1,18 @@
 Model parameters:
-k -1.74818
-S -4.99991
+k -1.7799
+S -4.81674
 
 Model predictions:
 o1                  :           0 -            0 =            0 (           0) success 1 range            0 -         0.05
-o2                  :        5.98 -      6.85864 =     -0.87864 (    -0.87864) success 0 range         5.93 -         6.03
-o3                  :        8.02 -      7.73372 =      0.28628 (     0.28628) success 0 range         7.97 -         8.07
-o4                  :        8.67 -        8.246 =        0.424 (       0.424) success 0 range         8.62 -         8.72
-o5                  :        8.97 -      8.60958 =      0.36042 (     0.36042) success 0 range         8.92 -         9.02
-o6                  :        9.14 -      8.89164 =      0.24836 (     0.24836) success 0 range         9.09 -         9.19
-o7                  :        9.25 -      9.12213 =      0.12787 (     0.12787) success 0 range          9.2 -          9.3
-o8                  :        9.31 -      9.31701 =     -0.00701 (    -0.00701) success 1 range         9.26 -         9.36
-o9                  :        9.38 -      9.48584 =     -0.10584 (    -0.10584) success 0 range         9.33 -         9.43
-o10                 :        9.41 -      9.63476 =     -0.22476 (    -0.22476) success 0 range         9.36 -         9.46
-o11                 :        9.45 -      9.76797 =     -0.31797 (    -0.31797) success 0 range          9.4 -          9.5
-Objective function: 1.40455 Success: 0 
-Number of function evaluations = 42
+o2                  :        5.98 -      6.70724 =     -0.72724 (    -0.72724) success 0 range         5.93 -         6.03
+o3                  :        8.02 -      7.64754 =      0.37246 (     0.37246) success 0 range         7.97 -         8.07
+o4                  :        8.67 -      8.19827 =      0.47173 (     0.47173) success 0 range         8.62 -         8.72
+o5                  :        8.97 -      8.58922 =      0.38078 (     0.38078) success 0 range         8.92 -         9.02
+o6                  :        9.14 -      8.89254 =      0.24746 (     0.24746) success 0 range         9.09 -         9.19
+o7                  :        9.25 -      9.14042 =      0.10958 (     0.10958) success 0 range          9.2 -          9.3
+o8                  :        9.31 -      9.35002 =     -0.04002 (    -0.04002) success 1 range         9.26 -         9.36
+o9                  :        9.38 -       9.5316 =      -0.1516 (     -0.1516) success 0 range         9.33 -         9.43
+o10                 :        9.41 -      9.69177 =     -0.28177 (    -0.28177) success 0 range         9.36 -         9.46
+o11                 :        9.45 -      9.83505 =     -0.38505 (    -0.38505) success 0 range          9.4 -          9.5
+Objective function: 1.36061 Success: 0 (0)
+Number of function evaluations = 49

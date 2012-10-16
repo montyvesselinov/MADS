@@ -27,7 +27,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: Rosenbrock - parameters 3 observations 3
 
 
-Execution date & time stamp: 20120930-165205
+Execution date & time stamp: 20121016-120543
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -72,6 +72,6 @@ Simulation time = 0 seconds
 Functional evaluations = 563
 Jacobian evaluations = 93
 Levenberg-Marquardt optimizations = 10
-Execution  started  on Sun Sep 30 16:52:05 2012
-Execution completed on Sun Sep 30 16:52:05 2012
-Execution date & time stamp: 20120930-165205
+Execution  started  on Tue Oct 16 12:05:43 2012
+Execution completed on Tue Oct 16 12:05:43 2012
+Execution date & time stamp: 20121016-120543

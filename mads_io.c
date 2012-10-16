@@ -228,7 +228,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; ( *cd ).solution_type[0] = BOX; }
 		if( !strncasecmp( word, "paran", 5 ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( strcasestr( word, "_ms" ) ) { w = 1; cd->paranoid = 1; } // legacy
-		if( w == 0 ) { tprintf( "\nERROR: Unknown keyword \'%s\'!\nExecute 'mads' without arguments to list acceptable keywords!\n", word ); return( -1 ); }
+		if( w == 0 ) { tprintf( "\nERROR: Unknown keyword \'%s\'!\n", word ); return( -1 ); }
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
 	if( cd->seed_init != 0 ) cd->seed_init *= -1; // Modify the seed to show that is imported

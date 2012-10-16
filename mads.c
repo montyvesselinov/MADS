@@ -258,12 +258,12 @@ int main( int argn, char *argv[] )
 		tprintf( "PEST problem:\n" );
 		if( ( ier = load_pst( filename, &op ) ) <= 0 )
 		{
-			tprintf( "MADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
+			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
 				save_problem( filename, &op );
-				tprintf( "\nMADS problem file named %s-error.mads is created to debug.\n", op.root );
+				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			exit( 0 );
@@ -278,12 +278,12 @@ int main( int argn, char *argv[] )
 	{
 		if( ( ier = load_problem( filename, argn, argv, &op ) ) <= 0 )
 		{
-			tprintf( "MADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
+			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
 				save_problem( filename, &op );
-				tprintf( "\nMADS problem file named %s-error.mads is created to debug.\n", op.root );
+				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 			exit( 0 );
@@ -502,56 +502,27 @@ int main( int argn, char *argv[] )
 	//
 	// Model analyses are performed below based on provided inputs
 	//
-	// ------------------------ CHECK
-	//
+	status = 1;
+	// ------------------------------------------------------------------------------------------------ CHECK
 	if( cd.problem_type == CHECK ) /* Check model input files */
-	{
 		status = check( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-	}
-	// ------------------------ IGRND
-	//
+	// ------------------------------------------------------------------------------------------------ IGRND
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
-	{
 		status = igrnd( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-	}
-	//
-	// ------------------------ IGPD
-	//
+	// ------------------------------------------------------------------------------------------------ IGPD
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGPD ) /* Calibration analysis using discretized initial guesses */
-	{
 		status = igpd( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-	}
-	//
-	// ------------------------ PPSD
-	//
+	// ------------------------------------------------------------------------------------------------ PPSD
 	if( cd.problem_type == CALIBRATE && cd.calib_type == PPSD ) /* Calibration analysis using discretized parameters */
-	{
 		status = ppsd( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-	}
-	//
-	// ------------------------ MONTECARLO
-	//
+	// ------------------------------------------------------------------------------------------------ MONTECARLO
 	if( cd.problem_type == MONTECARLO ) /* Monte Carlo analysis */
-	{
 		status = montecarlo( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-	}
-	//
-	// ------------------------ GLOBALSENS
-	//
-	// TODO gsens needs to be a separate function
+	// ------------------------------------------------------------------------------------------------ GLOBALSENS
 	if( cd.problem_type == GLOBALSENS ) // Global sensitivity analysis run
-	{
 		status = gsens( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-	}
-	//
-	// ------------------------ SIMPLE CALIBRATION
-	//
+	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+	// ------------------------------------------------------------------------------------------------ SIMPLE CALIBRATION
 	if( cd.problem_type == CALIBRATE && cd.calib_type == SIMPLE ) /* Inverse analysis */
 	{
 		if( cd.nretries > 1 || cd.paranoid ) tprintf( "\nMULTI-START CALIBRATION using a series of random initial guesses:\n" );
@@ -567,53 +538,35 @@ int main( int argn, char *argv[] )
 		predict = 0;
 	}
 	strcpy( op.label, "" ); // No labels needed below
-	//
-	// ------------------------ EIGEN || LOCALSENS
-	//
+	// ------------------------------------------------------------------------------------------------ EIGEN || LOCALSENS
 	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS )
-	{
 		status = eigen( &op, NULL, NULL ); // Eigen or sensitivity analysis run
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
-	}
-	//
-	//------------------------- ABAGUS
-	//
+	// ------------------------------------------------------------------------------------------------ ABAGUS
 	if( cd.problem_type == ABAGUS ) // Particle swarm sensitivity analysis run
 	{
 		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = abagus( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
-	//
-	//------------------------ POSTPUA
-	//
+	// ------------------------------------------------------------------------------------------------ POSTPUA
 	if( cd.problem_type == POSTPUA ) // Predictive uncertainty analysis of sampling results
 	{
 		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = postpua( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
-	//
-	//------------------------ GLUE
-	//
+	// ------------------------------------------------------------------------------------------------ GLUE
 	if( cd.problem_type == GLUE ) // Generalized Likelihood Uncertainty Estimation
 	{
 		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = glue( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
-	//
-	//------------------------ INFOGAP
-	//
+	// ------------------------------------------------------------------------------------------------ INFOGAP
 	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
 	{
 		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 		status = infogap( &op );
-		if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	}
-	//
-	// ------------------------ FORWARD
-	//
+	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+	// ------------------------------------------------------------------------------------------------ FORWARD
 	if( cd.problem_type == FORWARD ) // Forward run
 	{
 		if( cd.resultsfile[0] != 0 )
@@ -831,7 +784,7 @@ int main( int argn, char *argv[] )
 		}
 	}
 	//
-	// ------------------------ CREATE
+	// ------------------------------------------------------------------------------------------------ CREATE
 	//
 	if( cd.problem_type == CREATE ) // Create a MADS file based on a forward run
 	{
@@ -839,7 +792,7 @@ int main( int argn, char *argv[] )
 		predict = 1;
 	}
 	//
-	// ------------------------ PREDICT
+	// ------------------------------------------------------------------------------------------------ PREDICT
 	//
 	if( predict )
 	{
@@ -1064,13 +1017,24 @@ int optimize_lm( struct opt_data *op )
 				if( op->cd->calib_type == IGRND )
 				{
 					if( debug ) tprintf( "\nCALIBRATION %d: initial guesses from IGRND random set: ", count );
+					for( i = 0; i < op->pd->nOptParam; i++ )
+					{
+						k = op->pd->var_index[i];
+						opt_params[i] = op->pd->var[k];
+						if( debug > 1 )
+						{
+							if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
+							else tprintf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
+						}
+					}
 				}
 				else
 				{
 					if( debug ) tprintf( "\nCALIBRATION %d: initial guesses from MADS input file #: ", count );
 					for( i = 0; i < op->pd->nOptParam; i++ )
 					{
-						opt_params[i] = op->pd->var[op->pd->var_index[i]];
+						k = op->pd->var_index[i];
+						opt_params[i] = op->pd->var[k];
 						if( debug > 1 )
 						{
 							if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
@@ -1647,13 +1611,13 @@ int igrnd( struct opt_data *op )
 	strcpy( op->label, "igrnd" );
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-	if( no_memory ) { tprintf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+	if( no_memory ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( op->cd->nreal > 1 )
 	{
 		if( ( opt_params_min = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 		if( ( opt_params_max = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 		if( ( opt_params_avg = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-		if( no_memory ) { tprintf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+		if( no_memory ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
 			opt_params_min[i] = HUGE_VAL;
@@ -1664,7 +1628,7 @@ int igrnd( struct opt_data *op )
 			if( ( sel_params_min = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 			if( ( sel_params_max = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 			if( ( sel_params_avg = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-			if( no_memory ) { tprintf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+			if( no_memory ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				sel_params_min[i] = HUGE_VAL;
@@ -1682,8 +1646,6 @@ int igrnd( struct opt_data *op )
 	if( no_memory )
 	{
 		tprintf( "Not enough memory!\n" );
-		sprintf( buf, "rm -f %s.running", op->root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-		system( buf );
 		return( 0 );
 	}
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); }
@@ -1783,7 +1745,7 @@ int igrnd( struct opt_data *op )
 			else
 			{
 				status = optimize_func( op ); // Optimize
-				if( status == 0 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+				if( status == 0 ) return( 0 );
 			}
 		}
 		else
@@ -1866,7 +1828,8 @@ int igrnd( struct opt_data *op )
 	tprintf( "\nTotal number of evaluations = %lu\n", neval_total );
 	tprintf( "Total number of jacobians = %lu\n", njac_total );
 	op->phi = phi_min; // get the best phi
-	for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
+	for( i = 0; i < op->pd->nOptParam; i++ )
+		opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
 	for( i = 0; i < op->od->nObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
 	fprintf( out, "Minimum objective function: %g\n", phi_min );
 	tprintf( "Minimum objective function: %g\n", phi_min );
@@ -1964,7 +1927,7 @@ int igpd( struct opt_data *op )
 	strcpy( op->label, "igpd" );
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-	if( no_memory ) { tprintf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+	if( no_memory ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	tprintf( "\nSEQUENTIAL CALIBRATIONS using discretized initial guesses for model parameters:\n" );
 	if( op->pd->nFlgParam == 0 )
 		tprintf( "WARNING: No flagged parameters! Discretization of the initial guesses cannot be performed! Forward run will be performed instead.\n" );
@@ -1985,7 +1948,7 @@ int igpd( struct opt_data *op )
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 )
 		{
-			j = ( double )( op->pd->var_max[i] - op->pd->var_min[i] ) / op->pd->var_dx[i] + 1;
+			j = ( double )( op->pd->var_max[i] - op->pd->var_min[i] ) / op->pd->var_dx[i] + 2;
 			if( op->pd->var_dx[i] > ( op->pd->var_max[i] - op->pd->var_min[i] ) ) j++;
 			k *= j;
 		}
@@ -2126,7 +2089,7 @@ int ppsd( struct opt_data *op )
 	FILE *out;
 	strcpy( op->label, "ppsd" );
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
-	if( no_memory ) { tprintf( "Not enough memory!\n" ); sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+	if( no_memory ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	tprintf( "\nSEQUENTIAL RUNS using partial parameter-space discretization (PPSD):\n" );
 	if( op->pd->nFlgParam == 0 )
 		tprintf( "WARNING: No flagged parameters! Discretization of the initial guesses cannot be performed!\n" );
@@ -2146,7 +2109,7 @@ int ppsd( struct opt_data *op )
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 )
 		{
-			j = ( double )( op->pd->var_max[i] - op->pd->var_min[i] ) / op->pd->var_dx[i] + 1;
+			j = ( double )( op->pd->var_max[i] - op->pd->var_min[i] ) / op->pd->var_dx[i] + 2;
 			if( op->pd->var_dx[i] > ( op->pd->var_max[i] - op->pd->var_min[i] ) ) j++;
 			k *= j;
 		}
@@ -2214,7 +2177,7 @@ int ppsd( struct opt_data *op )
 				else
 				{
 					status = optimize_func( op ); // Optimize
-					if( status == 0 ) { sprintf( buf, "rm -f %s.running", op->root ); system( buf ); return( 0 ); }
+					if( status == 0 ) return( 0 );
 				}
 			}
 			else
@@ -2404,8 +2367,7 @@ int montecarlo( struct opt_data *op )
 		else if( mprun( op->cd->nreal, op ) < 0 ) // Perform all the runs in parallel
 		{
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
-			sprintf( buf, "rm -f %s.running", op->root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
+			return( 0 );
 		}
 		out = Fwrite( filename ); // rewrite results file including the results
 		for( count = 0; count < op->cd->nreal; count ++ ) // Read all the files
