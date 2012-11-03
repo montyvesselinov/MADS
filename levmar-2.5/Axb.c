@@ -35,7 +35,6 @@
 #error At least one of LM_DBL_PREC, LM_SNGL_PREC should be defined!
 #endif
 
-
 #ifdef LM_DBL_PREC
 /* double precision definitions */
 #define LM_REAL double
