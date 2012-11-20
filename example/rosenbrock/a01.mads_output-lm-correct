@@ -1,0 +1,222 @@
+MADS: Model Analyses & Decision Support (v1.1) 2012
+---------------------------------------------------
+Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: a01.mads
+Problem root name: a01
+Test Function 3 Dimensionality 3 
+Problem type: calibration
+
+Calibration technique: sequential calibration using a set of random initial values (realizations = 1)
+Optimization method: opt=lm | Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+Eigen analysis will be performed for the final optimization results
+
+Global termination criteria:
+1: Maximum number of evaluations = 5000
+2: Objective function cutoff value: NOT implemented (ADD keyword cutoff=[value] to implement)
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: test function 3
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Model: internal test optimization problem #3: 
+
+
+Execution date & time stamp: 20121119-205127
+
+SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
+No flagged parameters; all optimizable parameters are randomized
+Imported seed: 2096575428
+Random sampling (variables 2; realizations 1) using 
+Pure random sampling method ... done.
+
+Random set #1: 
+Parameter #1 14.6959532525832
+Parameter #2 -5.11358208761983
+LM using SVD decomposition
+LM without LM acceleration
+LM with indirect computation of lambda changes
+Initial evaluation: OF 4.88803e+06
+Jacobian #1: Linear solves 0 Evaluations 3 OF 4.88803e+06 lambda 0.001
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :       14.696 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :     -5.11358 -- Uncertainty ranges cannot be estimated
+Computed initial lambda 10
+OF 997039 lambda 10
+New Jacobian requested because: > OF estimate declined substantially (997039 << 4.88803e+06)
+
+Jacobian #2: Linear solves 1 Evaluations 6 OF 997039 lambda 7.92471
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :      3.80518 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :     -85.3721 -- Uncertainty ranges cannot be estimated
+Parameter with maximum estimate change between jacobian iterations: Parameter #2                   (80.2585)
+Parameter with minimum estimate change between jacobian iterations: Parameter #1                   (10.8908)
+OF 68148.2 lambda 7.92471
+New Jacobian requested because: > OF estimate declined substantially (68148.2 << 997039)
+
+Jacobian #3: Linear solves 2 Evaluations 9 OF 68148.2 lambda 2.82585
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :    -0.492499 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :      26.3473 -- Uncertainty ranges cannot be estimated
+Parameter with maximum estimate change between jacobian iterations: Parameter #2                   (-111.719)
+Parameter with minimum estimate change between jacobian iterations: Parameter #1                   (4.29768)
+OF 838.951 lambda 2.82585
+New Jacobian requested because: > OF estimate declined substantially (838.951 << 68148.2)
+
+Jacobian #4: Linear solves 3 Evaluations 12 OF 838.951 lambda 0.941951
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :     0.991335 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :     -1.91372 -- Uncertainty ranges cannot be estimated
+Parameter with maximum estimate change between jacobian iterations: Parameter #2                   (28.2611)
+Parameter with minimum estimate change between jacobian iterations: Parameter #1                   (-1.48383)
+OF 1.12817e-05 lambda 0.941951
+New Jacobian requested because: > OF estimate declined substantially (1.12817e-05 << 838.951)
+
+Jacobian #5: Linear solves 4 Evaluations 15 OF 1.12817e-05 lambda 0.313984
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :     0.999455 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :     0.999242 -- Uncertainty ranges cannot be estimated
+Parameter with maximum estimate change between jacobian iterations: Parameter #2                   (-2.91296)
+Parameter with minimum estimate change between jacobian iterations: Parameter #1                   (-0.00811988)
+OF 8.51021e-12 lambda 0.313984
+New Jacobian requested because: > OF estimate declined substantially (8.51021e-12 << 1.12817e-05)
+
+Jacobian #6: Linear solves 5 Evaluations 18 OF 8.51021e-12 lambda 0.104661
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :            1 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :            1 -- Uncertainty ranges cannot be estimated
+Parameter with maximum estimate change between jacobian iterations: Parameter #2                   (-0.000757678)
+Parameter with minimum estimate change between jacobian iterations: Parameter #1                   (-0.000544849)
+OF 1.09808e-11 lambda 0.104661
+OF 1.09799e-11 lambda 0.209322
+OF 1.09747e-11 lambda 0.83729
+OF 1.09262e-11 lambda 6.69832
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #7: Linear solves 9 Evaluations 24 OF 8.51021e-12 lambda 107.173
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :            1 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :            1 -- Uncertainty ranges cannot be estimated
+Parameters did not change between last two jacobian iterations.
+OF 1.0157e-11 lambda 107.173
+OF 9.44896e-12 lambda 214.346
+OF 6.70713e-12 lambda 857.385
+OF 4.66771e-12 lambda 1021.44
+OF 3.96142e-10 lambda 1082.9
+OF 2.13695e-11 lambda 2165.8
+OF 2.57807e-12 lambda 8663.21
+New Jacobian requested because: > OF estimate declined substantially (2.57807e-12 << 8.51021e-12)
+
+Jacobian #8: Linear solves 16 Evaluations 33 OF 2.57807e-12 lambda 8665.46
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :            1 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :     0.999999 -- Uncertainty ranges cannot be estimated
+Parameter with maximum estimate change between jacobian iterations: Parameter #1                   (3.60048e-07)
+Parameter with minimum estimate change between jacobian iterations: Parameter #2                   (2.736e-07)
+OF 2.65214e-11 lambda 8665.46
+OF 1.56492e-11 lambda 17330.9
+OF 8.43544e-12 lambda 69323.7
+OF 6.20287e-12 lambda 554590
+OF 3.75645e-12 lambda 8.87343e+06
+OF 2.62885e-12 lambda 2.8395e+08
+OF 2.57888e-12 lambda 1.81728e+10
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #9: Linear solves 23 Evaluations 42 OF 2.57807e-12 lambda 2.32612e+12
+Jacobian matrix analysis ...
+WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vactors and eigen values stored (a01.igrnd.eigen)
+Optimized parameters:
+Parameter #1                             :            1 -- Uncertainty ranges cannot be estimated
+Parameter #2                             :     0.999999 -- Uncertainty ranges cannot be estimated
+Parameters did not change between last two jacobian iterations.
+CONVERGED: Relative change in parameter space is small (1.48493e-15 < 2.00006e-14)
+LM optimization is completed. Reason: small Dp (2.20503e-30)
+Evaluations: 52 Jacobians: 9 Objective function: 2.57807e-12 Success: 1
+Parameter #1 1
+Parameter #2 0.999999
+
+
+Total number of evaluations = 52
+Total number of jacobians = 9
+Minimum objective function: 2.57807e-12
+Repeat the run producing the best results ...
+Results are saved in a01.igrnd.results and a01.igrnd-opt=lm_eval=5000_real=1
+
+Final results:
+Model parameters:
+Parameter #1 1
+Parameter #2 0.999999
+Objective function: 2.57807e-12 Success: 1 (0)
+Simulation time = 0 seconds
+Functional evaluations = 53
+Jacobian evaluations = 9
+Levenberg-Marquardt optimizations = 1
+Execution  started  on Mon Nov 19 20:51:27 2012
+Execution completed on Mon Nov 19 20:51:27 2012
+Execution date & time stamp: 20121119-205127

@@ -1,0 +1,406 @@
+MADS: Model Analyses & Decision Support (v1.1) 2012
+---------------------------------------------------
+Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: w01.mads
+Problem root name: w01
+Problem type: calibration
+
+Calibration technique: single calibration using initial guesses provided in the input file
+Optimization method: opt=lm_levmar | Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+Eigen analysis will be performed for the final optimization results
+
+Global termination criteria:
+1: Maximum number of evaluations = 5000
+2: Objective function cutoff value: NOT implemented (ADD keyword cutoff=[value] to implement)
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: sum of squared residuals
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Model: external
+
+Number of model parameters: 2
+Number of optimized parameters = 2
+Number of flagged parameters = 0
+Number of fixed parameters = 0
+Number of total observations = 4951
+Number of calibration targets = 1441
+Execution command: wells w01 >& /dev/null
+External files:
+- to provide current model parameters:
+w01.tpl -> w01.wells
+- to read current model predictions:
+w01.inst <- w01.s_point
+
+
+Checking the template files for errors ...
+Template files are ok.
+
+Checking the instruction files for errors ...
+Instruction files are ok.
+
+Execution date & time stamp: 20121120-075207
+
+SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
+Levenberg-Marquardt Optimization ... LM using SVD decomposition
+LM without LM acceleration
+LM with indirect computation of lambda changes
+Initial evaluation: OF 79661
+Jacobian #1: Linear solves 0 Evaluations 3 OF 79661 lambda 0.001
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01.jacobian)
+Covariance matrix stored (w01.covariance)
+Correlation matrix stored (w01.correlation)
+Eigen vactors and eigen values stored (w01.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
+Optimized parameters:
+k                                        :            1 stddev      13.5908 (           1 -            1)
+S                                        :            1 stddev      29.1219 (           1 -            1)
+Computed initial lambda 0.00167603
+OF 79780.1 lambda 0.00167603
+OF 79781.6 lambda 0.00335207
+OF 79781.6 lambda 0.0134083
+OF 79781.6 lambda 0.107266
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #2: Linear solves 4 Evaluations 9 OF 79661 lambda 1.71626
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01.jacobian)
+Covariance matrix stored (w01.covariance)
+Correlation matrix stored (w01.correlation)
+Eigen vactors and eigen values stored (w01.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
+Optimized parameters:
+k                                        :            1 stddev      13.5908 (           1 -            1)
+S                                        :            1 stddev      29.1219 (           1 -            1)
+Parameters did not change between last two jacobian iterations.
+OF 79757 lambda 1.71626
+OF 79781.6 lambda 3.43252
+OF 79781 lambda 13.7301
+OF 46410.9 lambda 109.84
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #3: Linear solves 8 Evaluations 15 OF 46410.9 lambda 36.6135
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01.jacobian)
+Covariance matrix stored (w01.covariance)
+Correlation matrix stored (w01.correlation)
+Eigen vactors and eigen values stored (w01.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 32.2522 < 200)
+Optimized parameters:
+k                                        :      -1.0073 stddev    0.0252182 (     -1.0073 -      -1.0073)
+S                                        :      -4.7429 stddev      1.29608 (     -4.7429 -      -4.7429)
+Parameter with maximum estimate change between jacobian iterations: S                              (5.7429)
+Parameter with minimum estimate change between jacobian iterations: k                              (2.0073)
+OF 79781.6 lambda 36.6135
+OF 79781.6 lambda 73.227
+OF 3470.76 lambda 292.908
+New Jacobian requested because: > OF estimate declined substantially (3470.76 << 46410.9)
+
+Jacobian #4: Linear solves 11 Evaluations 20 OF 3470.76 lambda 97.636
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01.jacobian)
+Covariance matrix stored (w01.covariance)
+Correlation matrix stored (w01.correlation)
+Eigen vactors and eigen values stored (w01.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 2.41192 < 200)
+Optimized parameters:
+k                                        :     -1.84872 stddev   0.00116428 (    -1.84872 -     -1.84872)
+S                                        :     -3.00178 stddev    0.0109224 (    -3.00178 -     -3.00178)
+Parameter with maximum estimate change between jacobian iterations: S                              (-1.74113)
+Parameter with minimum estimate change between jacobian iterations: k                              (0.841414)
+OF 3076.62 lambda 97.636
+OF 2868.28 lambda 96.0585
+OF 2844.72 lambda 47.5402
+OF 2844.72 lambda 15.8467
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #5: Linear solves 15 Evaluations 26 OF 2844.72 lambda 31.6935
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01.jacobian)
+Covariance matrix stored (w01.covariance)
+Correlation matrix stored (w01.correlation)
+Eigen vactors and eigen values stored (w01.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
+Optimized parameters:
+k                                        :     -1.93197 stddev  0.000911836 (    -1.93197 -     -1.93197)
+S                                        :     -2.80097 stddev   0.00719816 (    -2.80097 -     -2.80097)
+Parameter with maximum estimate change between jacobian iterations: S                              (-0.200806)
+Parameter with minimum estimate change between jacobian iterations: k                              (0.083255)
+OF 2845.29 lambda 31.6935
+OF 2845.29 lambda 63.387
+OF 2845.28 lambda 253.548
+OF 2845.2 lambda 2028.38
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #6: Linear solves 19 Evaluations 32 OF 2844.72 lambda 32454.1
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01.jacobian)
+Covariance matrix stored (w01.covariance)
+Correlation matrix stored (w01.correlation)
+Eigen vactors and eigen values stored (w01.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
+Optimized parameters:
+k                                        :     -1.93197 stddev  0.000911836 (    -1.93197 -     -1.93197)
+S                                        :     -2.80097 stddev   0.00719816 (    -2.80097 -     -2.80097)
+Parameters did not change between last two jacobian iterations.
+OF 2844.71 lambda 32454.1
+OF 2844.61 lambda 62642.2
+OF 2844.71 lambda 60057.7
+OF 2844.6 lambda 120115
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #7: Linear solves 23 Evaluations 38 OF 2844.6 lambda 137910
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01.jacobian)
+Covariance matrix stored (w01.covariance)
+Correlation matrix stored (w01.correlation)
+Eigen vactors and eigen values stored (w01.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
+Optimized parameters:
+k                                        :     -1.93403 stddev  0.000909453 (    -1.93403 -     -1.93403)
+S                                        :     -2.79024 stddev   0.00712231 (    -2.79024 -     -2.79024)
+Parameter with maximum estimate change between jacobian iterations: S                              (-0.0107376)
+Parameter with minimum estimate change between jacobian iterations: k                              (0.00205928)
+OF 2844.63 lambda 137910
+OF 2844.61 lambda 275820
+OF 2844.61 lambda 1.10328e+06
+OF 2844.6 lambda 8.82625e+06
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+
+CONVERGED: 5 Jacobian OF estimates are very close to the best current OF (2844.6)
+LM optimization is completed. Reason: small OF changes
+Eigen analysis ...
+Analyzed state:
+Model parameters:
+k -1.93403062002
+S -2.79023555185
+NO fixed parameters.
+
+Model predictions:
+o1                  :           0 -            0 =            0 (           0) success 1 range       -1e+06 -        1e+06
+o2                  :     5.98511 -      0.85098 =     -5.13413 (    -5.13413) success 1 range       -1e+06 -        1e+06
+o3                  :     8.02315 -       1.7157 =     -6.30745 (    -6.30745) success 1 range       -1e+06 -        1e+06
+o4                  :     8.67403 -      2.32625 =     -6.34778 (    -6.34778) success 1 range       -1e+06 -        1e+06
+o5                  :     8.97055 -      2.79303 =     -6.17752 (    -6.17752) success 1 range       -1e+06 -        1e+06
+o6                  :     9.14477 -      3.17003 =     -5.97474 (    -5.97474) success 1 range       -1e+06 -        1e+06
+o7                  :     9.25304 -        3.486 =     -5.76704 (    -5.76704) success 1 range       -1e+06 -        1e+06
+o8                  :     9.31935 -      3.75787 =     -5.56148 (    -5.56148) success 1 range       -1e+06 -        1e+06
+o9                  :     9.37603 -      3.99641 =     -5.37962 (    -5.37962) success 1 range       -1e+06 -        1e+06
+o10                 :     9.41131 -      4.20888 =     -5.20243 (    -5.20243) success 1 range       -1e+06 -        1e+06
+o11                 :     9.45456 -      4.40041 =     -5.05415 (    -5.05415) success 1 range       -1e+06 -        1e+06
+o12                 :     9.48148 -      4.57475 =     -4.90673 (    -4.90673) success 1 range       -1e+06 -        1e+06
+o13                 :     9.51172 -      4.73473 =     -4.77699 (    -4.77699) success 1 range       -1e+06 -        1e+06
+o14                 :     9.53764 -      4.88254 =      -4.6551 (     -4.6551) success 1 range       -1e+06 -        1e+06
+o15                 :      9.5527 -      5.01988 =     -4.53282 (    -4.53282) success 1 range       -1e+06 -        1e+06
+o16                 :     9.57928 -      5.14816 =     -4.43112 (    -4.43112) success 1 range       -1e+06 -        1e+06
+o17                 :     9.59383 -      5.26848 =     -4.32535 (    -4.32535) success 1 range       -1e+06 -        1e+06
+o18                 :     9.61462 -      5.38178 =     -4.23284 (    -4.23284) success 1 range       -1e+06 -        1e+06
+o19                 :     9.62917 -      5.48883 =     -4.14034 (    -4.14034) success 1 range       -1e+06 -        1e+06
+o20                 :     9.63858 -      5.59028 =      -4.0483 (     -4.0483) success 1 range       -1e+06 -        1e+06
+...
+o4933               :     10.0885 -      11.6448 =       1.5563 (           0) success 1 range       -1e+06 -        1e+06
+o4934               :     10.1015 -      11.6441 =      1.54258 (           0) success 1 range       -1e+06 -        1e+06
+o4935               :     10.0929 -      11.6436 =      1.55073 (           0) success 1 range       -1e+06 -        1e+06
+o4936               :     10.0812 -      11.6435 =      1.56233 (           0) success 1 range       -1e+06 -        1e+06
+o4937               :      10.077 -      11.6436 =      1.56662 (           0) success 1 range       -1e+06 -        1e+06
+o4938               :     10.0602 -       11.644 =      1.58378 (           0) success 1 range       -1e+06 -        1e+06
+o4939               :     10.0555 -      11.6445 =        1.589 (           0) success 1 range       -1e+06 -        1e+06
+o4940               :       10.06 -      11.6452 =      1.58525 (           0) success 1 range       -1e+06 -        1e+06
+o4941               :     10.0632 -      11.6461 =      1.58294 (           0) success 1 range       -1e+06 -        1e+06
+o4942               :     10.0603 -      11.6471 =      1.58682 (           0) success 1 range       -1e+06 -        1e+06
+o4943               :     10.0564 -      11.6482 =      1.59178 (           0) success 1 range       -1e+06 -        1e+06
+o4944               :     10.0604 -      11.6495 =       1.5891 (           0) success 1 range       -1e+06 -        1e+06
+o4945               :     10.0572 -      11.6508 =      1.59359 (           0) success 1 range       -1e+06 -        1e+06
+o4946               :     10.0554 -      11.6523 =      1.59693 (           0) success 1 range       -1e+06 -        1e+06
+o4947               :      10.063 -      11.6538 =      1.59083 (           0) success 1 range       -1e+06 -        1e+06
+o4948               :     10.0634 -      11.6554 =      1.59204 (           0) success 1 range       -1e+06 -        1e+06
+o4949               :     10.0651 -      11.6571 =      1.59204 (           0) success 1 range       -1e+06 -        1e+06
+o4950               :     10.0627 -      11.6589 =      1.59619 (           0) success 1 range       -1e+06 -        1e+06
+o4951               :       10.07 -      11.6607 =      1.59074 (           0) success 1 range       -1e+06 -        1e+06
+Objective function 2844.6
+
+Jacobian matrix
+Observations              : o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 ... o4943 o4944 o4945 o4946 o4947 o4948 o4949 o4950 o4951
+k                         :    0.00   -4.67   -2.19    2.59    7.44   11.94   16.04   19.77   23.18   26.31 ...    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00
+S                         :    0.00   -6.96  -11.42  -13.53  -14.74  -15.52  -16.07  -16.47  -16.78  -17.03 ...   -0.00   -0.00   -0.00   -0.00   -0.00   -0.00   -0.00   -0.00   -0.00
+Jacobian matrix stored (w01.jacobian)
+
+Covariance matrix
+k                         :   2e-07   2e-06
+S                         :   2e-06   1e-05
+Covariance matrix stored (w01.covariance)
+
+Correlation matrix
+k                         :   1.000  0.910
+S                         :   0.910  1.000
+Correlation matrix stored (w01.correlation)
+
+Eigenvectors (sorted by absolute values of eigenvalues)
+k                         :  0.993  0.116
+S                         : -0.116  0.993
+Eigenvalues               :  4e-08  1e-05
+
+Eigenvectors (sorted by eigenvalues)
+k                         :  0.993  0.116
+S                         : -0.116  0.993
+Eigenvalues               :  4e-08  1e-05
+Eigen vactors and eigen values stored (w01.eigen)
+
+Number of parameters           : 2
+Number of observations         : 1441
+Number of degrees of freedom   : 1439
+Objective function             : 2844.6
+Posterior measurement variance : 1.97679
+
+Optimality metrics based on covariance matrix of observation errors:
+A-optimality (matrix trace)               : 1.49903e-05
+C-optimality (matrix conditioning number) : 367.301
+E-optimality (matrix maximum eigenvalue)  : 1.49496e-05
+D-optimality (matrix determinant)         : 6.08464e-13
+
+Determinant of covariance matrix of observation errors : 6.08464e-13     ( ln(det S) = -28.1278 )
+Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
+Determinant of covariance matrix of measurement errors : 3.9077          ( ln(det V) = 1.36295 )
+
+Log likelihood function             : -2044.37
+Maximum likelihood                  : 4088.74
+AIC (Akaike information criterion)  : 4092.74
+BIC                                 : 4103.29
+CIC                                 : 4096.68
+KIC (Kashyap Information Criterion) : 4127.74
+
+Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
+Optimized parameters:
+Transformed space (applied during optimization):
+k                                        :    -0.397166 stddev  0.000689496 (   -0.397166 -    -0.397166)
+S                                        :    -0.592031 stddev   0.00539974 (   -0.592031 -    -0.592031)
+Untransformed space:
+k                                        :     -1.93403 stddev  0.000689496 (    -1.93403 -     -1.93403)
+S                                        :     -2.79024 stddev   0.00539974 (    -2.79024 -     -2.79024)
+
+
+Model parameters:
+k -1.93403
+S -2.79024
+
+Model predictions for calibration targets:
+o1                  :           0 -            0 =            0 (           0) success 1 range       -1e+06 -        1e+06
+o2                  :     5.98511 -      0.85098 =      5.13413 (     5.13413) success 1 range       -1e+06 -        1e+06
+o3                  :     8.02315 -       1.7157 =      6.30745 (     6.30745) success 1 range       -1e+06 -        1e+06
+o4                  :     8.67403 -      2.32625 =      6.34778 (     6.34778) success 1 range       -1e+06 -        1e+06
+o5                  :     8.97055 -      2.79303 =      6.17752 (     6.17752) success 1 range       -1e+06 -        1e+06
+o6                  :     9.14477 -      3.17003 =      5.97474 (     5.97474) success 1 range       -1e+06 -        1e+06
+o7                  :     9.25304 -        3.486 =      5.76704 (     5.76704) success 1 range       -1e+06 -        1e+06
+o8                  :     9.31935 -      3.75787 =      5.56148 (     5.56148) success 1 range       -1e+06 -        1e+06
+o9                  :     9.37603 -      3.99641 =      5.37962 (     5.37962) success 1 range       -1e+06 -        1e+06
+o10                 :     9.41131 -      4.20888 =      5.20243 (     5.20243) success 1 range       -1e+06 -        1e+06
+o11                 :     9.45456 -      4.40041 =      5.05415 (     5.05415) success 1 range       -1e+06 -        1e+06
+o12                 :     9.48148 -      4.57475 =      4.90673 (     4.90673) success 1 range       -1e+06 -        1e+06
+o13                 :     9.51172 -      4.73473 =      4.77699 (     4.77699) success 1 range       -1e+06 -        1e+06
+o14                 :     9.53764 -      4.88254 =       4.6551 (      4.6551) success 1 range       -1e+06 -        1e+06
+o15                 :      9.5527 -      5.01988 =      4.53282 (     4.53282) success 1 range       -1e+06 -        1e+06
+o16                 :     9.57928 -      5.14816 =      4.43112 (     4.43112) success 1 range       -1e+06 -        1e+06
+o17                 :     9.59383 -      5.26848 =      4.32535 (     4.32535) success 1 range       -1e+06 -        1e+06
+o18                 :     9.61462 -      5.38178 =      4.23284 (     4.23284) success 1 range       -1e+06 -        1e+06
+o19                 :     9.62917 -      5.48883 =      4.14034 (     4.14034) success 1 range       -1e+06 -        1e+06
+o20                 :     9.63858 -      5.59028 =       4.0483 (      4.0483) success 1 range       -1e+06 -        1e+06
+...
+o1423               :     2.76969 -      1.13808 =      1.63161 (     1.63161) success 1 range       -1e+06 -        1e+06
+o1424               :      2.7706 -        1.137 =       1.6336 (      1.6336) success 1 range       -1e+06 -        1e+06
+o1425               :     2.77021 -      1.13591 =       1.6343 (      1.6343) success 1 range       -1e+06 -        1e+06
+o1426               :     2.76655 -      1.13483 =      1.63172 (     1.63172) success 1 range       -1e+06 -        1e+06
+o1427               :     2.76904 -      1.13375 =      1.63529 (     1.63529) success 1 range       -1e+06 -        1e+06
+o1428               :     2.76773 -      1.13267 =      1.63506 (     1.63506) success 1 range       -1e+06 -        1e+06
+o1429               :     2.77126 -      1.13159 =      1.63967 (     1.63967) success 1 range       -1e+06 -        1e+06
+o1430               :     2.76799 -      1.13052 =      1.63747 (     1.63747) success 1 range       -1e+06 -        1e+06
+o1431               :     2.76799 -      1.12945 =      1.63854 (     1.63854) success 1 range       -1e+06 -        1e+06
+o1432               :     2.77218 -      1.12838 =       1.6438 (      1.6438) success 1 range       -1e+06 -        1e+06
+o1433               :     2.77047 -      1.12731 =      1.64316 (     1.64316) success 1 range       -1e+06 -        1e+06
+o1434               :     2.76393 -      1.12624 =      1.63769 (     1.63769) success 1 range       -1e+06 -        1e+06
+o1435               :     2.76457 -      1.12518 =      1.63939 (     1.63939) success 1 range       -1e+06 -        1e+06
+o1436               :     2.76669 -      1.12412 =      1.64257 (     1.64257) success 1 range       -1e+06 -        1e+06
+o1437               :     2.76708 -      1.12306 =      1.64402 (     1.64402) success 1 range       -1e+06 -        1e+06
+o1438               :     2.76629 -        1.122 =      1.64429 (     1.64429) success 1 range       -1e+06 -        1e+06
+o1439               :     2.76551 -      1.12095 =      1.64456 (     1.64456) success 1 range       -1e+06 -        1e+06
+o1440               :     2.76655 -      1.11989 =      1.64666 (     1.64666) success 1 range       -1e+06 -        1e+06
+o1441               :     2.76511 -      1.11884 =      1.64627 (     1.64627) success 1 range       -1e+06 -        1e+06
+Objective function: 2844.6 Success: 1 (1)
+
+Model predictions for not calibration targets:
+o1442               :     4.38632 -      1.90676 =      2.47956 success 1 range       -1e+06 -        1e+06
+o1443               :      6.9754 -       2.7211 =       4.2543 success 1 range       -1e+06 -        1e+06
+o1444               :     7.54788 -       3.2872 =      4.26068 success 1 range       -1e+06 -        1e+06
+o1445               :     7.80907 -      3.72594 =      4.08313 success 1 range       -1e+06 -        1e+06
+o1446               :     7.98227 -      4.07494 =      3.90733 success 1 range       -1e+06 -        1e+06
+o1447               :     8.09434 -       4.3715 =      3.72284 success 1 range       -1e+06 -        1e+06
+o1448               :     8.18992 -      4.62284 =      3.56708 success 1 range       -1e+06 -        1e+06
+o1449               :     8.26323 -      4.84643 =       3.4168 success 1 range       -1e+06 -        1e+06
+o1450               :     8.33929 -      5.04261 =      3.29668 success 1 range       -1e+06 -        1e+06
+o1451               :     8.39036 -      5.21948 =      3.17088 success 1 range       -1e+06 -        1e+06
+o1452               :     8.44142 -       5.3827 =      3.05872 success 1 range       -1e+06 -        1e+06
+o1453               :     8.48671 -      5.53024 =      2.95647 success 1 range       -1e+06 -        1e+06
+o1454               :     8.52914 -      5.66844 =       2.8607 success 1 range       -1e+06 -        1e+06
+o1455               :     8.55493 -      5.79495 =      2.75998 success 1 range       -1e+06 -        1e+06
+o1456               :     8.60325 -      5.91475 =       2.6885 success 1 range       -1e+06 -        1e+06
+o1457               :     8.62929 -      6.02544 =      2.60385 success 1 range       -1e+06 -        1e+06
+o1458               :     8.66526 -      6.13113 =      2.53413 success 1 range       -1e+06 -        1e+06
+o1459               :      8.7002 -       6.2295 =       2.4707 success 1 range       -1e+06 -        1e+06
+o1460               :      8.7131 -      6.32271 =      2.39039 success 1 range       -1e+06 -        1e+06
+o1461               :     8.73189 -      6.41252 =      2.31937 success 1 range       -1e+06 -        1e+06
+...
+o4933               :     10.0885 -      11.6448 =      -1.5563 success 1 range       -1e+06 -        1e+06
+o4934               :     10.1015 -      11.6441 =     -1.54258 success 1 range       -1e+06 -        1e+06
+o4935               :     10.0929 -      11.6436 =     -1.55073 success 1 range       -1e+06 -        1e+06
+o4936               :     10.0812 -      11.6435 =     -1.56233 success 1 range       -1e+06 -        1e+06
+o4937               :      10.077 -      11.6436 =     -1.56662 success 1 range       -1e+06 -        1e+06
+o4938               :     10.0602 -       11.644 =     -1.58378 success 1 range       -1e+06 -        1e+06
+o4939               :     10.0555 -      11.6445 =       -1.589 success 1 range       -1e+06 -        1e+06
+o4940               :       10.06 -      11.6452 =     -1.58525 success 1 range       -1e+06 -        1e+06
+o4941               :     10.0632 -      11.6461 =     -1.58294 success 1 range       -1e+06 -        1e+06
+o4942               :     10.0603 -      11.6471 =     -1.58682 success 1 range       -1e+06 -        1e+06
+o4943               :     10.0564 -      11.6482 =     -1.59178 success 1 range       -1e+06 -        1e+06
+o4944               :     10.0604 -      11.6495 =      -1.5891 success 1 range       -1e+06 -        1e+06
+o4945               :     10.0572 -      11.6508 =     -1.59359 success 1 range       -1e+06 -        1e+06
+o4946               :     10.0554 -      11.6523 =     -1.59693 success 1 range       -1e+06 -        1e+06
+o4947               :      10.063 -      11.6538 =     -1.59083 success 1 range       -1e+06 -        1e+06
+o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range       -1e+06 -        1e+06
+o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
+o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
+o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
+Simulation time = 7 seconds
+Functional evaluations = 51
+Jacobian evaluations = 7
+Levenberg-Marquardt optimizations = 1
+Functional evaluations per second = 7
+Execution  started  on Tue Nov 20 07:52:07 2012
+Execution completed on Tue Nov 20 07:52:14 2012
+Execution date & time stamp: 20121120-075207

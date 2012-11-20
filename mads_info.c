@@ -53,7 +53,7 @@ void mads_info()
 	printf( "\ngeneral calibration/optimization options:\n" );
 	printf( "   retry=[integer]    - number of optimization retries [default retry=0]\n" );
 	printf( "   particles=[integer]- number of initial particles or tribes [default particles=10+2*sqrt(Number_of_parameters)]\n" );
-	printf( "   leigen|eigen       - eigen analysis of the final optimized solution\n" );
+	printf( "   lmeigen|eigen      - eigen analysis of the intermediate / final optimized solution\n" );
 	printf( "\nLevenberg-Marquardt optimization options:\n" );
 	printf( "   lmfactor=[double]  - multiplier applied to compute when to initiate LM searches within SQUADS algorithm [default lmfactor=1]\n" );
 	printf( "   lmindirect         - Indirect computation of LM alpha coefficient [default DIRECT/Delayed gratification computation]\n" );
@@ -164,12 +164,12 @@ void mads_info()
 	printf( "   pargen             - Generate MADS input files for independent multi-processor runs [default pargen=0]\n" );
 	printf( "   save               - Save MADS input/output files for successful parameter sets [default save=0]\n" );
 	printf( "\nExamples:\n" );
-	printf( "   mads a01 test=2 opt=lm igrnd real=1 (no input files are needed for execution)\n" );
+	printf( "   mads a01 test=2 opt=lm eigen igrnd real=1 (no input files are needed for execution)\n" );
 	printf( "   mads a01 test=2 opt=squads igrnd real=1\n" );
 	printf( "   mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)\n" );
 	printf( "   mads a01 test=3 abagus cutoff=20 eval=100000  (collect solutions of Rosenbrock function below phi cutoff)\n" );
-	printf( "   mads example/contamination/s01 ldebug (file s01.mads is located in example/contamination)\n" );
-	printf( "   mads example/contamination/s01 ldebug igrnd real=1\n" );
+	printf( "   mads example/contamination/s01 ldebug lmeigen (file s01.mads is located in example/contamination)\n" );
+	printf( "   mads example/contamination/s01 ldebug lmeigen igrnd real=1\n" );
 	printf( "   mads example/contamination/s01 seed=1549170842 obsrange igrnd real=1\n" );
 	printf( "   mads example/contamination/s01 opt=squads seed=1549170842 eigen obsrange pdebug igrnd real=1\n" );
 	printf( "   mads example/contamination/s01 opt=pso seed=1549170842 eigen obsrange igrnd real=1\n" );
@@ -186,9 +186,9 @@ void mads_info()
 	printf( "   mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3\n" );
 	printf( "   mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3\n" );
 	printf( "\nComparisons with PEST (http://www.sspa.com/pest/):\n" );
-	printf( "   mads s02 ldebug                   (file s02.mads is located in example/contamination)\n" );
+	printf( "   mads s02 lmeigen                  (file s02.mads is located in example/contamination)\n" );
 	printf( "   pest s02pest                   (file s02pest.pst is located in example/contamination)\n" );
-	printf( "   mads w01 ldebug      (files associated with problem w01 are located in example/wells)\n" );
+	printf( "   mads w01 lmeigen     (files associated with problem w01 are located in example/wells)\n" );
 	printf( "   pest w01pest     (files associated with problem w01pest are located in example/wells)\n" );
 	printf( "   pest w02pest     (files associated with problem w02pest are located in example/wells)\n" );
 	printf( "               (for w01 comparison, code WELLS can be obtained at http://wells.lanl.gov)\n" );

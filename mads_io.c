@@ -84,7 +84,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->debug = 0;
 	cd->fdebug = 0;
 	cd->ldebug = 0;
-	cd->leigen = 0;
+	cd->lm_eigen = 0;
 	cd->pdebug = 0;
 	cd->mdebug = 0;
 	cd->odebug = 0;
@@ -142,8 +142,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "create", 6 ) ) { w = 1; cd->problem_type = CREATE; }
 		if( !strncasecmp( word, "forward", 7 ) ) { w = 1; cd->problem_type = FORWARD; }
 		if( !strncasecmp( word, "calib", 5 ) ) { w = 1; cd->problem_type = CALIBRATE; }
-		if( !strncasecmp( word, "lsens", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = LOCALSENS; }
-		if( !strncasecmp( word, "eigen", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->leigen = 1; else cd->problem_type = EIGEN; }
+		if( !strncasecmp( word, "lsens", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->lm_eigen = 1; else cd->problem_type = LOCALSENS; }
+		if( !strncasecmp( word, "eigen", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->lm_eigen = 1; else cd->problem_type = EIGEN; }
+		if( !strncasecmp( word, "lmeigen", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; sscanf( word, "lmeigen=%d", &cd->lm_eigen ); if( cd->lm_eigen == 0 ) cd->lm_eigen = 1; }
 		if( !strncasecmp( word, "monte", 5 ) ) { w = 1; cd->problem_type = MONTECARLO; }
 		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; }
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
@@ -155,7 +156,6 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGPD; }
 		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = PPSD; }
 		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGRND; }
-		if( !strncasecmp( word, "leigen", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->leigen = 1;  }
 		if( !strncasecmp( word, "energy=", 7 ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( !strncasecmp( word, "background=", 11 ) ) { w = 1; sscanf( word, "background=%lf", &cd->c_background ); }
 		if( !strncasecmp( word, "lmfactor=", 9 ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
@@ -308,7 +308,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		{
 			if( cd->paranoid ) tprintf( "Multi-Start Levenberg-Marquardt optimization\n" );
 			else tprintf( "Levenberg-Marquardt optimization\n" );
-			if( cd->calib_type == SIMPLE ) cd->leigen = 1;
+			if( cd->calib_type == SIMPLE ) cd->lm_eigen = 1;
 		}
 		else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
 			tprintf( "Particle-Swarm optimization\n" );
@@ -322,7 +322,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 			if( cd->init_particles > 1 ) tprintf( "Number of particles = %d\n", cd->init_particles );
 			if( cd->init_particles == -1 ) tprintf( "Number of particles = will be computed internally\n" );
 		}
-		if( cd->leigen == 1 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
+		if( cd->lm_eigen == 1 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
 		tprintf( "\nGlobal termination criteria:\n" );
 		tprintf( "1: Maximum number of evaluations = %d\n", cd->maxeval );
 		tprintf( "2: Objective function cutoff value: " );
@@ -432,6 +432,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	ed = op->ed;
 	pd->nParam = pd->nFlgParam = pd->nOptParam = 0;
 	od->nObs = od->nTObs = od->nCObs = 0;
+	// IMPORTANT
+	// internal problem: nCObs = nObs
+	// external problem: nTObs = nObs
+	// internal test problem: nTObs = nCObs = nObs
 	wd->nW = 0;
 	ed->ntpl = ed->nins = 0;
 	bad_data = 0;

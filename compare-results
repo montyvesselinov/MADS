@@ -1,13 +1,22 @@
 #!/bin/tcsh -f
+if( ! -e $2 ) then
+	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+	echo ERROR Verification failed!
+	echo ERROR File $2 is missing!
+	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+	exit 0
+endif
 grep -v Execution $1 >! $1_e_$$
 grep -v Execution $2 >! $2_e_$$
 sdiff $1_e_$$ $2_e_$$ > $1_$$
 \rm -f $1_e_$$ $2_e_$$
 set a = $?
 if( $a != 0 ) then
-	echo Verification failed!
+	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+	echo ERROR Verification failed!
 	tail $1_$$
 	\rm -f $1_$$
+	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
 	exit 0
 else
 	echo Verification is successful!

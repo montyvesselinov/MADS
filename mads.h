@@ -153,7 +153,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int tpldebug;
 	int insdebug;
 	int pardebug;
-	int leigen; // flag for eigen analysis
+	int lm_eigen; // flag for eigen analysis
 	int sintrans; // flag for sin transformation
 	int plogtrans; // flag for log transformation of all parameters
 	int ologtrans; // flag for log transformation of all observations
@@ -195,8 +195,10 @@ struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 	int nTObs; // total number of observations
 	int nObs; // number of observations (internal problem: nObs = nTObs - nPreds; external problem: nObs = nTObs)
 	int nCObs; // total number of calibration targets observations with weight greater than zero
-	// IMPORTANT internal problem: nCObs = nObs
-	// IMPORTANT external problem: nTObs = nObs
+	// IMPORTANT
+	// internal problem: nCObs = nObs
+	// external problem: nTObs = nObs
+	// internal test problem: nTObs = nCObs = nObs
 	int nPreds; // number of performance criterion prediction: nPreds = nTObs - nObs
 	char **obs_id; // observation identifier (name) 
 	char **preds_id; // performance criterion identifier (name)

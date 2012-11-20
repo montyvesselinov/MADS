@@ -85,7 +85,8 @@ verify:
 	@echo "**************************************************************************************"
 	@echo "TEST 1: Rosenbrock problem using different optimization techniques ..."
 	@echo "TEST 1.1: Levenberg-Marquardt ... "
-	cd example/rosenbrock; ../../mads a01 test=3 opt=lm igrnd real=1 seed=2096575428 > /dev/null
+	cd example/rosenbrock; ../../mads a01 test=3 opt=lm lmeigen igrnd real=1 seed=2096575428 > /dev/null
+	@./compare-results example/rosenbrock/a01.mads_output example/rosenbrock/a01.mads_output-lm-correct
 	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-correct
 	@echo "***"
 	@echo "TEST 1.2: Particle-Swarm ..."
@@ -118,7 +119,8 @@ verify:
 	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2.1: Problem example/contamination/s01 ..."
-	mads example/contamination/s01 > /dev/null
+	mads example/contamination/s01 lmeigen > /dev/null
+	@./compare-results example/contamination/s01.mads_output example/contamination/s01.mads_output-correct
 	@./compare-results example/contamination/s01.results example/contamination/s01.results-correct
 	@echo "***"
 	@echo "TEST 2.2: Problem example/contamination/s01 with tied dispersivities ..."
@@ -157,7 +159,8 @@ verify:
 	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2: Problem example/wells/w01 ..."
-	cd example/wells; ../../mads w01 > /dev/null
+	cd example/wells; ../../mads w01 lmeigen > /dev/null
+	@./compare-results example/wells/w01.mads_output example/wells/w01.mads_output-correct
 	@./compare-results example/wells/w01.results example/wells/w01.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2: DONE"
@@ -189,7 +192,8 @@ create-verify:
 	@echo "**************************************************************************************"
 	@echo "TEST 1.0a: Rosenbrock problem using different optimization techniques ..."
 	@echo "TEST 1.1a: Levenberg-Marquardt ... "
-	cd example/rosenbrock; ../../mads a01 test=3 opt=lm igrnd real=1 seed=2096575428 > /dev/null
+	cd example/rosenbrock; ../../mads a01 test=3 opt=lm lmeigen igrnd real=1 seed=2096575428 > /dev/null
+	@cp example/rosenbrock/a01.mads_output example/rosenbrock/a01.mads_output-lm-correct
 	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-correct
 	@echo "***"
 	@echo "TEST 1.2a: Particle-Swarm ..."
@@ -223,7 +227,8 @@ create-verify:
 	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2.1: Problem example/contamination/s01 ..."
-	mads example/contamination/s01 > /dev/null
+	mads example/contamination/s01 lmeigen > /dev/null
+	@cp example/contamination/s01.mads_output example/contamination/s01.mads_output-correct
 	@cp example/contamination/s01.results example/contamination/s01.results-correct
 	@echo "***"
 	@echo "TEST 2.2: Problem example/contamination/s01 with tied dispersivities ..."
@@ -262,7 +267,8 @@ create-verify:
 	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2: Problem example/wells/w01 ..."
-	cd example/wells; ../../mads w01 > /dev/null
+	cd example/wells; ../../mads w01 lmeigen > /dev/null
+	@cp example/wells/w01.mads_output example/wells/w01.mads_output-correct
 	@cp example/wells/w01.results example/wells/w01.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 2: DONE"
