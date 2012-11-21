@@ -38,11 +38,14 @@ Debug/*
 *.ofe
 *.igpd-opt*
 *.mads_output_*
-# Genereal files
 *.vtk
 *.btc
 *.btc-peak
 *.btc2
+*.out
+*output
+*.wells
+# Genereal files
 *.dat
 *.zip
 *.tar
@@ -52,7 +55,6 @@ Debug/*
 *.txt
 *.doc
 *.docx
-*.wells
 *.swp
 *.pars
 *.bgr
@@ -65,10 +67,8 @@ Debug/*
 *.sh
 *.a
 *.so
-*.orig
 *.zip
-*out
-*output
+*.orig
 # LINUX files
 .nfs*
 # MAC files

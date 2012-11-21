@@ -294,6 +294,9 @@ create-verify:
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
 
+clean-example:
+	rm -f example/*/*.mads_output_* example/*/*.restart_*.zip example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results
+
 astyle:
 	astyle $(SOURCESTYLE)
 	rm -f $(SOURCESTYLE:%c=%c.orig)
