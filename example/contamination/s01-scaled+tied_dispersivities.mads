@@ -1,25 +1,25 @@
-Problem type: calibration sindx=1e-07 single opt=lm disp_tied disp_scaled particles eval=5000 ssr
+Problem type: calibration ldebug=1 sindx=1e-07 single opt=lm disp_tied disp_scaled particles eval=5000 ssr lmiter=1
 Solution type: box
 Number of parameters: 19
-Source x coordinate [L]: 1017.76929917588 1 0 25 210 1460
-Source y coordinate [L]: 1328.46944896224 1 0 25 1230 1930
+Source x coordinate [L]: 1002.53516366878 1 0 25 210 1460
+Source y coordinate [L]: 1331.97006486408 1 0 25 1230 1930
 Source z coordinate [L]: 0 0 0 1 0 100
-Source x dimension [L]: 294.478852513342 1 0 1 1 500
-Source y dimension [L]: 279.43382409184 1 0 1 1 500
+Source x dimension [L]: 290.05175055153 1 0 1 1 500
+Source y dimension [L]: 297.065454969469 1 0 1 1 500
 Source z dimension [L]: 1 0 0 1 1 10
-Contaminant flux [M/T]: 18.5609951301274 1 1 10 0.01 100
+Contaminant flux [M/T]: 28.0760272464997 1 1 10 0.01 100
 Start Time [T]: 0 1 0 1 0 43
 End Time [T]: 100 0 0 1 1 44
 Porosity [L3/L3]: 0.1 0 0 0.1 0 1
 Kd [-]: 1 0 1 1 1 10
 Lambda [1/T]: 0 0 1 1 0 1
-Flow Angle [degrees]: 8.13534587121465 1 0 5 -30 30
-Pore x velocity [L/T]: 10.4357855131863 1 1 1.05133 0.01 200
+Flow Angle [degrees]: 7.21136771513374 1 0 5 -30 30
+Pore x velocity [L/T]: 11.1731818429347 1 1 1.05356 0.01 200
 Pore y velocity [L/T]: 0 0 0 1 0 1
 Pore z velocity [L/T]: 0 0 0 1 0 1
-Dispersivity x [L]: 0.015598984449603 1 1 5 0.0001 140
-Dispersivity y [L]: 2.21572158014365 1 1 5 1 10
-Dispersivity z [L]: 21.7945560306254 1 1 1.04762 1 100
+Dispersivity x [L]: 0.00897902799823917 1 1 5 0.0001 140
+Dispersivity y [L]: 2.23244994756389 1 1 5 1 10
+Dispersivity z [L]: 23.6946420801021 1 1 1.05006 1 100
 Number of wells: 20
 W-1 1503 1954 5.57 12.55 1 49 0 1 0 0 25
 W-2 2113 1479 36.73 55.14 1 49 0 1 0 0 10

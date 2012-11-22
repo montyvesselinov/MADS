@@ -1,4 +1,6 @@
 PROG = mads
+CMP = ./compare-results
+# CMP = cp
 # CC = g++ 
 ## rainier -L/usr/lib/gcc/x86_64-redhat-linux/4.1.1
 ifeq ($(OSTYPE),linux)
@@ -60,21 +62,20 @@ clean:
 
 examples:
 	@echo "**************************************************************************************"
-	@echo "**************************************************************************************"
-	@echo "Example 1"
-	@echo "Example problem rosenbrock ... "
+	@echo "Example 1: Internal Rosenbrock Problem "
 	@echo "**************************************************************************************"
 	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1
 	@echo "**************************************************************************************"
 	@echo "Example 1: DONE"
 	@echo "**************************************************************************************"
 	@echo ""
+	@echo ""
 	@echo "**************************************************************************************"
+	@echo "Example 2: Internal contamination Problem "
 	@echo "**************************************************************************************"
-	@echo "Example 2"
 	mads example/contamination/s01 ldebug
 	@echo "Example problem example/wells/w01 ..."
-	cd example/wells; ../../mads w01 ldebug
+	cd example/wells; ../../mads w01 lmeigen
 	@echo "**************************************************************************************"
 	@echo "Example 2: DONE"
 	@echo "**************************************************************************************"
@@ -83,219 +84,167 @@ verify:
 	#seed=2096575428
 	#seed=1977879092
 	@echo "**************************************************************************************"
+	@echo " Internal test problems "
+	@echo "**************************************************************************************"
 	@echo "TEST 1: Rosenbrock problem using different optimization techniques ..."
 	@echo "TEST 1.1: Levenberg-Marquardt ... "
+	rm -f example/rosenbrock/a01.mads_output example/rosenbrock/a01.results
 	cd example/rosenbrock; ../../mads a01 test=3 opt=lm lmeigen igrnd real=1 seed=2096575428 > /dev/null
-	@./compare-results example/rosenbrock/a01.mads_output example/rosenbrock/a01.mads_output-lm-correct
-	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-correct
-	@echo "***"
+	@$(CMP) example/rosenbrock/a01.mads_output example/rosenbrock/a01.mads_output-lm-correct
+	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-correct
+	@echo ""
 	@echo "TEST 1.2: Particle-Swarm ..."
+	rm -f example/rosenbrock/a01.results
 	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1 seed=2096575428 > /dev/null
-	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-pso-correct
-	@echo "***"
+	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-pso-correct
+	@echo ""
 	@echo "TEST 1.3: TRIBES ..."
+	rm -f example/rosenbrock/a01.results
 	cd example/rosenbrock; ../../mads a01 test=3 opt=tribes igrnd real=1 seed=2096575428 > /dev/null
-	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-tribes-correct
-	@echo "***"
+	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-tribes-correct
+	@echo ""
 	@echo "TEST 1.4: SQUADS ..."
+	rm -f example/rosenbrock/a01.results
 	cd example/rosenbrock; ../../mads a01 test=3 opt=squads igrnd real=1 seed=2096575428 > /dev/null
-	@./compare-results example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-correct
-	@echo "**************************************************************************************"
-	@echo ""
-	@echo "**************************************************************************************"
-	@echo "TEST 1.0b: Rosenbrock problem using different multistart (paranoid) optimization techniques ..."
-	@echo "TEST 1.1b: Levenberg-Marquardt ... "
-	cd example/rosenbrock; ../../mads p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 > p01lm.outp-multistart-lm
-	@./compare-results example/rosenbrock/p01lm.outp-multistart-lm example/rosenbrock/p01lm.outp-lm-correct
-	@./compare-results example/rosenbrock/p01lm.results example/rosenbrock/p01lm.results-multistart-lm-correct
-	@echo "***"
-	@echo "TEST 1.2b: SQUADS ..."
-	cd example/rosenbrock; ../../mads p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 > p01squads.outp-multistart-squads
-	@./compare-results example/rosenbrock/p01squads.outp-multistart-squads example/rosenbrock/p01squads.outp-squads-correct
-	@./compare-results example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-correct
+	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 1: DONE"
 	@echo ""
 	@echo ""
 	@echo "**************************************************************************************"
-	@echo "TEST 2.1: Problem example/contamination/s01 ..."
+	@echo " Multistart (paranoid) problems "
+	@echo "**************************************************************************************"
+	@echo "TEST 2: Rosenbrock problem using different optimization techniques ..."
+	@echo "TEST 2.1: Levenberg-Marquardt ... "
+	rm -f example/rosenbrock/p01lm.mads_output example/rosenbrock/p01lm.results
+	cd example/rosenbrock; ../../mads p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet > /dev/null
+	@$(CMP) example/rosenbrock/p01lm.mads_output example/rosenbrock/p01lm.mads_output-multistart-lm-correct
+	@$(CMP) example/rosenbrock/p01lm.results example/rosenbrock/p01lm.results-multistart-lm-correct
+	@echo ""
+	@echo "TEST 2.2: SQUADS ..."
+	rm -f example/rosenbrock/p01squads.mads_output example/rosenbrock/p01squads.results
+	cd example/rosenbrock; ../../mads p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet > /dev/null
+	@$(CMP) example/rosenbrock/p01squads.mads_output example/rosenbrock/p01squads.mads_output-multistart-squads-correct
+	@$(CMP) example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 2: DONE"
+	@echo ""
+	@echo ""
+	@echo "**************************************************************************************"
+	@echo " Internal contaminant transport problems "
+	@echo "**************************************************************************************"
+	@echo "TEST 3: Internal contaminant transport problems using different dispersivities ..."
+	@echo "TEST 3.1: Problem example/contamination/s01 with independent dispersivities ..."
+	rm -f example/contamination/s01.mads_output example/contamination/s01.results
 	mads example/contamination/s01 lmeigen > /dev/null
-	@./compare-results example/contamination/s01.mads_output example/contamination/s01.mads_output-correct
-	@./compare-results example/contamination/s01.results example/contamination/s01.results-correct
-	@echo "***"
-	@echo "TEST 2.2: Problem example/contamination/s01 with tied dispersivities ..."
+	@$(CMP) example/contamination/s01.mads_output example/contamination/s01.mads_output-correct
+	@$(CMP) example/contamination/s01.results example/contamination/s01.results-correct
+	@echo ""
+	@echo "TEST 3.2: Problem example/contamination/s01 with tied dispersivities ..."
+	rm -f example/contamination/s01-tied_dispersivities.results
 	mads example/contamination/s01-tied_dispersivities > /dev/null
-	@./compare-results example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-correct
-	@echo "***"
-	@echo "TEST 2.3: Problem example/contamination/s01 with scaled dispersivities ..."
+	@$(CMP) example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-correct
+	@echo ""
+	@echo "TEST 3.3: Problem example/contamination/s01 with scaled dispersivities ..."
+	rm -f example/contamination/s01-scaled_dispersivities.results
 	mads example/contamination/s01-scaled_dispersivities > /dev/null
-	@./compare-results example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-correct
-	@echo "***"
-	@echo "TEST 2.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
+	@$(CMP) example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-correct
+	@echo ""
+	@echo "TEST 3.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
+	rm -f example/contamination/s01-scaled+tied_dispersivities.results
 	mads example/contamination/s01-scaled+tied_dispersivities > /dev/null
-	@./compare-results example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-correct
-	@echo "***"
-	@echo "TEST 2.5: Problem example/contamination/s01 IGRND ..."
-	mads example/contamination/s01-igrnd seed=2096575428 > /dev/null
-	@./compare-results example/contamination/s01-igrnd.results example/contamination/s01-igrnd.results-correct
-	@./compare-results example/contamination/s01-igrnd.igrnd.results example/contamination/s01-igrnd.igrnd.results-correct
-	@echo "***"
-	@echo "TEST 2.6: Problem example/contamination/s01 PPSD ..."
-	mads example/contamination/s01-ppsd seed=2096575428 > /dev/null
-	@./compare-results example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.mads_output-correct
-	@./compare-results example/contamination/s01-ppsd.ppsd.results example/contamination/s01-ppsd.ppsd.results-correct
-	@echo "***"
-	@echo "TEST 2.7: Problem example/contamination/s01 IGPD ..."
-	mads example/contamination/s01-igpd seed=2096575428 > /dev/null
-	@./compare-results example/contamination/s01-igpd.results example/contamination/s01-igpd.results-correct
-	@./compare-results example/contamination/s01-igpd.igpd.results example/contamination/s01-igpd.igpd.results-correct
-	@echo "***"
-	@echo "TEST 2.8: Problem example/contamination/s01 Multi-Start LM  ..."
-	mads example/contamination/s01-mslm seed=2096575428 > /dev/null
-	@./compare-results example/contamination/s01-mslm.results example/contamination/s01-mslm.results-correct
-	@echo "**************************************************************************************"
-	@echo "TEST 2: DONE"
-	@echo ""
-	@echo ""
-	@echo "**************************************************************************************"
-	@echo "TEST 2: Problem example/wells/w01 ..."
-	cd example/wells; ../../mads w01 lmeigen > /dev/null
-	@./compare-results example/wells/w01.mads_output example/wells/w01.mads_output-correct
-	@./compare-results example/wells/w01.results example/wells/w01.results-correct
-	@echo "**************************************************************************************"
-	@echo "TEST 2: DONE"
-	@echo ""
-	@echo ""
-	@echo "**************************************************************************************"
-	@echo "TEST 3: Problem example/wells-short/w01 using different instruction formats ..."
-	@echo "TEST 3.1: Instruction file example/wells-short/w01-v1.inst ..."
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01 > /dev/null
-	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
-	@echo "***"
-	@echo "TEST 3.2: Instruction file example/wells-short/w01-v2.inst ..."
-	cd example/wells-short; ln -sf w01-v2.inst w01.inst; ../../mads w01 > /dev/null
-	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
-	@echo "***"
-	@echo "TEST 3.3: Instruction file example/wells-short/w01-v3.inst ..."
-	cd example/wells-short; ln -sf w01-v3.inst w01.inst; ../../mads w01 > /dev/null
-	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
-	@echo "***"
-	@echo "TEST 3.4: Instruction file example/wells-short/w01-v4.inst ..."
-	cd example/wells-short; ln -sf w01-v4.inst w01.inst; ../../mads w01 > /dev/null
-	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
+	@$(CMP) example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
-
-create-verify:
-	#seed=2096575428
-	#seed=1977879092
-	@echo "**************************************************************************************"
-	@echo "TEST 1.0a: Rosenbrock problem using different optimization techniques ..."
-	@echo "TEST 1.1a: Levenberg-Marquardt ... "
-	cd example/rosenbrock; ../../mads a01 test=3 opt=lm lmeigen igrnd real=1 seed=2096575428 > /dev/null
-	@cp example/rosenbrock/a01.mads_output example/rosenbrock/a01.mads_output-lm-correct
-	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-correct
-	@echo "***"
-	@echo "TEST 1.2a: Particle-Swarm ..."
-	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1 seed=2096575428 > /dev/null
-	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-pso-correct
-	@echo "***"
-	@echo "TEST 1.3a: TRIBES ..."
-	cd example/rosenbrock; ../../mads a01 test=3 opt=tribes igrnd real=1 seed=2096575428 > /dev/null
-	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-tribes-correct
-	@echo "***"
-	@echo "TEST 1.4a: SQUADS ..."
-	cd example/rosenbrock; ../../mads a01 test=3 opt=squads igrnd real=1 seed=2096575428 > /dev/null
-	@cp example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-correct
-	@echo "**************************************************************************************"
+	@echo ""
 	@echo ""
 	@echo "**************************************************************************************"
-	@echo "TEST 1.0b: Rosenbrock problem using different multistart (paranoid) optimization techniques ..."
-	@echo "TEST 1.1b: Levenberg-Marquardt ... "
-	cd example/rosenbrock; ../../mads p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 > p01lm.outp-multistart-lm
-	@cp example/rosenbrock/p01lm.outp-multistart-lm example/rosenbrock/p01lm.outp-lm-correct
-	@cp example/rosenbrock/p01lm.results example/rosenbrock/p01lm.results-multistart-lm-correct
-	@echo "***"
-	@echo "TEST 1.2b: SQUADS ..."
-	cd example/rosenbrock; ../../mads p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 > p01squads.outp-multistart-squads
-	@cp example/rosenbrock/p01squads.outp-multistart-squads example/rosenbrock/p01squads.outp-squads-correct
-	@cp example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-correct
+	@echo " Internal contaminant transport problems "
 	@echo "**************************************************************************************"
-	@echo ""
-	@echo "**************************************************************************************"
-	@echo "TEST 1: DONE"
-	@echo ""
-	@echo "**************************************************************************************"
-	@echo "TEST 2.1: Problem example/contamination/s01 ..."
-	mads example/contamination/s01 lmeigen > /dev/null
-	@cp example/contamination/s01.mads_output example/contamination/s01.mads_output-correct
-	@cp example/contamination/s01.results example/contamination/s01.results-correct
-	@echo "***"
-	@echo "TEST 2.2: Problem example/contamination/s01 with tied dispersivities ..."
-	mads example/contamination/s01-tied_dispersivities > /dev/null
-	@cp example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-correct
-	@echo "***"
-	@echo "TEST 2.3: Problem example/contamination/s01 with scaled dispersivities ..."
-	mads example/contamination/s01-scaled_dispersivities > /dev/null
-	@cp example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-correct
-	@echo "***"
-	@echo "TEST 2.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
-	mads example/contamination/s01-scaled+tied_dispersivities > /dev/null
-	@cp example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-correct
-	@echo "***"
-	@echo "TEST 2.5: Problem example/contamination/s01 IGRND ..."
+	@echo "TEST 4: Internal contaminant transport problems using different optimization techniques ..."
+	@echo "TEST 4.1: Problem example/contamination/s01 IGRND ..."
+	rm -f example/contamination/s01-igrnd.results example/contamination/s01-igrnd.igrnd.results
 	mads example/contamination/s01-igrnd seed=2096575428 > /dev/null
-	@cp example/contamination/s01-igrnd.results example/contamination/s01-igrnd.results-correct
-	@cp example/contamination/s01-igrnd.igrnd.results example/contamination/s01-igrnd.igrnd.results-correct
-	@echo "***"
-	@echo "TEST 2.6: Problem example/contamination/s01 PPSD ..."
+	@$(CMP) example/contamination/s01-igrnd.results example/contamination/s01-igrnd.results-correct
+	@$(CMP) example/contamination/s01-igrnd.igrnd.results example/contamination/s01-igrnd.igrnd.results-correct
+	@echo ""
+	@echo "TEST 4.2: Problem example/contamination/s01 PPSD ..."
+	rm -f example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.ppsd.results
 	mads example/contamination/s01-ppsd seed=2096575428 > /dev/null
-	@cp example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.mads_output-correct
-	@cp example/contamination/s01-ppsd.ppsd.results example/contamination/s01-ppsd.ppsd.results-correct
-	@echo "***"
-	@echo "TEST 2.7: Problem example/contamination/s01 IGPD ..."
+	@$(CMP) example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.mads_output-correct
+	@$(CMP) example/contamination/s01-ppsd.ppsd.results example/contamination/s01-ppsd.ppsd.results-correct
+	@echo ""
+	@echo "TEST 4.3: Problem example/contamination/s01 IGPD ..."
+	rm -f example/contamination/s01-igpd.results example/contamination/s01-igpd.igpd.results
 	mads example/contamination/s01-igpd seed=2096575428 > /dev/null
-	@cp example/contamination/s01-igpd.results example/contamination/s01-igpd.results-correct
-	@cp example/contamination/s01-igpd.igpd.results example/contamination/s01-igpd.igpd.results-correct
-	@echo "***"
-	@echo "TEST 2.8: Problem example/contamination/s01 Multi-Start LM  ..."
+	@$(CMP) example/contamination/s01-igpd.results example/contamination/s01-igpd.results-correct
+	@$(CMP) example/contamination/s01-igpd.igpd.results example/contamination/s01-igpd.igpd.results-correct
+	@echo ""
+	@echo "TEST 4.4: Problem example/contamination/s01 Multi-Start LM  ..."
+	rm -f example/contamination/s01-mslm.results
 	mads example/contamination/s01-mslm seed=2096575428 > /dev/null
-	@cp example/contamination/s01-mslm.results example/contamination/s01-mslm.results-correct
+	@$(CMP) example/contamination/s01-mslm.results example/contamination/s01-mslm.results-correct
 	@echo "**************************************************************************************"
-	@echo "TEST 2: DONE"
+	@echo "TEST 4: DONE"
 	@echo ""
 	@echo ""
 	@echo "**************************************************************************************"
-	@echo "TEST 2: Problem example/wells/w01 ..."
+	@echo " External problems "
+	@echo "**************************************************************************************"
+	@echo "TEST 5: Problem example/wells/w01 ..."
+	rm -f example/wells/w01.mads_output example/wells/w01.results
 	cd example/wells; ../../mads w01 lmeigen > /dev/null
-	@cp example/wells/w01.mads_output example/wells/w01.mads_output-correct
-	@cp example/wells/w01.results example/wells/w01.results-correct
+	@$(CMP) example/wells/w01.mads_output example/wells/w01.mads_output-correct
+	@$(CMP) example/wells/w01.results example/wells/w01.results-correct
 	@echo "**************************************************************************************"
-	@echo "TEST 2: DONE"
+	@echo "TEST 5: DONE"
 	@echo ""
 	@echo ""
 	@echo "**************************************************************************************"
-	@echo "TEST 3: Problem example/wells-short/w01 using different instruction formats ..."
-	@echo "TEST 3.1: Instruction file example/wells-short/w01-v1.inst ..."
+	@echo " External problems "
+	@echo "**************************************************************************************"
+	@echo "TEST 6: Problem example/wells-short/w01 using different instruction formats ..."
+	@echo "TEST 6.1: Instruction file example/wells-short/w01-v1.inst ..."
+	rm -f example/wells-short/w01.results
 	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01 > /dev/null
-	@cp example/wells-short/w01.results example/wells-short/w01.results-correct
-	@echo "***"
-	@echo "TEST 3.2: Instruction file example/wells-short/w01-v2.inst ..."
+	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo ""
+	@echo "TEST 6.2: Instruction file example/wells-short/w01-v2.inst ..."
+	rm -f example/wells-short/w01.results
 	cd example/wells-short; ln -sf w01-v2.inst w01.inst; ../../mads w01 > /dev/null
-	@./compare-results example/wells-short/w01.results example/wells-short/w01.results-correct
-	@echo "***"
-	@echo "TEST 3.3: Instruction file example/wells-short/w01-v3.inst ..."
+	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo ""
+	@echo "TEST 6.3: Instruction file example/wells-short/w01-v3.inst ..."
+	rm -f example/wells-short/w01.results
 	cd example/wells-short; ln -sf w01-v3.inst w01.inst; ../../mads w01 > /dev/null
-	@cp example/wells-short/w01.results example/wells-short/w01.results-correct
-	@echo "***"
-	@echo "TEST 3.4: Instruction file example/wells-short/w01-v4.inst ..."
+	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-correct
+	@echo ""
+	@echo "TEST 6.4: Instruction file example/wells-short/w01-v4.inst ..."
+	rm -f example/wells-short/w01.results 
 	cd example/wells-short; ln -sf w01-v4.inst w01.inst; ../../mads w01 > /dev/null
-	@cp example/wells-short/w01.results example/wells-short/w01.results-correct
+	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-correct
 	@echo "**************************************************************************************"
-	@echo "TEST 3: DONE"
+	@echo "TEST 6: DONE"
+	@echo ""
+	@echo ""
+	@echo "**************************************************************************************"
+	@echo " Parallel execution of external problems "
+	@echo "**************************************************************************************"
+	@echo "TEST 7: Parallel execution of example/wells-short/w01parallel ..."
+	@echo "TEST 7.1: Initial parallel execution of example/wells-short/w01parallel ..."
+	rm -f example/wells-short/w01parallel.results example/wells-short/w01parallel.restart_info example/wells-short/w01parallel.restart_*.zip
+	cd example/wells-short; ../../mads w01parallel np=2 eval=10 restart=0 > /dev/null
+	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-correct
+	@echo ""
+	@echo "TEST 7.2: Rerun using saved results from prior parallel execution of example/wells-short/w01parallel ..."
+	rm -f example/wells/w01parallel.results
+	cd example/wells-short; ../../mads w01parallel np=2 eval=10 > /dev/null
+	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 7: DONE"
 
 clean-example:
-	rm -f example/*/*.mads_output_* example/*/*.restart_*.zip example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results
+	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info
 
 astyle:
 	astyle $(SOURCESTYLE)

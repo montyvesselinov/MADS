@@ -1273,6 +1273,14 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	op->cd->pderiv = op->cd->oderiv = -1;
 	if( compute_jacobian )
 	{
+		if( debug )
+		{
+			tprintf( "Analyzed state:\n" );
+			debug_level = op->cd->fdebug; op->cd->fdebug = 3;
+		}
+		func_global( opt_params, op, op->od->res );
+		if( debug ) op->cd->fdebug = debug_level;
+		phi = op->phi;
 		/*		op->pd->var_current_gsl = gsl_vector_alloc( op->pd->nOptParam );
 				op->od->obs_current_gsl = gsl_vector_alloc(op->od->nObs);
 				func_gsl_deriv_dx( gsl_opt_params, op, gsl_jacobian ); // Using GSL function
@@ -1281,14 +1289,6 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 		func_gsl_dx( gsl_opt_params, op, gsl_jacobian ); // Compute Jacobian using forward difference
 		func_dx( opt_params, NULL, op, jacobian ); // Compute Jacobian using forward difference
 	}
-	if( debug )
-	{
-		tprintf( "Analyzed state:\n" );
-		debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-	}
-	func_global( opt_params, op, op->od->res );
-	if( debug ) op->cd->fdebug = debug_level;
-	phi = op->phi;
 	if( debug )
 	{
 		tprintf( "\nJacobian matrix\n" ); // Print Jacobian

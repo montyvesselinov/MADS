@@ -27,7 +27,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20121119-205127
+Execution date & time stamp: 20121121-172759
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
 No flagged parameters; all optimizable parameters are randomized
@@ -44,7 +44,6 @@ LM with indirect computation of lambda changes
 Initial evaluation: OF 4.88803e+06
 Jacobian #1: Linear solves 0 Evaluations 3 OF 4.88803e+06 lambda 0.001
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -59,7 +58,6 @@ New Jacobian requested because: > OF estimate declined substantially (997039 << 
 
 Jacobian #2: Linear solves 1 Evaluations 6 OF 997039 lambda 7.92471
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -75,7 +73,6 @@ New Jacobian requested because: > OF estimate declined substantially (68148.2 <<
 
 Jacobian #3: Linear solves 2 Evaluations 9 OF 68148.2 lambda 2.82585
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -91,7 +88,6 @@ New Jacobian requested because: > OF estimate declined substantially (838.951 <<
 
 Jacobian #4: Linear solves 3 Evaluations 12 OF 838.951 lambda 0.941951
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -107,7 +103,6 @@ New Jacobian requested because: > OF estimate declined substantially (1.12817e-0
 
 Jacobian #5: Linear solves 4 Evaluations 15 OF 1.12817e-05 lambda 0.313984
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -123,7 +118,6 @@ New Jacobian requested because: > OF estimate declined substantially (8.51021e-1
 
 Jacobian #6: Linear solves 5 Evaluations 18 OF 8.51021e-12 lambda 0.104661
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -142,7 +136,6 @@ New Jacobian requested because: > Linear solve OF estimates do not change substa
 
 Jacobian #7: Linear solves 9 Evaluations 24 OF 8.51021e-12 lambda 107.173
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -163,7 +156,6 @@ New Jacobian requested because: > OF estimate declined substantially (2.57807e-1
 
 Jacobian #8: Linear solves 16 Evaluations 33 OF 2.57807e-12 lambda 8665.46
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -185,7 +177,6 @@ New Jacobian requested because: > Linear solve OF estimates do not change substa
 
 Jacobian #9: Linear solves 23 Evaluations 42 OF 2.57807e-12 lambda 2.32612e+12
 Jacobian matrix analysis ...
-WARNING: Model parameter 'Parameter #2' is not impacting model predictions!
 Eigen analysis ...
 Jacobian matrix stored (a01.igrnd.jacobian)
 Covariance matrix stored (a01.igrnd.covariance)
@@ -197,12 +188,12 @@ Parameter #2                             :     0.999999 -- Uncertainty ranges ca
 Parameters did not change between last two jacobian iterations.
 CONVERGED: Relative change in parameter space is small (1.48493e-15 < 2.00006e-14)
 LM optimization is completed. Reason: small Dp (2.20503e-30)
-Evaluations: 52 Jacobians: 9 Objective function: 2.57807e-12 Success: 1
+Evaluations: 43 Jacobians: 9 Objective function: 2.57807e-12 Success: 1
 Parameter #1 1
 Parameter #2 0.999999
 
 
-Total number of evaluations = 52
+Total number of evaluations = 43
 Total number of jacobians = 9
 Minimum objective function: 2.57807e-12
 Repeat the run producing the best results ...
@@ -214,9 +205,9 @@ Parameter #1 1
 Parameter #2 0.999999
 Objective function: 2.57807e-12 Success: 1 (0)
 Simulation time = 0 seconds
-Functional evaluations = 53
+Functional evaluations = 44
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Mon Nov 19 20:51:27 2012
-Execution completed on Mon Nov 19 20:51:27 2012
-Execution date & time stamp: 20121119-205127
+Execution  started  on Wed Nov 21 17:27:59 2012
+Execution completed on Wed Nov 21 17:27:59 2012
+Execution date & time stamp: 20121121-172759

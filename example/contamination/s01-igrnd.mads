@@ -1,4 +1,4 @@
-Problem type: igrnd real=2 eval=10 eval=10 opt=lm retry=2
+Problem type: igrnd real=2 eval=10 opt=lm retry=2
 Solution type: box
 Number of parameters: 19
 Source x coordinate [L]: 1124 1 0 25 210 1460

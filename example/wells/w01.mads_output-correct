@@ -45,7 +45,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20121120-075207
+Execution date & time stamp: 20121121-172824
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Levenberg-Marquardt Optimization ... LM using SVD decomposition
@@ -61,10 +61,10 @@ Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
-Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
+Obtained fit is relatively good (chi^2/dof = 2.94926e-317 < 200)
 Optimized parameters:
-k                                        :            1 stddev      13.5908 (           1 -            1)
-S                                        :            1 stddev      29.1219 (           1 -            1)
+k                                        :            1 stddev 9.91992e-159 (           1 -            1)
+S                                        :            1 stddev 2.12561e-158 (           1 -            1)
 Computed initial lambda 0.00167603
 OF 79780.1 lambda 0.00167603
 OF 79781.6 lambda 0.00335207
@@ -81,10 +81,10 @@ Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
-Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
+Obtained fit is relatively good (chi^2/dof = 2.94926e-317 < 200)
 Optimized parameters:
-k                                        :            1 stddev      13.5908 (           1 -            1)
-S                                        :            1 stddev      29.1219 (           1 -            1)
+k                                        :            1 stddev 9.91992e-159 (           1 -            1)
+S                                        :            1 stddev 2.12561e-158 (           1 -            1)
 Parameters did not change between last two jacobian iterations.
 OF 79757 lambda 1.71626
 OF 79781.6 lambda 3.43252
@@ -101,10 +101,10 @@ Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
-Obtained fit is relatively good (chi^2/dof = 32.2522 < 200)
+Obtained fit is relatively good (chi^2/dof = 2.94926e-317 < 200)
 Optimized parameters:
-k                                        :      -1.0073 stddev    0.0252182 (     -1.0073 -      -1.0073)
-S                                        :      -4.7429 stddev      1.29608 (     -4.7429 -      -4.7429)
+k                                        :      -1.0073 stddev 2.41152e-161 (     -1.0073 -      -1.0073)
+S                                        :      -4.7429 stddev 1.23939e-159 (     -4.7429 -      -4.7429)
 Parameter with maximum estimate change between jacobian iterations: S                              (5.7429)
 Parameter with minimum estimate change between jacobian iterations: k                              (2.0073)
 OF 79781.6 lambda 36.6135
@@ -121,10 +121,10 @@ Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
-Obtained fit is relatively good (chi^2/dof = 2.41192 < 200)
+Obtained fit is relatively good (chi^2/dof = 2.94926e-317 < 200)
 Optimized parameters:
-k                                        :     -1.84872 stddev   0.00116428 (    -1.84872 -     -1.84872)
-S                                        :     -3.00178 stddev    0.0109224 (    -3.00178 -     -3.00178)
+k                                        :     -1.84872 stddev 4.07128e-162 (    -1.84872 -     -1.84872)
+S                                        :     -3.00178 stddev 3.81938e-161 (    -3.00178 -     -3.00178)
 Parameter with maximum estimate change between jacobian iterations: S                              (-1.74113)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.841414)
 OF 3076.62 lambda 97.636
@@ -142,10 +142,10 @@ Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
-Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
+Obtained fit is relatively good (chi^2/dof = 2.94926e-317 < 200)
 Optimized parameters:
-k                                        :     -1.93197 stddev  0.000911836 (    -1.93197 -     -1.93197)
-S                                        :     -2.80097 stddev   0.00719816 (    -2.80097 -     -2.80097)
+k                                        :     -1.93197 stddev 3.52196e-162 (    -1.93197 -     -1.93197)
+S                                        :     -2.80097 stddev 2.78028e-161 (    -2.80097 -     -2.80097)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.200806)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.083255)
 OF 2845.29 lambda 31.6935
@@ -163,10 +163,10 @@ Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
-Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
+Obtained fit is relatively good (chi^2/dof = 2.94926e-317 < 200)
 Optimized parameters:
-k                                        :     -1.93197 stddev  0.000911836 (    -1.93197 -     -1.93197)
-S                                        :     -2.80097 stddev   0.00719816 (    -2.80097 -     -2.80097)
+k                                        :     -1.93197 stddev 3.52196e-162 (    -1.93197 -     -1.93197)
+S                                        :     -2.80097 stddev 2.78028e-161 (    -2.80097 -     -2.80097)
 Parameters did not change between last two jacobian iterations.
 OF 2844.71 lambda 32454.1
 OF 2844.61 lambda 62642.2
@@ -183,10 +183,10 @@ Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
-Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
+Obtained fit is relatively good (chi^2/dof = 2.94926e-317 < 200)
 Optimized parameters:
-k                                        :     -1.93403 stddev  0.000909453 (    -1.93403 -     -1.93403)
-S                                        :     -2.79024 stddev   0.00712231 (    -2.79024 -     -2.79024)
+k                                        :     -1.93403 stddev 3.51283e-162 (    -1.93403 -     -1.93403)
+S                                        :     -2.79024 stddev 2.75104e-161 (    -2.79024 -     -2.79024)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.0107376)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.00205928)
 OF 2844.63 lambda 137910
@@ -199,54 +199,6 @@ New Jacobian requested because: > Linear solve OF estimates do not change substa
 CONVERGED: 5 Jacobian OF estimates are very close to the best current OF (2844.6)
 LM optimization is completed. Reason: small OF changes
 Eigen analysis ...
-Analyzed state:
-Model parameters:
-k -1.93403062002
-S -2.79023555185
-NO fixed parameters.
-
-Model predictions:
-o1                  :           0 -            0 =            0 (           0) success 1 range       -1e+06 -        1e+06
-o2                  :     5.98511 -      0.85098 =     -5.13413 (    -5.13413) success 1 range       -1e+06 -        1e+06
-o3                  :     8.02315 -       1.7157 =     -6.30745 (    -6.30745) success 1 range       -1e+06 -        1e+06
-o4                  :     8.67403 -      2.32625 =     -6.34778 (    -6.34778) success 1 range       -1e+06 -        1e+06
-o5                  :     8.97055 -      2.79303 =     -6.17752 (    -6.17752) success 1 range       -1e+06 -        1e+06
-o6                  :     9.14477 -      3.17003 =     -5.97474 (    -5.97474) success 1 range       -1e+06 -        1e+06
-o7                  :     9.25304 -        3.486 =     -5.76704 (    -5.76704) success 1 range       -1e+06 -        1e+06
-o8                  :     9.31935 -      3.75787 =     -5.56148 (    -5.56148) success 1 range       -1e+06 -        1e+06
-o9                  :     9.37603 -      3.99641 =     -5.37962 (    -5.37962) success 1 range       -1e+06 -        1e+06
-o10                 :     9.41131 -      4.20888 =     -5.20243 (    -5.20243) success 1 range       -1e+06 -        1e+06
-o11                 :     9.45456 -      4.40041 =     -5.05415 (    -5.05415) success 1 range       -1e+06 -        1e+06
-o12                 :     9.48148 -      4.57475 =     -4.90673 (    -4.90673) success 1 range       -1e+06 -        1e+06
-o13                 :     9.51172 -      4.73473 =     -4.77699 (    -4.77699) success 1 range       -1e+06 -        1e+06
-o14                 :     9.53764 -      4.88254 =      -4.6551 (     -4.6551) success 1 range       -1e+06 -        1e+06
-o15                 :      9.5527 -      5.01988 =     -4.53282 (    -4.53282) success 1 range       -1e+06 -        1e+06
-o16                 :     9.57928 -      5.14816 =     -4.43112 (    -4.43112) success 1 range       -1e+06 -        1e+06
-o17                 :     9.59383 -      5.26848 =     -4.32535 (    -4.32535) success 1 range       -1e+06 -        1e+06
-o18                 :     9.61462 -      5.38178 =     -4.23284 (    -4.23284) success 1 range       -1e+06 -        1e+06
-o19                 :     9.62917 -      5.48883 =     -4.14034 (    -4.14034) success 1 range       -1e+06 -        1e+06
-o20                 :     9.63858 -      5.59028 =      -4.0483 (     -4.0483) success 1 range       -1e+06 -        1e+06
-...
-o4933               :     10.0885 -      11.6448 =       1.5563 (           0) success 1 range       -1e+06 -        1e+06
-o4934               :     10.1015 -      11.6441 =      1.54258 (           0) success 1 range       -1e+06 -        1e+06
-o4935               :     10.0929 -      11.6436 =      1.55073 (           0) success 1 range       -1e+06 -        1e+06
-o4936               :     10.0812 -      11.6435 =      1.56233 (           0) success 1 range       -1e+06 -        1e+06
-o4937               :      10.077 -      11.6436 =      1.56662 (           0) success 1 range       -1e+06 -        1e+06
-o4938               :     10.0602 -       11.644 =      1.58378 (           0) success 1 range       -1e+06 -        1e+06
-o4939               :     10.0555 -      11.6445 =        1.589 (           0) success 1 range       -1e+06 -        1e+06
-o4940               :       10.06 -      11.6452 =      1.58525 (           0) success 1 range       -1e+06 -        1e+06
-o4941               :     10.0632 -      11.6461 =      1.58294 (           0) success 1 range       -1e+06 -        1e+06
-o4942               :     10.0603 -      11.6471 =      1.58682 (           0) success 1 range       -1e+06 -        1e+06
-o4943               :     10.0564 -      11.6482 =      1.59178 (           0) success 1 range       -1e+06 -        1e+06
-o4944               :     10.0604 -      11.6495 =       1.5891 (           0) success 1 range       -1e+06 -        1e+06
-o4945               :     10.0572 -      11.6508 =      1.59359 (           0) success 1 range       -1e+06 -        1e+06
-o4946               :     10.0554 -      11.6523 =      1.59693 (           0) success 1 range       -1e+06 -        1e+06
-o4947               :      10.063 -      11.6538 =      1.59083 (           0) success 1 range       -1e+06 -        1e+06
-o4948               :     10.0634 -      11.6554 =      1.59204 (           0) success 1 range       -1e+06 -        1e+06
-o4949               :     10.0651 -      11.6571 =      1.59204 (           0) success 1 range       -1e+06 -        1e+06
-o4950               :     10.0627 -      11.6589 =      1.59619 (           0) success 1 range       -1e+06 -        1e+06
-o4951               :       10.07 -      11.6607 =      1.59074 (           0) success 1 range       -1e+06 -        1e+06
-Objective function 2844.6
 
 Jacobian matrix
 Observations              : o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 ... o4943 o4944 o4945 o4946 o4947 o4948 o4949 o4950 o4951
@@ -278,8 +230,8 @@ Eigen vactors and eigen values stored (w01.eigen)
 Number of parameters           : 2
 Number of observations         : 1441
 Number of degrees of freedom   : 1439
-Objective function             : 2844.6
-Posterior measurement variance : 1.97679
+Objective function             : 4.81778e-314
+Posterior measurement variance : 3.34801e-317
 
 Optimality metrics based on covariance matrix of observation errors:
 A-optimality (matrix trace)               : 1.49903e-05
@@ -288,24 +240,24 @@ E-optimality (matrix maximum eigenvalue)  : 1.49496e-05
 D-optimality (matrix determinant)         : 6.08464e-13
 
 Determinant of covariance matrix of observation errors : 6.08464e-13     ( ln(det S) = -28.1278 )
-Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
-Determinant of covariance matrix of measurement errors : 3.9077          ( ln(det V) = 1.36295 )
+Determinant of observation weight matrix               : 1               ( ln(det W) = 4.94066e-324 )
+Determinant of covariance matrix of measurement errors : 0               ( ln(det V) = -1457.42 )
 
-Log likelihood function             : -2044.37
-Maximum likelihood                  : 4088.74
-AIC (Akaike information criterion)  : 4092.74
-BIC                                 : 4103.29
-CIC                                 : 4096.68
-KIC (Kashyap Information Criterion) : 4127.74
+Log likelihood function             : -1314.98
+Maximum likelihood                  : 2629.96
+AIC (Akaike information criterion)  : 2633.96
+BIC                                 : 2644.5
+CIC                                 : 2637.9
+KIC (Kashyap Information Criterion) : 2668.96
 
-Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
+Obtained fit is relatively good (chi^2/dof = 3.34801e-317 < 200)
 Optimized parameters:
 Transformed space (applied during optimization):
-k                                        :    -0.397166 stddev  0.000689496 (   -0.397166 -    -0.397166)
-S                                        :    -0.592031 stddev   0.00539974 (   -0.592031 -    -0.592031)
+k                                        :    -0.397166 stddev 2.83756e-162 (   -0.397166 -    -0.397166)
+S                                        :    -0.592031 stddev 2.22221e-161 (   -0.592031 -    -0.592031)
 Untransformed space:
-k                                        :     -1.93403 stddev  0.000689496 (    -1.93403 -     -1.93403)
-S                                        :     -2.79024 stddev   0.00539974 (    -2.79024 -     -2.79024)
+k                                        :     -1.93403 stddev 2.83756e-162 (    -1.93403 -     -1.93403)
+S                                        :     -2.79024 stddev 2.22221e-161 (    -2.79024 -     -2.79024)
 
 
 Model parameters:
@@ -396,11 +348,11 @@ o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range 
 o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
 o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
 o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
-Simulation time = 7 seconds
-Functional evaluations = 51
+Simulation time = 6 seconds
+Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 7
-Execution  started  on Tue Nov 20 07:52:07 2012
-Execution completed on Tue Nov 20 07:52:14 2012
-Execution date & time stamp: 20121120-075207
+Execution  started  on Wed Nov 21 17:28:24 2012
+Execution completed on Wed Nov 21 17:28:30 2012
+Execution date & time stamp: 20121121-172824

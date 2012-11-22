@@ -15,4 +15,4 @@ o9                  :        9.38 -       9.5316 =      -0.1516 (     -0.1516) s
 o10                 :        9.41 -      9.69177 =     -0.28177 (    -0.28177) success 0 range         9.36 -         9.46
 o11                 :        9.45 -      9.83505 =     -0.38505 (    -0.38505) success 0 range          9.4 -          9.5
 Objective function: 1.36061 Success: 0 (0)
-Number of function evaluations = 49
+Number of function evaluations = 48

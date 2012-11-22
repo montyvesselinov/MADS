@@ -63,12 +63,9 @@ int mprun( int nJob, void *data )
 	exec_name = p->ed->cmdline; // Executable / Execution command line
 	ieval = p->cd->neval; // Current number of model evaluations
 	kidhost = p->cd->paral_hosts; // List of processors/hosts
-	if( nJob > 1 )
-	{
-		tprintf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
-		if( p->cd->pardebug ) tprintf( "\n" );
-	}
-	else if( p->cd->pardebug ) tprintf( "Parallel execution of 1 job ...\n" );
+	if( nJob > 1 ) tprintf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
+	else           tprintf( "Parallel execution of 1 job ... " );
+	if( p->cd->pardebug ) tprintf( "\n" );
 	skip_job = ( int * ) malloc( nJob * sizeof( int ) );
 	if( p->cd->restart ) // Check for already computed jobs (smart restart)
 	{
