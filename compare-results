@@ -1,16 +1,16 @@
 #!/bin/tcsh -f
 if( ! -e $1 ) then
-	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+	echo '--------------------------------------------------------------------------------------------------'
 	echo ERROR Verification failed!
 	echo ERROR File $1 is missing!
-	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+	echo '--------------------------------------------------------------------------------------------------'
 	exit 0
 endif
 if( ! -e $2 ) then
-	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+	echo '--------------------------------------------------------------------------------------------------'
 	echo ERROR Verification failed!
 	echo ERROR File $2 is missing!
-	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+	echo '--------------------------------------------------------------------------------------------------'
 	exit 0
 endif
 grep -v Execution $1 | grep -v second >! $1_e_$$
@@ -21,14 +21,19 @@ set a = $?
 # keeep this lines together
 \rm -f $1_e_$$ $2_e_$$
 if( $a != 0 ) then
-	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
-	echo ERROR Verification failed!
-	tail $1_$$
+	echo ""
+	echo ""
+	echo "ERROR Verification failed (comparing $1 and $2)!"
+	echo '--------------------------------------------------------------------------------------------------'
+	grep '|' $1_$$ | tail
 	\rm -f $1_$$
-	echo '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+	echo '--------------------------------------------------------------------------------------------------'
+	echo ""
+	echo ""
 	exit 0
 else
-	echo Verification is successful!
+	echo "SUCCESS: Verification is successful!"
+	# echo "SUCCESS Verification is successful (comparing $1 and $2)!"
 	\rm -f $1_$$
 	exit 0
 endif

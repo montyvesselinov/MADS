@@ -210,12 +210,12 @@ int func_gsl_dx( const gsl_vector *x, void *data, gsl_matrix *jacobian ) /* Simp
 	for( j = 0; j < p->pd->nOptParam; j++ )
 	{
 		x_old = gsl_vector_get( x_c, j );
-		if( p->cd->sintrans == 0 ) dx = p->pd->var_dx[j];
+		if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 		else dx = p->cd->sindx;
 		gsl_vector_set( x_c, j, x_old + dx );
 		func_gsl( x_c, data, f_xpdx );
 		gsl_vector_set( x_c, j, x_old );
-		for( i = 0; i < p->od->nObs; i++ ) gsl_matrix_set( jacobian, i, j, ( gsl_vector_get( f_xpdx, i ) - gsl_vector_get( f_x, i ) ) / dx ); // first obs, second param
+		for( i = 0; i < p->od->nObs; i++ ) gsl_matrix_set( jacobian, i, j, ( gsl_vector_get( f_xpdx, i ) - gsl_vector_get( f_x, i ) ) / dx ); // order: obs / param
 	}
 	gsl_vector_free( f_x ); gsl_vector_free( f_xpdx ); gsl_vector_free( x_c );
 	return GSL_SUCCESS;

@@ -506,11 +506,12 @@ int LEVMAR_DER(
 				op->cd->lm_eigen--;
 				for( l = j = 0; j < op->od->nObs; j++ )
 					for( i = 0; i < op->pd->nOptParam; i++ )
-						gsl_matrix_set( gsl_jacobian, j, i, jac[l++] );
+						gsl_matrix_set( gsl_jacobian, j, i, jac[l++] ); // LEVMAR is using different jacobian order
 				DeTransform( p, op, jac_min );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					op->pd->var[op->pd->var_index[i]] = jac_min[i];
-				eigen( op, gsl_jacobian, NULL );
+				op->phi = p_eL2;
+				eigen( op, hx, gsl_jacobian, NULL );
 				op->cd->lm_eigen++;
 			}
 		}

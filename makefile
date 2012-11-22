@@ -1,6 +1,6 @@
 PROG = mads
 CMP = ./compare-results
-# CMP = cp
+# CMP = cp -f
 # CC = g++ 
 ## rainier -L/usr/lib/gcc/x86_64-redhat-linux/4.1.1
 ifeq ($(OSTYPE),linux)
@@ -80,9 +80,10 @@ examples:
 	@echo "Example 2: DONE"
 	@echo "**************************************************************************************"
 
-verify:
-	#seed=2096575428
-	#seed=1977879092
+verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-parallel
+	# verify
+
+verify-internal:
 	@echo "**************************************************************************************"
 	@echo " Internal test problems "
 	@echo "**************************************************************************************"
@@ -111,6 +112,8 @@ verify:
 	@echo "TEST 1: DONE"
 	@echo ""
 	@echo ""
+
+verify-multistart1:
 	@echo "**************************************************************************************"
 	@echo " Multistart (paranoid) problems "
 	@echo "**************************************************************************************"
@@ -130,6 +133,8 @@ verify:
 	@echo "TEST 2: DONE"
 	@echo ""
 	@echo ""
+
+verify-contaminant:
 	@echo "**************************************************************************************"
 	@echo " Internal contaminant transport problems "
 	@echo "**************************************************************************************"
@@ -158,6 +163,8 @@ verify:
 	@echo "TEST 3: DONE"
 	@echo ""
 	@echo ""
+
+verify-multistart2:
 	@echo "**************************************************************************************"
 	@echo " Internal contaminant transport problems "
 	@echo "**************************************************************************************"
@@ -188,6 +195,8 @@ verify:
 	@echo "TEST 4: DONE"
 	@echo ""
 	@echo ""
+
+verify-external:
 	@echo "**************************************************************************************"
 	@echo " External problems "
 	@echo "**************************************************************************************"
@@ -227,6 +236,8 @@ verify:
 	@echo "TEST 6: DONE"
 	@echo ""
 	@echo ""
+
+verify-parallel:
 	@echo "**************************************************************************************"
 	@echo " Parallel execution of external problems "
 	@echo "**************************************************************************************"
@@ -245,12 +256,14 @@ verify:
 
 clean-example:
 	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info
+	rm -fR example/wells-short_w01parallel*
 
 astyle:
 	astyle $(SOURCESTYLE)
 	rm -f $(SOURCESTYLE:%c=%c.orig)
 
 tar:
+	rm -f mads.tgz
 	tar -cvzf mads.tgz `hg st -c -m | awk '{print $$2}'` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'` .hg
 
 tarf:

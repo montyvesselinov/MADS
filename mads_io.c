@@ -144,7 +144,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "calib", 5 ) ) { w = 1; cd->problem_type = CALIBRATE; }
 		if( !strncasecmp( word, "lsens", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->lm_eigen = 1; else cd->problem_type = LOCALSENS; }
 		if( !strncasecmp( word, "eigen", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->lm_eigen = 1; else cd->problem_type = EIGEN; }
-		if( !strncasecmp( word, "lmeigen", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; sscanf( word, "lmeigen=%d", &cd->lm_eigen ); if( cd->lm_eigen == 0 ) cd->lm_eigen = 1; }
+		if( !strncasecmp( word, "lmeigen", 7 ) ) { w = 1; cd->problem_type = CALIBRATE; sscanf( word, "lmeigen=%d", &cd->lm_eigen ); if( cd->lm_eigen == 0 ) cd->lm_eigen = 1; }
 		if( !strncasecmp( word, "monte", 5 ) ) { w = 1; cd->problem_type = MONTECARLO; }
 		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; }
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
@@ -308,7 +308,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		{
 			if( cd->paranoid ) tprintf( "Multi-Start Levenberg-Marquardt optimization\n" );
 			else tprintf( "Levenberg-Marquardt optimization\n" );
-			if( cd->calib_type == SIMPLE ) cd->lm_eigen = 1;
+			if( cd->calib_type == SIMPLE && cd->lm_eigen == 0 ) cd->lm_eigen = 1;
 		}
 		else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
 			tprintf( "Particle-Swarm optimization\n" );
@@ -322,7 +322,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 			if( cd->init_particles > 1 ) tprintf( "Number of particles = %d\n", cd->init_particles );
 			if( cd->init_particles == -1 ) tprintf( "Number of particles = will be computed internally\n" );
 		}
-		if( cd->lm_eigen == 1 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
+		if( cd->lm_eigen > 0 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
 		tprintf( "\nGlobal termination criteria:\n" );
 		tprintf( "1: Maximum number of evaluations = %d\n", cd->maxeval );
 		tprintf( "2: Objective function cutoff value: " );
@@ -1150,6 +1150,7 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->seed_init < 0 ) fprintf( outfile, " seed=%d", cd->seed_init * -1 );
 	if( cd->nretries > 0 ) fprintf( outfile, " retry=%d", cd->nretries );
 	if( cd->init_particles > 1 ) fprintf( outfile, " particles=%d", cd->init_particles );
+	if( cd->lm_eigen ) fprintf( outfile, " lm_eigen=%d", cd->lm_eigen );
 	else if( cd->init_particles < 0 ) fprintf( outfile, " particles" );
 	if( cd->niter > 0 ) fprintf( outfile, " iter=%d", cd->niter );
 	fprintf( outfile, " eval=%d", cd->maxeval );

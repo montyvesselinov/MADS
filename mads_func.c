@@ -37,8 +37,8 @@ int func_extrn_read( int ieval, void *data, double *f );
 int func_extrn_check_read( int ieval, void *data );
 int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
-void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data );
-int func_dx( double *x, double *f_x, void *data, double *jacobian );
+void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data ); // Jacobian order: obs / param
+int func_dx( double *x, double *f_x, void *data, double *jacobian ); // Jacobian order: param / obs
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
 void Transform( double *v, void *data, double *vt );
@@ -723,7 +723,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	func_dx( x, f, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
 		for( i = 0; i < p->od->nObs; i++, k++ )
-			jac[i * p->pd->nOptParam + j] = jacobian[k];
+			jac[i * p->pd->nOptParam + j] = jacobian[k]; // order: obs / param
 	free( jacobian );
 }
 
@@ -742,8 +742,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
 		{
 			compute_center = 1;
-			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
-			{ tprintf( "Not enough memory!\n" ); return( 1 ); }
+			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_extrn_write( ++ieval, x, data );
 		}
 		for( k = j = 0; j < p->pd->nOptParam; j++ )

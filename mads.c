@@ -34,6 +34,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <float.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_vector.h>
@@ -58,7 +59,7 @@
 // Model analyses
 int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
 int optimize_pso( struct opt_data *op ); // PSO optimization
-int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
+int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
 int check( struct opt_data *op );
 int igrnd( struct opt_data *op );
 int igpd( struct opt_data *op );
@@ -444,7 +445,7 @@ int main( int argn, char *argv[] )
 				else cd.restart = 1; // Attempt restart
 			}
 			if( cd.restart )
-				tprintf( "DEFAULT Restart: zip file %s is consistent with date/time stamp of the MADS input file\n(to ignore the zip file, either delete the zip file, or use keyword \'restart=0\' ... \n", filename );
+				tprintf( "DEFAULT Restart: zip file %s is consistent with date/time stamp of the MADS input file\n(IMPORTANT: to avoid restart either delete zip file %s, or use keyword \'restart=0\')\n", filename, filename );
 		}
 		else if( cd.restart == -1 ) // Forced restart
 		{
@@ -540,7 +541,7 @@ int main( int argn, char *argv[] )
 	strcpy( op.label, "" ); // No labels needed below
 	// ------------------------------------------------------------------------------------------------ EIGEN || LOCALSENS
 	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS )
-		status = eigen( &op, NULL, NULL ); // Eigen or sensitivity analysis run
+		status = eigen( &op, NULL, NULL, NULL ); // Eigen or sensitivity analysis run
 	// ------------------------------------------------------------------------------------------------ ABAGUS
 	if( cd.problem_type == ABAGUS ) // Particle swarm sensitivity analysis run
 	{
@@ -943,7 +944,7 @@ int optimize_pso( struct opt_data *op )
 		print_results( op, 1 );
 	}
 	if( op->cd->lm_eigen && op->cd->solution_type[0] != TEST )
-		if( eigen( op, NULL, NULL ) == 0 ) // Execute eigen analysis of the final results
+		if( eigen( op, NULL, NULL, NULL ) == 0 ) // Execute eigen analysis of the final results
 			return( 0 );
 	return( 1 );
 }
@@ -1232,7 +1233,7 @@ int optimize_lm( struct opt_data *op )
 		func_global( opt_params, op, op->od->res );
 	}
 	if( ( op->cd->lm_eigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->calib_type == SIMPLE )
-		if( eigen( op, gsl_jacobian, gsl_covar ) == 0 ) // Eigen analysis
+		if( eigen( op, op->od->res, gsl_jacobian, NULL ) == 0 ) // Eigen analysis
 			return( 0 );
 	if( !debug && standalone && op->cd->calib_type == SIMPLE ) tprintf( "\n" );
 	if( op->cd->paranoid ) free( var_lhs );
@@ -1241,29 +1242,35 @@ int optimize_lm( struct opt_data *op )
 	return( 1 );
 }
 
-int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar )
+int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar )
 {
 	FILE *out;
 	double phi, stddev_scale, gf;
 	double *opt_params, *x_u, *x_d, *stddev, *jacobian;
 	double aopt, copt, eopt, dopt, aic, bic, cic, kic, ln_det_v, ln_det_weight, sml, tt;
-	int   debug, compute_covar, compute_jacobian;
+	int   debug, compute_center, compute_jacobian, compute_covar;
 	int   i, j, k, ier, debug_level, status, dof;
 	double eps;
 	char filename[200], buf[20];
 	static double student_dist[34] = {12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042, 2.021, 2.000, 1.980, 1.960 };
+	tprintf( "Eigen analysis ...\n" );
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
 	gsl_matrix *eigenvec = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *eigenval = gsl_vector_alloc( op->pd->nOptParam );
 	gsl_eigen_symmv_workspace *eigenwork = gsl_eigen_symmv_alloc( op->pd->nOptParam );
-	compute_jacobian = compute_covar = 0;
-	if( gsl_jacobian == NULL ) { gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam ); compute_jacobian = 1; }
-	if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	compute_center = compute_jacobian = compute_covar = 0;
+	if( f_x == NULL ) { compute_center = 1; if( ( f_x = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } }
+	if( gsl_jacobian == NULL )
+	{
+		compute_jacobian = 1;
+		gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam );
+		if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	}
+	if( gsl_covar == NULL ) { gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam ); compute_covar = 1; }
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( x_u = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( x_d = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( stddev = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	tprintf( "Eigen analysis ...\n" );
 	debug = MAX( op->cd->lm_eigen, op->cd->debug );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
@@ -1271,7 +1278,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		gsl_vector_set( gsl_opt_params, i, opt_params[i] );
 	op->cd->pderiv = op->cd->oderiv = -1;
-	if( compute_jacobian )
+	if( compute_center )
 	{
 		if( debug )
 		{
@@ -1279,19 +1286,34 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 			debug_level = op->cd->fdebug; op->cd->fdebug = 3;
 		}
 		func_global( opt_params, op, op->od->res );
-		if( debug ) op->cd->fdebug = debug_level;
+		for( j = 0; j < op->od->nObs; j++ )
+			f_x[j] = op->od->res[j];
 		phi = op->phi;
-		/*		op->pd->var_current_gsl = gsl_vector_alloc( op->pd->nOptParam );
-				op->od->obs_current_gsl = gsl_vector_alloc(op->od->nObs);
-				func_gsl_deriv_dx( gsl_opt_params, op, gsl_jacobian ); // Using GSL function
-				gsl_vector_free( op->od->obs_current_gsl );
-				gsl_vector_free( op->pd->var_current_gsl ); */
-		func_gsl_dx( gsl_opt_params, op, gsl_jacobian ); // Compute Jacobian using forward difference
-		func_dx( opt_params, NULL, op, jacobian ); // Compute Jacobian using forward difference
+		if( debug ) op->cd->fdebug = debug_level;
+	}
+	else // Do not need to compute the center state
+	{
+		if( debug ) tprintf( "Analyzed state provided externally.\n" );
+		phi = op->phi;
+	}
+	if( compute_jacobian )
+	{
+		/*
+		op->pd->var_current_gsl = gsl_vector_alloc( op->pd->nOptParam );
+		op->od->obs_current_gsl = gsl_vector_alloc(op->od->nObs);
+		func_gsl_deriv_dx( gsl_opt_params, op, gsl_jacobian ); // Compute Jacobian using GSL function
+		gsl_vector_free( op->od->obs_current_gsl );
+		gsl_vector_free( op->pd->var_current_gsl ); */
+		// func_gsl_dx( gsl_opt_params, op, gsl_jacobian ); // Compute Jacobian using forward difference
+		func_dx( opt_params, f_x, op, jacobian ); // Compute Jacobian using forward difference
+		for( k = i = 0; i < op->pd->nOptParam; i++ )
+			for( j = 0; j < op->od->nObs; j++, k++ )
+				gsl_matrix_set( gsl_jacobian, j, i, jacobian[k] );
 	}
 	if( debug )
 	{
-		tprintf( "\nJacobian matrix\n" ); // Print Jacobian
+		if( compute_jacobian ) tprintf( "\nJacobian matrix\n" ); // Print Jacobian
+		else tprintf( "\nJacobian matrix (provided externally)\n" );
 		tprintf( "%-25s :", "Observations" );
 		for( k = 0; k < op->od->nObs; k++ )
 		{
@@ -1305,8 +1327,8 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 			for( j = 0; j < op->od->nObs; j++ )
 			{
 				eps = gsl_matrix_get( gsl_jacobian, j, i );
-				if( fabs( eps ) > 1e3 ) sprintf( buf, " %6.0e", eps );
-				else sprintf( buf, " %6.2f", eps );
+				if( fabs( eps ) > 1e3 ) sprintf( buf, "%6.0e", eps );
+				else sprintf( buf, "%6.1f", eps );
 				if( op->od->nObs < 30 || ( j < 10 || j > op->od->nObs - 10 ) ) tprintf( " %s", buf );
 				if( op->od->nObs >= 30 && j == 11 ) tprintf( " ..." );
 			}
@@ -1343,16 +1365,17 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	}
 	fclose( out );
 	tprintf( "Jacobian matrix stored (%s)\n", filename );
-	if( gsl_covar == NULL ) { gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam ); compute_covar = 1; }
 	if( compute_covar ) // Standalone eigen analysis
 	{
+		// gsl_matrix_set_zero( gsl_covar );
 		ier = gsl_multifit_covar( gsl_jacobian, 0.0, gsl_covar );
 		if( ier != GSL_SUCCESS ) { tprintf( "Problem computing covariance matrix!\n" ); ier = 1; }
 		else ier = 0;
 	}
 	if( debug )
 	{
-		tprintf( "\nCovariance matrix\n" );
+		if( compute_covar ) tprintf( "\nCovariance matrix\n" ); // Print Jacobian
+		else tprintf( "\nCovariance matrix (provided externally)\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
 			tprintf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
@@ -1379,7 +1402,8 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	aopt = 0;
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		aopt += gsl_matrix_get( gsl_covar, i, i );
-	for( ier = 0, i = 0; i < op->pd->nOptParam; i++ )
+	ier = 0;
+	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		stddev[i] = sqrt( gsl_matrix_get( gsl_covar, i, i ) ); // compute standard deviations before the covariance matrix is destroyed by eigen functions
 		if( stddev[i] < DBL_EPSILON ) ier = 1;
@@ -1425,14 +1449,9 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 				tprintf( "\n" );
 			}
 			tprintf( "%-25s :", "Eigenvalues" );
-			for( i = 0; i < op->pd->nOptParam; i++ )
-				tprintf( " %6.0e", gsl_vector_get( eigenval, i ) );
+			for( j = 0; j < op->pd->nOptParam; j++ )
+				tprintf( " %6.0e", gsl_vector_get( eigenval, j ) );
 			tprintf( "\n" );
-			copt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) ) / fabs( gsl_vector_get( eigenval, 0 ) );
-			eopt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) );
-			dopt = 1;
-			for( i = op->pd->nOptParam - 1; i >= 0; i-- )
-				dopt *= fabs( gsl_vector_get( eigenval, i ) );
 			tprintf( "\nEigenvectors (sorted by eigenvalues)\n" );
 			gsl_eigen_symmv_sort( eigenval, eigenvec, GSL_EIGEN_SORT_VAL_ASC );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1443,10 +1462,11 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 				tprintf( "\n" );
 			}
 			tprintf( "%-25s :", "Eigenvalues" );
-			for( i = 0; i < op->pd->nOptParam; i++ )
-				tprintf( " %6.0e", gsl_vector_get( eigenval, i ) );
+			for( j = 0; j < op->pd->nOptParam; j++ )
+				tprintf( " %6.0e", gsl_vector_get( eigenval, j ) );
 			tprintf( "\n" );
 		}
+		else gsl_eigen_symmv_sort( eigenval, eigenvec, GSL_EIGEN_SORT_VAL_ASC );
 		sprintf( filename, "%s", op->root );
 		if( op->label[0] != 0 ) sprintf( filename, "%s.%s", filename, op->label );
 		if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
@@ -1455,16 +1475,22 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
 			fprintf( out, "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
-			for( j = 0; j < op->pd->nOptParam; j++ )
+			for( j = op->pd->nOptParam - 1; j >= 0; j-- )
 				fprintf( out, " %g", gsl_matrix_get( eigenvec, i, j ) );
 			fprintf( out, "\n" );
 		}
 		fprintf( out, "%-25s :", "Eigenvalues" );
-		for( i = 0; i < op->pd->nOptParam; i++ )
-			fprintf( out, " %g", gsl_vector_get( eigenval, i ) );
+		for( j = 0; j < op->pd->nOptParam; j++ )
+			fprintf( out, " %g", gsl_vector_get( eigenval, j ) );
 		fprintf( out, "\n" );
 		fclose( out );
 		tprintf( "Eigen vactors and eigen values stored (%s)\n", filename );
+		// compute performance metrics
+		copt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) ) / fabs( gsl_vector_get( eigenval, 0 ) );
+		eopt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) );
+		dopt = 1;
+		for( j = op->pd->nOptParam - 1; j >= 0; j-- ) // reverse ordering to enhance accuracy small to big
+			dopt *= fabs( gsl_vector_get( eigenval, j ) );
 	}
 	else
 		tprintf( "Correlation matrix and eigen vectors cannot be computed!\n" );
@@ -1472,7 +1498,10 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	if( dof > 0 )
 	{
 		stddev_scale = sqrt( phi / dof );
+		for( i = 0; i < op->pd->nOptParam; i++ )
+			stddev[i] *= stddev_scale;
 		gf = phi / dof;
+		ln_det_weight = 0;
 		for( i = 0; i < op->od->nObs; i++ )
 			if( op->od->obs_weight[i] > 0 )
 				ln_det_weight += log( op->od->obs_weight[i] );
@@ -1526,7 +1555,6 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 	{
 		k = op->pd->var_index[i];
 		if( op->cd->sintrans == 1 ) opt_params[i] = asin( sin( opt_params[i] ) );
-		stddev[i] *= stddev_scale;
 		x_u[i] = opt_params[i] + ( double ) tt * stddev[i];
 		x_d[i] = opt_params[i] - ( double ) tt * stddev[i];
 		status = 0;
@@ -1564,7 +1592,7 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 			if( dof > 0 )
 			{
 				if( op->pd->var_log[k] == 0 ) tprintf( "%12g stddev %12g (%12g - %12g)", op->pd->var[k], stddev[i], x_d[i], x_u[i] );
-				else tprintf( "%12g stddev %12g (%12g - %12g)", pow( 10, op->pd->var[k] ), stddev[k], pow( 10, x_d[i] ), pow( 10, x_u[i] ) );
+				else tprintf( "%12g stddev %12g (%12g - %12g)", pow( 10, op->pd->var[k] ), stddev[i], pow( 10, x_d[i] ), pow( 10, x_u[i] ) );
 				status = 0;
 				if( x_d[i] <= op->pd->var_min[k] ) { status = 1; x_d[i] = op->pd->var_min[k]; }
 				if( x_u[i] >= op->pd->var_max[k] ) { status = 1; x_u[i] = op->pd->var_max[k]; }
@@ -1579,10 +1607,11 @@ int eigen( struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar 
 			}
 		}
 	}
-	free( opt_params ); free( stddev ); free( x_u ); free( x_d ); free( jacobian );
+	free( opt_params ); free( stddev ); free( x_u ); free( x_d );
 	gsl_vector_free( gsl_opt_params );
 	gsl_matrix_free( eigenvec ); gsl_vector_free( eigenval ); gsl_eigen_symmv_free( eigenwork );
-	if( compute_jacobian ) gsl_matrix_free( gsl_jacobian );
+	if( compute_center ) free( f_x );
+	if( compute_jacobian ) { gsl_matrix_free( gsl_jacobian ); free( jacobian ); }
 	if( compute_covar ) gsl_matrix_free( gsl_covar );
 	return( 1 );
 }
