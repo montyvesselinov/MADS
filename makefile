@@ -13,6 +13,7 @@ else
 	LG = -lgfortran
 	CC = gcc
 endif
+# CFLAGS = -Wall -g $(DIRS)
 CFLAGS = -Wall $(DIRS)
 LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas $(LG) $(DIRS)
 OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o 

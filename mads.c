@@ -509,7 +509,46 @@ int main( int argn, char *argv[] )
 		status = check( &op );
 	// ------------------------------------------------------------------------------------------------ IGRND
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
-		status = igrnd( &op );
+	{
+		if( fabs( cd.obsstep ) > DBL_EPSILON && preds.nObs > 0 )
+		{
+			for( i = 0; i < preds.nObs; i++ )
+			{
+				if( cd.obsstep >  DBL_EPSILON ) preds.obs_best[i] = -HUGE_VAL;
+				if( cd.obsstep < -DBL_EPSILON ) preds.obs_best[i] = HUGE_VAL;
+				k = preds.obs_index[i];
+				od.obs_weight[k] *= -1;
+			}
+			k = preds.obs_index[0];
+			if( cd.obsstep > DBL_EPSILON ) { od.obs_target[k] = od.obs_min[k]; od.obs_min[k] -= cd.obsstep / 2; } // obsstep is negative
+			else { od.obs_target[k] = od.obs_max[k]; od.obs_max[k] -= cd.obsstep / 2; } // obsstep is negative
+			tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
+			while( 1 )
+			{
+				tprintf( "\n\nTarget %g\n", od.obs_target[k] );
+				tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
+				status = igrnd( &op );
+				tprintf( "\nCurrent best result %g Success %d\n", preds.obs_best[0], op.success );
+				if( !op.success ) break;
+				od.obs_target[k] += cd.obsstep;
+				if( cd.obsstep >  DBL_EPSILON ) { if( od.obs_target[k] > od.obs_max[k] ) break; else od.obs_min[k] += cd.obsstep; } // obsstep is positive
+				if( cd.obsstep < -DBL_EPSILON ) { if( od.obs_target[k] < od.obs_min[k] ) break; else od.obs_max[k] += cd.obsstep; } // obsstep is negative
+			}
+			tprintf( "\nInfo-gap results for model predictions:\n" );
+			for( i = 0; i < preds.nObs; i++ )
+			{
+				k = preds.obs_index[i];
+				if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: max %12g\n", od.obs_id[k], preds.obs_best[i] );
+				else tprintf( "%-20s: min %12g\n", od.obs_id[k], preds.obs_best[i] );
+				od.obs_target[k] = preds.obs_target[i];
+				od.obs_min[k] = preds.obs_min[i];
+				od.obs_max[k] = preds.obs_max[i];
+				od.obs_weight[k] *= -1;
+			}
+			tprintf( "\n" );
+		}
+		else status = igrnd( &op );
+	}
 	// ------------------------------------------------------------------------------------------------ IGPD
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGPD ) /* Calibration analysis using discretized initial guesses */
 		status = igpd( &op );
@@ -1809,6 +1848,15 @@ int igrnd( struct opt_data *op )
 			tprintf( "Evaluations: %d ", op->cd->neval );
 			if( op->cd->njac > 0 ) tprintf( "Jacobians: %d ", op->cd->njac );
 			tprintf( "Objective function: %g Success: %d", op->phi, op->success );
+		}
+		if( fabs( op->cd->obsstep ) > DBL_EPSILON && op->success )
+		{
+			for( i = 0; i < op->preds->nObs; i++ )
+			{
+				k = op->preds->obs_index[i];
+				if( op->cd->obsstep >  DBL_EPSILON && op->preds->obs_best[i] < op->od->obs_best[k] ) op->preds->obs_best[i] = op->od->obs_current[k];
+				if( op->cd->obsstep < -DBL_EPSILON && op->preds->obs_best[i] > op->od->obs_best[k] ) op->preds->obs_best[i] = op->od->obs_current[k];
+			}
 		}
 		if( op->cd->mdebug || op->cd->nreal == 1 )
 		{

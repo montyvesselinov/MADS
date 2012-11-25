@@ -430,8 +430,11 @@ int LEVMAR_DER(
 			if( skipped && op->cd->ldebug > 2 ) tprintf( "\n" );
 			if( skipped )
 			{
-				if( skipped > 1 ) tprintf( "WARNING: %d observations have zero sensitivities!\n", skipped );
-				else tprintf( "WARNING: %d observation has zero sensitivities!\n", skipped );
+				if( op->cd->ldebug )
+				{
+					if( skipped > 1 ) tprintf( "WARNING: %d observations have zero sensitivities!\n", skipped );
+					else tprintf( "WARNING: %d observation has zero sensitivities!\n", skipped );
+				}
 				if( skipped >= op->od->nCObs )
 				{
 					tprintf( "\nERROR: All the calibration targets (%d observations with weight greater than zero) have zero sensitivities! Model setup error!\n", op->od->nCObs );
@@ -590,6 +593,7 @@ int LEVMAR_DER(
 				DeTransform( p, op, jac_min );
 				DeTransform( p_old2, op, jac_max );
 				max_change = 0; min_change = HUGE_VAL;
+				ipar_min = ipar_max = 0;
 				for( i = 0 ; i < m; ++i )
 				{
 					j = op->pd->var_index[i];

@@ -80,7 +80,7 @@ void mads_info()
 	printf( "   ssd0               - sum of the squared discrepancies\n" );
 	printf( "   ssda               - sum of the squared discrepancies and absolute residuals\n" );
 	printf( "   ssdr               - sum of the squared discrepancies and squared residuals\n" );
-	printf( "\ntransformation of parameter space and observations:\n" );
+	printf( "\ntransformation of parameter and observation properties:\n" );
 	printf( "   nosin              - Sin transformation of optimized parameters is not applied [parameters are sin transformed by default]\n" );
 	printf( "   sindx              - Parameter space step for numerical derivatives of sin transformed parameters\n" );
 	printf( "                        [default sindx=1e-7 for internal problems; sindx=0.1 for external problems]\n" );
@@ -93,6 +93,8 @@ void mads_info()
 	printf( "   oweight=[-1,0,1,2] - Weights for all the observation residuals are defined:\n" );
 	printf( "                        0 = zero weight, 1 = unit weight, 2 = weight reversely proportional to observation\n" );
 	printf( "                        [default oweight=-1; weights for each observation are explicitly defined in the input file]\n" );
+	printf( "   obsdomain=[float]  - observation space domain size [default provided in the MADS input file]\n" );
+	printf( "   obsstep=[float]    - observation space domain step to explore info-gap observation uncertainty [default ignored]\n" );
 	printf( "\nparallelization (parallelization environment and available resources are internally detected by default):\n" );
 	printf( "   np=[integer]       - Number of requested parallel jobs [optional]\n" );
 	printf( "   rstfile=[string]   - name of existing ZIP restart file to be used (created by previous Parallel MADS run) [optional]\n" );

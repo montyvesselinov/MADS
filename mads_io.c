@@ -111,6 +111,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->phi_cutoff = 0;
 	cd->parerror = -1;
 	cd->obserror = -1;
+	cd->obsdomain = -1;
+	cd->obsstep = -1;
 	cd->obsrange = 0;
 	cd->test_func = -1;
 	cd->test_func_dim = 0;
@@ -194,12 +196,14 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "obsrange", 8 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; }
 		if( !strncasecmp( word, "success", 7 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; } // legacy
 		if( !strncasecmp( word, "truth", 5 ) ) { w = 1; sscanf( word, "truth=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; } // legacy
-		if( !strncasecmp( word, "parerror", 8 ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
-		if( !strncasecmp( word, "obserror", 8 ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->parerror = 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
 		if( !strncasecmp( word, "sindx=", 5 ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
 		if( !strncasecmp( word, "lindx=", 5 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
 		if( !strncasecmp( word, "pardx", 5 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
+		if( !strncasecmp( word, "parerror", 8 ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
+		if( !strncasecmp( word, "obserror", 8 ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->parerror = 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
 		if( !strncasecmp( word, "pardomain=", 10 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardomain=%lf", &cd->pardomain ); if( cd->pardomain < DBL_EPSILON ) cd->pardomain = 100; }
+		if( !strncasecmp( word, "obsdomain=", 10 ) ) { w = 1; sscanf( word, "obsdomain=%lf", &cd->obsdomain ); if( cd->obsdomain < DBL_EPSILON ) cd->pardomain = 0; }
+		if( !strncasecmp( word, "obsstep=", 8 ) ) { w = 1; sscanf( word, "obsstep=%lf", &cd->obsstep ); if( fabs( cd->obsstep ) < DBL_EPSILON ) cd->obsstep = 0; }
 		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
 		if( !strncasecmp( word, "np", 2 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( !strncasecmp( word, "restart", 7 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
@@ -391,8 +395,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->debug || cd->fdebug ) tprintf( "Debug (verbosity) level for the analytical model evaluations: fdebug=%d\n", cd->fdebug );
 	if( cd->debug && cd->problem_type == CALIBRATE )
 	{
-		tprintf( "Debug (verbosity) level for Levenberg-Marquardt optimization progress: ldebug= %d\n", cd->ldebug );
-		tprintf( "Debug (verbosity) level for Particle-Swarm optimization progress: pdebug= %d\n", cd->pdebug );
+		tprintf( "Debug (verbosity) level for Levenberg-Marquardt optimization progress: ldebug=%d\n", cd->ldebug );
+		tprintf( "Debug (verbosity) level for Particle-Swarm optimization progress: pdebug=%d\n", cd->pdebug );
 		tprintf( "Debug (verbosity) level for objective function progress: odebug=%d\n", cd->odebug );
 	}
 	if( ( cd->debug || cd->mdebug ) && cd->problem_type != CREATE && cd->problem_type != EIGEN )
@@ -751,6 +755,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		{
 			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0;
 			fscanf( infile, "%s %lf %lf %d %lf %lf\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i], &od->obs_log[i], &od->obs_min[i], &od->obs_max[i] );
+			if( cd->obsdomain > DBL_EPSILON && &od->obs_weight[i] > 0 ) { od->obs_min[i] = od->obs_target[i] - cd->obsdomain; od->obs_max[i] = od->obs_target[i] + cd->obsdomain; }
 			if( od->obs_max[i] < od->obs_target[i] || od->obs_min[i] > od->obs_target[i] )
 			{
 				tprintf( "ERROR: Observation target is outside the specified min/max range! " );
@@ -913,6 +918,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				tprintf( "\tObservation #%d: time %5g concentration %5g weight %7g log %1d acceptable range: min %5g max %5g\n\n", j + 1, ( *wd ).obs_time[i][j], ( *wd ).obs_target[i][j], ( *wd ).obs_weight[i][j], ( *wd ).obs_log[i][j], ( *wd ).obs_min[i][j], ( *wd ).obs_max[i][j] );
 				bad_data = 1;
 			}
+			if( cd->obsdomain > DBL_EPSILON && ( *wd ).obs_weight[i][j] > 0 ) { wd->obs_min[i][j] = wd->obs_target[i][j] - cd->obsdomain; wd->obs_max[i][j] = wd->obs_target[i][j] + cd->obsdomain; }
 			if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], ( *wd ).y[i], ( *wd ).z1[i], ( *wd ).z2[i], ( *wd ).nWellObs[i] );
 			if( cd->ologtrans == 1 )( *wd ).obs_log[i][j] = 1;
 			else if( cd->ologtrans == 0 )( *wd ).obs_log[i][j] = 0;
@@ -933,8 +939,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				tprintf( "Observation %s(%g): min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
 				bad_data = 1;
 			}
-			if( ( *wd ).obs_weight[i][j] > 0 )( *od ).nObs++;
-			if( ( *wd ).obs_weight[i][j] < 0 )( *preds ).nObs++;
+			if( ( *wd ).obs_weight[i][j] > DBL_EPSILON )( *od ).nObs++;
+			if( ( *wd ).obs_weight[i][j] < -DBL_EPSILON ) { ( *preds ).nObs++; if( cd->problem_type != INFOGAP )( *od ).nObs++; }
 			( *od ).nTObs++;
 			if( j + 1 < ( *wd ).nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " ); }
 		}
@@ -991,7 +997,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( op->pd->nOptParam > op->od->nObs ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
 	for( k = i = 0; i < ( *wd ).nW; i++ )
 		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
-			if( ( *wd ).obs_weight[i][j] > DBL_EPSILON )
+			if( ( cd->problem_type == INFOGAP && ( *wd ).obs_weight[i][j] > DBL_EPSILON ) || ( cd->problem_type != INFOGAP && fabs( ( *wd ).obs_weight[i][j] ) > DBL_EPSILON ) )
 			{
 				od->obs_target[k] = ( *wd ).obs_target[i][j];
 				od->obs_weight[k] = ( *wd ).obs_weight[i][j];
@@ -1008,6 +1014,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( ( *preds ).nObs > 0 )
 	{
 		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
+		if( cd->problem_type != INFOGAP ) preds->obs_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
 		preds->obs_target = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_current = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_best = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
@@ -1015,14 +1022,20 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		preds->time_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
 		preds->obs_id = char_matrix( ( *preds ).nObs, 50 );
 		preds->obs_weight = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		preds->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		preds->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-		preds->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		for( k = i = 0; i < ( *wd ).nW; i++ )
+		preds->obs_min = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
+		preds->obs_max = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
+		preds->obs_log = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
+		preds->res = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
+		for( c = k = i = 0; i < ( *wd ).nW; i++ )
 			for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
-				if( ( *wd ).obs_weight[i][j] < 0 )
+			{
+				if( cd->problem_type != INFOGAP )
 				{
+					if( fabs( ( *wd ).obs_weight[i][j] ) > DBL_EPSILON ) c++;
+				}
+				if( ( *wd ).obs_weight[i][j] < -DBL_EPSILON )
+				{
+					if( cd->problem_type != INFOGAP ) preds->obs_index[k] = c - 1;
 					preds->obs_target[k] = ( *wd ).obs_target[i][j];
 					preds->obs_weight[k] = 1.0;
 					preds->obs_min[k] = ( *wd ).obs_target[i][j];
@@ -1034,6 +1047,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 					k++;
 				}
+			}
 	}
 	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == INFOGAP ) ) // INFOGAP problem
 	{

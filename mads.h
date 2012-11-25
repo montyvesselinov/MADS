@@ -144,6 +144,8 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	double lindx; // increments to compute model parameter gradients in the linear (not sin) transformed parameter space
 	double pardx; // parameter space discretization step for pso, tribes, squads and abagus
 	double pardomain; // parameter space domain size for test functions
+	double obsdomain; // observation space domain size for info-gap analyses
+	double obsstep; // observation space domain step for info-gap analyses
 	int debug; // various debug / verbosity levels
 	int fdebug;
 	int ldebug;
@@ -206,6 +208,7 @@ struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 	double *pred_crit; // value of prediction criterion
 	double *obs_current; // current model predicted observation; NOTE: redundant
 	double *obs_best; // current model predicted observation; NOTE: redundant
+	int *obs_index;
 	int *obs_log; // flag for log transformation
 	int *well_index; // well index for observations
 	int *time_index; // time index for observations
