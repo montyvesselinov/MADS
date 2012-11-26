@@ -112,7 +112,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->parerror = -1;
 	cd->obserror = -1;
 	cd->obsdomain = -1;
-	cd->obsstep = -1;
+	cd->obsstep = 0;
 	cd->obsrange = 0;
 	cd->test_func = -1;
 	cd->test_func_dim = 0;

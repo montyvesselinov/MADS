@@ -38,6 +38,7 @@ Debug/*
 *.ofe
 *.igpd-opt*
 *.mads_output_*
+*.outp-*
 *.vtk
 *.btc
 *.btc-peak

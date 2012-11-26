@@ -512,6 +512,7 @@ int main( int argn, char *argv[] )
 	{
 		if( fabs( cd.obsstep ) > DBL_EPSILON && preds.nObs > 0 )
 		{
+			tprintf( "\n\nInfo-gap Observation step %g Observation domain %g\n", cd.obsstep, cd.obsdomain );
 			for( i = 0; i < preds.nObs; i++ )
 			{
 				if( cd.obsstep >  DBL_EPSILON ) preds.obs_best[i] = -HUGE_VAL;
@@ -522,6 +523,7 @@ int main( int argn, char *argv[] )
 			k = preds.obs_index[0];
 			if( cd.obsstep > DBL_EPSILON ) { od.obs_target[k] = od.obs_min[k]; od.obs_min[k] -= cd.obsstep / 2; } // obsstep is negative
 			else { od.obs_target[k] = od.obs_max[k]; od.obs_max[k] -= cd.obsstep / 2; } // obsstep is negative
+			tprintf( "Info-gap Observation:\n", cd.obsstep, cd.obsdomain );
 			tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
 			while( 1 )
 			{

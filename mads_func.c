@@ -663,6 +663,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				err = log10( c ) - log10( t );
 			}
 			f[k] = err * w;
+
 			if( p->cd->compute_phi ) phi += f[k] * f[k];
 			if( p->cd->obserror > DBL_EPSILON )
 			{
@@ -685,6 +686,15 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		}
 	}
 	p->success = success_all; // Just in case
+	if( fabs( p->cd->obsstep ) > DBL_EPSILON && p->success )
+	{
+		for( i = 0; i < p->preds->nObs; i++ )
+		{
+			k = p->preds->obs_index[i];
+			if( p->cd->obsstep >  DBL_EPSILON && p->preds->obs_best[i] < p->od->obs_best[k] ) p->preds->obs_best[i] = p->od->obs_current[k];
+			if( p->cd->obsstep < -DBL_EPSILON && p->preds->obs_best[i] > p->od->obs_best[k] ) p->preds->obs_best[i] = p->od->obs_current[k];
+		}
+	}
 	if( p->cd->odebug )
 	{
 		fprintf( p->f_ofe, "%d %g", p->cd->neval, phi ); // Print current best

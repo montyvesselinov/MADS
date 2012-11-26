@@ -45,6 +45,7 @@ int set_test_problems( struct opt_data *op )
 	cd = op->cd;
 	pd = op->pd;
 	od = op->od;
+	op->preds->nObs = 0;
 	cd->test_func_npar = cd->test_func_dim;
 	switch( cd->test_func )
 	{
