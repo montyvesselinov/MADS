@@ -663,7 +663,6 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				err = log10( c ) - log10( t );
 			}
 			f[k] = err * w;
-
 			if( p->cd->compute_phi ) phi += f[k] * f[k];
 			if( p->cd->obserror > DBL_EPSILON )
 			{
