@@ -513,6 +513,8 @@ int main( int argn, char *argv[] )
 		if( fabs( cd.obsstep ) > DBL_EPSILON && preds.nObs > 0 )
 		{
 			tprintf( "\n\nInfo-gap Observation step %g Observation domain %g\n", cd.obsstep, cd.obsdomain );
+			if( cd.obsstep > DBL_EPSILON ) tprintf( "Info-gap max search\n" );
+			else tprintf( "Info-gap min search\n" );
 			for( i = 0; i < preds.nObs; i++ )
 			{
 				if( cd.obsstep >  DBL_EPSILON ) preds.obs_best[i] = -HUGE_VAL;
@@ -540,8 +542,8 @@ int main( int argn, char *argv[] )
 			for( i = 0; i < preds.nObs; i++ )
 			{
 				k = preds.obs_index[i];
-				if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: max %12g\n", od.obs_id[k], preds.obs_best[i] );
-				else tprintf( "%-20s: min %12g\n", od.obs_id[k], preds.obs_best[i] );
+				if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[k], preds.obs_best[i], cd.obsstep, cd.obsdomain );
+				else tprintf( "%-20s: Info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[k], preds.obs_best[i], cd.obsstep, cd.obsdomain );
 				od.obs_target[k] = preds.obs_target[i];
 				od.obs_min[k] = preds.obs_min[i];
 				od.obs_max[k] = preds.obs_max[i];
