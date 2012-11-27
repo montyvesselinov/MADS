@@ -690,8 +690,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		for( i = 0; i < p->preds->nObs; i++ )
 		{
 			k = p->preds->obs_index[i];
-			if( p->cd->obsstep >  DBL_EPSILON && p->preds->obs_best[i] < p->od->obs_best[k] ) p->preds->obs_best[i] = p->od->obs_current[k];
-			if( p->cd->obsstep < -DBL_EPSILON && p->preds->obs_best[i] > p->od->obs_best[k] ) p->preds->obs_best[i] = p->od->obs_current[k];
+			if( p->cd->obsstep >  DBL_EPSILON && p->preds->obs_best[i] < p->od->obs_current[k] ) p->preds->obs_best[i] = p->od->obs_current[k];
+			if( p->cd->obsstep < -DBL_EPSILON && p->preds->obs_best[i] > p->od->obs_current[k] ) p->preds->obs_best[i] = p->od->obs_current[k];
 		}
 	}
 	if( p->cd->odebug )

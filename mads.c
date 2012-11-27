@@ -519,20 +519,26 @@ int main( int argn, char *argv[] )
 			{
 				if( cd.obsstep >  DBL_EPSILON ) preds.obs_best[i] = -HUGE_VAL;
 				if( cd.obsstep < -DBL_EPSILON ) preds.obs_best[i] = HUGE_VAL;
-				k = preds.obs_index[i];
-				od.obs_weight[k] *= -1;
+				j = preds.obs_index[i];
+				od.obs_weight[j] *= -1;
 			}
 			k = preds.obs_index[0];
 			if( cd.obsstep > DBL_EPSILON ) { od.obs_target[k] = od.obs_min[k]; od.obs_min[k] -= cd.obsstep / 2; } // obsstep is negative
 			else { od.obs_target[k] = od.obs_max[k]; od.obs_max[k] -= cd.obsstep / 2; } // obsstep is negative
-			tprintf( "Info-gap Observation:\n", cd.obsstep, cd.obsdomain );
+			tprintf( "Info-gap Observation:\n" );
 			tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
 			while( 1 )
 			{
-				tprintf( "\n\nTarget %g\n", od.obs_target[k] );
+				tprintf( "\n\nInfo-gap optimization target %g\n", od.obs_target[k] );
 				tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
 				status = igrnd( &op );
-				tprintf( "\nCurrent best result %g Success %d\n", preds.obs_best[0], op.success );
+				tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
+				for( i = 0; i < preds.nObs; i++ )
+				{
+					j = preds.obs_index[i];
+					if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Current info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
+					else tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
+				}
 				if( !op.success ) break;
 				od.obs_target[k] += cd.obsstep;
 				if( cd.obsstep >  DBL_EPSILON ) { if( od.obs_target[k] > od.obs_max[k] ) break; else od.obs_min[k] += cd.obsstep; } // obsstep is positive
@@ -541,13 +547,13 @@ int main( int argn, char *argv[] )
 			tprintf( "\nInfo-gap results for model predictions:\n" );
 			for( i = 0; i < preds.nObs; i++ )
 			{
-				k = preds.obs_index[i];
-				if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[k], preds.obs_best[i], cd.obsstep, cd.obsdomain );
-				else tprintf( "%-20s: Info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[k], preds.obs_best[i], cd.obsstep, cd.obsdomain );
-				od.obs_target[k] = preds.obs_target[i];
-				od.obs_min[k] = preds.obs_min[i];
-				od.obs_max[k] = preds.obs_max[i];
-				od.obs_weight[k] *= -1;
+				j = preds.obs_index[i];
+				if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
+				else tprintf( "%-20s: Info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
+				od.obs_target[j] = preds.obs_target[i];
+				od.obs_min[j] = preds.obs_min[i];
+				od.obs_max[j] = preds.obs_max[i];
+				od.obs_weight[j] *= -1;
 			}
 			tprintf( "\n" );
 		}
@@ -1858,8 +1864,8 @@ int igrnd( struct opt_data *op )
 			for( i = 0; i < op->preds->nObs; i++ )
 			{
 				k = op->preds->obs_index[i];
-				if( op->cd->obsstep >  DBL_EPSILON && op->preds->obs_best[i] < op->od->obs_best[k] ) op->preds->obs_best[i] = op->od->obs_current[k];
-				if( op->cd->obsstep < -DBL_EPSILON && op->preds->obs_best[i] > op->od->obs_best[k] ) op->preds->obs_best[i] = op->od->obs_current[k];
+				if( op->cd->obsstep >  DBL_EPSILON && op->preds->obs_best[i] < op->od->obs_current[k] ) op->preds->obs_best[i] = op->od->obs_current[k];
+				if( op->cd->obsstep < -DBL_EPSILON && op->preds->obs_best[i] > op->od->obs_current[k] ) op->preds->obs_best[i] = op->od->obs_current[k];
 			}
 		}
 		if( op->cd->mdebug || op->cd->nreal == 1 )
@@ -1896,7 +1902,7 @@ int igrnd( struct opt_data *op )
 				}
 			}
 		}
-		if( op->phi < phi_min )
+		if( op->phi < phi_min && ( ( op->cd->check_success && op->success ) || !op->cd->check_success ) )
 		{
 			phi_min = op->phi;
 			for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
