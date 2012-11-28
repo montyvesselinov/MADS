@@ -532,6 +532,7 @@ int main( int argn, char *argv[] )
 				tprintf( "\n\nInfo-gap optimization target %g\n", od.obs_target[k] );
 				tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
 				status = igrnd( &op );
+				if( !status ) break;
 				tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
 				for( i = 0; i < preds.nObs; i++ )
 				{
@@ -1692,7 +1693,7 @@ int check( struct opt_data *op )
 // Initial guesses -- random
 int igrnd( struct opt_data *op )
 {
-	int i, k, m, q1, q2, npar, status, phi_global, success_global, count, debug_level, no_memory = 0;
+	int i, k, m, q1, q2, npar, status, phi_global, success_global, count, debug_level, solution_found, no_memory = 0;
 	int *eval_success, *eval_total;
 	unsigned long neval_total, njac_total;
 	double c, phi_min, *orig_params, *opt_params,
@@ -1795,6 +1796,7 @@ int igrnd( struct opt_data *op )
 	if( op->pd->nOptParam == 0 )
 		tprintf( "WARNING: No parameters to optimize! Forward runs performed instead (ie Monte Carlo analysis)\n" );
 	phi_min = HUGE_VAL;
+	solution_found = 0;
 	phi_global = success_global = neval_total = njac_total = 0;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1; // applied if execution of a specific realization is requested (ncase)
 	else k = 0;
@@ -1904,6 +1906,7 @@ int igrnd( struct opt_data *op )
 		}
 		if( op->phi < phi_min && ( ( op->cd->check_success && op->success ) || !op->cd->check_success ) )
 		{
+			solution_found = 1;
 			phi_min = op->phi;
 			for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
 			for( i = 0; i < op->od->nObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
@@ -1931,6 +1934,8 @@ int igrnd( struct opt_data *op )
 	op->cd->njac = njac_total; // provide the correct number of total evaluations
 	tprintf( "\nTotal number of evaluations = %lu\n", neval_total );
 	tprintf( "Total number of jacobians = %lu\n", njac_total );
+	if( !solution_found )
+		tprintf( "WARNING: No IGRND solution has been identified matching required criteria!\n" );
 	op->phi = phi_min; // get the best phi
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
@@ -2016,7 +2021,8 @@ int igrnd( struct opt_data *op )
 		if( op->cd->phi_cutoff > DBL_EPSILON || op->cd->check_success ) { free( sel_params_min ); free( sel_params_max ); free( sel_params_avg ); }
 	}
 	save_final_results( "", op, op->gd );
-	return( 1 );
+	if( solution_found ) return( 1 );
+	else return( 0 );
 }
 
 // Initial guesses -- distributed to the parameter space
