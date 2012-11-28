@@ -109,7 +109,7 @@ void mads_info()
 	printf( "   box                - brick contaminant source in 3D flow domain\n" );
 	printf( "   disp_tied          - lateral and vertical transverse dispersivities are fractions of the longitudinal dispersivity\n" );
 	printf( "   disp_scaled        - longitudinal dispersivity is scaled with the travel distance\n" );
-	printf( "                        if disp_scaled and disp_tied are applied, longitudinal dispersivity is scaled and " );
+	printf( "                        if disp_scaled and disp_tied are applied, longitudinal dispersivity is scaled and\n" );
 	printf( "                        lateral and vertical transverse dispersivities are fractions of the scaled longitudinal dispersivity\n" );
 	printf( "   disp_scaled=2      - longitudinal, lateral and vertical transverse dispersivitoies are scaled with the travel distance\n" );
 	printf( "\nbuild-in test problems for optimization / uncertainty-quantification techniques (local and global methods):\n" );
