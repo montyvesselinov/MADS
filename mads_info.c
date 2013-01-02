@@ -198,5 +198,3 @@ void mads_info()
 	printf( "   web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n" );
 	printf( "   email: Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\n" );
 }
-
-

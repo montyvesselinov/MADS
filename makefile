@@ -5,7 +5,7 @@ CMP = ./compare-results
 ## rainier -L/usr/lib/gcc/x86_64-redhat-linux/4.1.1
 ifeq ($(OSTYPE),linux)
         DIRS = -I/home/monty/local/include -L/home/monty/local/lib
-	LG = -lgfortran -lmatheval
+	LG = -lgfortran -lmatheval -Wl,--rpath -Wl,/home/monty/local/lib
 	CC = gcc 
 else
         # DIRS = -I/opt/local/include/ -L/opt/local/lib
