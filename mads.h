@@ -177,6 +177,7 @@ struct param_data // data structure for model parameters
 	int nParam; // number of parameters
 	int nOptParam; // number of optimized parameters
 	int nFlgParam; // number of special (flagged) parameters
+	int nExpParam; // number of parameters with computational expressions (i.e. tied parameters)
 	int *var_index; // parameter index array
 	char **var_id; // parameter identifier (name)
 	double *var; // parameter value (initial/final)
@@ -189,6 +190,8 @@ struct param_data // data structure for model parameters
 	double *var_current; // parameter value (current)
 	double *var_best; // parameter value (current best)
 	double *var_truth; // true parameter value
+	int *param_expressions_index; // index array for parameters with computational expressions (i.e. tied parameters)
+	void **param_expressions; // math expressions for "tied" parameters
 	gsl_vector *var_current_gsl; // current model parameters as GSL vector
 };
 

@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <assert.h>
+#include <matheval.h>
 
 #include "mads.h"
 
@@ -417,9 +419,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	FILE *infile, *infile2;
 	//	FILE *infileb;
 	double x0, y0, x, y, d, alpha, beta;
-	char buf[5000], *file, **path, exec[1000], *word, *start;
+	char buf[5000], *file, **path, exec[1000], *word, *start, charecter;
 	char *separator = " \t\n";
-	int  i, j, k, c, bad_data, status, nofile = 0, skip = 0;
+	int  i, j, k, c, l1, l2, bad_data, status, nofile = 0, skip = 0;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct obs_data *od;
@@ -427,6 +429,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	struct well_data *wd;
 	struct grid_data *gd;
 	struct extrn_data *ed;
+	char **expvar_names;
+	int expvar_count;
 	cd = op->cd;
 	pd = op->pd;
 	od = op->od;
@@ -434,7 +438,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	wd = op->wd;
 	gd = op->gd;
 	ed = op->ed;
-	pd->nParam = pd->nFlgParam = pd->nOptParam = 0;
+	pd->nParam = pd->nFlgParam = pd->nOptParam = pd->nExpParam = 0;
 	od->nObs = od->nTObs = od->nCObs = 0;
 	// IMPORTANT
 	// internal problem: nCObs = nObs
@@ -550,56 +554,122 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
 	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	pd->param_expressions_index = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
+	pd->param_expressions = ( void ** ) malloc( ( *pd ).nParam * sizeof( void * ) );
 	( *pd ).nOptParam = ( *pd ).nFlgParam = 0;
 	for( i = 0; i < ( *pd ).nParam; i++ )
 	{
-		fscanf( infile, "%[^:]s", pd->var_id[i] );
-		if( cd->debug ) tprintf( "%-26s: ", pd->var_id[i] );
-		fscanf( infile, ": %lf %d %d %lf %lf %lf\n", &( *pd ).var[i], &( *pd ).var_opt[i], &( *pd ).var_log[i], &( *pd ).var_dx[i], &( *pd ).var_min[i], &( *pd ).var_max[i] );
-		( *cd ).var[i] = ( *pd ).var[i];
-		if( cd->debug ) tprintf( "init %7g opt %1d log %1d step %7g min %7g max %7g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
-		if( ( *pd ).var_opt[i] == 1 )( *pd ).nOptParam++;
-		else if( ( *pd ).var_opt[i] == 2 )
+		fscanf( infile, "%[^:=]s", pd->var_id[i] );
+		fscanf( infile, "%c", &charecter );
+		if( charecter == ':' ) // regular parameter
 		{
-			( *pd ).nFlgParam++;
-			if( ( *cd ).calib_type != PPSD )( *pd ).nOptParam++;
-		}
-		if( ( *pd ).var_opt[i] >= 1 )
-		{
-			if( pd->var_max[i] < pd->var[i] || pd->var_min[i] > pd->var[i] )
+			if( cd->debug ) tprintf( "%-26s: ", pd->var_id[i] );
+			if( fscanf( infile, "%lf %d %d %lf %lf %lf\n", &( *pd ).var[i], &( *pd ).var_opt[i], &( *pd ).var_log[i], &( *pd ).var_dx[i], &( *pd ).var_min[i], &( *pd ).var_max[i] ) != 6 )
 			{
-				tprintf( "ERROR: Parameter initial value is outside the specified min/max range! " );
-				tprintf( "Parameter %s: %g min %g max %g\n", pd->var_id[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
+				tprintf( "ERROR: Specific parameter values expected for parameter \"%s\":\n", pd->var_id[i] );
+				tprintf( "       initial value (float), optimization flag (int), log-transformation flag (int), dx (float), min (float), max (float)\n" );
 				bad_data = 1;
+				return( -1 );
 			}
-			if( pd->var_max[i] <= pd->var_min[i] )
+			( *cd ).var[i] = ( *pd ).var[i];
+			if( cd->debug ) tprintf( "init %7g opt %1d log %1d step %7g min %7g max %7g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+			if( ( *pd ).var_opt[i] == 1 )( *pd ).nOptParam++;
+			else if( ( *pd ).var_opt[i] == 2 )
 			{
-				tprintf( "ERROR: Parameter min/max range is not correctly specified! " );
-				tprintf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
-				bad_data = 1;
+				( *pd ).nFlgParam++;
+				if( ( *cd ).calib_type != PPSD )( *pd ).nOptParam++;
 			}
-			if( cd->plogtrans == 1 )( *pd ).var_log[i] = 1;
-			else if( cd->plogtrans == 0 )( *pd ).var_log[i] = 0;
-			if( ( *pd ).var_log[i] == 1 )
+			if( ( *pd ).var_opt[i] >= 1 )
 			{
-				if( pd->var_min[i] < 0 || pd->var[i] < 0 )
+				if( pd->var_max[i] < pd->var[i] || pd->var_min[i] > pd->var[i] )
 				{
-					tprintf( "ERROR: Parameter cannot be log transformed (negative values)!\n" );
-					tprintf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
-					if( cd->plogtrans ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; continue; }
-					else bad_data = 1;
+					tprintf( "ERROR: Parameter initial value is outside the specified min/max range! " );
+					tprintf( "Parameter %s: %g min %g max %g\n", pd->var_id[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
+					bad_data = 1;
 				}
-				if( pd->var_dx[i] < 2 ) d = ( pd->var_max[i] - pd->var_min[i] ) / pd->var_dx[i];
-				if( pd->var[i] < DBL_EPSILON ) pd->var[i] = DBL_EPSILON;
-				if( pd->var_min[i] < DBL_EPSILON ) pd->var_min[i] = DBL_EPSILON;
-				pd->var[i] = log10( pd->var[i] );
-				pd->var_min[i] = log10( pd->var_min[i] );
-				pd->var_max[i] = log10( pd->var_max[i] );
-				if( pd->var_dx[i] < 2 ) pd->var_dx[i] = ( pd->var_max[i] - pd->var_min[i] ) / d;
-				else pd->var_dx[i] = log10( pd->var_dx[i] );
+				if( pd->var_max[i] <= pd->var_min[i] )
+				{
+					tprintf( "ERROR: Parameter min/max range is not correctly specified! " );
+					tprintf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
+					bad_data = 1;
+				}
+				if( cd->plogtrans == 1 )( *pd ).var_log[i] = 1;
+				else if( cd->plogtrans == 0 )( *pd ).var_log[i] = 0;
+				if( ( *pd ).var_log[i] == 1 )
+				{
+					if( pd->var_min[i] < 0 || pd->var[i] < 0 )
+					{
+						tprintf( "ERROR: Parameter cannot be log transformed (negative values)!\n" );
+						tprintf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
+						if( cd->plogtrans ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; continue; }
+						else bad_data = 1;
+					}
+					if( pd->var_dx[i] < 2 ) d = ( pd->var_max[i] - pd->var_min[i] ) / pd->var_dx[i];
+					if( pd->var[i] < DBL_EPSILON ) pd->var[i] = DBL_EPSILON;
+					if( pd->var_min[i] < DBL_EPSILON ) pd->var_min[i] = DBL_EPSILON;
+					pd->var[i] = log10( pd->var[i] );
+					pd->var_min[i] = log10( pd->var_min[i] );
+					pd->var_max[i] = log10( pd->var_max[i] );
+					if( pd->var_dx[i] < 2 ) pd->var_dx[i] = ( pd->var_max[i] - pd->var_min[i] ) / d;
+					else pd->var_dx[i] = log10( pd->var_dx[i] );
+				}
+				pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
+				if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
 			}
-			pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
-			if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
+		}
+		else if( charecter == '=' )
+		{
+			if( cd->debug ) tprintf( "%-26s=", pd->var_id[i] );
+			pd->var_opt[i] = pd->var_log[i] = 0;
+			fscanf( infile, "%[^\n]s", buf );
+			fscanf( infile, "\n" );
+			tprintf( " %s", buf );
+			pd->param_expressions_index[pd->nExpParam] = i;
+			pd->param_expressions[pd->nExpParam] = evaluator_create( buf );
+			assert( pd->param_expressions[pd->nExpParam] );
+			evaluator_get_variables( pd->param_expressions[pd->nExpParam], &expvar_names, &expvar_count );
+			if( expvar_count > 0 )
+			{
+				tprintf( " -> variables:" );
+				for( i = 0; i < expvar_count; i++ )
+					tprintf( " %s", expvar_names[i] );
+				tprintf( "\n" );
+				pd->nExpParam++;
+			}
+			else
+			{
+				pd->var[i] = cd->var[i] = evaluator_evaluate_x( pd->param_expressions[pd->nExpParam], 0 );
+				tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[i] );
+			}
+		}
+	}
+	if( ( *cd ).solution_type[0] == EXTERNAL )
+	{
+		for( i = 0; i < ( *pd ).nParam; i++ )
+		{
+			if( strchr( pd->var_id[i], ' ' ) || strchr( pd->var_id[i], '\t' ) ) { tprintf( "ERROR: \'%s\' - invalid parameter name (contains empty space)\n", pd->var_id[i] ); bad_data = 1; }
+			l1 = strlen( pd->var_id[i] );
+			if( l1 == 0 ) { tprintf( "ERROR: \'%s\' empty parameter name\n", pd->var_id[i] ); bad_data = 1; }
+			for( j = i + 1; j < ( *pd ).nParam; j++ )
+			{
+				l2 = strlen( pd->var_id[j] );
+				if( l1 == l2 && strcmp( pd->var_id[i], pd->var_id[j] ) == 0 ) { tprintf( "ERROR: %d (\'%s\') and %d (\'%s\') parameter names are the same\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] ); bad_data = 1; }
+			}
+		}
+	}
+	if( pd->nExpParam > 0 )
+	{
+		if( cd->debug ) tprintf( "\n" );
+		tprintf( "Number of parameters with computational expressions (i.e. tied parameters) = %d\n", ( *pd ).nExpParam );
+		if( cd->debug )
+		{
+			for( i = 0; i < pd->nExpParam; i++ )
+			{
+				k = pd->param_expressions_index[i];
+				tprintf( "%-26s= ", pd->var_id[k] );
+				tprintf( "%s", evaluator_get_string( pd->param_expressions[i] ) );
+				tprintf( " = %g\n", evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id, pd->var ) );
+			}
 		}
 	}
 	if( bad_data ) return( 0 );
@@ -690,7 +760,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	for( k = i = 0; i < ( *pd ).nParam; i++ )
 		if( ( *pd ).var_opt[i] == 1 || ( ( *pd ).var_opt[i] > 1 && ( *cd ).calib_type != PPSD ) )
 		{
-			if( cd->debug ) tprintf( "%-26s: init %7g step %8.3g min %7g max %7g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+			if( cd->debug ) tprintf( "%-26s: init %9g step %8.3g min %9g max %9g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 			( *pd ).var_index[k++] = i;
 		}
 	if( cd->debug ) tprintf( "\n" );
@@ -698,11 +768,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	for( i = 0; i < ( *pd ).nParam; i++ )
 		if( ( *pd ).var_opt[i] == 2 )
 			if( cd->debug ) tprintf( "%-26s: init %7g step %6g min %6g max %6g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
-	if( ( *pd ).nParam == ( *pd ).nOptParam && cd->debug ) tprintf( "\nNO fixed parameters\n" );
+	if( ( *pd ).nParam == ( *pd ).nOptParam + ( *pd ).nExpParam && cd->debug ) tprintf( "\nNO fixed parameters\n" );
 	else
 	{
 		if( cd->debug ) tprintf( "\n" );
-		tprintf( "Number of fixed parameters = %d\n", ( *pd ).nParam - ( *pd ).nOptParam - ( *pd ).nFlgParam );
+		tprintf( "Number of fixed parameters = %d\n", ( *pd ).nParam - ( *pd ).nOptParam - ( *pd ).nFlgParam - ( *pd ).nExpParam );
 		for( i = 0; i < ( *pd ).nParam; i++ )
 			if( ( *pd ).var_opt[i] == 0 )
 				if( cd->debug ) tprintf( "%-26s: %g\n", pd->var_id[i], ( *pd ).var[i] );
