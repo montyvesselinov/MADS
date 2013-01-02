@@ -27,6 +27,8 @@
 #include <math.h>
 #include <string.h>
 #include <gsl/gsl_math.h>
+#include <assert.h>
+#include <matheval.h>
 #include "mads.h"
 #define MAX(X,Y) ( ((X) > (Y)) ? (X) : (Y) )
 
@@ -91,7 +93,19 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nParam == p->pd->nOptParam ) tprintf( "NO fixed parameters.\n" );
+		if( p->pd->nExpParam > 0 )
+		{
+			tprintf( "Tied parameters:\n" );
+			for( i = 0; i < p->pd->nExpParam; i++ )
+			{
+				k = p->pd->param_expressions_index[i];
+				p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
+				tprintf( "%s = ", p->pd->var_id[k] );
+				tprintf( "%s", evaluator_get_string( p->pd->param_expressions[i] ) );
+				tprintf( " = %.12g\n", p->cd->var[k] );
+			}
+		}
+		if( p->pd->nParam == p->pd->nOptParam - p->pd->nExpParam ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
 			tprintf( "Fixed parameters:\n" );
@@ -227,7 +241,19 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nParam == p->pd->nOptParam ) tprintf( "NO fixed parameters.\n" );
+		if( p->pd->nExpParam > 0 )
+		{
+			tprintf( "Tied parameters:\n" );
+			for( i = 0; i < p->pd->nExpParam; i++ )
+			{
+				k = p->pd->param_expressions_index[i];
+				p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
+				tprintf( "%s = ", p->pd->var_id[k] );
+				tprintf( "%s", evaluator_get_string( p->pd->param_expressions[i] ) );
+				tprintf( " = %.12g\n", p->cd->var[k] );
+			}
+		}
+		if( p->pd->nParam == p->pd->nOptParam - p->pd->nExpParam ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
 			tprintf( "Fixed parameters:\n" );
@@ -486,13 +512,25 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nParam == p->pd->nOptParam ) tprintf( "NO fixed parameters.\n" );
+		if( p->pd->nExpParam > 0 )
+		{
+			tprintf( "Tied parameters:\n" );
+			for( i = 0; i < p->pd->nExpParam; i++ )
+			{
+				k = p->pd->param_expressions_index[i];
+				p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
+				tprintf( "%s = ", p->pd->var_id[k] );
+				tprintf( "%s", evaluator_get_string( p->pd->param_expressions[i] ) );
+				tprintf( " = %.12g\n", p->cd->var[k] );
+			}
+		}
+		if( p->pd->nParam == p->pd->nOptParam - p->pd->nExpParam ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
-			tprintf( "Fixed parameters (%d):\n", p->pd->nParam - p->pd->nOptParam );
+			tprintf( "Fixed parameters:\n" );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
-					tprintf( "%s: %.12g\n", p->pd->var_id[i], p->cd->var[i] );
+					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
 		}
 	}
 	if( p->cd->fdebug >= 4 )

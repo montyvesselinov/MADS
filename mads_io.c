@@ -364,13 +364,13 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->ologtrans == 1 ) tprintf( "\nLog transformation enforced on all calibration targets!\n" );
 	else if( cd->ologtrans == 0 ) tprintf( "\nLog transformation is not applied to any calibration targets!\n" );
 	if( cd->oweight == 1 ) tprintf( "\nUnit residual weights for all calibration targets!\n" );
-	else if( cd->oweight == 0 ) tprintf( "\nWARNING: Zero residual weights for all calibration targets (for testing and manupulation purposes)!\n" );
-	else if( cd->oweight == 2 ) tprintf( "\nResidual weights reversely propotional to observations for all calibration targets!\n" );
+	else if( cd->oweight == 0 ) tprintf( "\nWARNING: Zero residual weights for all calibration targets (for testing and manipulation purposes)!\n" );
+	else if( cd->oweight == 2 ) tprintf( "\nResidual weights reversely proportional to observations for all calibration targets!\n" );
 	if( cd->problem_type == ABAGUS )
 	{
 		if( cd->energy == 0 ) { cd->energy = 10000; tprintf( "\nInitial particle energy set to default value: %d\n", cd->energy );}
 		else tprintf( "\nInitial particle energy set to: %d\n", cd->energy );
-		cd->sintrans = 0; tprintf( "\nsine tranformation disabled for ABAGUS runs" );
+		cd->sintrans = 0; tprintf( "\nsine transformation disabled for ABAGUS runs" );
 	}
 	if( cd->problem_type == ABAGUS && cd->infile[0] != 0 ) { tprintf( "\nResults in %s to be read into kdtree\n", cd->infile );}
 	if( cd->problem_type == INFOGAP && cd->infile[0] == 0 ) { tprintf( "\nInfile must be specified for infogap run\n" ); return( 0 ); }
@@ -572,7 +572,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				return( -1 );
 			}
 			( *cd ).var[i] = ( *pd ).var[i];
-			if( cd->debug ) tprintf( "init %7g opt %1d log %1d step %7g min %7g max %7g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+			if( cd->debug ) tprintf( "init %9g opt %1d log %1d step %7g min %9g max %9g\n", ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 			if( ( *pd ).var_opt[i] == 1 )( *pd ).nOptParam++;
 			else if( ( *pd ).var_opt[i] == 2 )
 			{
@@ -643,7 +643,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 		}
 	}
-	if( ( *cd ).solution_type[0] == EXTERNAL )
+	if( ( *cd ).solution_type[0] == EXTERNAL ) // check for consistent parameter names
 	{
 		for( i = 0; i < ( *pd ).nParam; i++ )
 		{
@@ -767,7 +767,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	tprintf( "Number of flagged parameters = %d\n", ( *pd ).nFlgParam );
 	for( i = 0; i < ( *pd ).nParam; i++ )
 		if( ( *pd ).var_opt[i] == 2 )
-			if( cd->debug ) tprintf( "%-26s: init %7g step %6g min %6g max %6g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+			if( cd->debug ) tprintf( "%-26s: init %9g step %6g min %9g max %9g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 	if( ( *pd ).nParam == ( *pd ).nOptParam + ( *pd ).nExpParam && cd->debug ) tprintf( "\nNO fixed parameters\n" );
 	else
 	{
