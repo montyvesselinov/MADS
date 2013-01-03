@@ -177,9 +177,11 @@ struct param_data // data structure for model parameters
 	int nParam; // number of parameters
 	int nOptParam; // number of optimized parameters
 	int nFlgParam; // number of special (flagged) parameters
+	int nFixParam; // number of fixed parameters
 	int nExpParam; // number of parameters with computational expressions (i.e. tied parameters)
 	int *var_index; // parameter index array
 	char **var_id; // parameter identifier (name)
+	char **var_id_short; // short parameter identifier (name) for the case of internal models only
 	double *var; // parameter value (initial/final)
 	int *var_opt; // parameter flag
 	int *var_log; // flag for log transformation

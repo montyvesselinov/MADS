@@ -438,7 +438,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	wd = op->wd;
 	gd = op->gd;
 	ed = op->ed;
-	pd->nParam = pd->nFlgParam = pd->nOptParam = pd->nExpParam = 0;
+	pd->nParam = pd->nFixParam = pd->nFlgParam = pd->nOptParam = pd->nExpParam = 0;
 	od->nObs = od->nTObs = od->nCObs = 0;
 	// IMPORTANT
 	// internal problem: nCObs = nObs
@@ -623,23 +623,27 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			pd->var_opt[i] = pd->var_log[i] = 0;
 			fscanf( infile, "%[^\n]s", buf );
 			fscanf( infile, "\n" );
-			tprintf( " %s", buf );
+			if( cd->debug ) tprintf( " %s", buf );
 			pd->param_expressions_index[pd->nExpParam] = i;
 			pd->param_expressions[pd->nExpParam] = evaluator_create( buf );
 			assert( pd->param_expressions[pd->nExpParam] );
 			evaluator_get_variables( pd->param_expressions[pd->nExpParam], &expvar_names, &expvar_count );
 			if( expvar_count > 0 )
 			{
-				tprintf( " -> variables:" );
-				for( i = 0; i < expvar_count; i++ )
-					tprintf( " %s", expvar_names[i] );
-				tprintf( "\n" );
+				if( cd->debug )
+				{
+					tprintf( " -> variables:" );
+					for( j = 0; j < expvar_count; j++ )
+						tprintf( " %s", expvar_names[j] );
+					tprintf( "\n" );
+				}
+				pd->var_opt[i] = -1;
 				pd->nExpParam++;
 			}
 			else
 			{
 				pd->var[i] = cd->var[i] = evaluator_evaluate_x( pd->param_expressions[pd->nExpParam], 0 );
-				tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[i] );
+				if( cd->debug ) tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[i] );
 			}
 		}
 	}
@@ -659,6 +663,16 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	if( pd->nExpParam > 0 )
 	{
+		if( ( *cd ).solution_type[0] != EXTERNAL )
+		{
+			pd->var_id_short = char_matrix( ( *pd ).nParam, 10 );
+			if( cd->debug ) tprintf( "\nShort parameters names for the internal parameters to be applied in the parameter computational expressions\n" );
+			for( i = 0; i < ( *pd ).nParam; i++ )
+			{
+				sprintf( pd->var_id_short[i], "p%d", i + 1 );
+				if( cd->debug ) tprintf( "%-26s: %s\n", pd->var_id[i], pd->var_id_short[i] );
+			}
+		}
 		if( cd->debug ) tprintf( "\n" );
 		tprintf( "Number of parameters with computational expressions (i.e. tied parameters) = %d\n", ( *pd ).nExpParam );
 		if( cd->debug )
@@ -668,7 +682,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				k = pd->param_expressions_index[i];
 				tprintf( "%-26s= ", pd->var_id[k] );
 				tprintf( "%s", evaluator_get_string( pd->param_expressions[i] ) );
-				tprintf( " = %g\n", evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id, pd->var ) );
+				if( ( *cd ).solution_type[0] == EXTERNAL ) pd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id, pd->var );
+				else pd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id_short, pd->var );
+				tprintf( " = %g\n", pd->var[k] );
 			}
 		}
 	}
@@ -765,17 +781,24 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 	if( cd->debug ) tprintf( "\n" );
 	tprintf( "Number of flagged parameters = %d\n", ( *pd ).nFlgParam );
-	for( i = 0; i < ( *pd ).nParam; i++ )
-		if( ( *pd ).var_opt[i] == 2 )
-			if( cd->debug ) tprintf( "%-26s: init %9g step %6g min %9g max %9g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
-	if( ( *pd ).nParam == ( *pd ).nOptParam + ( *pd ).nExpParam && cd->debug ) tprintf( "\nNO fixed parameters\n" );
+	if( cd->debug )
+	{
+		for( i = 0; i < ( *pd ).nParam; i++ )
+			if( ( *pd ).var_opt[i] == 2 )
+				tprintf( "%-26s: init %9g step %6g min %9g max %9g\n", pd->var_id[i], pd->var[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+	}
+	( *pd ).nFixParam = ( *pd ).nParam - ( *pd ).nOptParam - ( *pd ).nFlgParam - ( *pd ).nExpParam;
+	if( ( *pd ).nFixParam == 0 && cd->debug ) tprintf( "\nNO fixed parameters\n" );
 	else
 	{
 		if( cd->debug ) tprintf( "\n" );
-		tprintf( "Number of fixed parameters = %d\n", ( *pd ).nParam - ( *pd ).nOptParam - ( *pd ).nFlgParam - ( *pd ).nExpParam );
-		for( i = 0; i < ( *pd ).nParam; i++ )
-			if( ( *pd ).var_opt[i] == 0 )
-				if( cd->debug ) tprintf( "%-26s: %g\n", pd->var_id[i], ( *pd ).var[i] );
+		tprintf( "Number of fixed parameters = %d\n", ( *pd ).nFixParam );
+		if( cd->debug )
+		{
+			for( i = 0; i < ( *pd ).nParam; i++ )
+				if( ( *pd ).var_opt[i] == 0 )
+					tprintf( "%-26s: %g\n", pd->var_id[i], ( *pd ).var[i] );
+		}
 	}
 	/*
 		if( (*cd).problem_type != 0 )
@@ -1226,6 +1249,7 @@ int save_problem( char *filename, struct opt_data *op )
 		case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
 		case IGPD: fprintf( outfile, "igpd" ); break;
 	}
+	fprintf( outfile, " eval=%d", cd->maxeval );
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
 	if( cd->c_background > 0 ) fprintf( outfile, " background=%g", cd->c_background );
 	if( cd->disp_tied ) fprintf( outfile, " disp_tied" );
@@ -1234,10 +1258,9 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->seed_init < 0 ) fprintf( outfile, " seed=%d", cd->seed_init * -1 );
 	if( cd->nretries > 0 ) fprintf( outfile, " retry=%d", cd->nretries );
 	if( cd->init_particles > 1 ) fprintf( outfile, " particles=%d", cd->init_particles );
-	if( cd->lm_eigen ) fprintf( outfile, " lm_eigen=%d", cd->lm_eigen );
 	else if( cd->init_particles < 0 ) fprintf( outfile, " particles" );
+	if( cd->lm_eigen ) fprintf( outfile, " lmeigen=%d", cd->lm_eigen );
 	if( cd->niter > 0 ) fprintf( outfile, " iter=%d", cd->niter );
-	fprintf( outfile, " eval=%d", cd->maxeval );
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, " rnd=%s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fprintf( outfile, " paran=%s", cd->paran_method );
 	fprintf( outfile, " " );
@@ -1251,11 +1274,13 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, "\n" );
 	fprintf( outfile, "Solution type: %s\n", ( *cd ).solution_id );
 	fprintf( outfile, "Number of parameters: %i\n", ( *pd ).nParam );
-	for( i = 0; i < ( *pd ).nParam; i++ )
+	for( i = j = 0; i < ( *pd ).nParam; i++ )
 	{
-		if( ( *pd ).var_opt[i] >= 1 && ( *pd ).var_log[i] == 1 )
+		if( ( *pd ).var_opt[i] == -1 ) // tied parameter
+			fprintf( outfile, "%s= %s\n", pd->var_id[i], evaluator_get_string( pd->param_expressions[j++] ) );
+		else if( ( *pd ).var_opt[i] >= 1 && ( *pd ).var_log[i] == 1 ) // optimized log transformed parameter
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_id[i], pow( 10, ( *pd ).var[i] ), ( *pd ).var_opt[i], ( *pd ).var_log[i], pow( 10, ( *pd ).var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );
-		else
+		else // fixed or not log-transformed parameter
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_id[i], ( *pd ).var[i], ( *pd ).var_opt[i], ( *pd ).var_log[i], ( *pd ).var_dx[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
 	}
 	if( cd->solution_type[0] != EXTERNAL )

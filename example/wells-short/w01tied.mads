@@ -1,8 +1,10 @@
 Problem type: calibrate opt=lm_levmar
 Source type: external
-Number of parameters: 2
+Number of parameters: 4
 k: 1 1 0 0.1 -5 5
-S=k/10
+a=(k+k/2)/2
+b=a*k
+S=b/100
 Number of observations: 11
 o1	0.00	1	0	0.00	0.05
 o2	5.98	1	0	5.93	6.03
@@ -17,6 +19,6 @@ o10	9.41	1	0	9.36	9.46
 o11	9.45	1	0	9.40	9.50
 Execution command: wells w01 >& /dev/null
 Template files to create model input files: 1
-w01.tpl w01.wells
+w01tied.tpl w01.wells
 Instruction files to read model outpus files: 1
 w01.inst w01.s_point

@@ -91,21 +91,19 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->cd->fdebug >= 3 )
 			tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
+	if( p->pd->nExpParam > 0 )
+	{
+		if( p->cd->fdebug >= 3 ) tprintf( "Tied parameters:\n" );
+		for( i = 0; i < p->pd->nExpParam; i++ )
+		{
+			k = p->pd->param_expressions_index[i];
+			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
+			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
+		}
+	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nExpParam > 0 )
-		{
-			tprintf( "Tied parameters:\n" );
-			for( i = 0; i < p->pd->nExpParam; i++ )
-			{
-				k = p->pd->param_expressions_index[i];
-				p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
-				tprintf( "%s = ", p->pd->var_id[k] );
-				tprintf( "%s", evaluator_get_string( p->pd->param_expressions[i] ) );
-				tprintf( " = %.12g\n", p->cd->var[k] );
-			}
-		}
-		if( p->pd->nParam == p->pd->nOptParam - p->pd->nExpParam ) tprintf( "NO fixed parameters.\n" );
+		if( p->pd->nFixParam == 0 ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
 			tprintf( "Fixed parameters:\n" );
@@ -239,21 +237,19 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		if( p->cd->fdebug >= 3 )
 			tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
+	if( p->pd->nExpParam > 0 )
+	{
+		if( p->cd->fdebug >= 3 ) tprintf( "Tied parameters:\n" );
+		for( i = 0; i < p->pd->nExpParam; i++ )
+		{
+			k = p->pd->param_expressions_index[i];
+			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
+			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
+		}
+	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nExpParam > 0 )
-		{
-			tprintf( "Tied parameters:\n" );
-			for( i = 0; i < p->pd->nExpParam; i++ )
-			{
-				k = p->pd->param_expressions_index[i];
-				p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
-				tprintf( "%s = ", p->pd->var_id[k] );
-				tprintf( "%s", evaluator_get_string( p->pd->param_expressions[i] ) );
-				tprintf( " = %.12g\n", p->cd->var[k] );
-			}
-		}
-		if( p->pd->nParam == p->pd->nOptParam - p->pd->nExpParam ) tprintf( "NO fixed parameters.\n" );
+		if( p->pd->nFixParam == 0 ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
 			tprintf( "Fixed parameters:\n" );
@@ -510,21 +506,19 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		else p->cd->var[k] = p->pd->var_current[i];
 		if( p->cd->fdebug >= 3 ) tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
 	}
+	if( p->pd->nExpParam > 0 )
+	{
+		if( p->cd->fdebug >= 3 ) tprintf( "Tied parameters:\n" );
+		for( i = 0; i < p->pd->nExpParam; i++ )
+		{
+			k = p->pd->param_expressions_index[i];
+			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id_short, p->cd->var );
+			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
+		}
+	}
 	if( p->cd->fdebug >= 3 )
 	{
-		if( p->pd->nExpParam > 0 )
-		{
-			tprintf( "Tied parameters:\n" );
-			for( i = 0; i < p->pd->nExpParam; i++ )
-			{
-				k = p->pd->param_expressions_index[i];
-				p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
-				tprintf( "%s = ", p->pd->var_id[k] );
-				tprintf( "%s", evaluator_get_string( p->pd->param_expressions[i] ) );
-				tprintf( " = %.12g\n", p->cd->var[k] );
-			}
-		}
-		if( p->pd->nParam == p->pd->nOptParam - p->pd->nExpParam ) tprintf( "NO fixed parameters.\n" );
+		if( p->pd->nFixParam == 0 ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
 			tprintf( "Fixed parameters:\n" );
