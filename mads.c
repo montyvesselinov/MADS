@@ -35,6 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <float.h>
+#include <matheval.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_vector.h>
@@ -158,6 +159,7 @@ int main( int argn, char *argv[] )
 	double c, err, phi, *opt_params;
 	struct calc_data cd;
 	struct param_data pd;
+	struct regul_data rd;
 	struct obs_data od;
 	struct obs_data preds;
 	struct well_data wd;
@@ -173,8 +175,9 @@ int main( int argn, char *argv[] )
 	pid_t pid;
 	struct tm *ptr_ts;
 	time_start = time( NULL );
-	op.datetime_stamp = datestamp();
-	op.pd = &pd;
+	op.datetime_stamp = datestamp(); // create execution date stamp
+	op.pd = &pd; // create opt_data structures ...
+	op.rd = &rd;
 	op.od = &od;
 	op.preds = &preds;
 	op.wd = &wd;
@@ -1599,7 +1602,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		if( gf > 200 ) tprintf( "not very good (chi^2/dof = %g > 200)\n", gf );
 		else tprintf( "relatively good (chi^2/dof = %g < 200)\n", gf );
 	}
-	tprintf( "Optimized parameters:\n" );
+	tprintf( "Optimized model parameters:\n" );
 	if( debug && op->cd->sintrans == 1 ) tprintf( "Transformed space (applied during optimization):\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
@@ -3168,12 +3171,23 @@ void print_results( struct opt_data *op, int verbosity )
 	int i, j, k, success, success_all, predict = 0;
 	double c, err;
 	success_all = 1;
-	if( verbosity > 0 ) tprintf( "Model parameters:\n" );
+	if( verbosity > 0 ) tprintf( "Optimized model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
-		if( op->pd->var_log[k] == 0 ) tprintf( "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
-		else tprintf( "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
+		if( op->pd->var_log[k] == 0 ) op->cd->var[k] = op->pd->var[k];
+		else op->cd->var[k] = pow( 10, op->pd->var[k] );
+		tprintf( "%s %g\n", op->pd->var_id[k], op->cd->var[k] );
+	}
+	if( verbosity > 0 ) tprintf( "Tied model parameters:\n" );
+	for( i = 0; i < op->pd->nExpParam; i++ )
+	{
+		k = op->pd->param_expressions_index[i];
+		tprintf( "%s = ", op->pd->var_id[k] );
+		tprintf( "%s", evaluator_get_string( op->pd->param_expressions[i] ) );
+		if( op->cd->solution_type[0] == EXTERNAL ) op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id, op->cd->var );
+		else op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id_short, op->cd->var );
+		tprintf( " = %g\n", op->pd->var[k] );
 	}
 	if( verbosity == 0 ) return;
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
@@ -3293,12 +3307,23 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	strcpy( filename, fileroot );
 	strcat( filename, ".results" );
 	out = Fwrite( filename );
-	fprintf( out, "Model parameters:\n" );
+	fprintf( out, "Optimized model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
-		if( op->pd->var_log[k] == 0 ) fprintf( out, "%s %g\n", op->pd->var_id[k], op->pd->var[k] );
-		else fprintf( out, "%s %g\n", op->pd->var_id[k], pow( 10, op->pd->var[k] ) );
+		if( op->pd->var_log[k] == 0 ) op->cd->var[k] = op->pd->var[k];
+		else op->cd->var[k] = pow( 10, op->pd->var[k] );
+		fprintf( out, "%s %g\n", op->pd->var_id[k], op->cd->var[k] );
+	}
+	fprintf( out, "Tied model parameters:\n" );
+	for( i = 0; i < op->pd->nExpParam; i++ )
+	{
+		k = op->pd->param_expressions_index[i];
+		fprintf( out, "%s = ", op->pd->var_id[k] );
+		fprintf( out, "%s", evaluator_get_string( op->pd->param_expressions[i] ) );
+		if( op->cd->solution_type[0] == EXTERNAL ) op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id, op->cd->var );
+		else op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id_short, op->cd->var );
+		fprintf( out, " = %g\n", op->pd->var[k] );
 	}
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{

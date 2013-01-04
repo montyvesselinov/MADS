@@ -82,7 +82,7 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	p->cd->neval++;
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) tprintf( "Model parameters:\n" );
+	if( p->cd->fdebug >= 3 ) tprintf( "Optimized model parameters (%d):\n", p->pd->nOptParam );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
@@ -93,7 +93,7 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	if( p->pd->nExpParam > 0 )
 	{
-		if( p->cd->fdebug >= 3 ) tprintf( "Tied parameters:\n" );
+		if( p->cd->fdebug >= 3 ) tprintf( "Tied model parameters (%d):\n", p->pd->nExpParam );
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
@@ -106,7 +106,7 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->pd->nFixParam == 0 ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
-			tprintf( "Fixed parameters:\n" );
+			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
 					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
@@ -228,7 +228,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	char buf[1000], dir[500];
 	int i, k;
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) tprintf( "Model parameters (model run = %d):\n", ieval );
+	if( p->cd->fdebug >= 3 ) tprintf( "Optimized model parameters (%d; model run = %d):\n", p->pd->nOptParam, ieval );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
@@ -239,7 +239,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	if( p->pd->nExpParam > 0 )
 	{
-		if( p->cd->fdebug >= 3 ) tprintf( "Tied parameters:\n" );
+		if( p->cd->fdebug >= 3 ) tprintf( "Tied model parameters (%d):\n", p->pd->nExpParam );
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
@@ -252,7 +252,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		if( p->pd->nFixParam == 0 ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
-			tprintf( "Fixed parameters:\n" );
+			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
 					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
@@ -498,7 +498,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		else p->f_ofe = fopen( filename, "w" );
 	}
 	DeTransform( x, p, p->pd->var_current );
-	if( p->cd->fdebug >= 3 ) tprintf( "Model parameters (%d):\n", p->pd->nOptParam );
+	if( p->cd->fdebug >= 3 ) tprintf( "Optimized model parameters (%d):\n", p->pd->nOptParam );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
@@ -508,7 +508,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	if( p->pd->nExpParam > 0 )
 	{
-		if( p->cd->fdebug >= 3 ) tprintf( "Tied parameters:\n" );
+		if( p->cd->fdebug >= 3 ) tprintf( "Tied model parameters (%d):\n", p->pd->nExpParam );
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
@@ -521,7 +521,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		if( p->pd->nFixParam == 0 ) tprintf( "NO fixed parameters.\n" );
 		else
 		{
-			tprintf( "Fixed parameters:\n" );
+			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
 					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );

@@ -47,17 +47,6 @@ void tprintf( char const *fmt, ... );
 FILE *mads_output;
 int quiet;
 
-struct anal_data
-{
-	int num_param;
-	int debug;
-	double xe; // x coordinate; needed only for the functions during integration (can be a subclass)
-	double ye; // y coordinate; needed only for the functions during integration (can be a subclass)
-	double ze; // z coordinate; needed only for the functions during integration (can be a subclass)
-	double te; // t coordinate; needed only for the functions during integration (can be a subclass)
-	double var[NUM_ANAL_PARAMS]; // optimized model parameters; needed only for the functions during integration (can be a subclass)
-};
-
 struct opt_data // TODO class MADS (in C++)
 {
 	double phi; // current objective function (can be applied as termination criteria)
@@ -68,6 +57,7 @@ struct opt_data // TODO class MADS (in C++)
 	char *datetime_stamp; // date & time of the simulation
 	FILE *f_ofe; // runtime output file with current best objective function
 	struct param_data *pd; // parameters subclass
+	struct regul_data *rd; // regularization data
 	struct obs_data *od; // observations subclass
 	struct obs_data *preds; // predictions subclass (special observations)
 	struct well_data *wd; // well-data subclass
@@ -75,7 +65,7 @@ struct opt_data // TODO class MADS (in C++)
 	struct grid_data *gd; // grid subclass to compute model predictions
 	struct extrn_data *ed; // parameter subclass for external simulations
 	struct anal_data *ad;
-	// model of the MADS functions should be part of this class
+	// TODO model of the MADS functions should be part of this class
 };
 
 struct calc_data // calculation parameters; TODO some of the flags can be boolean type
@@ -197,6 +187,18 @@ struct param_data // data structure for model parameters
 	gsl_vector *var_current_gsl; // current model parameters as GSL vector
 };
 
+struct regul_data // data structure for model parameters
+{
+	int nRegul; // number of regularization terms
+	void **regul_expressions; // math expressions for the regularization terms
+	char **regul_id; // regularization identifier (name)
+	double *regul_target; // regularization value (target)
+	double *regul_weight; // regularization weight
+	int *regul_log; // flag for log transformation
+	double *regul_min; // regularization min
+	double *regul_max; // regularization max
+};
+
 struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 {
 	int nTObs; // total number of observations
@@ -292,6 +294,17 @@ struct gsens_data // global sensitivity analysis data structure
 	double *D_hat; 		// component output variance (\hat{D}_i)
 	double *D_hat_n; 	// not component output variance (\hat{D}_{~i})
 	double ep;          // absolute first moment
+};
+
+struct anal_data
+{
+	int num_param;
+	int debug;
+	double xe; // x coordinate; needed only for the functions during integration (can be a subclass)
+	double ye; // y coordinate; needed only for the functions during integration (can be a subclass)
+	double ze; // z coordinate; needed only for the functions during integration (can be a subclass)
+	double te; // t coordinate; needed only for the functions during integration (can be a subclass)
+	double var[NUM_ANAL_PARAMS]; // optimized model parameters; needed only for the functions during integration (can be a subclass)
 };
 
 // mads.c
