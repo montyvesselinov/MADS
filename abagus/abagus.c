@@ -289,8 +289,8 @@ int abagus( struct opt_data *op )
 		eps = 0;
 		for( k = 0; k < op->od->nObs; k++ )
 		{
-			i = op->od->well_index[k];
-			j = op->od->time_index[k];
+			i = op->od->obs_well_index[k];
+			j = op->od->obs_time_index[k];
 			if( op->wd->obs_log[i][j] == 0 )
 			{
 				if( ( op->wd->obs_target[i][j] - op->wd->obs_min[i][j] ) > ( op->wd->obs_max[i][j] - op->wd->obs_target[i][j] ) )

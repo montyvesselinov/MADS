@@ -201,31 +201,29 @@ struct regul_data // data structure for model parameters
 
 struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 {
-	int nTObs; // total number of observations
-	int nObs; // number of observations (internal problem: nObs = nTObs - nPreds; external problem: nObs = nTObs)
+	int nGObs; // total number of observations and regularization terms; nGObs = nObs + nRegul
+	int nObs;  // number of observations (internal problem: nObs = nCObs; external problem: nObs > nCObs (all observations) )
 	int nCObs; // total number of calibration targets observations with weight greater than zero
-	// IMPORTANT
-	// internal problem: nCObs = nObs
-	// external problem: nTObs = nObs
-	// internal test problem: nTObs = nCObs = nObs
-	int nPreds; // number of performance criterion prediction: nPreds = nTObs - nObs
+	int nPred; // number of performance criterion prediction
+	// observations
 	char **obs_id; // observation identifier (name) 
-	char **preds_id; // performance criterion identifier (name)
 	double *obs_target; // observation value (target)
-	double *pred_crit; // value of prediction criterion
 	double *obs_current; // current model predicted observation; NOTE: redundant
 	double *obs_best; // current model predicted observation; NOTE: redundant
 	int *obs_index;
 	int *obs_log; // flag for log transformation
-	int *well_index; // well index for observations
-	int *time_index; // time index for observations
-	int *pwell_index; // well index for prediction
-	int *ptime_index; // time index for prediction
+	int *obs_well_index; // well index for observations
+	int *obs_time_index; // time index for observations
 	double *obs_weight; // observation weight
 	double *obs_min; // observation min
 	double *obs_max; // observation max
 	double *res; // current residual: res = obs_target - obs_current
 	gsl_vector *obs_current_gsl; // current model predicted observation as GSL vector; NOTE: redundant
+	// predictions
+	char **pred_id; // performance criterion identifier (name)
+	double *pred_crit; // value of prediction criterion
+	int *pred_well_index; // well index for prediction
+	int *pred_time_index; // time index for prediction
 };
 
 struct well_data // data structure for well data (INTERNAL PROBLEM)

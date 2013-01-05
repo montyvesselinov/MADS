@@ -365,7 +365,7 @@ int set_test_problems( struct opt_data *op )
 		od->obs_weight[d] = 1;
 		od->obs_log[d] = 0;
 	}
-	od->nTObs = od->nCObs = od->nObs;
+	od->nCObs = od->nObs;
 	return( 0 );
 }
 

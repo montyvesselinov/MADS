@@ -44,7 +44,7 @@ void mads_info()
 	printf( "   opt=lm             - Local Levenberg-Marquardt optimization [default]\n" );
 	printf( "   opt=lm_levmar      - Local Levenberg-Marquardt optimization using LEVMAR library\n" );
 	printf( "   opt=lm_gsl         - Local Levenberg-Marquardt optimization using GSL library\n" );
-	printf( "   opt=lm_ms          - Local Multi-Start (Multy-Try) Levenberg-Marquardt (MSLM) optimization using multiple initial guesses\n" );
+	printf( "   opt=lm_ms          - Local Multi-Start (Multi-Try) Levenberg-Marquardt (MSLM) optimization using multiple initial guesses\n" );
 	printf( "   opt=pso            - Global Particle Swarm optimization (default Standard2006)\n" );
 	printf( "   opt=apso           - Global Adaptive Particle Swarm optimization (default TRIBES)\n" );
 	printf( "   opt=swarm          - Global Particle Swarm optimization Standard2006 (also opt=pso_std)\n" );

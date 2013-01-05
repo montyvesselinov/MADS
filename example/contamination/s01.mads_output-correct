@@ -30,11 +30,13 @@ Number of model parameters: 19
 Number of optimized parameters = 11
 Number of flagged parameters = 0
 Number of fixed parameters = 8
+Number of parameters with computational expressions (coupled or tied parameters) = 0
+Number of regularization terms = 0
 Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20121122-101811
+Execution date & time stamp: 20130105-090158
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Levenberg-Marquardt Optimization ... LM using SVD decomposition
@@ -51,7 +53,7 @@ Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 7.08329 < 200)
-Optimized parameters:
+Optimized model parameters:
 Source x coordinate [L]                  :         1124 stddev      73.2433 (         210 -         1460) Uncertainty ranges constrained by prior bounds
 Source y coordinate [L]                  :         1393 stddev      7.92858 (        1230 -         1930) Uncertainty ranges constrained by prior bounds
 Source x dimension [L]                   :          258 stddev       645.68 (           1 -          500) Uncertainty ranges constrained by prior bounds
@@ -77,7 +79,7 @@ Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.0965854 < 200)
-Optimized parameters:
+Optimized model parameters:
 Source x coordinate [L]                  :      1119.49 stddev      3.22548 (         210 -         1460) Uncertainty ranges constrained by prior bounds
 Source y coordinate [L]                  :         1398 stddev     0.108293 (     1331.84 -      1474.71)
 Source x dimension [L]                   :      261.292 stddev      18.7597 (           1 -          500) Uncertainty ranges constrained by prior bounds
@@ -104,7 +106,7 @@ Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.00136618 < 200)
-Optimized parameters:
+Optimized model parameters:
 Source x coordinate [L]                  :      1119.86 stddev     0.521378 (     437.944 -         1460) Uncertainty ranges constrained by prior bounds
 Source y coordinate [L]                  :       1398.2 stddev    0.0846639 (     1345.34 -       1457.5)
 Source x dimension [L]                   :      264.613 stddev      3.50713 (           1 -          500) Uncertainty ranges constrained by prior bounds
@@ -132,7 +134,7 @@ Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000486941 < 200)
-Optimized parameters:
+Optimized model parameters:
 Source x coordinate [L]                  :      1121.94 stddev     0.118129 (     967.608 -      1256.51)
 Source y coordinate [L]                  :      1398.28 stddev    0.0240831 (      1382.5 -      1414.59)
 Source x dimension [L]                   :      271.003 stddev      1.27185 (           1 -          500) Uncertainty ranges constrained by prior bounds
@@ -159,7 +161,7 @@ Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000127118 < 200)
-Optimized parameters:
+Optimized model parameters:
 Source x coordinate [L]                  :      1122.35 stddev    0.0956803 (      998.42 -      1233.27)
 Source y coordinate [L]                  :      1398.31 stddev   0.00910504 (     1392.28 -      1404.41)
 Source x dimension [L]                   :      272.138 stddev     0.601324 (     13.5001 -       497.41)
@@ -189,7 +191,7 @@ Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000119823 < 200)
-Optimized parameters:
+Optimized model parameters:
 Source x coordinate [L]                  :      1123.11 stddev    0.0781887 (     1022.62 -      1214.88)
 Source y coordinate [L]                  :      1398.34 stddev   0.00605042 (     1394.32 -      1402.39)
 Source x dimension [L]                   :      273.748 stddev     0.553873 (     23.7215 -      492.643)
@@ -219,7 +221,7 @@ Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000119135 < 200)
-Optimized parameters:
+Optimized model parameters:
 Source x coordinate [L]                  :      1123.47 stddev     0.236182 (     805.969 -      1362.92)
 Source y coordinate [L]                  :      1398.34 stddev    0.0233185 (     1383.05 -      1414.12)
 Source x dimension [L]                   :      274.161 stddev      1.91534 (           1 -          500) Uncertainty ranges constrained by prior bounds
@@ -249,7 +251,7 @@ Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000118475 < 200)
-Optimized parameters:
+Optimized model parameters:
 Source x coordinate [L]                  :      1123.75 stddev     0.206384 (     847.761 -      1339.75)
 Source y coordinate [L]                  :      1398.34 stddev    0.0169425 (     1387.18 -      1409.76)
 Source x dimension [L]                   :      274.461 stddev      1.56358 (           1 -          500) Uncertainty ranges constrained by prior bounds
@@ -371,7 +373,7 @@ CIC                                 : -29.6096
 KIC (Kashyap Information Criterion) : -9.51206
 
 Obtained fit is relatively good (chi^2/dof = 0.000117869 < 200)
-Optimized parameters:
+Optimized model parameters:
 Transformed space (applied during optimization):
 Source x coordinate [L]                  :     0.480791 stddev     0.205751 (   0.0223782 -     0.939203)
 Source y coordinate [L]                  :    -0.545715 stddev    0.0168721 (   -0.583306 -    -0.508124)
@@ -398,7 +400,7 @@ Dispersivity y [L]                       :       15.589 stddev     0.402133 (   
 Dispersivity z [L]                       :     0.290012 stddev     0.481524 (    0.110666 -     0.831927)
 
 
-Model parameters:
+Optimized model parameters:
 Source x coordinate [L] 1124.05
 Source y coordinate [L] 1398.34
 Source x dimension [L] 274.797
@@ -440,6 +442,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Nov 22 10:18:11 2012
-Execution completed on Thu Nov 22 10:18:11 2012
-Execution date & time stamp: 20121122-101811
+Execution  started  on Sat Jan  5 09:01:58 2013
+Execution completed on Sat Jan  5 09:01:58 2013
+Execution date & time stamp: 20130105-090158

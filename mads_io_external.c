@@ -61,7 +61,7 @@ int load_pst( char *filename, struct opt_data *op )
 	od = op->od;
 	ed = op->ed;
 	pd->nParam = pd->nFlgParam = pd->nOptParam = 0;
-	od->nObs = od->nTObs = od->nCObs = 0;
+	od->nObs = od->nCObs = od->nGObs = 0;
 	ed->ntpl = ed->nins = 0;
 	bad_data = 0;
 	op->gd->min_t = op-> gd->time = 0;
@@ -82,7 +82,7 @@ int load_pst( char *filename, struct opt_data *op )
 	sscanf( buf, "%d %d %d %*d %d", &( *pd ).nParam, &( *od ).nObs, &npar_groups, &nobs_groups );
 	tprintf( "Parameters = %d (groups %d)\n", pd->nParam, npar_groups );
 	tprintf( "Observations = %d (groups %d)\n", od->nObs, nobs_groups );
-	od->nTObs = od->nObs;
+	od->nGObs = od->nCObs = od->nObs;
 	fgets( buf, 1000, in );
 	sscanf( buf, "%d %d", &( *ed ).ntpl, &( *ed ).nins );
 	tprintf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *ed ).ntpl, ( *ed ).nins );

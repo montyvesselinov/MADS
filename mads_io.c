@@ -259,19 +259,19 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	tprintf( "Problem type: " );
 	switch( cd->problem_type )
 	{
-	case CHECK: tprintf( "check model setup and input/output files (no model execution)" ); break;
-	case CREATE: tprintf( "create a calibration input file based on a forward run (no calibration)" ); break;
-	case FORWARD: tprintf( "forward run (no calibration)" ); break;
-	case CALIBRATE: tprintf( "calibration" ); break;
-	case LOCALSENS: tprintf( "sensitivity analysis" ); break;
-	case EIGEN: tprintf( "eigen analysis" ); break;
-	case MONTECARLO: tprintf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
-	case GLOBALSENS: tprintf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
-	case ABAGUS: tprintf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
-	case GLUE: tprintf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
-	case INFOGAP: tprintf( "Info-gap decision analysis" ); break;
-	case POSTPUA: tprintf( "predictive uncertainty analysis of sampling results" ); break;
-	default: tprintf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
+		case CHECK: tprintf( "check model setup and input/output files (no model execution)" ); break;
+		case CREATE: tprintf( "create a calibration input file based on a forward run (no calibration)" ); break;
+		case FORWARD: tprintf( "forward run (no calibration)" ); break;
+		case CALIBRATE: tprintf( "calibration" ); break;
+		case LOCALSENS: tprintf( "sensitivity analysis" ); break;
+		case EIGEN: tprintf( "eigen analysis" ); break;
+		case MONTECARLO: tprintf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
+		case GLOBALSENS: tprintf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
+		case ABAGUS: tprintf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
+		case GLUE: tprintf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
+		case INFOGAP: tprintf( "Info-gap decision analysis" ); break;
+		case POSTPUA: tprintf( "predictive uncertainty analysis of sampling results" ); break;
+		default: tprintf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
 	tprintf( "\n" );
 	if( cd->resultsfile[0] != 0 )
@@ -297,11 +297,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		tprintf( "\nCalibration technique: " );
 		switch( cd->calib_type )
 		{
-		case IGRND: tprintf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
-		case IGPD: tprintf( "sequential calibration using a set discretized initial values" ); break;
-		case PPSD: tprintf( "sequential calibration using partial parameter parameter discretization" ); break;
-		case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
-		default: tprintf( "WARNING: unknown calibration type ASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
+			case IGRND: tprintf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
+			case IGPD: tprintf( "sequential calibration using a set discretized initial values" ); break;
+			case PPSD: tprintf( "sequential calibration using partial parameter parameter discretization" ); break;
+			case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
+			default: tprintf( "WARNING: unknown calibration type ASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
 		}
 		tprintf( "\nOptimization method: opt=%s | ", cd->opt_method );
 		if( strncasecmp( cd->opt_method, "squad", 5 ) == 0 || ( strcasestr( cd->opt_method, "pso" ) && strcasestr( cd->opt_method, "lm" ) ) )
@@ -348,11 +348,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		{
 			switch( cd->objfunc_type )
 			{
-			case SSR: tprintf( "sum of squared residuals" ); break;
-			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
-			case SSDA: tprintf( "sum of squared discrepancies and residuals" ); break;
-			case SSD0: tprintf( "sum of squared discrepancies" ); break;
-			default: tprintf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
+				case SSR: tprintf( "sum of squared residuals" ); break;
+				case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
+				case SSDA: tprintf( "sum of squared discrepancies and residuals" ); break;
+				case SSD0: tprintf( "sum of squared discrepancies" ); break;
+				default: tprintf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
 			}
 		}
 		tprintf( "\n" );
@@ -421,7 +421,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	double x0, y0, x, y, d, alpha, beta;
 	char buf[5000], *file, **path, exec[1000], *word, *start, charecter;
 	char *separator = " \t\n";
-	int  i, j, k, c, l1, l2, bad_data, status, nofile = 0, skip = 0;
+	int  i, j, k, c, l1, l2, bad_data, status, nofile = 0, skip = 0, short_names_printed;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct regul_data *rd;
@@ -441,7 +441,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	gd = op->gd;
 	ed = op->ed;
 	pd->nParam = pd->nFixParam = pd->nFlgParam = pd->nOptParam = pd->nExpParam = 0;
-	od->nObs = od->nTObs = od->nCObs = 0;
+	od->nGObs = od->nObs = od->nCObs = 0;
 	// IMPORTANT
 	// internal problem: nCObs = nObs
 	// external problem: nTObs = nObs
@@ -512,13 +512,13 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( ( *cd ).num_solutions > 1 ) tprintf( " (%d) ", c + 1 );
 		switch( ( *cd ).solution_type[c] )
 		{
-		case EXTERNAL: { tprintf( "external" ); strcat( ( *cd ).solution_id, "external" ); break; }
-		case POINT: { tprintf( "internal point contaminant source" ); strcat( ( *cd ).solution_id, "point" ); break; }
-		case PLANE: { tprintf( "internal rectangular contaminant source" ); strcat( ( *cd ).solution_id, "rect" ); break; }
-		case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( ( *cd ).solution_id, "rect_vert" ); break; }
-		case BOX: { tprintf( "internal box contaminant source" ); strcat( ( *cd ).solution_id, "box" ); break; }
-		case TEST: { tprintf( "internal test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); sprintf( ( *cd ).solution_id, "test=%d", ( *cd ).test_func ); break; }
-		default: tprintf( "WARNING! UNDEFINED model type!" ); break;
+			case EXTERNAL: { tprintf( "external" ); strcat( ( *cd ).solution_id, "external" ); break; }
+			case POINT: { tprintf( "internal point contaminant source" ); strcat( ( *cd ).solution_id, "point" ); break; }
+			case PLANE: { tprintf( "internal rectangular contaminant source" ); strcat( ( *cd ).solution_id, "rect" ); break; }
+			case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( ( *cd ).solution_id, "rect_vert" ); break; }
+			case BOX: { tprintf( "internal box contaminant source" ); strcat( ( *cd ).solution_id, "box" ); break; }
+			case TEST: { tprintf( "internal test optimization problem #%d: ", ( *cd ).test_func ); set_test_problems( op ); sprintf( ( *cd ).solution_id, "test=%d", ( *cd ).test_func ); break; }
+			default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 		}
 		if( ( *cd ).num_solutions > 1 ) { strcat( ( *cd ).solution_id, " " ); tprintf( ";" ); }
 	}
@@ -649,72 +649,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 		}
 	}
-	if( ( *cd ).solution_type[0] == EXTERNAL ) // check for consistent parameter names
-	{
-		for( i = 0; i < ( *pd ).nParam; i++ )
-		{
-			if( strchr( pd->var_id[i], ' ' ) || strchr( pd->var_id[i], '\t' ) ) { tprintf( "ERROR: \'%s\' - invalid parameter name (contains empty space)\n", pd->var_id[i] ); bad_data = 1; }
-			l1 = strlen( pd->var_id[i] );
-			if( l1 == 0 ) { tprintf( "ERROR: \'%s\' empty parameter name\n", pd->var_id[i] ); bad_data = 1; }
-			for( j = i + 1; j < ( *pd ).nParam; j++ )
-			{
-				l2 = strlen( pd->var_id[j] );
-				if( l1 == l2 && strcmp( pd->var_id[i], pd->var_id[j] ) == 0 ) { tprintf( "ERROR: %d (\'%s\') and %d (\'%s\') parameter names are the same\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] ); bad_data = 1; }
-			}
-		}
-	}
-	else // create short names for the internal model parameters
-	{
-		pd->var_id_short = char_matrix( ( *pd ).nParam, 10 );
-		if( cd->debug ) tprintf( "\nShort parameters names for the internal parameters applied in the parameter and regularization expressions\n" );
-		for( i = 0; i < ( *pd ).nParam; i++ )
-		{
-			sprintf( pd->var_id_short[i], "p%d", i + 1 );
-			if( cd->debug ) tprintf( "%-26s: %s\n", pd->var_id[i], pd->var_id_short[i] );
-		}
-		if( cd->debug ) tprintf( "\n" );
-	}
-	if( pd->nExpParam > 0 )
-	{
-		tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", ( *pd ).nExpParam );
-		for( i = 0; i < pd->nExpParam; i++ )
-		{
-			evaluator_get_variables( pd->param_expressions[i], &expvar_names, &expvar_count );
-			for( j = 0; j < expvar_count; j++ )
-			{
-				l1 = strlen( expvar_names[j] );
-				status = 0;
-				for( k = 0; k < pd->nParam; k++ )
-				{
-					if( cd->solution_type[0] != EXTERNAL ) word = pd->var_id_short[k];
-					else word = pd->var_id[k];
-					l2 = strlen( word );
-					if( l1 == l2 && strcmp( expvar_names[j], word ) == 0 ) { status = 1; break; }
-				}
-				if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in expression \'%s\' for parameter \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( pd->param_expressions[i] ), pd->var_id[pd->param_expressions_index[i]] ); bad_data = 1; }
-			}
-		}
-		if( bad_data ) return( 0 );
-		for( i = 0; i < pd->nParam; i++ )
-		{
-			if( pd->var_opt[i] > 0 && pd->var_log[i] == 1 ) cd->var[i] = pow( 10, pd->var[i] );
-			else cd->var[i] = pd->var[i];
-			if( cd->debug ) tprintf( "%s %.12g\n", pd->var_id[i], cd->var[i] );
-		}
-		if( cd->debug )
-		{
-			for( i = 0; i < pd->nExpParam; i++ )
-			{
-				k = pd->param_expressions_index[i];
-				tprintf( "%-26s= ", pd->var_id[k] );
-				tprintf( "%s", evaluator_get_string( pd->param_expressions[i] ) );
-				if( ( *cd ).solution_type[0] == EXTERNAL ) pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id, cd->var );
-				else pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id_short, cd->var );
-				tprintf( " = %g\n", pd->var[k] );
-			}
-		}
-	}
-	if( bad_data ) return( 0 );
+	// read parameters from previously saved results in a file
 	if( cd->resultscase > 0 )
 	{
 		bad_data = 0;
@@ -781,7 +716,24 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			return( 0 );
 		}
 	}
-	if( ( *cd ).problem_type == CALIBRATE  && ( *pd ).nFlgParam == 0 )
+	/*
+		if( (*cd).problem_type != 0 )
+		{
+			// Read binary data if available
+			sprintf( buf, "%s.bin", filename );
+			if ( ( infileb = fopen( buf, "r" ) ) == NULL )
+				tprintf( "Binary file %s cannot be opened to read problem information!\n", buf );
+			else
+			{
+				tprintf( "Binary file %s is found and parameter values are read\n", buf );
+				fread( (*pd).var, sizeof((*pd).var[i]), (*pd).nParam, infileb);
+				for( i = 0; i < (*pd).nParam; i++ )
+						tprintf( "%-26s: binary init %15.12g\n", pd->var_id[i], (*pd).var[i] );
+				fclose( infileb );
+			}
+		}
+	 */
+	if( ( *cd ).problem_type == CALIBRATE && ( *pd ).nFlgParam == 0 )
 	{
 		if( ( *cd ).calib_type == PPSD )
 		{
@@ -828,29 +780,94 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					tprintf( "%-26s: %g\n", pd->var_id[i], ( *pd ).var[i] );
 		}
 	}
-	/*
-		if( (*cd).problem_type != 0 )
+	if( ( *cd ).solution_type[0] == EXTERNAL ) // check for consistent parameter names
+	{
+		for( i = 0; i < ( *pd ).nParam; i++ )
 		{
-			// Read binary data if available
-			sprintf( buf, "%s.bin", filename );
-			if ( ( infileb = fopen( buf, "r" ) ) == NULL )
-				tprintf( "Binary file %s cannot be opened to read problem information!\n", buf );
-			else
+			if( strchr( pd->var_id[i], ' ' ) || strchr( pd->var_id[i], '\t' ) ) { tprintf( "ERROR: \'%s\' - invalid parameter name (contains empty space)\n", pd->var_id[i] ); bad_data = 1; }
+			l1 = strlen( pd->var_id[i] );
+			if( l1 == 0 ) { tprintf( "ERROR: \'%s\' empty parameter name\n", pd->var_id[i] ); bad_data = 1; }
+			for( j = i + 1; j < ( *pd ).nParam; j++ )
 			{
-				tprintf( "Binary file %s is found and parameter values are read\n", buf );
-				fread( (*pd).var, sizeof((*pd).var[i]), (*pd).nParam, infileb);
-				for( i = 0; i < (*pd).nParam; i++ )
-						tprintf( "%-26s: binary init %15.12g\n", pd->var_id[i], (*pd).var[i] );
-				fclose( infileb );
+				l2 = strlen( pd->var_id[j] );
+				if( l1 == l2 && strcmp( pd->var_id[i], pd->var_id[j] ) == 0 ) { tprintf( "ERROR: %d (\'%s\') and %d (\'%s\') parameter names are the same\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] ); bad_data = 1; }
 			}
 		}
-	 */
+	}
+	else // create short names for the internal model parameters
+	{
+		pd->var_id_short = char_matrix( ( *pd ).nParam, 10 );
+		for( i = 0; i < ( *pd ).nParam; i++ )
+			sprintf( pd->var_id_short[i], "p%d", i + 1 );
+	}
 	if( cd->debug ) tprintf( "\n" );
+	tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", ( *pd ).nExpParam );
+	short_names_printed = 0;
+	if( pd->nExpParam > 0 )
+	{
+		for( i = 0; i < pd->nExpParam; i++ )
+		{
+			evaluator_get_variables( pd->param_expressions[i], &expvar_names, &expvar_count );
+			for( j = 0; j < expvar_count; j++ )
+			{
+				l1 = strlen( expvar_names[j] );
+				status = 0;
+				for( k = 0; k < pd->nParam; k++ )
+				{
+					if( cd->solution_type[0] != EXTERNAL ) word = pd->var_id_short[k];
+					else word = pd->var_id[k];
+					l2 = strlen( word );
+					if( l1 == l2 && strcmp( expvar_names[j], word ) == 0 ) { status = 1; break; }
+				}
+				if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in expression \'%s\' for parameter \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( pd->param_expressions[i] ), pd->var_id[pd->param_expressions_index[i]] ); bad_data = 1; }
+			}
+		}
+		if( bad_data ) return( 0 );
+		for( i = 0; i < pd->nParam; i++ )
+		{
+			if( pd->var_opt[i] > 0 && pd->var_log[i] == 1 ) cd->var[i] = pow( 10, pd->var[i] );
+			else cd->var[i] = pd->var[i];
+			if( cd->debug )
+			{
+				if( ( *cd ).solution_type[0] == EXTERNAL ) tprintf( "%-26s: %.12g\n", pd->var_id[i], cd->var[i] );
+				else tprintf( "%-26s: %-12s: %.12g\n", pd->var_id[i], pd->var_id_short[i], cd->var[i] );
+			}
+			short_names_printed = 1;
+		}
+		if( cd->debug )
+		{
+			for( i = 0; i < pd->nExpParam; i++ )
+			{
+				k = pd->param_expressions_index[i];
+				tprintf( "%-26s= ", pd->var_id[k] );
+				tprintf( "%s", evaluator_get_string( pd->param_expressions[i] ) );
+				if( ( *cd ).solution_type[0] == EXTERNAL ) pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id, cd->var );
+				else pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id_short, cd->var );
+				tprintf( " = %g\n", pd->var[k] );
+			}
+		}
+	}
+	if( bad_data ) return( 0 );
 	rd->nRegul = 0;
 	fscanf( infile, "%[^:]s", buf );
 	if( !strncasecmp( buf, "Number of regul", 15 ) )
 	{
+		if( cd->debug && short_names_printed == 0 )
+		{
+			tprintf( "\nParameter values for computation of the regularization terms:\n" );
+			for( i = 0; i < pd->nParam; i++ )
+			{
+				if( pd->var_opt[i] > 0 && pd->var_log[i] == 1 ) cd->var[i] = pow( 10, pd->var[i] );
+				else cd->var[i] = pd->var[i];
+				if( cd->debug )
+				{
+					if( ( *cd ).solution_type[0] == EXTERNAL ) tprintf( "%-26s: %.12g\n", pd->var_id[i], cd->var[i] );
+					else tprintf( "%-26s: %-12s: %.12g\n", pd->var_id[i], pd->var_id_short[i], cd->var[i] );
+				}
+			}
+		}
 		fscanf( infile, ": %i\n", &rd->nRegul );
+		if( cd->debug ) tprintf( "\n" );
 		tprintf( "Number of regularization terms = %d\n", rd->nRegul );
 		rd->regul_expressions = ( void ** ) malloc( rd->nRegul * sizeof( void * ) );
 		rd->regul_id = char_matrix( rd->nRegul, 10 );
@@ -864,7 +881,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			sprintf( rd->regul_id[i], "reg%d", i + 1 );
 			fscanf( infile, "%[^=]s", buf );
 			fscanf( infile, "= %lf %lf %i %lf %lf\n", &rd->regul_target[i], &rd->regul_weight[i], &rd->regul_log[i], &rd->regul_min[i], &rd->regul_max[i] );
-			if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s ", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], buf );
+			if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], buf );
 			rd->regul_expressions[i] = evaluator_create( buf );
 			assert( rd->regul_expressions[i] );
 			evaluator_get_variables( rd->regul_expressions[i], &expvar_names, &expvar_count );
@@ -893,36 +910,37 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 			else { tprintf( "ERROR: no variables\n" ); bad_data = 1; }
 		}
+		if( cd->debug )
+		{
+			for( i = 0; i < rd->nRegul; i++ )
+			{
+				tprintf( "%-12s= ", rd->regul_id[i] );
+				tprintf( "%s", evaluator_get_string( rd->regul_expressions[i] ) );
+				if( ( *cd ).solution_type[0] == EXTERNAL ) d = evaluator_evaluate( rd->regul_expressions[i], pd->nParam, pd->var_id, cd->var );
+				else d = evaluator_evaluate( rd->regul_expressions[i], pd->nParam, pd->var_id_short, cd->var );
+				tprintf( " = %g\n", d );
+			}
+		}
 		fscanf( infile, "%[^:]s", buf );
 	}
 	else tprintf( "Number of regularization terms = %d\n", rd->nRegul );
 	if( bad_data ) return ( 0 );
 	if( cd->solution_type[0] == EXTERNAL )
 	{
-		// check parameter name uniqueness
-		for( i = 0; i < pd->nParam; i++ )
-			for( j = i + 1; j < pd->nParam; j++ )
-				if( strcmp( pd->var_id[i], pd->var_id[j] ) == 0 )
-				{
-					tprintf( "ERROR: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] );
-					bad_data = 1;
-				}
-		if( bad_data ) return( 0 );
-		fscanf( infile, ": %i\n", &od->nTObs );
-		tprintf( "Number of total observations = %d\n", ( *od ).nTObs );
-		od->nObs = od->nTObs;
-		od->obs_id = char_matrix( ( *od ).nTObs, 50 );
-		od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_weight = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_min = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_max = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_current = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		// if( ( od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) ) ) == NULL ) tprintf( "***\nNO MEMORY!!!!\n***\n" );
-		od->res = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_log = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
+		fscanf( infile, ": %i\n", &od->nObs );
+		tprintf( "Number of total observations = %d\n", ( *od ).nObs );
+		od->obs_id = char_matrix( ( *od ).nObs, 50 );
+		od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		// if( ( od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) ) ) == NULL ) tprintf( "***\nNO MEMORY!!!!\n***\n" );
+		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 		od->nCObs = 0;
-		for( i = 0; i < od->nTObs; i++ )
+		for( i = 0; i < od->nObs; i++ )
 		{
 			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0;
 			fscanf( infile, "%s %lf %lf %d %lf %lf\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i], &od->obs_log[i], &od->obs_min[i], &od->obs_max[i] );
@@ -951,15 +969,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( cd->debug )
 		{
 			tprintf( "\n" );
-			for( i = 0; i < od->nTObs; i++ )
+			for( i = 0; i < od->nObs; i++ )
 			{
-				if( cd->debug > 10 || od->nTObs <= 50 || ( i < 20 || i > od->nTObs - 20 ) )
+				if( cd->debug > 10 || od->nObs <= 50 || ( i < 20 || i > od->nObs - 20 ) )
 					tprintf( "%-20s: %15g weight %7g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
-				if( ( !( cd->debug > 10 ) || od->nTObs > 50 ) && i == 21 ) tprintf( "...\n" );
+				if( ( !( cd->debug > 10 ) || od->nObs > 50 ) && i == 21 ) tprintf( "...\n" );
 			}
 		}
-		for( i = 0; i < od->nTObs; i++ )
-			for( j = i + 1; j < od->nTObs; j++ )
+		for( i = 0; i < od->nObs; i++ )
+			for( j = i + 1; j < od->nObs; j++ )
 				if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
 				{
 					tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
@@ -1064,7 +1082,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	wd->obs_weight = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
 	wd->obs_min = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
 	wd->obs_max = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
-	( *od ).nObs = ( *preds ).nObs = ( *od ).nTObs = 0;
+	( *od ).nObs = ( *preds ).nObs = 0;
 	if( cd->debug ) tprintf( "\nObservation data:\n" );
 	for( i = 0; i < ( *wd ).nW; i++ )
 	{
@@ -1112,7 +1130,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 			if( ( *wd ).obs_weight[i][j] > DBL_EPSILON )( *od ).nObs++;
 			if( ( *wd ).obs_weight[i][j] < -DBL_EPSILON ) { ( *preds ).nObs++; if( cd->problem_type != INFOGAP )( *od ).nObs++; }
-			( *od ).nTObs++;
 			if( j + 1 < ( *wd ).nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " ); }
 		}
 	}
@@ -1155,14 +1172,14 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_id = char_matrix( ( *od ).nObs, 50 );
-	od->preds_id = char_matrix( ( *od ).nObs, 50 );
+	od->pred_id = char_matrix( ( *od ).nObs, 50 );
 	od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
 	od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-	od->well_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-	od->time_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+	od->obs_well_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+	od->obs_time_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
 	if( cd->debug ) tprintf( "\n" );
 	tprintf( "Number of calibration targets = %d\n", ( *od ).nObs );
 	if( op->pd->nOptParam > op->od->nObs ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
@@ -1175,8 +1192,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				od->obs_min[k] = ( *wd ).obs_min[i][j];
 				od->obs_max[k] = ( *wd ).obs_max[i][j];
 				od->obs_log[k] = ( *wd ).obs_log[i][j];
-				od->well_index[k] = i;
-				od->time_index[k] = j;
+				od->obs_well_index[k] = i;
+				od->obs_time_index[k] = j;
 				sprintf( od->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
 				if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 				k++;
@@ -1189,8 +1206,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		preds->obs_target = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_current = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_best = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->well_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
-		preds->time_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
+		preds->obs_well_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
+		preds->obs_time_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
 		preds->obs_id = char_matrix( ( *preds ).nObs, 50 );
 		preds->obs_weight = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
 		preds->obs_min = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
@@ -1212,8 +1229,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					preds->obs_min[k] = ( *wd ).obs_target[i][j];
 					preds->obs_max[k] = ( *wd ).obs_target[i][j];
 					preds->obs_log[k] = ( *wd ).obs_log[i][j];
-					preds->well_index[k] = i;
-					preds->time_index[k] = j;
+					preds->obs_well_index[k] = i;
+					preds->obs_time_index[k] = j;
 					sprintf( preds->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
 					if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 					k++;
@@ -1295,15 +1312,15 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, "Problem type: " );
 	switch( cd->problem_type )
 	{
-	case CREATE: fprintf( outfile, "create" ); break;
-	case FORWARD: fprintf( outfile, "forward" ); break;
-	case CALIBRATE: fprintf( outfile, "calibration" ); break;
-	case LOCALSENS: fprintf( outfile, "lsens" ); break;
-	case GLOBALSENS: fprintf( outfile, "gsens" ); break;
-	case EIGEN: fprintf( outfile, "eigen" ); break;
-	case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
-	case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
-	case POSTPUA: fprintf( outfile, " postpua" ); break;
+		case CREATE: fprintf( outfile, "create" ); break;
+		case FORWARD: fprintf( outfile, "forward" ); break;
+		case CALIBRATE: fprintf( outfile, "calibration" ); break;
+		case LOCALSENS: fprintf( outfile, "lsens" ); break;
+		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
+		case EIGEN: fprintf( outfile, "eigen" ); break;
+		case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
+		case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
+		case POSTPUA: fprintf( outfile, " postpua" ); break;
 	}
 	if( cd->debug > 0 ) fprintf( outfile, " debug=%d", cd->debug );
 	if( cd->fdebug > 0 ) fprintf( outfile, " fdebug=%d", cd->fdebug );
@@ -1324,10 +1341,10 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, " " );
 	switch( cd->calib_type )
 	{
-	case SIMPLE: fprintf( outfile, "single" ); break;
-	case PPSD: fprintf( outfile, "ppsd" ); break;
-	case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
-	case IGPD: fprintf( outfile, "igpd" ); break;
+		case SIMPLE: fprintf( outfile, "single" ); break;
+		case PPSD: fprintf( outfile, "ppsd" ); break;
+		case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
+		case IGPD: fprintf( outfile, "igpd" ); break;
 	}
 	fprintf( outfile, " eval=%d", cd->maxeval );
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
@@ -1346,10 +1363,10 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, " " );
 	switch( cd->objfunc_type )
 	{
-	case SSR: fprintf( outfile, "ssr" ); break;
-	case SSDR: fprintf( outfile, "ssdr" ); break;
-	case SSD0: fprintf( outfile, "ssd0" ); break;
-	case SSDA: fprintf( outfile, "ssda" ); break;
+		case SSR: fprintf( outfile, "ssr" ); break;
+		case SSDR: fprintf( outfile, "ssdr" ); break;
+		case SSD0: fprintf( outfile, "ssd0" ); break;
+		case SSDA: fprintf( outfile, "ssda" ); break;
 	}
 	fprintf( outfile, "\n" );
 	fprintf( outfile, "Solution type: %s\n", ( *cd ).solution_id );
@@ -1598,7 +1615,7 @@ char **shellpath( void )
 	if( !path )
 		path = "/bin:/usr/bin:/usr/local/bin";
 	char **vector = // size is overkill
-			( char ** ) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
+		( char ** ) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
 	const char *p = path;
 	int next = 0;
 	while( p )

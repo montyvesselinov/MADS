@@ -82,7 +82,7 @@ examples:
 	@echo "**************************************************************************************"
 
 verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-parallel
-	# verify
+	@echo VERIFICATION DONE
 
 verify-internal:
 	@echo "**************************************************************************************"

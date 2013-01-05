@@ -133,8 +133,8 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 			printf( "%-25s :", "Observations" );
 			for( k = 0; k < op->od->nObs; k++ )
 			{
-				i = op->od->well_index[k];
-				j = op->od->time_index[k];
+				i = op->od->obs_well_index[k];
+				j = op->od->obs_time_index[k];
 				printf( " %s(%g)", op->wd->id[i], op->wd->obs_time[i][j] );
 			}
 			printf( "\n" );

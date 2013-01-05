@@ -400,11 +400,11 @@ int main( int argn, char *argv[] )
 		}
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
 		tprintf( "Checking the instruction files for errors ...\n" );
-		for( i = 0; i < od.nTObs; i++ ) od.obs_current[i] = ( double ) - 1;
+		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
-			if( check_ins_obs( od.nTObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
+			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
 				bad_data = 1;
-		for( i = 0; i < od.nTObs; i++ )
+		for( i = 0; i < od.nObs; i++ )
 		{
 			if( od.obs_current[i] < 0 )
 			{
@@ -825,7 +825,7 @@ int main( int argn, char *argv[] )
 				tprintf( "%s %g\n", pd.var_id[i], cd.var[i] );
 				fprintf( out, "%s %g\n", pd.var_id[i], cd.var[i] );
 			}
-			if( od.nTObs > 0 )
+			if( od.nObs > 0 )
 			{
 				tprintf( "\nModel predictions (forward run; no calibration):\n" );
 				fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
@@ -857,24 +857,24 @@ int main( int argn, char *argv[] )
 		{
 			double *res;
 			if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-			if( ( res = ( double * ) malloc( od.nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( res = ( double * ) malloc( od.nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			for( i = 0; i < pd.nOptParam; i++ )
 				opt_params[i] = pd.var[pd.var_index[i]];
 			Transform( opt_params, &op, opt_params );
 			func_extrn( opt_params, &op, res );
 			free( opt_params );
 			free( res );
-			for( i = 0; i < od.nTObs; i++ )
+			for( i = 0; i < od.nObs; i++ )
 			{
-				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
+				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				compare = 1;
 				c = od.obs_current[i];
 				err = od.obs_target[i] - c;
 				phi += ( err * err ) * od.obs_weight[i];
 				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( od.obs_weight[i] > 0.0 ) ) { success_all = 0; success = 0; }
 				else success = 1;
-				if( od.nTObs < 50 || ( i < 20 || i > od.nTObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
-				if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" );
+				if( od.nObs < 50 || ( i < 20 || i > od.nObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
+				if( od.nObs > 50 && i == 21 ) tprintf( "...\n" );
 				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
 				else od.obs_target[i] = c; // Save computed values as calibration targets
 			}
@@ -1129,10 +1129,8 @@ int optimize_lm( struct opt_data *op )
 		{
 			if( debug > 1 && standalone ) tprintf( "\nLevenberg-Marquardt Optimization:\n" );
 			else if( op->cd->ldebug ) tprintf( "\n" );
-			if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL )
-			{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-			if( ( jacTjac = ( double * ) malloc( sizeof( double ) * ( ( op->pd->nOptParam + 1 ) * op->pd->nOptParam / 2 ) ) ) == NULL )
-			{ tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( jacTjac = ( double * ) malloc( sizeof( double ) * ( ( op->pd->nOptParam + 1 ) * op->pd->nOptParam / 2 ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			iopt = 2; /*    iopt=0 Brown's algorithm without strict descent
 		       		iopt=1 strict descent and default values for input vector parm
 					iopt=2 strict descent with user parameter choices in input vector parm */
@@ -1176,11 +1174,9 @@ int optimize_lm( struct opt_data *op )
 		{
 			if( debug > 1 && standalone ) tprintf( "\nLevenberg-Marquardt Optimization using LevMar library:\n" );
 			else if( op->cd->ldebug ) tprintf( "\n" );
-			if( ( covar = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->pd->nOptParam ) ) == NULL )
-			{ tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( covar = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			// LM_DIF_WORKSZ(m,n) = 4*n+4*m + n*m + m*m
-			if( ( work = ( double * ) malloc( sizeof( double ) * LM_DIF_WORKSZ( op->pd->nOptParam, op->od->nObs ) ) ) == NULL )
-			{ tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( work = ( double * ) malloc( sizeof( double ) * LM_DIF_WORKSZ( op->pd->nOptParam, op->od->nObs ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			for( i = 0; i < op->od->nObs; i++ ) res[i] = 0;
 			jacobian = work + op->pd->nOptParam + 2 * op->od->nObs;
 			opts[0] = op->cd->lm_error * 100; opts[1] = op->cd->lm_error; opts[2] = op->cd->lm_error;
@@ -1677,11 +1673,11 @@ int check( struct opt_data *op )
 	for( i = 0; i < p->ed->ntpl; i++ )
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug + 1 ) == -1 )
 			bad_data = 1;
-	for( i = 0; i < p->od->nTObs; i++ ) p->od->obs_current[i] = p->od->res[i] = 0;
+	for( i = 0; i < p->od->nObs; i++ ) p->od->obs_current[i] = p->od->res[i] = 0;
 	for( i = 0; i < p->ed->nins; i++ )
-		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug + 1 ) == -1 )
+		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug + 1 ) == -1 )
 			bad_data = 1;
-	for( i = 0; i < p->od->nTObs; i++ )
+	for( i = 0; i < p->od->nObs; i++ )
 	{
 		if( p->od->res[i] < 0 )
 		{
@@ -3179,7 +3175,7 @@ void print_results( struct opt_data *op, int verbosity )
 		else op->cd->var[k] = pow( 10, op->pd->var[k] );
 		tprintf( "%s %g\n", op->pd->var_id[k], op->cd->var[k] );
 	}
-	if( verbosity > 0 ) tprintf( "Tied model parameters:\n" );
+	if( verbosity > 0 && op->pd->nExpParam > 0 ) tprintf( "Tied model parameters:\n" );
 	for( i = 0; i < op->pd->nExpParam; i++ )
 	{
 		k = op->pd->param_expressions_index[i];
@@ -3190,11 +3186,11 @@ void print_results( struct opt_data *op, int verbosity )
 		tprintf( " = %g\n", op->pd->var[k] );
 	}
 	if( verbosity == 0 ) return;
-	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
+	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
 	{
 		tprintf( "\nModel predictions for calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
-			for( i = 0; i < op->od->nTObs; i++ )
+			for( i = 0; i < op->od->nObs; i++ )
 			{
 				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nCObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
@@ -3246,9 +3242,9 @@ void print_results( struct opt_data *op, int verbosity )
 		tprintf( "\nModel predictions for not calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
 		{
-			predict = op->od->nTObs - op->od->nCObs;
+			predict = op->od->nObs - op->od->nCObs;
 			j = 0;
-			for( i = 0; i < op->od->nTObs; i++ )
+			for( i = 0; i < op->od->nObs; i++ )
 			{
 				if( op->od->obs_weight[i] != 0 ) { if( predict > 50 && j == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
@@ -3307,7 +3303,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	strcpy( filename, fileroot );
 	strcat( filename, ".results" );
 	out = Fwrite( filename );
-	fprintf( out, "Optimized model parameters:\n" );
+	fprintf( out, "Model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
@@ -3315,7 +3311,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		else op->cd->var[k] = pow( 10, op->pd->var[k] );
 		fprintf( out, "%s %g\n", op->pd->var_id[k], op->cd->var[k] );
 	}
-	fprintf( out, "Tied model parameters:\n" );
+	if( op->pd->nExpParam > 0 ) fprintf( out, "Tied model parameters:\n" );
 	for( i = 0; i < op->pd->nExpParam; i++ )
 	{
 		k = op->pd->param_expressions_index[i];
@@ -3325,7 +3321,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		else op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id_short, op->cd->var );
 		fprintf( out, " = %g\n", op->pd->var[k] );
 	}
-	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
+	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
 	{
 		fprintf( out, "\nModel predictions:\n" );
 		// Save residuals file
@@ -3333,7 +3329,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		strcat( filename, ".residuals" );
 		out2 = Fwrite( filename );
 		if( op->cd->solution_type[0] == EXTERNAL )
-			for( i = 0; i < op->od->nTObs; i++ )
+			for( i = 0; i < op->od->nObs; i++ )
 			{
 				c = op->od->obs_current[i];
 				err = op->od->obs_target[i] - c;

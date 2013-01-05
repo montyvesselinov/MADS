@@ -29,6 +29,8 @@ Number of model parameters: 2
 Number of optimized parameters = 2
 Number of flagged parameters = 0
 Number of fixed parameters = 0
+Number of parameters with computational expressions (coupled or tied parameters) = 0
+Number of regularization terms = 0
 Number of total observations = 4951
 Number of calibration targets = 1441
 Execution command: wells w01 >& /dev/null
@@ -45,7 +47,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20121122-101836
+Execution date & time stamp: 20130105-090222
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Levenberg-Marquardt Optimization ... LM using SVD decomposition
@@ -62,7 +64,7 @@ Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
-Optimized parameters:
+Optimized model parameters:
 k                                        :            1 stddev      13.5908 (           1 -            1)
 S                                        :            1 stddev      29.1219 (           1 -            1)
 Computed initial lambda 0.00167603
@@ -82,7 +84,7 @@ Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
-Optimized parameters:
+Optimized model parameters:
 k                                        :            1 stddev      13.5908 (           1 -            1)
 S                                        :            1 stddev      29.1219 (           1 -            1)
 Parameters did not change between last two jacobian iterations.
@@ -102,7 +104,7 @@ Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 32.2522 < 200)
-Optimized parameters:
+Optimized model parameters:
 k                                        :      -1.0073 stddev    0.0252182 (     -1.0073 -      -1.0073)
 S                                        :      -4.7429 stddev      1.29608 (     -4.7429 -      -4.7429)
 Parameter with maximum estimate change between jacobian iterations: S                              (5.7429)
@@ -122,7 +124,7 @@ Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 2.41192 < 200)
-Optimized parameters:
+Optimized model parameters:
 k                                        :     -1.84872 stddev   0.00116428 (    -1.84872 -     -1.84872)
 S                                        :     -3.00178 stddev    0.0109224 (    -3.00178 -     -3.00178)
 Parameter with maximum estimate change between jacobian iterations: S                              (-1.74113)
@@ -143,7 +145,7 @@ Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
-Optimized parameters:
+Optimized model parameters:
 k                                        :     -1.93197 stddev  0.000911836 (    -1.93197 -     -1.93197)
 S                                        :     -2.80097 stddev   0.00719816 (    -2.80097 -     -2.80097)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.200806)
@@ -164,7 +166,7 @@ Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
-Optimized parameters:
+Optimized model parameters:
 k                                        :     -1.93197 stddev  0.000911836 (    -1.93197 -     -1.93197)
 S                                        :     -2.80097 stddev   0.00719816 (    -2.80097 -     -2.80097)
 Parameters did not change between last two jacobian iterations.
@@ -184,7 +186,7 @@ Correlation matrix stored (w01.correlation)
 Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
-Optimized parameters:
+Optimized model parameters:
 k                                        :     -1.93403 stddev  0.000909453 (    -1.93403 -     -1.93403)
 S                                        :     -2.79024 stddev   0.00712231 (    -2.79024 -     -2.79024)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.0107376)
@@ -252,7 +254,7 @@ CIC                                 : 4096.68
 KIC (Kashyap Information Criterion) : 4126.63
 
 Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
-Optimized parameters:
+Optimized model parameters:
 Transformed space (applied during optimization):
 k                                        :    -0.397166 stddev  0.000909453 (   -0.397166 -    -0.397166)
 S                                        :    -0.592031 stddev   0.00712231 (   -0.592031 -    -0.592031)
@@ -261,7 +263,7 @@ k                                        :     -1.93403 stddev  0.000909453 (   
 S                                        :     -2.79024 stddev   0.00712231 (    -2.79024 -     -2.79024)
 
 
-Model parameters:
+Optimized model parameters:
 k -1.93403
 S -2.79024
 
@@ -349,11 +351,11 @@ o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range 
 o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
 o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
 o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
-Simulation time = 6 seconds
+Simulation time = 7 seconds
 Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 7
-Execution  started  on Thu Nov 22 10:18:36 2012
-Execution completed on Thu Nov 22 10:18:42 2012
-Execution date & time stamp: 20121122-101836
+Functional evaluations per second = 6
+Execution  started  on Sat Jan  5 09:02:22 2013
+Execution completed on Sat Jan  5 09:02:29 2013
+Execution date & time stamp: 20130105-090222
