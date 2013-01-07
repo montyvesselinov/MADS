@@ -930,6 +930,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		fscanf( infile, ": %i\n", &od->nObs );
 		tprintf( "Number of total observations = %d\n", ( *od ).nObs );
 		od->nTObs = od->nObs + rd->nRegul;
+		if( rd->nRegul > 0 ) tprintf( "Number of total observations & regularizations = %d\n", ( *od ).nTObs );
 		od->obs_id = char_matrix( ( *od ).nTObs, 50 );
 		od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
 		od->obs_weight = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
@@ -966,6 +967,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( od->obs_weight[i] > DBL_EPSILON ) od->nCObs++;
 		}
 		tprintf( "Number of calibration targets = %d\n", od->nCObs );
+		if( bad_data ) return( 0 );
 		for( k = od->nObs, i = 0; i < rd->nRegul; i++ ) // add regularization targets
 		{
 			strcpy( od->obs_id[k], rd->regul_id[i] );
@@ -974,12 +976,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			od->obs_min[k] = rd->regul_min[i];
 			od->obs_max[k] = rd->regul_max[i];
 			od->obs_log[k] = rd->regul_log[i];
-			od->obs_well_index[k] = -1;
-			od->obs_time_index[k] = -1;
 			if( cd->debug ) tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
 			k++;
 		}
-		if( bad_data ) return( 0 );
 		if( cd->debug )
 		{
 			tprintf( "\n" );

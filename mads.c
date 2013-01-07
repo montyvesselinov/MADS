@@ -400,11 +400,11 @@ int main( int argn, char *argv[] )
 		}
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
 		tprintf( "Checking the instruction files for errors ...\n" );
-		for( i = 0; i < od.nTObs; i++ ) od.obs_current[i] = ( double ) - 1;
+		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
-			if( check_ins_obs( od.nTObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
+			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
 				bad_data = 1;
-		for( i = 0; i < od.nTObs; i++ )
+		for( i = 0; i < od.nObs; i++ )
 		{
 			if( od.obs_current[i] < 0 )
 			{

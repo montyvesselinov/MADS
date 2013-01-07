@@ -4,7 +4,7 @@ Number of parameters: 4
 k: 1 1 0 0.1 -5 5
 a=(k+k/2)/2
 b=a*k
-S=b/100
+S=b-2
 Number of observations: 11
 o1	0.00	1	0	0.00	0.05
 o2	5.98	1	0	5.93	6.03

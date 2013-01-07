@@ -158,7 +158,7 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	if( bad_data ) exit( -1 );
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
-		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id_short, p->cd->var );
+		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id, p->cd->var );
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
@@ -421,7 +421,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
-		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id_short, p->cd->var );
+		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id, p->cd->var );
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions (model run = %d):\n", ieval );
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
