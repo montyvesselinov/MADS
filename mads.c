@@ -400,11 +400,11 @@ int main( int argn, char *argv[] )
 		}
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
 		tprintf( "Checking the instruction files for errors ...\n" );
-		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
+		for( i = 0; i < od.nTObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
-			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
+			if( check_ins_obs( od.nTObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
 				bad_data = 1;
-		for( i = 0; i < od.nObs; i++ )
+		for( i = 0; i < od.nTObs; i++ )
 		{
 			if( od.obs_current[i] < 0 )
 			{
@@ -513,12 +513,12 @@ int main( int argn, char *argv[] )
 	// ------------------------------------------------------------------------------------------------ IGRND
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
 	{
-		if( fabs( cd.obsstep ) > DBL_EPSILON && preds.nObs > 0 )
+		if( fabs( cd.obsstep ) > DBL_EPSILON && preds.nTObs > 0 )
 		{
 			tprintf( "\n\nInfo-gap Observation step %g Observation domain %g\n", cd.obsstep, cd.obsdomain );
 			if( cd.obsstep > DBL_EPSILON ) tprintf( "Info-gap max search\n" );
 			else tprintf( "Info-gap min search\n" );
-			for( i = 0; i < preds.nObs; i++ )
+			for( i = 0; i < preds.nTObs; i++ )
 			{
 				if( cd.obsstep >  DBL_EPSILON ) preds.obs_best[i] = -HUGE_VAL;
 				if( cd.obsstep < -DBL_EPSILON ) preds.obs_best[i] = HUGE_VAL;
@@ -537,7 +537,7 @@ int main( int argn, char *argv[] )
 				status = igrnd( &op );
 				if( !status ) break;
 				tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
-				for( i = 0; i < preds.nObs; i++ )
+				for( i = 0; i < preds.nTObs; i++ )
 				{
 					j = preds.obs_index[i];
 					if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Current info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
@@ -549,7 +549,7 @@ int main( int argn, char *argv[] )
 				if( cd.obsstep < -DBL_EPSILON ) { if( od.obs_target[k] < od.obs_min[k] ) break; else od.obs_max[k] += cd.obsstep; } // obsstep is negative
 			}
 			tprintf( "\nInfo-gap results for model predictions:\n" );
-			for( i = 0; i < preds.nObs; i++ )
+			for( i = 0; i < preds.nTObs; i++ )
 			{
 				j = preds.obs_index[i];
 				if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
@@ -664,7 +664,7 @@ int main( int argn, char *argv[] )
 			infile2 = Fread( cd.resultsfile );
 			double *res;
 			if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-			if( ( res = ( double * ) malloc( od.nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( res = ( double * ) malloc( od.nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			for( j = 0; j < cases; j++ )
 			{
 				if( feof( infile2 ) )
@@ -825,7 +825,7 @@ int main( int argn, char *argv[] )
 				tprintf( "%s %g\n", pd.var_id[i], cd.var[i] );
 				fprintf( out, "%s %g\n", pd.var_id[i], cd.var[i] );
 			}
-			if( od.nObs > 0 )
+			if( od.nTObs > 0 )
 			{
 				tprintf( "\nModel predictions (forward run; no calibration):\n" );
 				fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
@@ -857,24 +857,24 @@ int main( int argn, char *argv[] )
 		{
 			double *res;
 			if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-			if( ( res = ( double * ) malloc( od.nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( res = ( double * ) malloc( od.nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			for( i = 0; i < pd.nOptParam; i++ )
 				opt_params[i] = pd.var[pd.var_index[i]];
 			Transform( opt_params, &op, opt_params );
 			func_extrn( opt_params, &op, res );
 			free( opt_params );
 			free( res );
-			for( i = 0; i < od.nObs; i++ )
+			for( i = 0; i < od.nTObs; i++ )
 			{
-				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
+				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				compare = 1;
 				c = od.obs_current[i];
 				err = od.obs_target[i] - c;
 				phi += ( err * err ) * od.obs_weight[i];
 				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( od.obs_weight[i] > 0.0 ) ) { success_all = 0; success = 0; }
 				else success = 1;
-				if( od.nObs < 50 || ( i < 20 || i > od.nObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
-				if( od.nObs > 50 && i == 21 ) tprintf( "...\n" );
+				if( od.nTObs < 50 || ( i < 20 || i > od.nTObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
+				if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" );
 				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
 				else od.obs_target[i] = c; // Save computed values as calibration targets
 			}
@@ -899,7 +899,7 @@ int main( int argn, char *argv[] )
 					else wd.obs_target[i][j] = c; // Save computed values as calibration targets
 					if( cd.problem_type == FORWARD ) fprintf( out2, "%s(%g) %g\n", wd.id[i], wd.obs_time[i][j], c ); // Forward run
 				}
-		if( cd.problem_type == FORWARD && od.nObs > 0 ) fclose( out2 );
+		if( cd.problem_type == FORWARD && od.nTObs > 0 ) fclose( out2 );
 		cd.neval++;
 		if( compare )
 		{
@@ -923,7 +923,7 @@ int main( int argn, char *argv[] )
 	if( predict && cd.problem_type == FORWARD ) save_final_results( "", &op, &gd );
 	if( predict ) // Write phi in a separate file
 	{
-		if( od.nObs > 0 )
+		if( od.nTObs > 0 )
 		{
 			if( cd.problem_type == FORWARD && cd.resultscase > 0 ) sprintf( filename, "%s.%d.phi", op.root, cd.resultscase );
 			else sprintf( filename, "%s.phi", op.root );
@@ -1013,10 +1013,10 @@ int optimize_lm( struct opt_data *op )
 	char buf[80];
 	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->lmstandalone;
-	if( op->od->nObs == 0 ) { tprintf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
+	if( op->od->nTObs == 0 ) { tprintf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( op->pd->nOptParam == 0 ) { tprintf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
-	if( ( op->pd->nOptParam > op->od->nObs ) && ( !op->cd->squads && op->cd->calib_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
-	gsl_matrix *gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam );
+	if( ( op->pd->nOptParam > op->od->nTObs ) && ( !op->cd->squads && op->cd->calib_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nTObs ); }
+	gsl_matrix *gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam );
 	gsl_matrix *gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
@@ -1025,7 +1025,7 @@ int optimize_lm( struct opt_data *op )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( x_c = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( op->cd->niter <= 0 )
 	{
@@ -1129,7 +1129,7 @@ int optimize_lm( struct opt_data *op )
 		{
 			if( debug > 1 && standalone ) tprintf( "\nLevenberg-Marquardt Optimization:\n" );
 			else if( op->cd->ldebug ) tprintf( "\n" );
-			if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			if( ( jacTjac = ( double * ) malloc( sizeof( double ) * ( ( op->pd->nOptParam + 1 ) * op->pd->nOptParam / 2 ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			iopt = 2; /*    iopt=0 Brown's algorithm without strict descent
 		       		iopt=1 strict descent and default values for input vector parm
@@ -1145,10 +1145,10 @@ int optimize_lm( struct opt_data *op )
 			/* Third convergence criterion */
 			delta = 0; /* norm of the approximate gradient is less than or equal to delta */
 			maxfn = op->cd->maxeval - op->cd->neval; /* maximum number of function evaluations; remove the number of evaluation already performed */
-			if( strcasestr( op->cd->opt_method, "chav" ) != NULL ) ier = zxssqch( func_global, op, op->od->nObs, op->pd->nOptParam, nsig, eps, delta, maxfn, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nObs, jacTjac, &infer ); // Chavo's version
-			else ier = lm_opt( func_global, func_dx, op, op->od->nObs, op->pd->nOptParam, nsig, eps, delta, maxfn, maxiter, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nObs, jacTjac, &infer ); // Monty's version
+			if( strcasestr( op->cd->opt_method, "chav" ) != NULL ) ier = zxssqch( func_global, op, op->od->nTObs, op->pd->nOptParam, nsig, eps, delta, maxfn, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nTObs, jacTjac, &infer ); // Chavo's version
+			else ier = lm_opt( func_global, func_dx, op, op->od->nTObs, op->pd->nOptParam, nsig, eps, delta, maxfn, maxiter, iopt, opt_parm, opt_params, &phi, res, jacobian, op->od->nTObs, jacTjac, &infer ); // Monty's version
 			for( k = i = 0; i < op->pd->nOptParam; i++ )
-				for( j = 0; j < op->od->nObs; j++, k++ )
+				for( j = 0; j < op->od->nTObs; j++, k++ )
 					gsl_matrix_set( gsl_jacobian, j, i, jacobian[k] );
 			gsl_multifit_covar( gsl_jacobian, 0.0, gsl_covar );
 			free( jacTjac ); free( jacobian );
@@ -1176,9 +1176,9 @@ int optimize_lm( struct opt_data *op )
 			else if( op->cd->ldebug ) tprintf( "\n" );
 			if( ( covar = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			// LM_DIF_WORKSZ(m,n) = 4*n+4*m + n*m + m*m
-			if( ( work = ( double * ) malloc( sizeof( double ) * LM_DIF_WORKSZ( op->pd->nOptParam, op->od->nObs ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-			for( i = 0; i < op->od->nObs; i++ ) res[i] = 0;
-			jacobian = work + op->pd->nOptParam + 2 * op->od->nObs;
+			if( ( work = ( double * ) malloc( sizeof( double ) * LM_DIF_WORKSZ( op->pd->nOptParam, op->od->nTObs ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			for( i = 0; i < op->od->nTObs; i++ ) res[i] = 0;
+			jacobian = work + op->pd->nOptParam + 2 * op->od->nTObs;
 			opts[0] = op->cd->lm_error * 100; opts[1] = op->cd->lm_error; opts[2] = op->cd->lm_error;
 			opts[3] = op->cd->phi_cutoff;
 			if( op->cd->sintrans == 0 ) opts[4] = op->cd->lindx; // Forward difference; Central difference if negative; DO NOT USE CENTRAL DIFFERENCE
@@ -1193,8 +1193,8 @@ int optimize_lm( struct opt_data *op )
 				else              maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 1 ) + 1 ); // Central derivatives
 				if( maxiter_levmar > maxiter ) maxiter_levmar = maxiter;
 				// dlevmar_der called by DEFAULT
-				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter_levmar, opts, info, work, covar, op );
-				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nObs, maxiter_levmar, opts, info, work, covar, op );
+				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nTObs, maxiter_levmar, opts, info, work, covar, op );
+				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nTObs, maxiter_levmar, opts, info, work, covar, op );
 				if( info[6] == 4 || info[6] == 5 )
 				{
 					if( op->cd->maxeval < op->cd->neval )
@@ -1213,7 +1213,7 @@ int optimize_lm( struct opt_data *op )
 				tprintf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 			}
 			op->cd->njac += info[8];
-			for( k = j = 0; j < op->od->nObs; j++ )
+			for( k = j = 0; j < op->od->nTObs; j++ )
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					gsl_matrix_set( gsl_jacobian, j, i, jacobian[k++] );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1308,12 +1308,12 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	gsl_vector *eigenval = gsl_vector_alloc( op->pd->nOptParam );
 	gsl_eigen_symmv_workspace *eigenwork = gsl_eigen_symmv_alloc( op->pd->nOptParam );
 	compute_center = compute_jacobian = compute_covar = 0;
-	if( f_x == NULL ) { compute_center = 1; if( ( f_x = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } }
+	if( f_x == NULL ) { compute_center = 1; if( ( f_x = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } }
 	if( gsl_jacobian == NULL )
 	{
 		compute_jacobian = 1;
-		gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam );
-		if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam );
+		if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	}
 	if( gsl_covar == NULL ) { gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam ); compute_covar = 1; }
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -1335,7 +1335,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			debug_level = op->cd->fdebug; op->cd->fdebug = 3;
 		}
 		func_global( opt_params, op, op->od->res );
-		for( j = 0; j < op->od->nObs; j++ )
+		for( j = 0; j < op->od->nTObs; j++ )
 			f_x[j] = op->od->res[j];
 		phi = op->phi;
 		if( debug ) op->cd->fdebug = debug_level;
@@ -1356,7 +1356,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		// func_gsl_dx( gsl_opt_params, op, gsl_jacobian ); // Compute Jacobian using forward difference
 		func_dx( opt_params, f_x, op, jacobian ); // Compute Jacobian using forward difference
 		for( k = i = 0; i < op->pd->nOptParam; i++ )
-			for( j = 0; j < op->od->nObs; j++, k++ )
+			for( j = 0; j < op->od->nTObs; j++, k++ )
 				gsl_matrix_set( gsl_jacobian, j, i, jacobian[k] );
 	}
 	if( debug )
@@ -1364,22 +1364,22 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		if( compute_jacobian ) tprintf( "\nJacobian matrix\n" ); // Print Jacobian
 		else tprintf( "\nJacobian matrix (provided externally)\n" );
 		tprintf( "%-25s :", "Observations" );
-		for( k = 0; k < op->od->nObs; k++ )
+		for( k = 0; k < op->od->nTObs; k++ )
 		{
-			if( op->od->nObs < 30 || ( k < 10 || k > op->od->nObs - 10 ) ) tprintf( " %s", op->od->obs_id[k] );
-			if( op->od->nObs >= 30 && k == 11 ) tprintf( " ..." );
+			if( op->od->nTObs < 30 || ( k < 10 || k > op->od->nTObs - 10 ) ) tprintf( " %s", op->od->obs_id[k] );
+			if( op->od->nTObs >= 30 && k == 11 ) tprintf( " ..." );
 		}
 		tprintf( "\n" );
 		for( k = i = 0; i < op->pd->nOptParam; i++ )
 		{
 			tprintf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
-			for( j = 0; j < op->od->nObs; j++ )
+			for( j = 0; j < op->od->nTObs; j++ )
 			{
 				eps = gsl_matrix_get( gsl_jacobian, j, i );
 				if( fabs( eps ) > 1e3 ) sprintf( buf, "%6.0e", eps );
 				else sprintf( buf, "%6.1f", eps );
-				if( op->od->nObs < 30 || ( j < 10 || j > op->od->nObs - 10 ) ) tprintf( " %s", buf );
-				if( op->od->nObs >= 30 && j == 11 ) tprintf( " ..." );
+				if( op->od->nTObs < 30 || ( j < 10 || j > op->od->nTObs - 10 ) ) tprintf( " %s", buf );
+				if( op->od->nTObs >= 30 && j == 11 ) tprintf( " ..." );
 			}
 			tprintf( "\n" );
 			/*
@@ -1405,7 +1405,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		fprintf( out, " \"%s\"", op->pd->var_id[op->pd->var_index[i]] );
 	fprintf( out, "\n" );
-	for( j = 0; j < op->od->nObs; j++ )
+	for( j = 0; j < op->od->nTObs; j++ )
 	{
 		fprintf( out, "%-25s :", op->od->obs_id[j] );
 		for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1551,7 +1551,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			stddev[i] *= stddev_scale;
 		gf = phi / dof;
 		ln_det_weight = 0;
-		for( i = 0; i < op->od->nObs; i++ )
+		for( i = 0; i < op->od->nTObs; i++ )
 			if( op->od->obs_weight[i] > 0 )
 				ln_det_weight += log( op->od->obs_weight[i] );
 		ln_det_v = ln_det_weight + op->pd->nOptParam * log( gf );
@@ -1673,11 +1673,11 @@ int check( struct opt_data *op )
 	for( i = 0; i < p->ed->ntpl; i++ )
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug + 1 ) == -1 )
 			bad_data = 1;
-	for( i = 0; i < p->od->nObs; i++ ) p->od->obs_current[i] = p->od->res[i] = 0;
+	for( i = 0; i < p->od->nTObs; i++ ) p->od->obs_current[i] = p->od->res[i] = 0;
 	for( i = 0; i < p->ed->nins; i++ )
-		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug + 1 ) == -1 )
+		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug + 1 ) == -1 )
 			bad_data = 1;
-	for( i = 0; i < p->od->nObs; i++ )
+	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		if( p->od->res[i] < 0 )
 		{
@@ -1862,7 +1862,7 @@ int igrnd( struct opt_data *op )
 		}
 		if( fabs( op->cd->obsstep ) > DBL_EPSILON && op->success )
 		{
-			for( i = 0; i < op->preds->nObs; i++ )
+			for( i = 0; i < op->preds->nTObs; i++ )
 			{
 				k = op->preds->obs_index[i];
 				if( op->cd->obsstep >  DBL_EPSILON && op->preds->obs_best[i] < op->od->obs_current[k] ) op->preds->obs_best[i] = op->od->obs_current[k];
@@ -1908,7 +1908,7 @@ int igrnd( struct opt_data *op )
 			solution_found = 1;
 			phi_min = op->phi;
 			for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
-			for( i = 0; i < op->od->nObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+			for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
 		}
 		if( op->cd->pdebug || op->cd->ldebug ) tprintf( "\n" ); // extra new line if the optimization process is debugged
 		fprintf( out2, "%g %d %d\n", op->phi, op->success, op->cd->neval );
@@ -1938,7 +1938,7 @@ int igrnd( struct opt_data *op )
 	op->phi = phi_min; // get the best phi
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
-	for( i = 0; i < op->od->nObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
+	for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
 	fprintf( out, "Minimum objective function: %g\n", phi_min );
 	tprintf( "Minimum objective function: %g\n", phi_min );
 	tprintf( "Repeat the run producing the best results ...\n" );
@@ -2115,7 +2115,7 @@ int igpd( struct opt_data *op )
 			{
 				phi_min = op->phi;
 				for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
-				for( i = 0; i < op->od->nObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+				for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
 			}
 			fprintf( out, " : OF %g success %d : final var ", op->phi, op->success );
 			for( i = 0; i < op->pd->nParam; i++ )
@@ -2151,7 +2151,7 @@ int igpd( struct opt_data *op )
 	tprintf( "\nTotal number of evaluations = %lu\n", neval_total );
 	op->phi = phi_min; // get the best phi
 	for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
-	for( i = 0; i < op->od->nObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
+	for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
 	tprintf( "Minimum objective function: %g\n", phi_min );
 	tprintf( "Repeat the run producing the best results ...\n" );
 	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
@@ -2308,7 +2308,7 @@ int ppsd( struct opt_data *op )
 			{
 				phi_min = op->phi;
 				for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
-				for( i = 0; i < op->od->nObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+				for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
 			}
 			if( op->pd->nOptParam > 0 )
 			{
@@ -2509,7 +2509,7 @@ int montecarlo( struct opt_data *op )
 			{
 				phi_min = op->phi;
 				for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
-				for( i = 0; i < op->od->nObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+				for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
 			}
 			if( success_all ) success_global++;
 			if( op->phi < op->cd->phi_cutoff ) phi_global++;
@@ -2519,9 +2519,9 @@ int montecarlo( struct opt_data *op )
 					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
 					else fprintf( out, " %.15g", op->pd->var[i] );
 				}
-			if( op->od->nObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
+			if( op->od->nTObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
 			fflush( out );
-			if( ( success_all || op->od->nObs == 0 ) && op->cd->save )
+			if( ( success_all || op->od->nTObs == 0 ) && op->cd->save )
 				save_final_results( "mcrnd", op, op->gd );
 		}
 	}
@@ -2567,7 +2567,7 @@ int montecarlo( struct opt_data *op )
 			{
 				phi_min = op->phi;
 				for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
-				for( i = 0; i < op->od->nObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+				for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
 			}
 			if( success_all ) success_global++;
 			if( op->phi < op->cd->phi_cutoff ) phi_global++;
@@ -2577,9 +2577,9 @@ int montecarlo( struct opt_data *op )
 					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
 					else fprintf( out, " %.15g", op->pd->var[i] );
 				}
-			if( op->od->nObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
+			if( op->od->nTObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
 			fflush( out );
-			if( ( success_all || op->od->nObs == 0 ) && op->cd->save )
+			if( ( success_all || op->od->nTObs == 0 ) && op->cd->save )
 				save_final_results( "mcrnd", op, op->gd );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			if( op->cd->ireal != 0 ) break;
@@ -2590,7 +2590,7 @@ int montecarlo( struct opt_data *op )
 	fclose( out );
 	op->phi = phi_min; // get the best phi
 	for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
-	for( i = 0; i < op->od->nObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
+	for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
 	tprintf( "\nMinimum objective function: %g\n", phi_min );
 	tprintf( "Repeat the run producing the best results ...\n" );
 	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
@@ -2910,7 +2910,7 @@ int infogap( struct opt_data *op )
 	int i, j, k, n, npar, nrow, ncol, *nPreds, col;
 	gsl_matrix *ig_mat; //! info gap matrix for sorting
 	gsl_permutation *p;
-	nPreds = &op->preds->nObs; // Set pointer to nObs for convenience
+	nPreds = &op->preds->nTObs; // Set pointer to nObs for convenience
 	if( op->cd->infile[0] == 0 ) { tprintf( "\nInfile must be specified for infogap run\n" ); return( 0 );}
 	nrow = count_lines( op->cd->infile ); nrow--; // Determine number of parameter sets in file
 	npar = count_cols( op->cd->infile, 2 ); npar = npar - 2; // Determine number of parameter sets in file
@@ -2994,7 +2994,7 @@ int postpua( struct opt_data *op )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
 	fgets( buf, sizeof buf, in ); // Skip header
 	fprintf( out, "Number       OF           " );
-	for( i = 0; i < op->od->nObs; i++ )
+	for( i = 0; i < op->od->nTObs; i++ )
 		fprintf( out, " %-12s", op->od->obs_id[i] );
 	fprintf( out, "\n" );
 	while( fscanf( in, "%d %lf", &n, &of ) > 0 )
@@ -3004,7 +3004,7 @@ int postpua( struct opt_data *op )
 			fscanf( in, "%lf", &opt_params[i] );
 		fscanf( in, " \n" );
 		func_global( opt_params, op, op->od->res );
-		for( i = 0; i < op->od->nObs; i++ )
+		for( i = 0; i < op->od->nTObs; i++ )
 			fprintf( out, " %-12g", op->od->obs_current[i] );
 		fprintf( out, "\n" );
 	}
@@ -3186,10 +3186,11 @@ void print_results( struct opt_data *op, int verbosity )
 		tprintf( " = %g\n", op->pd->var[k] );
 	}
 	if( verbosity == 0 ) return;
-	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
+	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{
-		tprintf( "\nModel predictions for calibration targets:\n" );
+		tprintf( "\nModel calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
+		{
 			for( i = 0; i < op->od->nObs; i++ )
 			{
 				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nCObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
@@ -3201,6 +3202,16 @@ void print_results( struct opt_data *op, int verbosity )
 					tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
 				if( op->od->nCObs > 50 && i == 21 ) tprintf( "...\n" );
 			}
+			if( op->rd->nRegul > 0 ) tprintf( "Model regularization terms:\n" );
+			for( i = op->od->nObs; i < op->od->nTObs; i++ )
+			{
+				c = op->od->obs_current[i];
+				err = op->od->obs_target[i] - c;
+				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
+				else success = 1;
+				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
+			}
+		}
 		else
 		{
 			for( k = 0, i = 0; i < op->wd->nW; i++ )
@@ -3213,6 +3224,15 @@ void print_results( struct opt_data *op, int verbosity )
 					else success = 1;
 					tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
 				}
+			if( op->rd->nRegul > 0 )  tprintf( "Model regularization terms:\n" );
+			for( i = op->od->nObs; i < op->od->nTObs; i++ )
+			{
+				c = op->od->obs_current[i];
+				err = op->od->obs_target[i] - c;
+				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
+				else success = 1;
+				tprintf( "%-17s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
+			}
 		}
 	}
 	else
@@ -3237,14 +3257,14 @@ void print_results( struct opt_data *op, int verbosity )
 	}
 	if( op->cd->phi_cutoff > DBL_EPSILON && op->phi < op->cd->phi_cutoff )
 		tprintf( "SUCCESS: Objective function is below the predefined cutoff value (%g < %g)!\n", op->phi, op->cd->phi_cutoff );
-	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 && predict )
+	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 && predict )
 	{
 		tprintf( "\nModel predictions for not calibration targets:\n" );
 		if( op->cd->solution_type[0] == EXTERNAL )
 		{
-			predict = op->od->nObs - op->od->nCObs;
+			predict = op->od->nTObs - op->od->nCObs;
 			j = 0;
-			for( i = 0; i < op->od->nObs; i++ )
+			for( i = 0; i < op->od->nTObs; i++ )
 			{
 				if( op->od->obs_weight[i] != 0 ) { if( predict > 50 && j == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
@@ -3321,7 +3341,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		else op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id_short, op->cd->var );
 		fprintf( out, " = %g\n", op->pd->var[k] );
 	}
-	if( op->cd->solution_type[0] != TEST && op->od->nObs > 0 )
+	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{
 		fprintf( out, "\nModel predictions:\n" );
 		// Save residuals file
@@ -3329,7 +3349,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		strcat( filename, ".residuals" );
 		out2 = Fwrite( filename );
 		if( op->cd->solution_type[0] == EXTERNAL )
-			for( i = 0; i < op->od->nObs; i++ )
+			for( i = 0; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
 				err = op->od->obs_target[i] - c;

@@ -206,7 +206,7 @@ int LEVMAR_DER(
 	jac_zero_obs = ( int * )malloc( n * sizeof( int ) );
 	p_old = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_old2 = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
-	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nObs, op->pd->nOptParam ); if( !op->cd->ldebug ) op->cd->ldebug = 1; }
+	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); if( !op->cd->ldebug ) op->cd->ldebug = 1; }
 	/* compute e=x - f(p) and its L2 norm */
 	maxnfev = op->cd->maxeval - op->cd->neval;
 	for( i = 0; i < m; ++i )
@@ -361,9 +361,9 @@ int LEVMAR_DER(
 					if( strlen( s ) < 7 ) tprintf( " %s", s );
 					else tprintf( " p%d", i );
 				}
-				for( l = j = 0; j < op->od->nObs; j++ )
+				for( l = j = 0; j < op->od->nTObs; j++ )
 				{
-					if( op->cd->ldebug >= 5 || op->od->nObs < 30 || ( j < 10 || j > op->od->nObs - 10 ) )
+					if( op->cd->ldebug >= 5 || op->od->nTObs < 30 || ( j < 10 || j > op->od->nTObs - 10 ) )
 					{
 						int print = 0;
 						if( op->od->obs_weight[j] <= DBL_EPSILON ) print = 0;
@@ -382,7 +382,7 @@ int LEVMAR_DER(
 						}
 					}
 					else l += op->pd->nOptParam;
-					if( op->cd->ldebug == 4 && op->od->nObs >= 30 && j == 11 ) tprintf( "\n..." );
+					if( op->cd->ldebug == 4 && op->od->nTObs >= 30 && j == 11 ) tprintf( "\n..." );
 				}
 				tprintf( "\n" );
 			}
@@ -393,11 +393,11 @@ int LEVMAR_DER(
 				jac_max[i] = jac_zero[i] = 0;
 				jac_min[i] = HUGE_VAL;
 			}
-			for( j = 0; j < op->od->nObs; j++ ) jac_zero_obs[j] = 0;
+			for( j = 0; j < op->od->nTObs; j++ ) jac_zero_obs[j] = 0;
 			max = 0; min = HUGE_VAL;
 			skipped = 0;
 			first = 1;
-			for( l = j = 0; j < op->od->nObs; j++ )
+			for( l = j = 0; j < op->od->nTObs; j++ )
 			{
 				if( op->od->obs_weight[j] > DBL_EPSILON )
 				{
@@ -445,7 +445,7 @@ int LEVMAR_DER(
 			// Jacobian matrix analyses: check for insensitive observations (redundant with above; note needed; for testing only)
 			if( op->cd->ldebug >= 11 )
 			{
-				for( j = 0; j < op->od->nObs; j++ )
+				for( j = 0; j < op->od->nTObs; j++ )
 					if( op->od->obs_weight[j] > DBL_EPSILON && jac_zero_obs[j] >= op->pd->nOptParam )
 						tprintf( "WARNING: Model prediction \'%s\' is not impacted by model parameters!\n", op->od->obs_id[j] );
 			}
@@ -492,7 +492,7 @@ int LEVMAR_DER(
 					jac_max[i] = -HUGE_VAL;
 					jac_min[i] = HUGE_VAL;
 				}
-				for( l = j = 0; j < op->od->nObs; j++ )
+				for( l = j = 0; j < op->od->nTObs; j++ )
 				{
 					if( op->od->obs_weight[j] <= DBL_EPSILON ) { l += op->pd->nOptParam; continue; }
 					for( i = 0; i < op->pd->nOptParam; i++, l++ )
@@ -507,7 +507,7 @@ int LEVMAR_DER(
 			if( op->cd->lm_eigen )
 			{
 				op->cd->lm_eigen--;
-				for( l = j = 0; j < op->od->nObs; j++ )
+				for( l = j = 0; j < op->od->nTObs; j++ )
 					for( i = 0; i < op->pd->nOptParam; i++ )
 						gsl_matrix_set( gsl_jacobian, j, i, jac[l++] ); // LEVMAR is using different jacobian order
 				DeTransform( p, op, jac_min );
@@ -1225,9 +1225,9 @@ int LEVMAR_DIF(
 			if( op->cd->ldebug > 4 )
 			{
 				tprintf( "Jacobian matrix:\n" );
-				for( l = j = 0; j < op->od->nObs; j++ )
+				for( l = j = 0; j < op->od->nTObs; j++ )
 				{
-					if( op->cd->ldebug > 14 || op->od->nObs < 50 || ( j < 20 || j > op->od->nObs - 20 ) )
+					if( op->cd->ldebug > 14 || op->od->nTObs < 50 || ( j < 20 || j > op->od->nTObs - 20 ) )
 					{
 						tprintf( "Observation %i: ", j + 1 );
 						for( i = 0; i < op->pd->nOptParam; i++, l++ )
@@ -1235,7 +1235,7 @@ int LEVMAR_DIF(
 					}
 					else
 						for( i = 0; i < op->pd->nOptParam; i++, l++ );
-					if( ( !( op->cd->ldebug > 14 ) || op->od->nObs > 50 ) && j == 21 ) tprintf( "...\n" );
+					if( ( !( op->cd->ldebug > 14 ) || op->od->nTObs > 50 ) && j == 21 ) tprintf( "...\n" );
 					tprintf( "\n" );
 				}
 			}

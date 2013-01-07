@@ -27,7 +27,6 @@
 #include <math.h>
 #include <string.h>
 #include <gsl/gsl_math.h>
-#include <assert.h>
 #include <matheval.h>
 #include "mads.h"
 #define MAX(X,Y) ( ((X) > (Y)) ? (X) : (Y) )
@@ -158,8 +157,10 @@ int func_extrn( double *x, void *data, double *f )
 		}
 	}
 	if( bad_data ) exit( -1 );
+	for( i = p->od->nObs; i < p->od->nTObs; i++ )
+		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id_short, p->cd->var );
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
-	for( i = 0; i < p->od->nObs; i++ )
+	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
@@ -199,9 +200,9 @@ int func_extrn( double *x, void *data, double *f )
 		}
 		if( p->cd->fdebug >= 2 )
 		{
-			if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
+			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
 				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
-			if( p->od->nObs > 50 && i == 21 ) tprintf( "...\n" );
+			if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
@@ -419,8 +420,10 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	system( buf );
 	if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
+	for( i = p->od->nObs; i < p->od->nTObs; i++ )
+		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id_short, p->cd->var );
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions (model run = %d):\n", ieval );
-	for( i = 0; i < p->od->nObs; i++ )
+	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
@@ -460,9 +463,9 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		if( p->cd->fdebug >= 2 )
 		{
-			if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
+			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
 				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
-			if( p->od->nObs > 50 && i == 21 ) tprintf( "...\n" );
+			if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
@@ -549,7 +552,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	// if( p->cd->compute_phi ) tprintf( " --- computed!!!!\n" );
 	if( p->cd->solution_type[0] == TEST )
 	{
-		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var, p->od->nObs, f );
+		p->phi = phi = test_problems( p->pd->nOptParam, p->cd->test_func, p->cd->var, p->od->nTObs, f );
 		if( p->cd->check_success && p->cd->obsrange ) success_all = 0;
 		if( p->cd->check_success && p->cd->parerror > DBL_EPSILON )
 		{
@@ -563,7 +566,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			phi = 0;
 			if( p->cd->check_success && p->cd->obserror > DBL_EPSILON ) success_all = 1;
 			else success_all = 0;
-			for( k = 0; k < p->od->nObs; k++ )
+			for( k = 0; k < p->od->nTObs; k++ )
 			{
 				c = f[k];
 				f[k] = err = c - p->od->obs_target[k];
@@ -584,7 +587,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			{
 				tprintf( "Test OF %d %g\n", success_all, phi );
 				c = 0;
-				for( k = 0; k < p->od->nObs; k++ )
+				for( k = 0; k < p->od->nTObs; k++ )
 				{
 					tprintf( "%s %g\n", p->od->obs_id[k], f[k] );
 					c += f[k] * f[k];
@@ -610,70 +613,79 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY];
 			p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ];
 		}
-		for( k = 0; k < p->od->nObs; k++ ) // for computational efficiency performed only for observations with weight > DBL_EPSILON
+		for( k = 0; k < p->od->nTObs; k++ ) // for computational efficiency performed only for observations with weight > DBL_EPSILON
 		{
 			if( p->cd->oderiv != -1 ) { k = p->cd->oderiv; }
-			i = p->od->obs_well_index[k];
-			j = p->od->obs_time_index[k];
-			c1 = c2 = p->cd->c_background;
-			for( s = 0; s < p->cd->num_solutions; s++ )
+			if( k >= p->od->nObs )
 			{
-				l = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
-				p2 = 0;
-				for( p1 = NUM_ANAL_PARAMS_SOURCE * s; p1 < l; p1++, p2++ )
-					p->ad->var[p2] = p->cd->var[p1];
-				if( p->cd->disp_scaled ) // Scaled dispersivities
+				// regularization term
+				c = evaluator_evaluate( p->rd->regul_expressions[k - p->od->nObs], p->pd->nParam, p->pd->var_id_short, p->cd->var );
+			}
+			else
+			{
+				// model predicted calibration target
+				i = p->od->obs_well_index[k];
+				j = p->od->obs_time_index[k];
+				c1 = c2 = p->cd->c_background;
+				for( s = 0; s < p->cd->num_solutions; s++ )
 				{
-					dx = p->ad->var[AX]; dy = p->ad->var[AY]; dz = p->ad->var[AZ];
-					x1 = p->wd->x[i] - p->ad->var[SOURCE_X];
-					y1 = p->wd->y[i] - p->ad->var[SOURCE_Y];
-					z1 = ( p->wd->z1[i] + p->wd->z2[i] ) - p->ad->var[SOURCE_Z];
-					dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
-					if( p->cd->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", p->ad->var[AX] * dist, p->ad->var[AX], dist );
-					p->ad->var[AX] *= dist;
-					if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) { p->ad->var[AY] *= dist; p->ad->var[AZ] *= dist; }
-					else if( p->cd->disp_tied ) { p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY]; p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ]; };
-					if( p->cd->fdebug >= 5 )
+					l = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+					p2 = 0;
+					for( p1 = NUM_ANAL_PARAMS_SOURCE * s; p1 < l; p1++, p2++ )
+						p->ad->var[p2] = p->cd->var[p1];
+					if( p->cd->disp_scaled ) // Scaled dispersivities
 					{
-						if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) tprintf( "Transverse dispersivities are scaled!\n" );
-						else if( p->cd->disp_tied ) tprintf( "Transverse dispersivities are tied!\n" );
-						else tprintf( "Transverse dispersivities are neither tied nor scaled!\n" );
-						tprintf( "AY %.12g\n", p->ad->var[AY] );
-						tprintf( "AZ %.12g\n", p->ad->var[AZ] );
+						dx = p->ad->var[AX]; dy = p->ad->var[AY]; dz = p->ad->var[AZ];
+						x1 = p->wd->x[i] - p->ad->var[SOURCE_X];
+						y1 = p->wd->y[i] - p->ad->var[SOURCE_Y];
+						z1 = ( p->wd->z1[i] + p->wd->z2[i] ) - p->ad->var[SOURCE_Z];
+						dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
+						if( p->cd->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", p->ad->var[AX] * dist, p->ad->var[AX], dist );
+						p->ad->var[AX] *= dist;
+						if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) { p->ad->var[AY] *= dist; p->ad->var[AZ] *= dist; }
+						else if( p->cd->disp_tied ) { p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY]; p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ]; };
+						if( p->cd->fdebug >= 5 )
+						{
+							if( p->cd->disp_scaled > 1 && !p->cd->disp_tied ) tprintf( "Transverse dispersivities are scaled!\n" );
+							else if( p->cd->disp_tied ) tprintf( "Transverse dispersivities are tied!\n" );
+							else tprintf( "Transverse dispersivities are neither tied nor scaled!\n" );
+							tprintf( "AY %.12g\n", p->ad->var[AY] );
+							tprintf( "AZ %.12g\n", p->ad->var[AZ] );
+						}
+					}
+					switch( p->cd->solution_type[s] )
+					{
+						case POINT:
+							c1 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							c2 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							break;
+						case PLANE:
+							c1 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							c2 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							break;
+						case PLANE3D:
+							c1 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							c2 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							break;
+						default:
+						case BOX:
+							c1 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							c2 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							break;
+					}
+					if( p->cd->disp_scaled ) // Scaled dispersivities
+					{
+						p->ad->var[AX] = dx; p->ad->var[AY] = dy; p->ad->var[AZ] = dz;
 					}
 				}
-				switch( p->cd->solution_type[s] )
-				{
-					case POINT:
-						c1 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-						c2 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-						break;
-					case PLANE:
-						c1 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-						c2 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-						break;
-					case PLANE3D:
-						c1 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-						c2 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-						break;
-					default:
-					case BOX:
-						c1 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-						c2 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-						break;
-				}
-				if( p->cd->disp_scaled ) // Scaled dispersivities
-				{
-					p->ad->var[AX] = dx; p->ad->var[AY] = dy; p->ad->var[AZ] = dz;
-				}
+				c = ( c1 + c2 ) / 2;
 			}
-			c = ( c1 + c2 ) / 2;
 			p->od->obs_current[k] = c;
 			t = p->od->obs_target[k];
 			w = p->od->obs_weight[k];
 			min = p->od->obs_min[k];
 			max = p->od->obs_max[k];
-			if( p->wd->obs_log[i][j] == 0 )
+			if( p->od->obs_log[k] == 0 )
 			{
 				err = c - t;
 				if( p->cd->objfunc_type != SSR )
@@ -708,9 +720,9 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			}
 			if( p->cd->fdebug >= 2 )
 			{
-				if( p->od->nObs < 50 || ( i < 20 || i > p->od->nObs - 20 ) )
+				if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
 					tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * w, success, min , max );
-				if( p->od->nObs > 50 && i == 21 ) tprintf( "...\n" );
+				if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
 				if( !p->cd->compute_phi ) phi += f[i] * f[i];
 			}
 			if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
@@ -719,7 +731,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	p->success = success_all; // Just in case
 	if( fabs( p->cd->obsstep ) > DBL_EPSILON && p->success )
 	{
-		for( i = 0; i < p->preds->nObs; i++ )
+		for( i = 0; i < p->preds->nTObs; i++ )
 		{
 			k = p->preds->obs_index[i];
 			if( p->cd->obsstep >  DBL_EPSILON && p->preds->obs_best[i] < p->od->obs_current[k] ) p->preds->obs_best[i] = p->od->obs_current[k];
@@ -759,11 +771,11 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	struct opt_data *p = ( struct opt_data * )data;
 	double *jacobian;
 	int i, j, k;
-	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nObs ) ) == NULL )
+	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	func_dx( x, f, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
-		for( i = 0; i < p->od->nObs; i++, k++ )
+		for( i = 0; i < p->od->nTObs; i++, k++ )
 			jac[i * p->pd->nOptParam + j] = jacobian[k]; // order: obs / param
 	free( jacobian );
 }
@@ -775,7 +787,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	double x_old, dx;
 	int i, j, k, compute_center = 0, bad_data = 0, ieval;
 	ieval = p->cd->neval;
-	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
+	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); return( 1 ); }
 	p->cd->compute_phi = 0;
 	if( p->cd->num_proc > 1 && p->cd->solution_type[0] == EXTERNAL ) // Parallel execution of external runs
@@ -783,7 +795,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
 		{
 			compute_center = 1;
-			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
+			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_extrn_write( ++ieval, x, data );
 		}
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
@@ -809,7 +821,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			if( bad_data ) exit( -1 );
 			if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
-			for( i = 0; i < p->od->nObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
+			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
 		}
 	}
 	else
@@ -817,7 +829,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
 		{
 			compute_center = 1;
-			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nObs ) ) == NULL )
+			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL )
 			{ tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_global( x, data, f_x );
 		}
@@ -829,7 +841,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			x[j] += dx;
 			func_global( x, data, f_xpdx );
 			x[j] = x_old;
-			for( i = 0; i < p->od->nObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
+			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
 		}
 	}
 	if( compute_center ) free( f_x );

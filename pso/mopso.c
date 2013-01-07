@@ -207,7 +207,7 @@ int mopso( struct opt_data *op )
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	pb.fNb = 1;
-	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->pdebug )
 	{
@@ -344,7 +344,7 @@ static struct fitness position_eval( struct problem pb, struct position x )
 	fit.size = pb.fNb;
 	func_global( x.x, gop, res ); // evaluation ... either internal of external
 	f = 0;
-	for( i = 0; i < gop->od->nObs; i++ ) f += res[i] *res[i];
+	for( i = 0; i < gop->od->nTObs; i++ ) f += res[i] *res[i];
 	fit.f[0] = fabs( f - pb.objective[0] );
 	for( i = 0; i < pb.fNb; i++ ) // Save the min and the max fitness ever found
 	{

@@ -303,7 +303,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 			case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
 			default: tprintf( "WARNING: unknown calibration type ASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
 		}
-		tprintf( "\nOptimization method: opt=%s | ", cd->opt_method );
+		tprintf( "\nOptimization method: opt=%s --- ", cd->opt_method );
 		if( strncasecmp( cd->opt_method, "squad", 5 ) == 0 || ( strcasestr( cd->opt_method, "pso" ) && strcasestr( cd->opt_method, "lm" ) ) )
 		{
 			tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization\n" );
@@ -441,7 +441,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	gd = op->gd;
 	ed = op->ed;
 	pd->nParam = pd->nFixParam = pd->nFlgParam = pd->nOptParam = pd->nExpParam = 0;
-	od->nGObs = od->nObs = od->nCObs = 0;
+	od->nObs = od->nTObs = od->nCObs = 0;
 	// IMPORTANT
 	// internal problem: nCObs = nObs
 	// external problem: nTObs = nObs
@@ -491,9 +491,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( strcasestr( word, "poi" ) )( *cd ).solution_type[c] = POINT;
 		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) )( *cd ).solution_type[c] = PLANE3D; else( *cd ).solution_type[c] = PLANE; }
 		if( strcasestr( word, "box" ) )( *cd ).solution_type[c] = BOX;
-		if( strcasestr( word, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type[c] = TEST; od->nObs = 0; if( ( *cd ).num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
+		if( strcasestr( word, "test" ) || ( *cd ).test_func >= 0 ) { ( *cd ).solution_type[c] = TEST; od->nTObs = 0; if( ( *cd ).num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	}
-	if( ( *cd ).num_solutions == 0 && ( *cd ).test_func >= 0 ) { ( *cd ).num_solutions = 1; ( *cd ).solution_type[0] = TEST; od->nObs = 0; if( ( *cd ).num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
+	if( ( *cd ).num_solutions == 0 && ( *cd ).test_func >= 0 ) { ( *cd ).num_solutions = 1; ( *cd ).solution_type[0] = TEST; od->nTObs = 0; if( ( *cd ).num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	if( bad_data ) return( -1 );
 	if( nofile )
 	{
@@ -929,16 +929,17 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	{
 		fscanf( infile, ": %i\n", &od->nObs );
 		tprintf( "Number of total observations = %d\n", ( *od ).nObs );
-		od->obs_id = char_matrix( ( *od ).nObs, 50 );
-		od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
+		od->nTObs = od->nObs + rd->nRegul;
+		od->obs_id = char_matrix( ( *od ).nTObs, 50 );
+		od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_weight = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_min = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_max = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_current = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
 		// if( ( od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) ) ) == NULL ) tprintf( "***\nNO MEMORY!!!!\n***\n" );
-		od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-		od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+		od->res = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+		od->obs_log = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
 		od->nCObs = 0;
 		for( i = 0; i < od->nObs; i++ )
 		{
@@ -965,6 +966,19 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( od->obs_weight[i] > DBL_EPSILON ) od->nCObs++;
 		}
 		tprintf( "Number of calibration targets = %d\n", od->nCObs );
+		for( k = od->nObs, i = 0; i < rd->nRegul; i++ ) // add regularization targets
+		{
+			strcpy( od->obs_id[k], rd->regul_id[i] );
+			od->obs_target[k] = rd->regul_target[i];
+			od->obs_weight[k] = rd->regul_weight[i];
+			od->obs_min[k] = rd->regul_min[i];
+			od->obs_max[k] = rd->regul_max[i];
+			od->obs_log[k] = rd->regul_log[i];
+			od->obs_well_index[k] = -1;
+			od->obs_time_index[k] = -1;
+			if( cd->debug ) tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
+			k++;
+		}
 		if( bad_data ) return( 0 );
 		if( cd->debug )
 		{
@@ -975,6 +989,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					tprintf( "%-20s: %15g weight %7g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 				if( ( !( cd->debug > 10 ) || od->nObs > 50 ) && i == 21 ) tprintf( "...\n" );
 			}
+			for( i = od->nObs; i < od->nTObs; i++ )
+				tprintf( "%-20s: %15g weight %7g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 		}
 		for( i = 0; i < od->nObs; i++ )
 			for( j = i + 1; j < od->nObs; j++ )
@@ -1082,7 +1098,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	wd->obs_weight = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
 	wd->obs_min = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
 	wd->obs_max = ( double ** ) malloc( ( *wd ).nW * sizeof( double * ) );
-	( *od ).nObs = ( *preds ).nObs = 0;
+	( *od ).nObs = ( *preds ).nTObs = 0;
 	if( cd->debug ) tprintf( "\nObservation data:\n" );
 	for( i = 0; i < ( *wd ).nW; i++ )
 	{
@@ -1129,7 +1145,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				bad_data = 1;
 			}
 			if( ( *wd ).obs_weight[i][j] > DBL_EPSILON )( *od ).nObs++;
-			if( ( *wd ).obs_weight[i][j] < -DBL_EPSILON ) { ( *preds ).nObs++; if( cd->problem_type != INFOGAP )( *od ).nObs++; }
+			if( ( *wd ).obs_weight[i][j] < -DBL_EPSILON ) { ( *preds ).nTObs++; if( cd->problem_type != INFOGAP )( *od ).nObs++; }
 			if( j + 1 < ( *wd ).nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " ); }
 		}
 	}
@@ -1168,21 +1184,22 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			tprintf( "Well %10s %.15g %.15g : %.15g %.15g\n", wd->id[i], wd->x[i], ( *wd ).y[i], x, y );
 		}
 	}
-	od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_id = char_matrix( ( *od ).nObs, 50 );
-	od->pred_id = char_matrix( ( *od ).nObs, 50 );
-	od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-	od->obs_well_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-	od->obs_time_index = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
+	od->nTObs = od->nObs + rd->nRegul;
+	od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_current = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_id = char_matrix( ( *od ).nTObs, 50 );
+	od->pred_id = char_matrix( ( *od ).nTObs, 50 );
+	od->obs_weight = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_min = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_max = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->res = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_log = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
+	od->obs_well_index = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
+	od->obs_time_index = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
 	if( cd->debug ) tprintf( "\n" );
 	tprintf( "Number of calibration targets = %d\n", ( *od ).nObs );
-	if( op->pd->nOptParam > op->od->nObs ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nObs ); }
+	if( op->pd->nOptParam > op->od->nTObs ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations and regularizations (%d>%d)\n", op->pd->nOptParam, op->od->nTObs ); }
 	for( k = i = 0; i < ( *wd ).nW; i++ )
 		for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
 			if( ( cd->problem_type == INFOGAP && ( *wd ).obs_weight[i][j] > DBL_EPSILON ) || ( cd->problem_type != INFOGAP && fabs( ( *wd ).obs_weight[i][j] ) > DBL_EPSILON ) )
@@ -1198,22 +1215,36 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], ( *wd ).obs_weight[i][j] );
 				k++;
 			}
-	tprintf( "Number of predictions = %d\n", ( *preds ).nObs );
-	if( ( *preds ).nObs > 0 )
+	for( i = 0; i < rd->nRegul; i++ ) // add regularization targets
 	{
-		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nObs );
-		if( cd->problem_type != INFOGAP ) preds->obs_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
-		preds->obs_target = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_current = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_best = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_well_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
-		preds->obs_time_index = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
-		preds->obs_id = char_matrix( ( *preds ).nObs, 50 );
-		preds->obs_weight = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_min = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_max = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
-		preds->obs_log = ( int * ) malloc( ( *preds ).nObs * sizeof( int ) );
-		preds->res = ( double * ) malloc( ( *preds ).nObs * sizeof( double ) );
+		strcpy( od->obs_id[k], rd->regul_id[i] );
+		od->obs_target[k] = rd->regul_target[i];
+		od->obs_weight[k] = rd->regul_weight[i];
+		od->obs_min[k] = rd->regul_min[i];
+		od->obs_max[k] = rd->regul_max[i];
+		od->obs_log[k] = rd->regul_log[i];
+		od->obs_well_index[k] = -1;
+		od->obs_time_index[k] = -1;
+		if( cd->debug ) tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
+		k++;
+	}
+	if( cd->debug ) tprintf( "\n" );
+	tprintf( "Number of predictions = %d\n", ( *preds ).nTObs );
+	if( ( *preds ).nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
+	{
+		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", ( *preds ).nTObs );
+		if( cd->problem_type != INFOGAP ) preds->obs_index = ( int * ) malloc( ( *preds ).nTObs * sizeof( int ) );
+		preds->obs_target = ( double * ) malloc( ( *preds ).nTObs * sizeof( double ) );
+		preds->obs_current = ( double * ) malloc( ( *preds ).nTObs * sizeof( double ) );
+		preds->obs_best = ( double * ) malloc( ( *preds ).nTObs * sizeof( double ) );
+		preds->obs_well_index = ( int * ) malloc( ( *preds ).nTObs * sizeof( int ) );
+		preds->obs_time_index = ( int * ) malloc( ( *preds ).nTObs * sizeof( int ) );
+		preds->obs_id = char_matrix( ( *preds ).nTObs, 50 );
+		preds->obs_weight = ( double * ) malloc( ( *preds ).nTObs * sizeof( double ) );
+		preds->obs_min = ( double * ) malloc( ( *preds ).nTObs * sizeof( double ) );
+		preds->obs_max = ( double * ) malloc( ( *preds ).nTObs * sizeof( double ) );
+		preds->obs_log = ( int * ) malloc( ( *preds ).nTObs * sizeof( int ) );
+		preds->res = ( double * ) malloc( ( *preds ).nTObs * sizeof( double ) );
 		for( c = k = i = 0; i < ( *wd ).nW; i++ )
 			for( j = 0; j < ( *wd ).nWellObs[i]; j++ )
 			{
@@ -1237,17 +1268,20 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				}
 			}
 	}
-	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == INFOGAP ) ) // INFOGAP problem
+	else if( ( ( *preds ).nTObs <= 0 ) && ( ( *cd ).problem_type == INFOGAP ) ) // INFOGAP problem
 	{
 		tprintf( "\nWeight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for infogap analysis\n\n" );
 		bad_data = 1;
 	}
-	else if( ( ( *preds ).nObs <= 0 ) && ( ( *cd ).problem_type == GLUE ) ) // GLUE problem
+	else if( ( ( *preds ).nTObs <= 0 ) && ( ( *cd ).problem_type == GLUE ) ) // GLUE problem
 	{
 		tprintf( "\nWeight of at least one observation must be set as a prediction\nby setting weight to -1 for glue analysis\n\n" );
 		bad_data = 1;
 	}
 	if( bad_data ) return( 0 );
+	//
+	// read grid and breakthrough computational data
+	//
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf\n", &( *gd ).time );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &( *gd ).nx, &( *gd ).ny, &( *gd ).nz );
 	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &( *gd ).min_x, &( *gd ).min_y, &( *gd ).min_z );
@@ -1404,8 +1438,8 @@ int save_problem( char *filename, struct opt_data *op )
 	}
 	else
 	{
-		fprintf( outfile, "Number of observations: %i\n", od->nObs );
-		for( i = 0; i < od->nObs; i++ )
+		fprintf( outfile, "Number of observations: %i\n", od->nTObs );
+		for( i = 0; i < od->nTObs; i++ )
 			fprintf( outfile, "%s %g %g %d %g %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 		fprintf( outfile, "Execution command: %s\n", ed->cmdline );
 		fprintf( outfile, "Number of execution templates: %d\n", ed->ntpl );

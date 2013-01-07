@@ -179,7 +179,7 @@ int pso_tribes( struct opt_data *op )
 	overSizeSwarm = 0;
 	overSizeTribe = 0;
 	pb.lm_factor = op->cd->lm_factor;
-	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->pdebug )
 	{
@@ -1422,7 +1422,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 		}
 		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
-		if( gop->od->nObs > 0 && lmo_flag )
+		if( gop->od->nTObs > 0 && lmo_flag )
 		{
 			if( debug_level > 2 ) tprintf( "LM search ...\n" );
 			swarm_lm( pb, S ); // LM SEARCH

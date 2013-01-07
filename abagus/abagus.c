@@ -232,7 +232,7 @@ int abagus( struct opt_data *op )
 	FILE *f_out;
 	int iter = 0;
 	op->cd->compute_phi = 1;
-	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	eval_max = op->cd->maxeval; // Max number of evaluations for each run
 	if( ( finv = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
@@ -287,7 +287,7 @@ int abagus( struct opt_data *op )
 	if( op->cd->check_success )
 	{
 		eps = 0;
-		for( k = 0; k < op->od->nObs; k++ )
+		for( k = 0; k < op->od->nTObs; k++ )
 		{
 			i = op->od->obs_well_index[k];
 			j = op->od->obs_time_index[k];

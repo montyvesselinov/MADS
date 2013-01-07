@@ -76,7 +76,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 	double *x_c, chi, eps, stddev_scale;
 	gsl_multifit_function_fdf f;
 	op->pd->var_current_gsl = gsl_vector_alloc( op->pd->nOptParam );
-	op->od->obs_current_gsl = gsl_vector_alloc( op->od->nObs );
+	op->od->obs_current_gsl = gsl_vector_alloc( op->od->nTObs );
 	opt_gradient = gsl_vector_alloc( op->pd->nOptParam );
 	if( ( x_c = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL )
 	{ printf( "Not enough memory!\n" ); exit( 1 ); }
@@ -94,12 +94,12 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 		printf( "Forward numerical derivatives for GSL using GSL functions\n" );
 		gsl_deriv = 1;
 	}
-	f.n = op->od->nObs;
+	f.n = op->od->nTObs;
 	f.p = op->pd->nOptParam;
 	f.params = op;
 	if( strstr( op->cd->opt_method, "uns" ) == NULL ) { printf( "Levenberg-Marquardt scalled GSL version (diagonal elements are not modified)\n" ); solver_type = gsl_multifit_fdfsolver_lmsder; } // LM method Scalled version
 	else { printf( "Levenberg–Marquardt unscalled GSL version (diagonal elements set to 1)\n" ); solver_type = gsl_multifit_fdfsolver_lmder; } // LM method Unscalled version
-	solver = gsl_multifit_fdfsolver_alloc( solver_type, op->od->nObs, op->pd->nOptParam );
+	solver = gsl_multifit_fdfsolver_alloc( solver_type, op->od->nTObs, op->pd->nOptParam );
 	gsl_multifit_fdfsolver_set( solver, &f, opt_params );
 	chi = gsl_blas_dnrm2( solver->f );
 	printf( "Iteration %i: chi %g phi %g\n", iter, chi, chi * chi );
@@ -116,7 +116,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 		if( op->cd->ldebug ) printf( "Iteration %i: chi %g phi %g\n", iter, chi, chi * chi );
 		if( op->cd->ldebug >= 3 )
 		{
-			dof = op->od->nObs - op->pd->nOptParam;
+			dof = op->od->nTObs - op->pd->nOptParam;
 			stddev_scale = chi / sqrt( dof );
 			gsl_multifit_covar( solver->J, 0.0, covar );
 			DeTransform( solver->x->data, op, x_c );
@@ -131,7 +131,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 					}
 			printf( "Jacobian matrix\n" );
 			printf( "%-25s :", "Observations" );
-			for( k = 0; k < op->od->nObs; k++ )
+			for( k = 0; k < op->od->nTObs; k++ )
 			{
 				i = op->od->obs_well_index[k];
 				j = op->od->obs_time_index[k];
@@ -141,7 +141,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 			for( k = i = 0; i < op->pd->nOptParam; i++ )
 			{
 				printf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
-				for( j = 0; j < op->od->nObs; j++, k++ )
+				for( j = 0; j < op->od->nTObs; j++, k++ )
 				{
 					eps = gsl_matrix_get( solver->J, j, i );
 					if( fabs( eps ) > 1e3 ) printf( " %6.0e", eps );
@@ -204,8 +204,8 @@ int func_gsl_dx( const gsl_vector *x, void *data, gsl_matrix *jacobian ) /* Simp
 	int i, j;
 	x_c = gsl_vector_alloc( p->pd->nOptParam );
 	gsl_vector_memcpy( x_c, x );
-	f_xpdx = gsl_vector_alloc( p->od->nObs );
-	f_x = gsl_vector_alloc( p->od->nObs );
+	f_xpdx = gsl_vector_alloc( p->od->nTObs );
+	f_x = gsl_vector_alloc( p->od->nTObs );
 	func_gsl( x_c, data, f_x );
 	for( j = 0; j < p->pd->nOptParam; j++ )
 	{
@@ -215,7 +215,7 @@ int func_gsl_dx( const gsl_vector *x, void *data, gsl_matrix *jacobian ) /* Simp
 		gsl_vector_set( x_c, j, x_old + dx );
 		func_gsl( x_c, data, f_xpdx );
 		gsl_vector_set( x_c, j, x_old );
-		for( i = 0; i < p->od->nObs; i++ ) gsl_matrix_set( jacobian, i, j, ( gsl_vector_get( f_xpdx, i ) - gsl_vector_get( f_x, i ) ) / dx ); // order: obs / param
+		for( i = 0; i < p->od->nTObs; i++ ) gsl_matrix_set( jacobian, i, j, ( gsl_vector_get( f_xpdx, i ) - gsl_vector_get( f_x, i ) ) / dx ); // order: obs / param
 	}
 	gsl_vector_free( f_x ); gsl_vector_free( f_xpdx ); gsl_vector_free( x_c );
 	return GSL_SUCCESS;
@@ -238,7 +238,7 @@ int func_gsl_deriv_dx( const gsl_vector *x, void *data, gsl_matrix *J ) /* Numer
 		x_old = gsl_vector_get( x, j );
 		if( p->cd->sintrans == 0 ) dx = p->pd->var_dx[j];
 		else dx = p->cd->sindx;
-		for( i = 0; i < p->od->nObs; i++ )
+		for( i = 0; i < p->od->nTObs; i++ )
 		{
 			p->cd->oderiv = i;
 			gsl_deriv_forward( &F, x_old, dx, &result, &abserr ); // Avoid using central when SIN transformation is applied

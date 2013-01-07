@@ -174,7 +174,7 @@ int pso_std( struct opt_data *op )
 	double w; // First confidence coefficient
 	char filename[255];
 	int lmo_flag, loop_count;
-	if( ( res = ( double * ) malloc( op->od->nObs * sizeof( double ) ) ) == NULL )
+	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	irand_seed = &op->cd->seed;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }

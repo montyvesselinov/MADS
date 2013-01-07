@@ -61,7 +61,7 @@ int load_pst( char *filename, struct opt_data *op )
 	od = op->od;
 	ed = op->ed;
 	pd->nParam = pd->nFlgParam = pd->nOptParam = 0;
-	od->nObs = od->nCObs = od->nGObs = 0;
+	od->nTObs = od->nCObs = od->nObs = 0;
 	ed->ntpl = ed->nins = 0;
 	bad_data = 0;
 	op->gd->min_t = op-> gd->time = 0;
@@ -79,10 +79,10 @@ int load_pst( char *filename, struct opt_data *op )
 	cd->solution_type[0] = EXTERNAL;
 	for( i = 0; i < 4; i++ ) // skip 4 lines
 		fgets( buf, 1000, in );
-	sscanf( buf, "%d %d %d %*d %d", &( *pd ).nParam, &( *od ).nObs, &npar_groups, &nobs_groups );
+	sscanf( buf, "%d %d %d %*d %d", &( *pd ).nParam, &( *od ).nTObs, &npar_groups, &nobs_groups );
 	tprintf( "Parameters = %d (groups %d)\n", pd->nParam, npar_groups );
-	tprintf( "Observations = %d (groups %d)\n", od->nObs, nobs_groups );
-	od->nGObs = od->nCObs = od->nObs;
+	tprintf( "Observations = %d (groups %d)\n", od->nTObs, nobs_groups );
+	od->nObs = od->nCObs = od->nTObs;
 	fgets( buf, 1000, in );
 	sscanf( buf, "%d %d", &( *ed ).ntpl, &( *ed ).nins );
 	tprintf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *ed ).ntpl, ( *ed ).nins );
@@ -141,28 +141,28 @@ int load_pst( char *filename, struct opt_data *op )
 	for( i = 0; i < nobs_groups; i++ )
 		fgets( buf, 1000, in );
 	fgets( buf, 1000, in ); // skip line
-	od->obs_id = char_matrix( ( *od ).nObs, 50 );
-	od->obs_target = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_weight = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_min = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_max = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_current = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_best = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->res = ( double * ) malloc( ( *od ).nObs * sizeof( double ) );
-	od->obs_log = ( int * ) malloc( ( *od ).nObs * sizeof( int ) );
-	for( i = 0; i < od->nObs; i++ )
+	od->obs_id = char_matrix( ( *od ).nTObs, 50 );
+	od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_weight = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_min = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_max = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_current = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->res = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+	od->obs_log = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
+	for( i = 0; i < od->nTObs; i++ )
 		fscanf( in, "%s %lf %lf %*s\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i] );
-	tprintf( "Calibration targets = %d\n", ( *od ).nObs );
-	for( i = 0; i < od->nObs; i++ )
+	tprintf( "Calibration targets = %d\n", ( *od ).nTObs );
+	for( i = 0; i < od->nTObs; i++ )
 	{
-		if( od->nObs < 50 || ( i < 20 || i > od->nObs - 20 ) )
+		if( od->nTObs < 50 || ( i < 20 || i > od->nTObs - 20 ) )
 			tprintf( "%-13s: value %15.12g weight %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i] );
-		if( od->nObs > 50 && i == 21 ) tprintf( "...\n" );
+		if( od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
 		od->obs_min[i] = 0; od->obs_max[i] = od->obs_target[i] * 2;
 		od->obs_log[i] = 0;
 	}
-	for( i = 0; i < od->nObs; i++ )
-		for( j = i + 1; j < od->nObs; j++ )
+	for( i = 0; i < od->nTObs; i++ )
+		for( j = i + 1; j < od->nTObs; j++ )
 			if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
 			{
 				tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );

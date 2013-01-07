@@ -201,8 +201,8 @@ struct regul_data // data structure for model parameters
 
 struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 {
-	int nGObs; // total number of observations and regularization terms; nGObs = nObs + nRegul
-	int nObs;  // number of observations (internal problem: nObs = nCObs; external problem: nObs > nCObs (all observations) )
+	int nTObs; // total number of observations and regularization terms; nGObs = nObs + nRegul
+	int nObs; // number of observations (internal problem: nObs = nCObs; external problem: nObs > nCObs (all observations) )
 	int nCObs; // total number of calibration targets observations with weight greater than zero
 	int nPred; // number of performance criterion prediction
 	// observations
