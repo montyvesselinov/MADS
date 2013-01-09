@@ -752,7 +752,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 				white_skip( &word );
 				white_trim( word );
 				l2 = strlen( word );
-				if( l > 10 && l > ( l2 + 2 ) ) preserve = 1;
+				if( l > ( l2 + 2 ) ) preserve = 1;
 				else preserve = 0;
 				for( i = 0; i < npar; i++ )
 				{
@@ -760,13 +760,13 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 					{
 						if( preserve == 1 )
 						{
-							if( par[i] > 0 ) sprintf( number, "%-*.*g", l, l - 5, par[i] );
-							else sprintf( number, "%-*.*g", l, l - 6, par[i] );
+							if( par[i] > 0 ) sprintf( number, "%.*g", l - 1, par[i] );
+							else sprintf( number, "%.*g", l - 2, par[i] );
 							l2 = strlen( number );
-							if( l2 > l ) tprintf( "ERROR: The parameter does not fit the requested field (%s length %d > %d)!\n", number, l2, l );
+							if( l2 > l ) tprintf( "WARNING: The parameter does not fit the requested field (%s length %d > %d)!\n", number, l2, l );
 						}
 						else
-							sprintf( number, "%-20.12g", par[i] );
+							sprintf( number, "%.15g", par[i] );
 						if( space ) fprintf( out, " %s", number );
 						else { space = 0; fprintf( out, "%s", number ); } // TODO originally was space = 1
 						if( debug ) tprintf( "replaced with \'%s\'\n", number );

@@ -9,6 +9,12 @@
 
 void mads_info()
 {
+	printf( "MADS is an open-source code designed as an integrated high-performance computational framework performing\n" );
+	printf( "a wide range of model-based analyses: Sensitivity Analysis (SA), Parameter Estimation (PE), Model Inversion and Calibration,\n" );
+	printf( "Uncertainty Quantification (UQ), Model Selection and Averaging, and Decision Support (DS).\n\n" );
+	printf( "MADS utilizes adaptive rules and techniques which allows the analyses to be performed with minimum user input. The code\n" );
+	printf( "provides a series of alternative algorithms to perform each type of model analyses. The code allows for coupled model\n" );
+	printf( "parameters and regularization terms that are internally computed based on user-defined mathematical expressions.\n\n" );
 	printf( "USAGE: mads problem_name [ keywords | options ]       OR\n" );
 	printf( "       mads MADS_input_file [ keywords | options ]    OR\n" );
 	printf( "       mads PEST_input_file [ keywords | options ] (MADS is compatible with PEST control, template and instruction files)\n\n" );
