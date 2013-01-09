@@ -8,7 +8,7 @@ Source x dimension [L]: 258 1 0 1 1 500
 Source y dimension [L]: 273 1 0 1 1 500
 Source z dimension [L] = p3 + 1
 Contaminant flux [M/T] = 4000 / ( 49 - p8 )
-Start Time [T]: 10 1 0 1 0 43
+Start Time [T]: 2 1 0 1 0 43
 End Time [T]: 100 0 0 1 1 100
 Porosity [L3/L3]: 0.1 0 0 0.1 0 1
 Kd [-]: 1 0 1 1 1 10

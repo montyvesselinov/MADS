@@ -8,7 +8,7 @@ Problem root name: w01
 Problem type: calibration
 
 Calibration technique: single calibration using initial guesses provided in the input file
-Optimization method: opt=lm_levmar | Levenberg-Marquardt optimization
+Optimization method: opt=lm_levmar --- Levenberg-Marquardt optimization
 Number of Levenberg-Marquardt iterations = will be computed internally
 Eigen analysis will be performed for the final optimization results
 
@@ -47,7 +47,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20130105-090222
+Execution date & time stamp: 20130109-090754
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Levenberg-Marquardt Optimization ... LM using SVD decomposition
@@ -267,7 +267,7 @@ Optimized model parameters:
 k -1.93403
 S -2.79024
 
-Model predictions for calibration targets:
+Model calibration targets:
 o1                  :           0 -            0 =            0 (           0) success 1 range       -1e+06 -        1e+06
 o2                  :     5.98511 -      0.85098 =      5.13413 (     5.13413) success 1 range       -1e+06 -        1e+06
 o3                  :     8.02315 -       1.7157 =      6.30745 (     6.30745) success 1 range       -1e+06 -        1e+06
@@ -351,11 +351,11 @@ o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range 
 o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
 o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
 o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
-Simulation time = 7 seconds
+Simulation time = 6 seconds
 Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 6
-Execution  started  on Sat Jan  5 09:02:22 2013
-Execution completed on Sat Jan  5 09:02:29 2013
-Execution date & time stamp: 20130105-090222
+Functional evaluations per second = 7
+Execution  started  on Wed Jan  9 09:07:54 2013
+Execution completed on Wed Jan  9 09:08:00 2013
+Execution date & time stamp: 20130109-090754

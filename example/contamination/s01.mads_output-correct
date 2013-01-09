@@ -8,7 +8,7 @@ Problem root name: example/contamination/s01
 Problem type: calibration
 
 Calibration technique: single calibration using initial guesses provided in the input file
-Optimization method: opt=lm | Levenberg-Marquardt optimization
+Optimization method: opt=lm --- Levenberg-Marquardt optimization
 Number of Levenberg-Marquardt iterations = will be computed internally
 Eigen analysis will be performed for the final optimization results
 
@@ -36,7 +36,7 @@ Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130105-090158
+Execution date & time stamp: 20130109-090709
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Levenberg-Marquardt Optimization ... LM using SVD decomposition
@@ -413,7 +413,7 @@ Dispersivity x [L] 65.5312
 Dispersivity y [L] 15.589
 Dispersivity z [L] 0.290012
 
-Model predictions for calibration targets:
+Model calibration targets:
 W-1       (   49):           0 -  0.000337751 = -0.000337751 (-0.000337751) success 1 range            0 -           25
 W-2       (   49):           0 -  0.000687308 = -0.000687308 (-0.000687308) success 1 range            0 -           10
 W-3       (   49):           0 -  5.04593e-07 = -5.04593e-07 (-5.04593e-07) success 1 range            0 -           25
@@ -442,6 +442,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sat Jan  5 09:01:58 2013
-Execution completed on Sat Jan  5 09:01:58 2013
-Execution date & time stamp: 20130105-090158
+Execution  started  on Wed Jan  9 09:07:09 2013
+Execution completed on Wed Jan  9 09:07:09 2013
+Execution date & time stamp: 20130109-090709

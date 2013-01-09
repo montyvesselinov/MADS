@@ -160,6 +160,16 @@ verify-contaminant:
 	rm -f example/contamination/s01-scaled+tied_dispersivities.results
 	mads example/contamination/s01-scaled+tied_dispersivities > /dev/null
 	@$(CMP) example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-correct
+	@echo ""
+	@echo "TEST 3.5: Problem example/contamination/s02 with coupled (tied) parameters based on mathematical expressions  ..."
+	rm -f example/contamination/s02tied.results
+	mads example/contamination/s02tied > /dev/null
+	@$(CMP) example/contamination/s02tied.results example/contamination/s02tied.results-correct
+	@echo ""
+	@echo "TEST 3.6: Problem example/contamination/s02 with regularization terms for optimized model parameters ..."
+	rm -f example/contamination/s02regul.results
+	mads example/contamination/s02regul > /dev/null
+	@$(CMP) example/contamination/s02regul.results example/contamination/s02regul.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
 	@echo ""
@@ -237,23 +247,40 @@ verify-external:
 	@echo "TEST 6: DONE"
 	@echo ""
 	@echo ""
+	@echo "**************************************************************************************"
+	@echo " External problems "
+	@echo "**************************************************************************************"
+	@echo "TEST 7: Problem example/wells-short/w01 using coupled parameters and regularization terms ..."
+	@echo "TEST 7.1: Problem example/wells-short/w01 with coupled (tied) parameters based on mathematical expressions  ..."
+	rm -f example/wells-short/w01tied.results
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01tied > /dev/null
+	@$(CMP) example/wells-short/w01tied.results example/wells-short/w01tied.results-correct
+	@echo ""
+	@echo "TEST 7.2: Problem example/wells-short/w01 with regularization terms for optimized model parameters ..."
+	rm -f example/wells-short/w01regul.results
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01regul > /dev/null
+	@$(CMP) example/wells-short/w01regul.results example/wells-short/w01regul.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 7: DONE"
+	@echo ""
+	@echo ""
 
 verify-parallel:
 	@echo "**************************************************************************************"
 	@echo " Parallel execution of external problems "
 	@echo "**************************************************************************************"
-	@echo "TEST 7: Parallel execution of example/wells-short/w01parallel ..."
-	@echo "TEST 7.1: Initial parallel execution of example/wells-short/w01parallel ..."
+	@echo "TEST 8: Parallel execution of example/wells-short/w01parallel ..."
+	@echo "TEST 8.1: Initial parallel execution of example/wells-short/w01parallel ..."
 	rm -f example/wells-short/w01parallel.results example/wells-short/w01parallel.restart_info example/wells-short/w01parallel.restart_*.zip
 	cd example/wells-short; ../../mads w01parallel np=2 eval=10 restart=0 > /dev/null
 	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-correct
 	@echo ""
-	@echo "TEST 7.2: Rerun using saved results from prior parallel execution of example/wells-short/w01parallel ..."
+	@echo "TEST 8.2: Rerun using saved results from prior parallel execution of example/wells-short/w01parallel ..."
 	rm -f example/wells/w01parallel.results
 	cd example/wells-short; ../../mads w01parallel np=2 eval=10 > /dev/null
 	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-correct
 	@echo "**************************************************************************************"
-	@echo "TEST 7: DONE"
+	@echo "TEST 8: DONE"
 
 clean-example:
 	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info

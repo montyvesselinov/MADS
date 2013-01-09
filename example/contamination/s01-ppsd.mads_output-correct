@@ -5,12 +5,10 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: example/contamination/s01-ppsd.mads
 Problem root name: example/contamination/s01-ppsd
-WARNING: Potentially another MADS run is currently performed for problem 'example/contamination/s01-ppsd' since file example/contamination/s01-ppsd.running exists!
-
 Problem type: calibration
 
 Calibration technique: sequential calibration using partial parameter parameter discretization
-Optimization method: opt=lm | Multi-Start Levenberg-Marquardt optimization
+Optimization method: opt=lm --- Multi-Start Levenberg-Marquardt optimization
 Number of calibration retries = 2
 Number of Levenberg-Marquardt iterations = will be computed internally
 
@@ -38,7 +36,7 @@ Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130105-090204
+Execution date & time stamp: 20130109-090735
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -96,6 +94,6 @@ Functional evaluations = 130
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
 Functional evaluations per second = 16
-Execution  started  on Sat Jan  5 09:02:04 2013
-Execution completed on Sat Jan  5 09:02:12 2013
-Execution date & time stamp: 20130105-090204
+Execution  started  on Wed Jan  9 09:07:35 2013
+Execution completed on Wed Jan  9 09:07:43 2013
+Execution date & time stamp: 20130109-090735

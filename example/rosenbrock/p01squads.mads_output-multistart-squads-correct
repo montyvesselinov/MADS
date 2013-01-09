@@ -9,7 +9,7 @@ Test Function 3 Dimensionality 3
 Problem type: calibration
 
 Calibration technique: sequential calibration using a set of random initial values (realizations = 10)
-Optimization method: opt=squads | SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization
+Optimization method: opt=squads --- SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization
 Number of Levenberg-Marquardt iterations = will be computed internally
 Number of particles = will be computed internally
 
@@ -27,7 +27,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20130105-090158
+Execution date & time stamp: 20130109-090709
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -72,6 +72,6 @@ Simulation time = 0 seconds
 Functional evaluations = 4789
 Jacobian evaluations = 712
 Levenberg-Marquardt optimizations = 98
-Execution  started  on Sat Jan  5 09:01:58 2013
-Execution completed on Sat Jan  5 09:01:58 2013
-Execution date & time stamp: 20130105-090158
+Execution  started  on Wed Jan  9 09:07:09 2013
+Execution completed on Wed Jan  9 09:07:09 2013
+Execution date & time stamp: 20130109-090709
