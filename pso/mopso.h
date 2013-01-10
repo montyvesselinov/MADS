@@ -7,6 +7,143 @@
 //
 // LA-CC-10-055; LA-CC-11-035
 //
+// Based on TRIBES-D developed by Maurice Clerc (see below)
+//
+/*
+     TRIBES-D, a fully adaptive parameter-free particle swarm optimiser
+		 for real heterogeneous problems
+                             -------------------
+    last update           : 2008-02-01
+    email                 : Maurice.Clerc@WriteMe.com
+
+ ---- Why?
+ In the complete TRIBES, there is an assumption
+ saying that it is possible to define an Euclidean distance between
+ two positions in the search space. In particular some points are
+ chosen inside hyperspheres.
+
+ However, for a lot of real problems this is meaningless.
+ For example, if one variable x1 is a cost, and another one x2 a weight,
+ defining a distance by sqrt(x1*x1 + x2*x2) is completely arbitrary.
+ Well, defining _any_ distance may be arbitrary.
+
+ TRIBES-D is "TRIBES without distance".
+ Or, more precisely, without multi-dimensional distance.
+ However this is not an algorithm for combinatorial problems.
+ We still need to be able to compute the distance between
+ two points along one dimension, typically |x-y|.
+
+ Of course, a drawback is that it is not very good on some artificial
+ problems, particularly when the search space is a hypercube, and when
+ the maximum number of fitness evaluations is small.
+ I have added a few such problems from the CEC 2005 benchmark
+ so that you can nevertheless try TRIBES-D on them.
+
+ Conversely, when the search space is not a hypercube, but a
+ hyperparallelepid, and moreover when some dimensions are discrete,
+ and the other ones continuous (heterogeneous problems)
+ TRIBES-D may be pretty good.
+
+ Note that in this version, the acceptable values for a variable
+ can be not only an interval, but any given list of values.
+
+ Also, compared to previous TRIBES versions,
+ it is far better for multiobjective problems.
+
+ ---- Principles
+- generate a swarm (typically one tribe one particle)
+- at each time step
+	- the informer of the "current" particle is the best particle
+		of its tribe (the shaman)
+	- if the particle is the shaman, select an informer at random amongst
+			the other shamans (mono-objective case)
+			or in the archive (multiobjective case).
+			Note that the probability distribution to do that is
+			not necessarily uniform
+	- apply a strategy of move depending on the recent past
+
+	From time to time (the delay may be different for each tribe):
+		- check whether the tribe is bad or not
+		- if bad, increase its size by generating a particle
+		- if good and enough particles, remove the worst particle
+
+	From time to time:
+		- check whether the swarm is good or not
+		- if bad, add a new tribe
+		- if good, and if enough tribes, remove the worst tribe
+
+---- About the strategies
+	Depending on its recent past a particle may be good, neutral, or bad.
+	So there are three strategies, one for each case.
+	However, in order to add a kind of "natural selection" amongst strategies,
+	a good particle keeps the same strategy (with a probability 0.5),
+	no matter which one it is.
+
+---- Tricks
+
+- for a bad tribe there are two ways to increase diversity
+	(see swarmAdapt()):
+	- generate a completely new particle
+	- modify the best position (the memory) of a existent one.
+		However this is done for just one dimension
+		(the one with the smallest discrepancy over the whole tribe)
+
+---- About multiobjective problems
+In TRIBES-D, you can ask to solve simultaneously several problems.
+First approach (when the codes functions are positive):
+		the algorithm just tries to find the best compromise
+		I am not sure it is very useful, but who knows?
+		And anyway it costs nothing.
+
+The second approach (negative code functions) is multiobjective.
+	The algorithm is looking for a Pareto front.
+	It keeps up to date an archive of non dominated positions
+	(a classical method).
+	What is less clasical is that it keeps it over several runs
+	(which can therefore be seen as manual"restarts")
+	So, if the maximum number of fitness evaluations is FEmax,
+	you may try different strategies. For example just one run
+	with FEmax, or 10 runs with FEmax/10. Actually the second method
+	is usually better, although the algorithm is already pretty good
+	when launching just one run.
+	See fArchive.txt for the final result.
+
+	For multibojective problems, the algorithm adaptively uses
+	two kinds of comparisons between positions:
+	either classical dominance or an extension of the DWA
+	(Dynamic Weighted Aggregation) method.
+
+	It also makes use of the Crowding Distance method, but not for
+	all particles, only for the best one of each tribe.
+	Unfortunately these method needs a parameter, in order to select
+	the "guide". I tried here to replace this user defined parameter by
+	an adaptive one, depending on the number of tribes
+	(see archiveCrowDistSelect()).
+	This is not completely satisfying, though.
+
+---- About randomness
+The standard rand() function in C is quite bad. That is why I use
+for years a better one (KISS).
+Results are significantly different. Not necessarily better, for
+the bad randomness of C implies a "granularity", and thanks to this
+artifact, the solution may be found faster.
+
+---- About a few useless little things
+You may have noted that a few variables in some structures
+are not used (for example fPrevBest).
+
+Similarly some features are noted "EXPERIMENT", or simply "commented"
+There are here just for tests.
+
+---- How to use TRIBES-D?
+Data are read from the file problem.txt
+
+In order to define your own problem, you have to modify this file and
+positionEval().
+
+Have fun, and keep me posted!
+
+*/
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

@@ -6,7 +6,7 @@ Boundary information: 1 1 0 0 0
 cdv-16-4ip   492430.94 537726.86 1.11 2
 Initial Head        : 100
 Aquifer thickness   : 100
-Permeability        : # k  # 
+Permeability        : # k # 
 Storage coefficient : # S #
 Leakage coefficient : -10
 0 28.3808

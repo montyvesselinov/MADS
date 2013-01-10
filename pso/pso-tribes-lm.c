@@ -7,22 +7,15 @@
 //
 // LA-CC-10-055; LA-CC-11-035
 //
-// Copyright 2011.  Los Alamos National Security, LLC.  All rights reserved.
-// This material was produced under U.S. Government contract DE-AC52-06NA25396 for
-// Los Alamos National Laboratory, which is operated by Los Alamos National Security, LLC for
-// the U.S. Department of Energy. The Government is granted for itself and others acting on its
-// behalf a paid-up, nonexclusive, irrevocable worldwide license in this material to reproduce,
-// prepare derivative works, and perform publicly and display publicly. Beginning five (5) years after
-// --------------- March 11, 2011, -------------------------------------------------------------------
-// subject to additional five-year worldwide renewals, the Government is granted for itself and
-// others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this
-// material to reproduce, prepare derivative works, distribute copies to the public, perform
-// publicly and display publicly, and to permit others to do so.
+// Based on TRIBES-D developed by Maurice Clerc (see below)
 //
-// NEITHER THE UNITED STATES NOR THE UNITED STATES DEPARTMENT OF ENERGY, NOR LOS ALAMOS NATIONAL SECURITY, LLC,
-// NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR
-// RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
-// PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+/*
+     TRIBES-D, a fully adaptive parameter-free particle swarm optimiser
+		 for real heterogeneous problems
+                             -------------------
+    last update           : 2008-02-01
+    email                 : Maurice.Clerc@WriteMe.com
+*/
 
 #include <math.h>
 #include <float.h>
@@ -118,7 +111,7 @@ void free_matrix( void **matrix, int maxCols );
 //----------------------------------------- Global variables
 int lmo_count;
 int lmo_flag;
-struct archived archiv[MAXARCHIVE + 1];
+struct archived multiobj_archive[MAXARCHIVE + 1];
 int arch = 0;
 int nArchive = 0;
 struct objfunc archiveVar;
@@ -136,8 +129,8 @@ int count_not_good_tribes = 0;
 int nTribeAdaptIter[MAXTRIBE]; // The same, but for each tribe
 int id_global = 0; // id (integer number) of the last generated particle
 int multiObj = FALSE; // Flag for multi-objective problem
-int overSizeSwarm; // Number of times the swarm tends to generate too many tribes
-int overSizeTribe; // Number of times a tribe tends to generate too many particles
+int nExceedSizeSwarm; // Number of times the swarm tends to generate too many tribes
+int nExceedSizeTribe; // Number of times a tribe tends to generate too many particles
 int restart;
 int nRestarts;
 int debug_level;
@@ -176,8 +169,7 @@ int pso_tribes( struct opt_data *op )
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
 	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed ); }
-	overSizeSwarm = 0;
-	overSizeTribe = 0;
+	nExceedSizeSwarm = nExceedSizeTribe = 0;
 	pb.lm_factor = op->cd->lm_factor;
 	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
@@ -197,7 +189,7 @@ int pso_tribes( struct opt_data *op )
 	eval_total = 0;
 	nArchive = 0;
 	compare_type = 0; // Kind of comparison, to begin (see objfuncCompare() )
-	bestBest.size = archiv[0].x.size = pb.nPhi; //Prepare final result
+	bestBest.size = multiobj_archive[0].x.size = pb.nPhi; //Prepare final result
 	for( n = 0; n < pb.nPhi; n++ )
 	{
 		bestBest.f.f[n] = HUGE_VAL;
@@ -306,9 +298,9 @@ int pso_tribes( struct opt_data *op )
 		tprintf( "Number of optimization retries %d\n", pb.repeat );
 		tprintf( "Average number of evaluations per optimization %g\n", ( ( double ) eval_total / pb.repeat ) );
 	}
-	if( overSizeTribe > 0 ) tprintf( "WARNING: Tribe size has been constrained %i times\n", overSizeTribe );
-	if( overSizeSwarm > 0 ) tprintf( "WARNING: Swarm size has been constrained %i times\n", overSizeSwarm );
-	if( multiObj && op->cd->pdebug ) archive_save( archiv, nArchive, fArchive );
+	if( nExceedSizeTribe > 0 ) tprintf( "WARNING: Tribe size has been constrained %i times\n", nExceedSizeTribe );
+	if( nExceedSizeSwarm > 0 ) tprintf( "WARNING: Swarm size has been constrained %i times\n", nExceedSizeSwarm );
+	if( multiObj && op->cd->pdebug ) archive_save( multiobj_archive, nArchive, fArchive );
 	DeTransform( bestBest.x, op, bestBest.x );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		op->pd->var[op->pd->var_index[i]] = bestBest.x[i];
@@ -455,10 +447,10 @@ void position_eval( struct problem *pb, struct position *pos )
 		phi_min[i] = minXY( phi_min[i], ( *pos ).f.f[i] );
 		phi_max[i] = maxXY( phi_max[i], ( *pos ).f.f[i] );
 	}
-	if( multiObj && nArchive > 0 ) // Additional "objfunc" for multiobjective
+	if( multiObj && nArchive > 0 ) // Additional "objfunc" for multi-objective
 	{
 		for( i = 0; i < ( *pb ).nPhi; i++ )
-			archiv[nArchive].x.f.f[i] = ( *pos ).f.f[i]; // Temporary put in the archive
+			multiobj_archive[nArchive].x.f.f[i] = ( *pos ).f.f[i]; // Temporary put in the archive
 		nArchive++;
 		( *pos ).f.f[( *pb ).nPhi] = archive_spread();
 		nArchive--; // Virtually removed from the archive
@@ -578,28 +570,28 @@ struct position archiveCrowDistSelect( int size )
 	int n;
 	double pr;
 	archive_crowding_dist(); // Compute the Crowding Distances
-	qsort( archiv, nArchive, sizeof( archiv[0] ), compare_crowding_dist ); // Sort the archive by increasing Crowding Distance
+	qsort( multiobj_archive, nArchive, sizeof( multiobj_archive[0] ), compare_crowding_dist ); // Sort the archive by increasing Crowding Distance
 	pr = 2 * log( ( double ) 1 + size ); // Choose at random according to a non uniform distribution:
 	n = pow( random_double( 0, pow( ( double ) nArchive - 1, pr ) ), ( double ) 1. / pr );
-	return archiv[n].x;
+	return multiobj_archive[n].x;
 }
 
 void archive_crowding_dist() // Compute the crowding distances in archive[n] (global variable)
 {
 	double dist, max, min;
 	int nPhi, n;
-	nPhi = archiv[0].x.f.size;
-	for( n = 0; n < nArchive; n++ ) archiv[n].crow_dist = 1;
+	nPhi = multiobj_archive[0].x.f.size;
+	for( n = 0; n < nArchive; n++ ) multiobj_archive[n].crow_dist = 1;
 	for( fn = 0; fn < nPhi; fn++ )
 	{
-		qsort( archiv, nArchive, sizeof( archiv[0] ), compare_fit ); // Sort archive according to f[fn]  NOTE: fn is a global variable
+		qsort( multiobj_archive, nArchive, sizeof( multiobj_archive[0] ), compare_fit ); // Sort archive according to f[fn]  NOTE: fn is a global variable
 		for( n = 0; n < nArchive - 1; n++ ) // For each position find the distance to the nearest one
 		{
-			if( n == 0 ) min = phi_min[fn]; else min = archiv[n - 1].x.f.f[fn];
-			if( n == nArchive - 2 ) max = phi_max[fn]; else max = archiv[n + 1].x.f.f[fn];
+			if( n == 0 ) min = phi_min[fn]; else min = multiobj_archive[n - 1].x.f.f[fn];
+			if( n == nArchive - 2 ) max = phi_max[fn]; else max = multiobj_archive[n + 1].x.f.f[fn];
 			dist = max - min;
 			if( dist < epsilon_vector[fn] ) epsilon_vector[fn] = dist; // Prepare epsilon-dominance
-			archiv[n].crow_dist = archiv[n].crow_dist * dist; // Contribution to the hypervolume
+			multiobj_archive[n].crow_dist = multiobj_archive[n].crow_dist * dist; // Contribution to the hypervolume
 		}
 	}
 }
@@ -610,8 +602,8 @@ void archive_print()
 	tprintf( "Archive %i positions\n", nArchive );
 	for( n = 0; n < nArchive; n++ )
 	{
-		position_print( &archiv[n].x );
-		tprintf( " crowd %g", archiv[n].crow_dist );
+		position_print( &multiobj_archive[n].x );
+		tprintf( " crowd %g", multiobj_archive[n].crow_dist );
 	}
 	tprintf( "\n" );
 }
@@ -625,18 +617,18 @@ struct objfunc archive_phi_var( struct problem *pb ) // Variance of the archive 
 	int m, n;
 
 	set_objfunc( pb, &var_phi );
-	var_phi.size = archiv[0].x.f.size;
+	var_phi.size = multiobj_archive[0].x.f.size;
 
 	for( n = 0; n < var_phi.size; n++ )
 	{
 		mean = 0;
 		for( m = 0; m < nArchive; m++ )
-			mean += archiv[m].x.f.f[n];
+			mean += multiobj_archive[m].x.f.f[n];
 		mean /= nArchive;
 		var = 0;
 		for( m = 0; m < nArchive; m++ )
 		{
-			z = archiv[m].x.f.f[n] - mean;
+			z = multiobj_archive[m].x.f.f[n] - mean;
 			var += z * z;
 		}
 		var_phi.f[n] = var / nArchive;
@@ -665,30 +657,30 @@ void archive_local_search( struct problem *pb )
 	set_position( pb, &xOut );
 	for( n = 0; n < MAXPHI + 1; n++ )
 		set_position( pb, &simplex[n] );
-	nPhi = archiv[0].x.f.size; // Dimension of the objfunc space
+	nPhi = multiobj_archive[0].x.f.size; // Dimension of the objfunc space
 	if( nArchive < nPhi + 1 ) return;
 	if( nArchive < MAXARCHIVE ) return;
 	if( nLocalSearchIter < nArchive ) return;
 	tprintf( "Iter %i Eval %d: Local search from archive\n", iter, eval );
 	nLocalSearchIter = 0;
-	xIn.size = archiv[0].x.size;
+	xIn.size = multiobj_archive[0].x.size;
 	xOut.size = xIn.size;
 	out = random_int( 0, 1 );
 	for( n = 0; n < nArchive - nPhi; n++ ) // Define a simplex
 	{
-		simplex[0] = archiv[n].x; // First element
+		simplex[0] = multiobj_archive[n].x; // First element
 		m = 0;
 		for( r = 0; r < nArchive; r++ )
 		{
 			if( r == n ) continue;
-			dR[m].dist = objfunc_dist( &archiv[n].x.f, &archiv[m].x.f ); // Compute the distances to the others
+			dR[m].dist = objfunc_dist( &multiobj_archive[n].x.f, &multiobj_archive[m].x.f ); // Compute the distances to the others
 			dR[m].rank = r;
 			m = m + 1;
 		}
-		nPhi = archiv[0].x.f.size; // Find the nPhi nearest ones in the archive in order to complete the simplex
+		nPhi = multiobj_archive[0].x.f.size; // Find the nPhi nearest ones in the archive in order to complete the simplex
 		qsort( dR, nArchive - 1, sizeof( dR[0] ), compare_dist_rank );
 		for( m = 0; m < nPhi; m++ )
-			simplex[m + 1] = archiv[dR[m].rank].x;
+			simplex[m + 1] = multiobj_archive[dR[m].rank].x;
 		// Define a new point
 		//out=aleaInteger(0,1); // TO TRY
 		//out=1;
@@ -775,7 +767,7 @@ double archive_spread()
 		for( m = 0; m < nArchive - 1; m++ )
 		{
 			if( m == n ) continue;
-			d = objfunc_dist( &archiv[n].x.f, &archiv[m].x.f );
+			d = objfunc_dist( &multiobj_archive[n].x.f, &multiobj_archive[m].x.f );
 			if( d < dMin[n] ) dMin[n] = d;
 		}
 		diversity1 += dMin[n];
@@ -788,7 +780,7 @@ double archive_spread()
 		for( m = 0; m < nArchive; m++ )
 		{
 			if( m == n ) continue;
-			d = objfunc_dist( &archiv[n].x.f, &archiv[m].x.f );
+			d = objfunc_dist( &multiobj_archive[n].x.f, &multiobj_archive[m].x.f );
 			if( d < dMin[n] ) dMin[n] = d;
 		}
 		diversity2 += dMin[n];
@@ -802,10 +794,10 @@ double archive_spread()
 	}
 	phi_spread = sqrt( phi_spread ); // Initial value
 	// Take distances (in the objfunc space) into account
-	d = objfunc_dist( &archiv[0].x.f, &archiv[nArchive - 1].x.f ); // Distance between the new position and the first archived
+	d = objfunc_dist( &multiobj_archive[0].x.f, &multiobj_archive[nArchive - 1].x.f ); // Distance between the new position and the first archived
 	for( n = 1; n < nArchive - 1; n++ )
 	{
-		z = objfunc_dist( &archiv[n].x.f, &archiv[nArchive - 1].x.f ); // Distance min to the others
+		z = objfunc_dist( &multiobj_archive[n].x.f, &multiobj_archive[nArchive - 1].x.f ); // Distance min to the others
 		if( z < d ) d = z;
 	}
 	if( d < dMean1 ) phi_spread += dMean1; // Penalty
@@ -944,14 +936,14 @@ int compare_particles( struct objfunc *phi1, struct objfunc *phi2, int compare_t
 		default: // Epsilon-dominance
 			for( n = 0; n < ( *phi1 ).size; n++ )
 			{
-				if( ( *phi1 ).f[n] < ( *phi2 ).f[n] - epsilon_vector[n] ) {better++; continue;}
-				if( ( *phi1 ).f[n] > ( *phi2 ).f[n] + epsilon_vector[n] ) {worse++; continue;}
+				if( ( *phi1 ).f[n] < ( *phi2 ).f[n] - epsilon_vector[n] ) { better++; continue; }
+				if( ( *phi1 ).f[n] > ( *phi2 ).f[n] + epsilon_vector[n] ) { worse++; continue; }
 			}
 //			tprintf( "Compare %d %d: %f %f %f\n", better, worse, ( *phi1 ).f[0], ( *phi2 ).f[0], epsilon_vector[0] );
 			if( better >  0 && worse == 0 ) return  1; // better
 			if( better == 0 && worse >  0 ) return -1; // worse
 			if( !multiObj ) return 0;                  // no change
-			// Multiobjective difficult to decide. Use the "spread" criterion
+			// Multi-objective difficult to decide. Use the "spread" criterion
 			// Contain the "phi_spread" value that should be as small as possible
 			n = ( *phi1 ).size;
 			if( ( *phi1 ).f[n] < ( *phi2 ).f[n] - DBL_EPSILON ) return  1; // better
@@ -960,8 +952,8 @@ int compare_particles( struct objfunc *phi1, struct objfunc *phi2, int compare_t
 		case 2: // Pure dominance
 			for( n = 0; n < ( *phi1 ).size; n++ )
 			{
-				if( ( *phi1 ).f[n] < ( *phi2 ).f[n] ) {better++; continue;}
-				if( ( *phi1 ).f[n] > ( *phi2 ).f[n] ) {worse++; continue;}
+				if( ( *phi1 ).f[n] < ( *phi2 ).f[n] ) { better++; continue; }
+				if( ( *phi1 ).f[n] > ( *phi2 ).f[n] ) { worse++; continue; }
 			}
 			if( better >  0 && worse == 0 ) return  1; // better
 			if( better == 0 && worse >  0 ) return -1; // worse
@@ -969,13 +961,13 @@ int compare_particles( struct objfunc *phi1, struct objfunc *phi2, int compare_t
 		case 3: // for maxError check; OF below the cutoff value
 			for( n = 0; n < ( *phi1 ).size; n++ )
 			{
-				if( ( *phi1 ).f[n] < ( *phi2 ).f[n] + epsilon_vector[n] ) {better++; continue;}
-				if( ( *phi1 ).f[n] > ( *phi2 ).f[n] + epsilon_vector[n] ) {worse++; continue;}
+				if( ( *phi1 ).f[n] < ( *phi2 ).f[n] + epsilon_vector[n] ) { better++; continue; }
+				if( ( *phi1 ).f[n] > ( *phi2 ).f[n] + epsilon_vector[n] ) { worse++; continue; }
 			}
 			if( better >  0 && worse == 0 ) return  1; // better
 			if( better == 0 && worse >  0 ) return -1; // worse
 			if( !multiObj ) return 0;                  // no change
-			// Multiobjective difficult to decide. Use the "spread" criterion
+			// Multi-objective difficult to decide. Use the "spread" criterion
 			// Contain the "phi_spread" value that should be as small as possible
 			n = ( *phi1 ).size;
 			if( ( *phi1 ).f[n] < ( *phi2 ).f[n] + DBL_EPSILON ) return  1; // better
@@ -1011,7 +1003,7 @@ double objfunc_dist( struct objfunc *phi1,  struct objfunc *phi2 )
 	return sqrt( dist );
 }
 
-double objfunc_total( struct objfunc *phi, int type ) // Total objfunc (weighted if multiobjective)
+double objfunc_total( struct objfunc *phi, int type ) // Total objfunc (weighted if multi-objective)
 {
 	double error = 0;
 	int i;
@@ -1157,7 +1149,7 @@ void position_archive( struct position *pos )
 	if( nArchive > 0 ) // It is not the first one. Check if dominated
 		for( i = 0; i < nArchive; i++ )
 		{
-			cmp = compare_particles( &archiv[i].x.f, &( *pos ).f, dominanceType );
+			cmp = compare_particles( &multiobj_archive[i].x.f, &( *pos ).f, dominanceType );
 			if( cmp == 1 )
 			{
 				arch = 0; // Dominated, don't keep it
@@ -1170,12 +1162,12 @@ void position_archive( struct position *pos )
 		if( nArchive > 1 ) // Remove the dominated positions
 			for( i = 0; i < nArchive; i++ )
 			{
-				cmp = compare_particles( &( *pos ).f, &archiv[i].x.f, dominanceType );
+				cmp = compare_particles( &( *pos ).f, &multiobj_archive[i].x.f, dominanceType );
 				if( cmp == 1 )
 				{
 					if( i < nArchive - 1 )
 						for( j = i; j < nArchive - 1; j++ )
-							archiv[j] = archiv[j + 1];
+							multiobj_archive[j] = multiobj_archive[j + 1];
 					nArchive = nArchive - 1;
 				}
 			}
@@ -1186,9 +1178,9 @@ void position_archive( struct position *pos )
 			nArchive = MAXARCHIVE;
 			archiveStore = 0;
 			for( i = 1; i < nArchive; i++ ) // Find the most "crowded" archived position
-				if( archiv[i].crow_dist < archiv[archiveStore].crow_dist ) archiveStore = i;
+				if( multiobj_archive[i].crow_dist < multiobj_archive[archiveStore].crow_dist ) archiveStore = i;
 		}
-		archiv[archiveStore].x = *pos;
+		multiobj_archive[archiveStore].x = *pos;
 		if( nArchive < MAXARCHIVE ) nArchive++;
 	}
 }
@@ -1579,7 +1571,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				}
 				else
 				{
-					overSizeTribe++;
+					nExceedSizeTribe++;
 					if( debug_level > 0 ) tprintf( "\nWARNING: Cannot add a particle (increase MAXPART = %i)\n", MAXPART );
 				}
 				break;
@@ -1638,7 +1630,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 				}
 				else
 				{
-					overSizeSwarm++;
+					nExceedSizeSwarm++;
 					if( debug_level > 0 ) tprintf( "WARNING: Cannot add a tribe (increase MAXTRIBE = %i)\n", MAXTRIBE );
 				}
 				break;
@@ -1850,7 +1842,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 		}
 		gop->phi = ( *S ).best.f.f[0];
 	}
-	// else if(( *S ).size > ( *pb ).D )   // EXPLORE DIFFERENT
+	// else if(( *S ).size > ( *pb ).D )   // TODO EXPLORE DIFFERENT
 	// else if( ( nTotPart > ( double ) 0.9 * ( *pb ).lm_factor * ( *pb ).D || ( double ) ( *pb ).lm_factor * ( *pb ).maxEval < ( double ) 2.0 * eval ) )  // EXPLORE DIFFERENT
 	/*
 		else if( nTotPart > ( double ) 100 * ( *pb ).D )
