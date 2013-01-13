@@ -283,7 +283,7 @@ verify-parallel:
 	@echo "TEST 8: DONE"
 
 clean-example:
-	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info
+	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running
 	rm -fR example/wells-short_w01parallel*
 
 astyle:

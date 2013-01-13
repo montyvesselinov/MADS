@@ -75,28 +75,28 @@ int load_pst( char *filename, struct opt_data *op )
 	cd->solution_type = ( int * ) malloc( 1 * sizeof( int ) );
 	strcpy( cd->solution_id, "external" );
 	cd->num_solutions = 1;
-	( *cd ).solution_type = ( int * ) malloc( sizeof( int ) );
+	cd->solution_type = ( int * ) malloc( sizeof( int ) );
 	cd->solution_type[0] = EXTERNAL;
 	for( i = 0; i < 4; i++ ) // skip 4 lines
 		fgets( buf, 1000, in );
-	sscanf( buf, "%d %d %d %*d %d", &( *pd ).nParam, &( *od ).nTObs, &npar_groups, &nobs_groups );
+	sscanf( buf, "%d %d %d %*d %d", &pd->nParam, &od->nTObs, &npar_groups, &nobs_groups );
 	tprintf( "Parameters = %d (groups %d)\n", pd->nParam, npar_groups );
 	tprintf( "Observations = %d (groups %d)\n", od->nTObs, nobs_groups );
 	od->nObs = od->nCObs = od->nTObs;
 	fgets( buf, 1000, in );
-	sscanf( buf, "%d %d", &( *ed ).ntpl, &( *ed ).nins );
-	tprintf( "Number of template files = %d\nNumber of instruction files = %d\n", ( *ed ).ntpl, ( *ed ).nins );
-	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
-	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_current = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_best = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_opt = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_log = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_dx = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
+	sscanf( buf, "%d %d", &ed->ntpl, &ed->nins );
+	tprintf( "Number of template files = %d\nNumber of instruction files = %d\n", ed->ntpl, ed->nins );
+	pd->var_id = char_matrix( pd->nParam, 50 );
+	pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_current = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_best = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_opt = ( int * ) malloc( pd->nParam * sizeof( int ) );
+	pd->var_log = ( int * ) malloc( pd->nParam * sizeof( int ) );
+	pd->var_dx = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	tprintf( "Parameters = %d:\n", pd->nParam );
 	for( i = 0; i < 6; i++ ) // skip 6 lines
 		fgets( buf, 1000, in );
@@ -108,10 +108,10 @@ int load_pst( char *filename, struct opt_data *op )
 	for( i = 0; i < pd->nParam; i++ )
 	{
 		fscanf( in, "%s %s %*s %lf %lf %lf %*s %*f %*f %*f\n", pd->var_id[i], code, &pd->var[i], &pd->var_min[i], &pd->var_max[i] );
-		tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], pd->var[i], ( *pd ).var_min[i], ( *pd ).var_max[i] );
+		tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
 		if( strcmp( code, "fixed" ) == 0 ) pd->var_opt[i] = 0; else { pd->nOptParam++; pd->var_opt[i] = 1; }
 		if( strcmp( code, "log" ) == 0 ) pd->var_log[i] = 1; else pd->var_log[i] = 0;
-		if( ( *pd ).var_log[i] == 1 )
+		if( pd->var_log[i] == 1 )
 		{
 			pd->var[i] = log10( pd->var[i] );
 			pd->var_min[i] = log10( pd->var_min[i] );
@@ -120,14 +120,14 @@ int load_pst( char *filename, struct opt_data *op )
 		pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
 		pd->var_dx[i] = pd->var_range[i] / 10;
 	}
-	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
+	pd->var_index = ( int * ) malloc( pd->nOptParam * sizeof( int ) );
 	tprintf( "Optimized parameters = %d\n", pd->nOptParam );
-	for( k = i = 0; i < ( *pd ).nParam; i++ )
-		if( ( *pd ).var_opt[i] == 1 )
+	for( k = i = 0; i < pd->nParam; i++ )
+		if( pd->var_opt[i] == 1 )
 		{
-			if( ( *pd ).var_log[i] == 1 ) d = log10( pd->var[i] ); else d = pd->var[i];
-			tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, ( *pd ).var_min[i], ( *pd ).var_max[i] );
-			( *pd ).var_index[k++] = i;
+			if( pd->var_log[i] == 1 ) d = log10( pd->var[i] ); else d = pd->var[i];
+			tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, pd->var_min[i], pd->var_max[i] );
+			pd->var_index[k++] = i;
 		}
 	for( i = 0; i < pd->nParam; i++ )
 		for( j = i + 1; j < pd->nParam; j++ )
@@ -141,18 +141,18 @@ int load_pst( char *filename, struct opt_data *op )
 	for( i = 0; i < nobs_groups; i++ )
 		fgets( buf, 1000, in );
 	fgets( buf, 1000, in ); // skip line
-	od->obs_id = char_matrix( ( *od ).nTObs, 50 );
-	od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-	od->obs_weight = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-	od->obs_min = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-	od->obs_max = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-	od->obs_current = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-	od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-	od->res = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-	od->obs_log = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
+	od->obs_id = char_matrix( od->nTObs, 50 );
+	od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->res = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
 	for( i = 0; i < od->nTObs; i++ )
 		fscanf( in, "%s %lf %lf %*s\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i] );
-	tprintf( "Calibration targets = %d\n", ( *od ).nTObs );
+	tprintf( "Calibration targets = %d\n", od->nTObs );
 	for( i = 0; i < od->nTObs; i++ )
 	{
 		if( od->nTObs < 50 || ( i < 20 || i > od->nTObs - 20 ) )

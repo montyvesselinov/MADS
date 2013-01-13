@@ -67,19 +67,19 @@ int set_test_problems( struct opt_data *op )
 	}
 	pd->nParam = pd->nOptParam = cd->test_func_npar;
 	pd->nFlgParam = 0;
-	pd->var_id = char_matrix( ( *pd ).nParam, 50 );
-	pd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	cd->var = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_opt = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_log = ( int * ) malloc( ( *pd ).nParam * sizeof( int ) );
-	pd->var_dx = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_min = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_max = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_range = ( double * ) malloc( ( *pd ).nParam * sizeof( double ) );
-	pd->var_index = ( int * ) malloc( ( *pd ).nOptParam * sizeof( int ) );
-	pd->var_current = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
-	pd->var_truth = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
-	pd->var_best = ( double * ) malloc( ( *pd ).nOptParam * sizeof( double ) );
+	pd->var_id = char_matrix( pd->nParam, 50 );
+	pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_opt = ( int * ) malloc( pd->nParam * sizeof( int ) );
+	pd->var_log = ( int * ) malloc( pd->nParam * sizeof( int ) );
+	pd->var_dx = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_index = ( int * ) malloc( pd->nOptParam * sizeof( int ) );
+	pd->var_current = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
+	pd->var_truth = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
+	pd->var_best = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
 	for( d = 0; d < pd->nParam; d++ )
 	{
 		sprintf( pd->var_id[d], "Parameter #%d", d + 1 );
@@ -240,7 +240,7 @@ int set_test_problems( struct opt_data *op )
 			pd->var_truth[1] = b = 102;
 			printf( "Sin/Cos (%g/%g)", a, b );
 			od->nTObs = cd->test_func_nobs;
-			od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nTObs - 1 );
 			for( d = 0; d < od->nTObs; d++ )
 			{
@@ -270,7 +270,7 @@ int set_test_problems( struct opt_data *op )
 			printf( ")" );
 			od->nTObs = cd->test_func_nobs;
 			oddefined = 1;
-			od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nTObs - 1 );
 			for( d = 0; d < od->nTObs; d++ )
 				od->obs_target[d] = pd->var_truth[0] * cos( pd->var_truth[1] * d * dx ) + pd->var_truth[2] * sin( pd->var_truth[3] * d * dx );
@@ -282,7 +282,7 @@ int set_test_problems( struct opt_data *op )
 			printf( "Simplified Sin/Cos (%g/%g)", a, b );
 			od->nTObs = cd->test_func_nobs;
 			oddefined = 1;
-			od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
 			dx = ( double ) M_PI * 2 / ( od->nTObs - 1 );
 			for( d = 0; d < od->nTObs; d++ )
 			{
@@ -306,7 +306,7 @@ int set_test_problems( struct opt_data *op )
 				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 			}
 			oddefined = 1;
-			od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
 			for( d = 0; d < od->nTObs; d++ )
 			{
 				dx = ( double ) d / 10;
@@ -331,7 +331,7 @@ int set_test_problems( struct opt_data *op )
 				pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 			}
 			oddefined = 1;
-			od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
+			od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
 			for( d = 0; d < od->nTObs; d++ )
 			{
 				dx = ( double ) d / 10;
@@ -345,15 +345,15 @@ int set_test_problems( struct opt_data *op )
 	if( od->nTObs > 0 )
 	{
 		printf( " - parameters %d observations %d", pd->nOptParam, od->nTObs );
-		od->obs_id = char_matrix( ( *od ).nTObs, 50 );
-		if( !oddefined ) od->obs_target = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_weight = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_min = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_max = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_current = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_best = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->res = ( double * ) malloc( ( *od ).nTObs * sizeof( double ) );
-		od->obs_log = ( int * ) malloc( ( *od ).nTObs * sizeof( int ) );
+		od->obs_id = char_matrix( od->nTObs, 50 );
+		if( !oddefined ) od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->res = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
 	}
 	else
 		printf( " - dimensionality %d", cd->test_func_dim );

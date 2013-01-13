@@ -510,59 +510,10 @@ int main( int argn, char *argv[] )
 	// ------------------------------------------------------------------------------------------------ CHECK
 	if( cd.problem_type == CHECK ) /* Check model input files */
 		status = check( &op );
+	// ------------------------------------------------------------------------------------------------ INFO-GAP
 	// ------------------------------------------------------------------------------------------------ IGRND
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
-	{
-		if( fabs( cd.obsstep ) > DBL_EPSILON && preds.nTObs > 0 )
-		{
-			tprintf( "\n\nInfo-gap Observation step %g Observation domain %g\n", cd.obsstep, cd.obsdomain );
-			if( cd.obsstep > DBL_EPSILON ) tprintf( "Info-gap max search\n" );
-			else tprintf( "Info-gap min search\n" );
-			for( i = 0; i < preds.nTObs; i++ )
-			{
-				if( cd.obsstep >  DBL_EPSILON ) preds.obs_best[i] = -HUGE_VAL;
-				if( cd.obsstep < -DBL_EPSILON ) preds.obs_best[i] = HUGE_VAL;
-				j = preds.obs_index[i];
-				od.obs_weight[j] *= -1;
-			}
-			k = preds.obs_index[0];
-			if( cd.obsstep > DBL_EPSILON ) { od.obs_target[k] = od.obs_min[k]; od.obs_min[k] -= cd.obsstep / 2; } // obsstep is negative
-			else { od.obs_target[k] = od.obs_max[k]; od.obs_max[k] -= cd.obsstep / 2; } // obsstep is negative
-			tprintf( "Info-gap Observation:\n" );
-			tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
-			while( 1 )
-			{
-				tprintf( "\n\nInfo-gap optimization target %g\n", od.obs_target[k] );
-				tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
-				status = igrnd( &op );
-				if( !status ) break;
-				tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
-				for( i = 0; i < preds.nTObs; i++ )
-				{
-					j = preds.obs_index[i];
-					if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Current info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
-					else tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
-				}
-				if( !op.success ) break;
-				od.obs_target[k] += cd.obsstep;
-				if( cd.obsstep >  DBL_EPSILON ) { if( od.obs_target[k] > od.obs_max[k] ) break; else od.obs_min[k] += cd.obsstep; } // obsstep is positive
-				if( cd.obsstep < -DBL_EPSILON ) { if( od.obs_target[k] < od.obs_min[k] ) break; else od.obs_max[k] += cd.obsstep; } // obsstep is negative
-			}
-			tprintf( "\nInfo-gap results for model predictions:\n" );
-			for( i = 0; i < preds.nTObs; i++ )
-			{
-				j = preds.obs_index[i];
-				if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
-				else tprintf( "%-20s: Info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
-				od.obs_target[j] = preds.obs_target[i];
-				od.obs_min[j] = preds.obs_min[i];
-				od.obs_max[j] = preds.obs_max[i];
-				od.obs_weight[j] *= -1;
-			}
-			tprintf( "\n" );
-		}
-		else status = igrnd( &op );
-	}
+		status = igrnd( &op );
 	// ------------------------------------------------------------------------------------------------ IGPD
 	if( cd.problem_type == CALIBRATE && cd.calib_type == IGPD ) /* Calibration analysis using discretized initial guesses */
 		status = igpd( &op );
@@ -573,9 +524,8 @@ int main( int argn, char *argv[] )
 	if( cd.problem_type == MONTECARLO ) /* Monte Carlo analysis */
 		status = montecarlo( &op );
 	// ------------------------------------------------------------------------------------------------ GLOBALSENS
-	if( cd.problem_type == GLOBALSENS ) // Global sensitivity analysis run
+	if( cd.problem_type == GLOBALSENS ) /* Global sensitivity analysis */
 		status = gsens( &op );
-	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	// ------------------------------------------------------------------------------------------------ SIMPLE CALIBRATION
 	if( cd.problem_type == CALIBRATE && cd.calib_type == SIMPLE ) /* Inverse analysis */
 	{
@@ -591,6 +541,7 @@ int main( int argn, char *argv[] )
 		save_final_results( "", &op, &gd );
 		predict = 0;
 	}
+	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	strcpy( op.label, "" ); // No labels needed below
 	// ------------------------------------------------------------------------------------------------ EIGEN || LOCALSENS
 	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS )
@@ -616,8 +567,84 @@ int main( int argn, char *argv[] )
 	// ------------------------------------------------------------------------------------------------ INFOGAP
 	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
 	{
-		if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
-		status = infogap( &op );
+		if( fabs( cd.obsstep ) > DBL_EPSILON )
+		{
+			tprintf( "\n\nInfo-gap Observation step %g Observation domain %g\n", cd.obsstep, cd.obsdomain );
+			if( cd.obsstep > DBL_EPSILON ) tprintf( "Info-gap max search\n" );
+			else tprintf( "Info-gap min search\n" );
+			for( i = 0; i < preds.nTObs; i++ )
+			{
+				if( cd.obsstep > DBL_EPSILON ) preds.obs_best[i] = -HUGE_VAL; // max search
+				else preds.obs_best[i] = HUGE_VAL; // min search
+				j = preds.obs_index[i];
+				od.obs_weight[j] *= -1;
+			}
+			k = preds.obs_index[0]; // first prediction is applied only
+			if( cd.obsstep > DBL_EPSILON ) { od.obs_target[k] = od.obs_min[k]; od.obs_min[k] -= cd.obsstep / 2; } // obsstep is negative
+			else { od.obs_target[k] = od.obs_max[k]; od.obs_max[k] -= cd.obsstep / 2; } // obsstep is negative
+			tprintf( "Info-gap Observation:\n" );
+			tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
+			if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
+			else optimize_func = optimize_pso; // Define optimization method: PSO
+			while( 1 )
+			{
+				tprintf( "\n\nInfo-gap optimization target %g\n", od.obs_target[k] );
+				tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
+				if( cd.calib_type == IGRND ) status = igrnd( &op );
+				else status = optimize_func( &op );
+				if( !status ) break;
+				tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
+				for( i = 0; i < preds.nTObs; i++ )
+				{
+					j = preds.obs_index[i];
+					if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Current info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
+					else                           tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
+				}
+				if( !op.success ) break;
+				od.obs_target[k] += cd.obsstep;
+				if( cd.obsstep >  DBL_EPSILON ) // max search
+				{
+					if( od.obs_target[k] > od.obs_max[k] ) break;
+					if( fabs( preds.obs_best[0] - od.obs_max[k] ) < DBL_EPSILON ) break;
+					od.obs_min[k] += cd.obsstep;
+					j = ( double )( preds.obs_best[0] - od.obs_target[k] ) / cd.obsstep;
+					if( j > 1 )
+					{
+						od.obs_target[k] += cd.obsstep * j;
+						od.obs_min[k] += cd.obsstep * j;
+					}
+				}
+				else // min search
+				{
+					if( od.obs_target[k] < od.obs_min[k] ) break;
+					if( fabs( preds.obs_best[0] - od.obs_min[k] ) < DBL_EPSILON ) break;
+					od.obs_max[k] += cd.obsstep;
+					j = ( double )( od.obs_target[k] - preds.obs_best[0] ) / -cd.obsstep; // obsstep is negative
+					if( j > 1 )
+					{
+						od.obs_target[k] += cd.obsstep * j;
+						od.obs_max[k] += cd.obsstep * j;
+					}
+				}
+			}
+			tprintf( "\nInfo-gap results for model predictions:\n" );
+			for( i = 0; i < preds.nTObs; i++ )
+			{
+				j = preds.obs_index[i];
+				if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain ); // max search
+				else                           tprintf( "%-20s: Info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain ); // min search
+				od.obs_target[j] = preds.obs_target[i];
+				od.obs_min[j] = preds.obs_min[i];
+				od.obs_max[j] = preds.obs_max[i];
+				od.obs_weight[j] *= -1;
+			}
+			tprintf( "\n" );
+		}
+		else
+		{
+			if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
+			status = infogap( &op );
+		}
 	}
 	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	// ------------------------------------------------------------------------------------------------ FORWARD
@@ -1013,6 +1040,7 @@ int optimize_lm( struct opt_data *op )
 	char buf[80];
 	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->lmstandalone;
+	if( debug == 0 && standalone && op->cd->calib_type != PPSD ) op->cd->lmstandalone = 2;
 	if( op->od->nTObs == 0 ) { tprintf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( op->pd->nOptParam == 0 ) { tprintf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( ( op->pd->nOptParam > op->od->nTObs ) && ( !op->cd->squads && op->cd->calib_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nTObs ); }
@@ -1100,7 +1128,7 @@ int optimize_lm( struct opt_data *op )
 			else if( count > 1 )
 			{
 				if( op->cd->ldebug ) tprintf( "\n********************************************************************\n" );
-				if( debug ) tprintf( "\nCALIBRATION %d: initial guesses from internal MSLM random set #%d: ", count, count_set + 1 );
+				if( debug ) tprintf( "CALIBRATION %d: initial guesses from internal MSLM random set #%d: ", count, count_set + 1 );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					k = op->pd->var_index[i];
@@ -1252,7 +1280,7 @@ int optimize_lm( struct opt_data *op )
 		if( op->cd->paranoid )
 		{
 			if( op->phi < phi_min ) { phi_min = op->phi; for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]]; }
-			if( debug ) tprintf( "Objective function: %g Success %d\n", op->phi, op->success );
+			if( debug ) tprintf( "Objective function: %g Success: %d\n", op->phi, op->success );
 			if( phi_min < op->cd->phi_cutoff )
 			{
 				if( debug ) tprintf( "MSLM optimization objective function is below the cutoff value after %d random initial guess attempts\n", count );
@@ -2197,6 +2225,7 @@ int ppsd( struct opt_data *op )
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	FILE *out;
 	strcpy( op->label, "ppsd" );
+	op->cd->lmstandalone = 1;
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 	if( no_memory ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	tprintf( "\nSEQUENTIAL RUNS using partial parameter-space discretization (PPSD):\n" );

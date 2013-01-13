@@ -47,10 +47,12 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20130109-090754
+Execution date & time stamp: 20130113-101059
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
-Levenberg-Marquardt Optimization ... LM using SVD decomposition
+Number of Levenberg-Marquardt iterations = 50
+Levenberg-Marquardt Optimization ... 
+LM using SVD decomposition
 LM without LM acceleration
 LM with indirect computation of lambda changes
 Initial evaluation: OF 79661
@@ -262,7 +264,6 @@ Untransformed space:
 k                                        :     -1.93403 stddev  0.000909453 (    -1.93403 -     -1.93403)
 S                                        :     -2.79024 stddev   0.00712231 (    -2.79024 -     -2.79024)
 
-
 Optimized model parameters:
 k -1.93403
 S -2.79024
@@ -356,6 +357,6 @@ Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 7
-Execution  started  on Wed Jan  9 09:07:54 2013
-Execution completed on Wed Jan  9 09:08:00 2013
-Execution date & time stamp: 20130109-090754
+Execution  started  on Sun Jan 13 10:10:59 2013
+Execution completed on Sun Jan 13 10:11:05 2013
+Execution date & time stamp: 20130113-101059

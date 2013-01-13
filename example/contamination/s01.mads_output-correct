@@ -36,10 +36,12 @@ Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130109-090709
+Execution date & time stamp: 20130113-101013
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
-Levenberg-Marquardt Optimization ... LM using SVD decomposition
+Number of Levenberg-Marquardt iterations = 50
+Levenberg-Marquardt Optimization ... 
+LM using SVD decomposition
 LM without LM acceleration
 LM with indirect computation of lambda changes
 Initial evaluation: OF 63.7496
@@ -399,7 +401,6 @@ Dispersivity x [L]                       :      65.5312 stddev     0.114757 (   
 Dispersivity y [L]                       :       15.589 stddev     0.402133 (     3.69551 -      29.9961)
 Dispersivity z [L]                       :     0.290012 stddev     0.481524 (    0.110666 -     0.831927)
 
-
 Optimized model parameters:
 Source x coordinate [L] 1124.05
 Source y coordinate [L] 1398.34
@@ -438,10 +439,11 @@ Objective function: 0.00106082 Success: 1 (1)
 
 Model predictions for not calibration targets:
 W-14c     (   50):          10 -      165.171 =     -155.171 success 0 range            0 -           20
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Wed Jan  9 09:07:09 2013
-Execution completed on Wed Jan  9 09:07:09 2013
-Execution date & time stamp: 20130109-090709
+Functional evaluations per second = 111
+Execution  started  on Sun Jan 13 10:10:13 2013
+Execution completed on Sun Jan 13 10:10:14 2013
+Execution date & time stamp: 20130113-101013

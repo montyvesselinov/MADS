@@ -23,7 +23,7 @@ set a = $?
 if( $a != 0 ) then
 	echo ""
 	echo ""
-	echo "ERROR Verification failed (comparing $1 and $2)!"
+	echo "ERROR Verification failed (comparing two files: $1 $2)!"
 	echo '--------------------------------------------------------------------------------------------------'
 	grep '|' $1_$$ | tail
 	\rm -f $1_$$

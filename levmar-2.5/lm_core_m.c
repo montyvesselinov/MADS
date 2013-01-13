@@ -206,7 +206,7 @@ int LEVMAR_DER(
 	jac_zero_obs = ( int * )malloc( n * sizeof( int ) );
 	p_old = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_old2 = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
-	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); if( !op->cd->ldebug ) op->cd->ldebug = 1; }
+	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); }
 	/* compute e=x - f(p) and its L2 norm */
 	maxnfev = op->cd->maxeval - op->cd->neval;
 	for( i = 0; i < m; ++i )
@@ -1014,7 +1014,7 @@ int LEVMAR_DER(
 			tprintf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 		}
 	}
-	else if( op->cd->lmstandalone ) { tprintf( "%g ", p_eL2 ); fflush( stdout ); }
+	else if( op->cd->lmstandalone ) { if( op->cd->lmstandalone > 1 ) tprintf( "%g\n", p_eL2 ); else tprintf( "%g ", p_eL2 ); }
 	/* covariance matrix */
 	if( covar )
 	{
