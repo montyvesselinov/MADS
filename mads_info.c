@@ -84,6 +84,7 @@ void mads_info()
 	printf( "\nobjective function functional form options (select one; regularizaiton terms can be added separately):\n" );
 	printf( "   ssr                - sum of the squared residuals [default]\n" );
 	printf( "   ssd0               - sum of the squared discrepancies\n" );
+	printf( "   ssdx               - sum of the squared discrepancies increased to get in the bounds\n" );
 	printf( "   ssda               - sum of the squared discrepancies and absolute residuals\n" );
 	printf( "   ssdr               - sum of the squared discrepancies and squared residuals\n" );
 	printf( "\ntransformation of parameter and observation properties:\n" );

@@ -214,7 +214,7 @@ int pso_tribes( struct opt_data *op )
 	}
 	lmo_count = restart = nRestarts = 0;
 	lmo_flag = 0;
-	if( strstr( op->cd->opt_method, "lm" ) != NULL || strncmp( op->cd->opt_method, "squad", 5 ) == 0 ) lmo_flag = 1;
+	if( strstr( op->cd->opt_method, "lm" ) != NULL || strncmp( op->cd->opt_method, "squad", 5 ) == 0 ) { op->cd->squads = 1; lmo_flag = 1; }
 	if( lmo_flag )
 		tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... " );
 	else
@@ -556,7 +556,7 @@ int random_int( int min, int max )
 	double  r;
 	if( min >= max ) return min;
 	r = random_double( min, max );
-	return ( int )floor( r + 0.5 );
+	return( ( int ) floor( r + 0.5 ) );
 }
 
 struct position archiveCrowDistSelect( int size )
@@ -1293,11 +1293,13 @@ void position_update( struct problem *pb, struct particle *P, struct particle in
 void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 {
 	int d;
-	// DeTransform( ( *P ).x, op, ( *P ).x ); // there is no need to detransform
+//	for( d = 0; d < ( *pb ).D; d++ )
+//		tprintf( "lm %g\n", ( *P ).x[d] );
 	for( d = 0; d < ( *pb ).D; d++ )
 		op->pd->var[op->pd->var_index[d]] = ( *P ).x[d];
-	// for( d = 0; d < ( *pb ).D; d++ )
-	// tprintf( "%g\n", op->pd->var[op->pd->var_index[d]] );
+//	DeTransform( ( *P ).x, op, ( *P ).x ); // there is no need to detransform
+//	for( d = 0; d < ( *pb ).D; d++ )
+//		tprintf( "lm %g\n", ( *P ).x[d] );
 	d = gop->cd->neval;
 	op->phi = ( *P ).f.f[0];
 	optimize_lm( op );
@@ -1791,9 +1793,10 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				gop->phi = ( *pb ).pos_success.f.f[0];
 				break;
 			}
-			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 )
+//			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 )
+			if( ( *pb ).maxError.f[0] > DBL_EPSILON && ( *S ).best.f.f[0] < ( *pb ).maxError.f[0] )
 			{
-				if( debug_level ) tprintf( "LM Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] );
+				if( debug_level ) tprintf( "LM Success: OF is minimized below the cutoff value! (%.15g<%.15g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] );
 				return;
 			}
 			if( compare_particles( &( *S ).trib[tr].part[shaman].xBest.f, &( *S ).best.f, 0 ) == 1 )
@@ -1828,7 +1831,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			else
 			{
 				count_not_good_tribes++;
-				if( debug_level ) tprintf( " Not very good shaman (%g <= %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
+				if( debug_level ) tprintf( " Good shaman (%g <= %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
 			}
 			if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 		}

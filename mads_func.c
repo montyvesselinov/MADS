@@ -608,7 +608,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->cd->fdebug >= 5 )
 			{
 				tprintf( "Tied AY %.12g = %.12g / %.12g\n", p->ad->var[AX] / p->ad->var[AY], p->ad->var[AX], p->ad->var[AY] );
-				tprintf( "Tied AZ %.12g = %.12g / %.12g\n", p->ad->var[AY] / p->ad->var[AZ], p->ad->var[AY], p->ad->var[AZ] );
+				tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ( p->ad->var[AX] / p->ad->var[AY] ) / p->ad->var[AZ], p->ad->var[AX] / p->ad->var[AY], p->ad->var[AZ] );
 			}
 			p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY];
 			p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ];
@@ -690,14 +690,16 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				err = c - t;
 				if( p->cd->objfunc_type != SSR )
 				{
-					if( p->cd->objfunc_type == SSD0 ) err = 0;
 					if( p->cd->objfunc_type == SSDA )
 					{
 						err = sqrt( fabs( err ) );
 						if( c < t ) err *= -1;
 					}
+					else err = 0; // SSD0 & SSDX
+					if( p->cd->objfunc_type == SSDX ) { dx = ( max - min ) / 10; min += dx; max -= dx; }
 					if( c < min ) err += c - min;
 					else if( c > max ) err += c - max;
+					if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[k]; max = p->od->obs_max[k]; }
 				}
 			}
 			else
@@ -866,7 +868,7 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 		if( p->fdebug >= 5 )
 		{
 			tprintf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
-			tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
+			tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ( ad.var[AX] / ad.var[AY] ) / ad.var[AZ],  ad.var[AX] / ad.var[AY], ad.var[AZ] );
 		}
 		ad.var[AY] = ad.var[AX] / ad.var[AY];
 		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
@@ -941,7 +943,7 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 		if( p->fdebug >= 5 )
 		{
 			tprintf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
-			tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ad.var[AY] / ad.var[AZ], ad.var[AY], ad.var[AZ] );
+			tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ( ad.var[AX] / ad.var[AY] ) / ad.var[AZ], ad.var[AX] / ad.var[AY], ad.var[AZ] );
 		}
 		ad.var[AY] = ad.var[AX] / ad.var[AY];
 		ad.var[AZ] = ad.var[AY] / ad.var[AZ];

@@ -600,9 +600,10 @@ int main( int argn, char *argv[] )
 					if( cd.obsstep > DBL_EPSILON ) tprintf( "%-20s: Current info-gap max %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
 					else                           tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
 				}
+				if( cd.debug ) print_results( &op, 1 );
 				if( !op.success ) break;
 				od.obs_target[k] += cd.obsstep;
-				if( cd.obsstep >  DBL_EPSILON ) // max search
+				if( cd.obsstep > DBL_EPSILON ) // max search
 				{
 					if( od.obs_target[k] > od.obs_max[k] ) break;
 					if( fabs( preds.obs_best[0] - od.obs_max[k] ) < DBL_EPSILON ) break;
@@ -639,6 +640,8 @@ int main( int argn, char *argv[] )
 				od.obs_weight[j] *= -1;
 			}
 			tprintf( "\n" );
+			print_results( &op, 1 );
+			save_final_results( "", &op, &gd );
 		}
 		else
 		{
@@ -978,7 +981,7 @@ int main( int argn, char *argv[] )
 	else tprintf( "Simulation time = %ld seconds\n", time_elapsed );
 	tprintf( "Functional evaluations = %d\n", cd.neval );
 	if( cd.njac > 0 ) tprintf( "Jacobian evaluations = %d\n", cd.njac );
-	if( cd.problem_type == CALIBRATE ) tprintf( "Levenberg-Marquardt optimizations = %d\n", cd.nlmo );
+	if( cd.nlmo > 0 ) tprintf( "Levenberg-Marquardt optimizations = %d\n", cd.nlmo );
 	if( time_elapsed > 0 )
 	{
 		c = cd.neval / time_elapsed;
@@ -1041,6 +1044,7 @@ int optimize_lm( struct opt_data *op )
 	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->lmstandalone;
 	if( debug == 0 && standalone && op->cd->calib_type != PPSD ) op->cd->lmstandalone = 2;
+	if( op->cd->squads ) standalone = op->cd->lmstandalone = 0;
 	if( op->od->nTObs == 0 ) { tprintf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( op->pd->nOptParam == 0 ) { tprintf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( ( op->pd->nOptParam > op->od->nTObs ) && ( !op->cd->squads && op->cd->calib_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nTObs ); }
@@ -1064,9 +1068,11 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->ldebug && standalone ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
-	if( !op->cd->squads )  Transform( opt_params, op, opt_params ); // No need to transform if part of SQUADS runs
-	// for( i = 0; i < op->pd->nOptParam; i++ )
-	// tprintf( "%g\n", opt_params[i] );
+//	for( i = 0; i < op->pd->nOptParam; i++ )
+//		tprintf( "lmi %g\n", opt_params[i] );
+	if( !op->cd->squads ) Transform( opt_params, op, opt_params ); // No need to transform if part of SQUADS runs
+//	for( i = 0; i < op->pd->nOptParam; i++ )
+//		tprintf( "lmi %g\n", opt_params[i] );
 	if( op->cd->paranoid )
 	{
 		tprintf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " );
@@ -3502,10 +3508,10 @@ void ave_sorted( double data[], int n, double *ave, double *ep )
 
 int sort_int( const void *x, const void *y )
 {
-	return ( *( int * )x - * ( int * )y );
+	return ( *( int * ) x - * ( int * ) y );
 }
 
 int sort_double( const void *x, const void *y )
 {
-	return ( *( double * )x - * ( double * )y );
+	return ( *( double * ) x - * ( double * ) y );
 }

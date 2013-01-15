@@ -8,9 +8,10 @@ Problem root name: w01
 Problem type: calibration
 
 Calibration technique: single calibration using initial guesses provided in the input file
+Eigen analysis will be performed for the final optimization results
+
 Optimization method: opt=lm_levmar --- Levenberg-Marquardt optimization
 Number of Levenberg-Marquardt iterations = will be computed internally
-Eigen analysis will be performed for the final optimization results
 
 Global termination criteria:
 1: Maximum number of evaluations = 5000
@@ -47,7 +48,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20130113-101059
+Execution date & time stamp: 20130114-193726
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -357,6 +358,6 @@ Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 7
-Execution  started  on Sun Jan 13 10:10:59 2013
-Execution completed on Sun Jan 13 10:11:05 2013
-Execution date & time stamp: 20130113-101059
+Execution  started  on Mon Jan 14 19:37:26 2013
+Execution completed on Mon Jan 14 19:37:32 2013
+Execution date & time stamp: 20130114-193726

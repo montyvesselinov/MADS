@@ -223,6 +223,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "pardebug", 8 ) ) { w = 1; sscanf( word, "pardebug=%d", &cd->pardebug ); if( cd->pardebug == 0 ) cd->pardebug = 1; }
 		if( !strncasecmp( word, "ssr", 3 ) ) { w = 1; cd->objfunc_type = SSR; }
 		if( !strncasecmp( word, "ssd0", 4 ) ) { w = 1; cd->objfunc_type = SSD0; }
+		if( !strncasecmp( word, "ssdx", 4 ) ) { w = 1; cd->objfunc_type = SSDX; }
 		if( !strncasecmp( word, "ssda", 4 ) ) { w = 1; cd->objfunc_type = SSDA; }
 		if( !strncasecmp( word, "ssdr", 4 ) ) { w = 1; cd->objfunc_type = SSDR; }
 		if( !strncasecmp( word, "test", 4 ) ) { w = 1; cd->test_func = 1; cd->test_func_dim = 2; sscanf( word, "test=%d", &cd->test_func ); cd->solution_type[0] = TEST; }
@@ -230,7 +231,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "npar=", 5 ) ) { w = 1; sscanf( word, "npar=%d", &cd->test_func_npar ); }
 		if( !strncasecmp( word, "nobs=", 5 ) ) { w = 1; sscanf( word, "nobs=%d", &cd->test_func_nobs ); }
 		if( !strncasecmp( word, "poi", 3 ) ) { w = 1; cd->solution_type[0] = POINT; }
-		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) )cd->solution_type[0] = PLANE3D; else cd->solution_type[0] = PLANE; }
+		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) ) cd->solution_type[0] = PLANE3D; else cd->solution_type[0] = PLANE; }
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; cd->solution_type[0] = BOX; }
 		if( !strncasecmp( word, "paran", 5 ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( strcasestr( word, "_ms" ) ) { w = 1; cd->paranoid = 1; } // legacy
@@ -240,7 +241,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->seed_init != 0 ) cd->seed_init *= -1; // Modify the seed to show that is imported
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
 	if( cd->nreal == 0 && ( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) ) cd->nreal = 100;
-	if( cd->nretries > 0 && cd->problem_type == CALIBRATE && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) cd->paranoid = 1;
+	if( cd->nretries > 0 && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) cd->paranoid = 1;
 	if( cd->test_func > 0 )
 	{
 		tprintf( "Test Function %d ", cd->test_func );
@@ -303,60 +304,62 @@ int parse_cmd( char *buf, struct calc_data *cd )
 			case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
 			default: tprintf( "WARNING: unknown calibration type!\nASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
 		}
-		tprintf( "\nOptimization method: opt=%s --- ", cd->opt_method );
-		if( strncasecmp( cd->opt_method, "squad", 5 ) == 0 || ( strcasestr( cd->opt_method, "pso" ) && strcasestr( cd->opt_method, "lm" ) ) )
-		{
-			tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization\n" );
-			cd->squads = 1;
-			cd->lmstandalone = 0;
-		}
-		else if( strncasecmp( cd->opt_method, "lm", 2 ) == 0 )
-		{
-			if( cd->paranoid ) tprintf( "Multi-Start Levenberg-Marquardt optimization\n" );
-			else tprintf( "Levenberg-Marquardt optimization\n" );
-			if( cd->calib_type == SIMPLE && cd->nretries <= 1 && !( fabs( cd->obsstep ) > DBL_EPSILON ) ) cd->ldebug = cd->lm_eigen = 1;
-		}
-		else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
-			tprintf( "Particle-Swarm optimization\n" );
-		else { tprintf( "WARNING: Unknown method (opt=%s)! Levenberg-Marquardt optimization assumed\n", cd->opt_method ); strcpy( cd->opt_method, "lm" ); }
-		if( cd->nretries > 0 ) tprintf( "Number of calibration retries = %d\n", cd->nretries );
-		if( cd->niter < 0 ) cd->niter = 0;
-		if( cd->niter > 0 ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", cd->niter );
-		else tprintf( "Number of Levenberg-Marquardt iterations = will be computed internally\n" );
-		if( strcasestr( cd->opt_method, "apso" ) || strcasestr( cd->opt_method, "tribe" ) || strcasestr( cd->opt_method, "squad" ) )
-		{
-			if( cd->init_particles > 1 ) tprintf( "Number of particles = %d\n", cd->init_particles );
-			if( cd->init_particles == -1 ) tprintf( "Number of particles = will be computed internally\n" );
-		}
-		if( cd->lm_eigen > 0 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
-		tprintf( "\nGlobal termination criteria:\n" );
-		tprintf( "1: Maximum number of evaluations = %d\n", cd->maxeval );
-		tprintf( "2: Objective function cutoff value: " );
-		if( cd->phi_cutoff <= DBL_EPSILON ) tprintf( "NOT implemented (ADD keyword cutoff=[value] to implement)\n" );
-		else tprintf( "%g\n", cd->phi_cutoff );
-		tprintf( "3: Observations within predefined calibration ranges or an absolute observation error: " );
-		if( cd->obsrange ) tprintf( "implemented using calibration ranges (keyword 'obsrange')\n" );
-		else if( cd->obserror > 0 ) tprintf( "implemented using a predefined absolute error (keyword 'obserror=%g')\n", cd->obserror );
-		else tprintf( "NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)\n" );
-		tprintf( "4: Parameters within a predefined absolute error from known 'true' values: " );
-		if( cd->parerror > 0 ) tprintf( "implemented (keyword 'parerror=%g')\n", cd->parerror );
-		else tprintf( "NOT implemented (ADD keyword 'parerror' to implement)\n" );
-		tprintf( "Objective function: " );
-		if( cd->test_func > 0 )
-			tprintf( "test function %d", cd->test_func );
-		else
-		{
-			switch( cd->objfunc_type )
-			{
-				case SSR: tprintf( "sum of squared residuals" ); break;
-				case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
-				case SSDA: tprintf( "sum of squared discrepancies and residuals" ); break;
-				case SSD0: tprintf( "sum of squared discrepancies" ); break;
-				default: tprintf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
-			}
-		}
 		tprintf( "\n" );
+		if( cd->lm_eigen > 0 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
 	}
+	tprintf( "\nOptimization method: opt=%s --- ", cd->opt_method );
+	if( strncasecmp( cd->opt_method, "squad", 5 ) == 0 || ( strcasestr( cd->opt_method, "pso" ) && strcasestr( cd->opt_method, "lm" ) ) )
+	{
+		tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization\n" );
+		cd->squads = 1;
+		cd->lmstandalone = 0;
+	}
+	else if( strncasecmp( cd->opt_method, "lm", 2 ) == 0 )
+	{
+		if( cd->paranoid ) tprintf( "Multi-Start Levenberg-Marquardt optimization\n" );
+		else tprintf( "Levenberg-Marquardt optimization\n" );
+		if( cd->calib_type == SIMPLE && cd->nretries <= 1 && !( fabs( cd->obsstep ) > DBL_EPSILON ) ) cd->ldebug = cd->lm_eigen = 1;
+	}
+	else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
+		tprintf( "Particle-Swarm optimization\n" );
+	else { tprintf( "WARNING: Unknown method (opt=%s)! Levenberg-Marquardt optimization assumed\n", cd->opt_method ); strcpy( cd->opt_method, "lm" ); }
+	if( cd->nretries > 0 ) tprintf( "Number of calibration retries = %d\n", cd->nretries );
+	if( cd->niter < 0 ) cd->niter = 0;
+	if( cd->niter > 0 ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", cd->niter );
+	else tprintf( "Number of Levenberg-Marquardt iterations = will be computed internally\n" );
+	if( strcasestr( cd->opt_method, "apso" ) || strcasestr( cd->opt_method, "tribe" ) || strcasestr( cd->opt_method, "squad" ) )
+	{
+		if( cd->init_particles > 1 ) tprintf( "Number of particles = %d\n", cd->init_particles );
+		if( cd->init_particles == -1 ) tprintf( "Number of particles = will be computed internally\n" );
+	}
+	tprintf( "\nGlobal termination criteria:\n" );
+	tprintf( "1: Maximum number of evaluations = %d\n", cd->maxeval );
+	tprintf( "2: Objective function cutoff value: " );
+	if( cd->phi_cutoff <= DBL_EPSILON ) tprintf( "NOT implemented (ADD keyword cutoff=[value] to implement)\n" );
+	else tprintf( "%g\n", cd->phi_cutoff );
+	tprintf( "3: Observations within predefined calibration ranges or an absolute observation error: " );
+	if( cd->obsrange ) tprintf( "implemented using calibration ranges (keyword 'obsrange')\n" );
+	else if( cd->obserror > 0 ) tprintf( "implemented using a predefined absolute error (keyword 'obserror=%g')\n", cd->obserror );
+	else tprintf( "NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)\n" );
+	tprintf( "4: Parameters within a predefined absolute error from known 'true' values: " );
+	if( cd->parerror > 0 ) tprintf( "implemented (keyword 'parerror=%g')\n", cd->parerror );
+	else tprintf( "NOT implemented (ADD keyword 'parerror' to implement)\n" );
+	tprintf( "Objective function: " );
+	if( cd->test_func > 0 )
+		tprintf( "test function %d", cd->test_func );
+	else
+	{
+		switch( cd->objfunc_type )
+		{
+			case SSR: tprintf( "sum of squared residuals" ); break;
+			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
+			case SSDA: tprintf( "sum of squared discrepancies and residuals" ); break;
+			case SSD0: tprintf( "sum of squared discrepancies" ); break;
+			case SSDX: tprintf( "sum of squared discrepancies increased to get within the bounds" ); break;
+			default: tprintf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
+		}
+	}
+	tprintf( "\n" );
 	if( cd->sintrans == 0 ) tprintf( "\nSin transformation of the model parameters: NOT applied (keyword 'nosin')!\n" );
 	else tprintf( "\nSin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)\n" );
 	if( cd->plogtrans == 1 ) tprintf( "\nLog transformation enforced on all parameters!\n" );
@@ -373,7 +376,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		cd->sintrans = 0; tprintf( "\nsine transformation disabled for ABAGUS runs" );
 	}
 	if( cd->problem_type == ABAGUS && cd->infile[0] != 0 ) { tprintf( "\nResults in %s to be read into kdtree\n", cd->infile );}
-	if( cd->problem_type == INFOGAP && cd->infile[0] == 0 ) { tprintf( "\nInfile must be specified for infogap run\n" ); return( 0 ); }
+	if( cd->problem_type == INFOGAP && ( fabs( cd->obsstep ) < DBL_EPSILON ) && cd->infile[0] == 0 ) { tprintf( "\nInfile must be specified for infogap run\n" ); return( 0 ); }
 	if( cd->problem_type == POSTPUA && cd->infile[0] == 0 ) { tprintf( "\nInfile must be specified for postpua run\n" ); return( 0 ); }
 	if( cd->smp_method[0] != 0 )
 	{
@@ -395,7 +398,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	}
 	tprintf( "\nGlobal debug (verbosity) level: debug=%d\n", cd->debug );
 	if( cd->debug || cd->fdebug ) tprintf( "Debug (verbosity) level for the analytical model evaluations: fdebug=%d\n", cd->fdebug );
-	if( cd->debug && cd->problem_type == CALIBRATE )
+	if( cd->debug )
 	{
 		tprintf( "Debug (verbosity) level for Levenberg-Marquardt optimization progress: ldebug=%d\n", cd->ldebug );
 		tprintf( "Debug (verbosity) level for Particle-Swarm optimization progress: pdebug=%d\n", cd->pdebug );
@@ -488,19 +491,20 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	{
 		sscanf( word, "%d", &cd->solution_type[c] );
 		if( strcasestr( word, "ext" ) ) { cd->solution_type[c] = EXTERNAL; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
-		if( strcasestr( word, "poi" ) )cd->solution_type[c] = POINT;
-		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) )cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
-		if( strcasestr( word, "box" ) )cd->solution_type[c] = BOX;
+		if( strcasestr( word, "poi" ) ) cd->solution_type[c] = POINT;
+		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) ) cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
+		if( strcasestr( word, "box" ) ) cd->solution_type[c] = BOX;
 		if( strcasestr( word, "test" ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	}
 	if( cd->num_solutions == 0 && cd->test_func >= 0 ) { cd->num_solutions = 1; cd->solution_type[0] = TEST; od->nTObs = 0; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	if( bad_data ) return( -1 );
 	if( nofile )
 	{
-		if( cd->solution_type[0] != TEST || cd->problem_type == INFOGAP )
+		if( cd->solution_type[0] != TEST || ( cd->problem_type == INFOGAP && ( fabs( cd->obsstep ) < DBL_EPSILON ) ) )
 		{
 			tprintf( "File \'%s\' cannot be opened to read problem information!\n", filename );
 			tprintf( "ERROR: Input file is needed!\n\n" );
+			bad_data = 1;
 			return( -1 );
 		}
 	}
@@ -575,11 +579,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 			cd->var[i] = pd->var[i];
 			if( cd->debug ) tprintf( "init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[i], pd->var_opt[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
-			if( pd->var_opt[i] == 1 )pd->nOptParam++;
+			if( pd->var_opt[i] == 1 ) pd->nOptParam++;
 			else if( pd->var_opt[i] == 2 )
 			{
 				pd->nFlgParam++;
-				if( cd->calib_type != PPSD )pd->nOptParam++;
+				if( cd->calib_type != PPSD ) pd->nOptParam++;
 			}
 			if( pd->var_opt[i] >= 1 )
 			{
@@ -595,8 +599,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					tprintf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
 					bad_data = 1;
 				}
-				if( cd->plogtrans == 1 )pd->var_log[i] = 1;
-				else if( cd->plogtrans == 0 )pd->var_log[i] = 0;
+				if( cd->plogtrans == 1 ) pd->var_log[i] = 1;
+				else if( cd->plogtrans == 0 ) pd->var_log[i] = 0;
 				if( pd->var_log[i] == 1 )
 				{
 					if( pd->var_min[i] < 0 || pd->var[i] < 0 )
@@ -965,9 +969,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 			if( cd->ologtrans == 1 ) od->obs_log[i] = 1;
 			else if( cd->ologtrans == 0 ) od->obs_log[i] = 0;
-			if( cd->oweight == 1 )od->obs_weight[i] = 1;
-			else if( cd->oweight == 0 )od->obs_weight[i] = 0;
-			else if( cd->oweight == 2 ) { if( abs( od->obs_target[i] ) > DBL_EPSILON )od->obs_weight[i] = ( double ) 1.0 / od->obs_target[i]; else od->obs_weight[i] = HUGE_VAL; }
+			if( cd->oweight == 1 ) od->obs_weight[i] = 1;
+			else if( cd->oweight == 0 ) od->obs_weight[i] = 0;
+			else if( cd->oweight == 2 ) { if( abs( od->obs_target[i] ) > DBL_EPSILON ) od->obs_weight[i] = ( double ) 1.0 / od->obs_target[i]; else od->obs_weight[i] = HUGE_VAL; }
 			if( od->obs_weight[i] > DBL_EPSILON ) od->nCObs++;
 		}
 		tprintf( "Number of calibration targets = %d\n", od->nCObs );
@@ -1127,11 +1131,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 			if( cd->obsdomain > DBL_EPSILON && wd->obs_weight[i][j] > DBL_EPSILON ) { wd->obs_min[i][j] = wd->obs_target[i][j] - cd->obsdomain; wd->obs_max[i][j] = wd->obs_target[i][j] + cd->obsdomain; }
 			if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
-			if( cd->ologtrans == 1 )wd->obs_log[i][j] = 1;
-			else if( cd->ologtrans == 0 )wd->obs_log[i][j] = 0;
-			if( cd->oweight == 1 )wd->obs_weight[i][j] = 1;
-			else if( cd->oweight == 0 )wd->obs_weight[i][j] = 0;
-			else if( cd->oweight == 2 ) { if( abs( wd->obs_target[i][j] ) > DBL_EPSILON )wd->obs_weight[i][j] = ( double ) 1.0 / wd->obs_target[i][j]; else wd->obs_weight[i][j] = HUGE_VAL; }
+			if( cd->ologtrans == 1 ) wd->obs_log[i][j] = 1;
+			else if( cd->ologtrans == 0 ) wd->obs_log[i][j] = 0;
+			if( cd->oweight == 1 ) wd->obs_weight[i][j] = 1;
+			else if( cd->oweight == 0 ) wd->obs_weight[i][j] = 0;
+			else if( cd->oweight == 2 ) { if( abs( wd->obs_target[i][j] ) > DBL_EPSILON ) wd->obs_weight[i][j] = ( double ) 1.0 / wd->obs_target[i][j]; else wd->obs_weight[i][j] = HUGE_VAL; }
 			if( cd->debug )
 				tprintf( "t %5g c %5g weight %7g log %1d acceptable range: min %5g max %5g\n", wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
 			if( wd->obs_max[i][j] < wd->obs_target[i][j] || wd->obs_min[i][j] > wd->obs_target[i][j] )
@@ -1146,8 +1150,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				tprintf( "Observation %s(%g): min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
 				bad_data = 1;
 			}
-			if( wd->obs_weight[i][j] > DBL_EPSILON )od->nObs++;
-			if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( include_predictions )od->nObs++; }
+			if( wd->obs_weight[i][j] > DBL_EPSILON ) od->nObs++;
+			if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( include_predictions ) od->nObs++; }
 			if( j + 1 < wd->nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " ); }
 		}
 	}
@@ -1307,7 +1311,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else gd->dx = ( gd->max_x - gd->min_x ) / ( gd->nx - 1 );
 	if( gd->ny == 1 ) gd->dy = 0;
 	gd->dy = ( gd->max_y - gd->min_y ) / ( gd->ny - 1 );
-	//	if(gd->nz == 1 )gd->dz = gd->max_z - gd->min_z ); // In this way compute_grid computed for min_z
+	//	if(gd->nz == 1 ) gd->dz = gd->max_z - gd->min_z ); // In this way compute_grid computed for min_z
 	if( gd->nz == 1 ) gd->dz = 0;
 	else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
 	if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
@@ -1408,6 +1412,7 @@ int save_problem( char *filename, struct opt_data *op )
 		case SSR: fprintf( outfile, "ssr" ); break;
 		case SSDR: fprintf( outfile, "ssdr" ); break;
 		case SSD0: fprintf( outfile, "ssd0" ); break;
+		case SSDX: fprintf( outfile, "ssdx" ); break;
 		case SSDA: fprintf( outfile, "ssda" ); break;
 	}
 	fprintf( outfile, "\n" );

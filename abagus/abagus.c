@@ -311,7 +311,7 @@ int abagus( struct opt_data *op )
 			}
 			eps += pow( err * op->wd->obs_weight[i][j], 2 );
 		}
-		if( op->cd->pdebug )printf( "Max OF within success: %g\n", eps );
+		if( op->cd->pdebug ) printf( "Max OF within success: %g\n", eps );
 	}
 	else eps = op->cd->phi_cutoff; // If success option is not selected, use phi_cutoff
 	if( eps < op->cd->phi_cutoff ) { tprintf( "phi_cutoff > Max OF within success (%lf > %lf), abagus will use phi_cutoff\n", op->cd->phi_cutoff, eps ); eps = op->cd->phi_cutoff;  } // If max eps within success is less than phi_cutoff
@@ -701,8 +701,8 @@ loop:
 	    // END. Display some statistical information
 	    t2 = clock();
 	    tprintf( "\n\n Total clocks %.0f", t2 - t1 );
-	    eval_mean = eval_mean / ( double )n_exec;
-	    eps_mean = eps_mean / ( double )n_exec;
+	    eval_mean = eval_mean / ( double ) n_exec;
+	    eps_mean = eps_mean / ( double ) n_exec;
 	    tprintf( "\n\n Eval. (mean)= %f", eval_mean );
 	    tprintf( "\n Error (mean) = %f", eps_mean );
 
@@ -713,7 +713,7 @@ loop:
 	    tprintf( "\n Std. dev. %f", variance );
 
 	    // Success rate and minimum value
-	    tprintf( "\n Success rate = %.2f%%\n", 100 * ( 1 - n_failure / ( double )n_exec ) );
+	    tprintf( "\n Success rate = %.2f%%\n", 100 * ( 1 - n_failure / ( double ) n_exec ) );
 	    if ( n_exec > 1 ) tprintf( "\n Best min value = %f", min );
 	*/
 	op->cd->compute_phi = 0;
@@ -724,7 +724,7 @@ loop:
 /*  double alea( double a, double b )
   { // random number (uniform distribution) in [a b]
     double r;
-     r=(double)rand(); r=r/RAND_MAX;
+     r=(double) rand(); r=r/RAND_MAX;
     return a + r * ( b - a );
   }
   //===========================================================
@@ -862,7 +862,7 @@ double perf_pssa( int s, int function )
 	};
 	// For polynomial fitting problem
 	int const M = 60;
-	double py, y = -1, dx = ( double )M;
+	double py, y = -1, dx = ( double ) M;
 	nb_eval = nb_eval + 1;
 	xs = X[s];
 	switch( function )
@@ -911,7 +911,7 @@ double perf_pssa( int s, int function )
 			break;
 		case 4: // Step
 			f = 0;
-			for( d = 0; d < D; d++ ) f = f + ( int )xs.x[d];
+			for( d = 0; d < D; d++ ) f = f + ( int ) xs.x[d];
 			break;
 		case 6: //Foxholes 2D
 			f = 0;

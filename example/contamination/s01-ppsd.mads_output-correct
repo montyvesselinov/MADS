@@ -8,6 +8,7 @@ Problem root name: example/contamination/s01-ppsd
 Problem type: calibration
 
 Calibration technique: sequential calibration using partial parameter parameter discretization
+
 Optimization method: opt=lm --- Multi-Start Levenberg-Marquardt optimization
 Number of calibration retries = 2
 Number of Levenberg-Marquardt iterations = will be computed internally
@@ -36,7 +37,7 @@ Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130109-090735
+Execution date & time stamp: 20130114-193708
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -94,6 +95,6 @@ Functional evaluations = 130
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
 Functional evaluations per second = 16
-Execution  started  on Wed Jan  9 09:07:35 2013
-Execution completed on Wed Jan  9 09:07:43 2013
-Execution date & time stamp: 20130109-090735
+Execution  started  on Mon Jan 14 19:37:08 2013
+Execution completed on Mon Jan 14 19:37:16 2013
+Execution date & time stamp: 20130114-193708

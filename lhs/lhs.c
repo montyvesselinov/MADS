@@ -223,8 +223,7 @@ int get_seed( )
 	clock = time( &tloc );
 	lt = localtime( &clock );
 	ihour = lt->tm_hour;
-	if( 12 < ihour ) ihour = ihour - 12;
-	ihour--;
+	if( ihour > 12 ) ihour -= 12;
 	imin = lt->tm_min;
 	isec = lt->tm_sec;
 	seed = isec + 60 * ( imin + 60 * ihour );
