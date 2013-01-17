@@ -50,11 +50,11 @@ void mads_info()
 	printf( "   opt=lm             - Local Levenberg-Marquardt optimization [default]\n" );
 	printf( "   opt=lm_levmar      - Local Levenberg-Marquardt optimization using LEVMAR library\n" );
 	printf( "   opt=lm_gsl         - Local Levenberg-Marquardt optimization using GSL library\n" );
-	printf( "   opt=lm_ms          - Local Multi-Start (Multi-Try) Levenberg-Marquardt (MSLM) optimization using multiple initial guesses\n" );
-	printf( "   opt=pso            - Global Particle Swarm optimization (default Standard2006)\n" );
+	printf( "   opt=lm_ms          - Local Multi-Start (Multi-Try) Levenberg-Marquardt (MSLM) optimization using multiple random initial guesses\n" );
+	printf( "   opt=pso            - Global Particle Swarm optimization (default Standard2006; http://clerc.maurice.free.fr/pso)\n" );
 	printf( "   opt=apso           - Global Adaptive Particle Swarm optimization (default TRIBES)\n" );
 	printf( "   opt=swarm          - Global Particle Swarm optimization Standard2006 (also opt=pso_std)\n" );
-	printf( "   opt=tribes         - Global Particle Swarm optimization TRIBES\n" );
+	printf( "   opt=tribes         - Global Particle Swarm optimization TRIBES-D (Clerc 2004; http://clerc.maurice.free.fr/pso)\n" );
 	printf( "   opt=squads         - SQUADS: Adaptive hybrid optimization using coupled local and global optimization techniques\n" );
 	printf( "\ngeneral calibration/optimization options:\n" );
 	printf( "   retry=[integer]    - number of optimization retries [default retry=0]\n" );
@@ -121,7 +121,7 @@ void mads_info()
 	printf( "   disp_scaled=2      - longitudinal, lateral and vertical transverse dispersivities are scaled with the travel distance\n" );
 	printf( "\nbuild-in test problems for optimization / uncertainty-quantification techniques (local and global methods):\n" );
 	printf( "   test=[integer]     - test problem ID [default=1]:\n" );
-	printf( "                           1: Parabola (Sphere) \n" );
+	printf( "                           1: Parabola (Sphere)\n" );
 	printf( "                           2: Griewank\n" );
 	printf( "                           3: Rosenbrock\n" );
 	printf( "                           4: De Jong's Function #4\n" );
@@ -138,7 +138,7 @@ void mads_info()
 	printf( "                          22: Ackley (global methods only)\n" );
 	printf( "                          23: Eason 2D (global methods only)\n" );
 	printf( "                          31: Rosenbrock (2D simplified alternative)\n" );
-	printf( "                          32: Griewank (:alternative)\n" );
+	printf( "                          32: Griewank (alternative)\n" );
 	printf( "                          33: Rosenbrock (alternative with d*(d-1) observations\n" );
 	printf( "                          34: Powell's Quadratic\n" );
 	printf( "                          35: Booth\n" );
@@ -190,10 +190,11 @@ void mads_info()
 	printf( "   mads w01 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors; files associated with problem w01 are located in example/wells)\n" );
 	printf( "             (for w01 example, code WELLS can be obtained at http://wells.lanl.gov)\n" );
 	printf( "\nComparisons between local and global methods:\n" );
-	printf( "   mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3\n" );
-	printf( "   mads a01 test=3 opt=swarm  igrnd real=1000 cutoff=1e-3\n" );
-	printf( "   mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3\n" );
-	printf( "   mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3\n" );
+	printf( "   mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)\n" );
+	printf( "   mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)\n" );
+	printf( "   mads a01 test=3 opt=swarm  igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization Standard2006)\n" );
+	printf( "   mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization TRIBES-D)\n" );
+	printf( "   mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3 (Adaptive hybrid optimization Squads)\n" );
 	printf( "\nComparisons with PEST (http://www.sspa.com/pest/):\n" );
 	printf( "   mads s02 lmeigen                  (file s02.mads is located in example/contamination)\n" );
 	printf( "   pest s02pest                   (file s02pest.pst is located in example/contamination)\n" );

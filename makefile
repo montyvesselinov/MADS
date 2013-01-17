@@ -2,19 +2,17 @@ PROG = mads
 CMP = ./compare-results
 # CMP = cp -f
 # CC = g++ 
-## rainier -L/usr/lib/gcc/x86_64-redhat-linux/4.1.1
-ifeq ($(OSTYPE),linux)
+ifeq ($(OSTYPE),linux) # linux
         DIRS = -I/home/monty/local/include -L/home/monty/local/lib
 	LG = -lgfortran -lmatheval -Wl,--rpath -Wl,/home/monty/local/lib
 	CC = gcc 
-else
-        # DIRS = -I/opt/local/include/ -L/opt/local/lib
+else # mac os x, ....
         DIRS = -I/Users/monty/include -I/opt/local/include -L/Users/monty/lib 
 	LG = -lgfortran -lmatheval
 	CC = gcc
 endif
-# CFLAGS = -Wall -g $(DIRS)
-CFLAGS = -Wall $(DIRS)
+# CFLAGS = -Wall -g $(DIRS) # debug
+CFLAGS = -Wall $(DIRS) # release
 LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas $(LG) $(DIRS)
 OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o 
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o abagus/abagus.o
@@ -49,7 +47,6 @@ pso/mopso.o: pso/mopso.c pso/mopso.h
 abagus/abagus.o: abagus/abagus.c mads.h abagus/kdtree-0.5.5/kdtree.o
 abagus/kdtree-0.5.5/kdtree.o: abagus/kdtree-0.5.5/kdtree.c abagus/kdtree-0.5.5/kdtree.h
 levmar-2.5/lm_m.o: levmar-2.5/lm_m.c levmar-2.5/lm_core_m.c levmar-2.5/levmar.h levmar-2.5/misc.h levmar-2.5/compiler.h mads.h
-# levmar-2.5/Axb.o: levmar-2.5/Axb.c levmar-2.5/Axb_core.c levmar-2.5/levmar.h levmar-2.5/misc.h
 levmar-2.5/Axb.o: levmar-2.5/Axb.c levmar-2.5/levmar.h levmar-2.5/misc.h
 levmar-2.5/misc.o: levmar-2.5/misc.c levmar-2.5/misc_core.c levmar-2.5/levmar.h levmar-2.5/misc.h
 levmar-2.5/lmlec.o: levmar-2.5/lmlec.c levmar-2.5/lmlec_core.c levmar-2.5/levmar.h levmar-2.5/misc.h

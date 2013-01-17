@@ -310,7 +310,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	tprintf( "\nOptimization method: opt=%s --- ", cd->opt_method );
 	if( strncasecmp( cd->opt_method, "squad", 5 ) == 0 || ( strcasestr( cd->opt_method, "pso" ) && strcasestr( cd->opt_method, "lm" ) ) )
 	{
-		tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization\n" );
+		tprintf( "SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization (Vesselinov & Harp, 2012)\n" );
 		cd->squads = 1;
 		cd->lmstandalone = 0;
 	}
@@ -321,7 +321,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( cd->calib_type == SIMPLE && cd->nretries <= 1 && !( fabs( cd->obsstep ) > DBL_EPSILON ) ) cd->ldebug = cd->lm_eigen = 1;
 	}
 	else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
-		tprintf( "Particle-Swarm optimization\n" );
+	{
+		tprintf( "Particle-Swarm optimization" );
+		if( strcasestr( cd->opt_method, "apso" ) || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 ) tprintf( " TRIBES-D (Clerc 2004; http://clerc.maurice.free.fr/pso)\n" );
+		else tprintf( " Standard2006 (http://clerc.maurice.free.fr/pso)\n" );
+	}
 	else { tprintf( "WARNING: Unknown method (opt=%s)! Levenberg-Marquardt optimization assumed\n", cd->opt_method ); strcpy( cd->opt_method, "lm" ); }
 	if( cd->nretries > 0 ) tprintf( "Number of calibration retries = %d\n", cd->nretries );
 	if( cd->niter < 0 ) cd->niter = 0;

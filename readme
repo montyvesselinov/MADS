@@ -1,10 +1,11 @@
 To compile, execute 'make'
 
-GSL, LAPACK and BLAS libraries are needed
+GSL, LAPACK, BLAS and LIBMATHEVAL libraries are needed
 
-	GSL:    ftp://ftp.gnu.org/gnu/gsl/
-	LAPACK: http://www.netlib.org/lapack/
-	BLAS:   http://www.netlib.org/blas/
+	GSL:      ftp://ftp.gnu.org/gnu/gsl/
+	LAPACK:   http://www.netlib.org/lapack/
+	BLAS:     http://www.netlib.org/blas/
+	MATHEVAL: http://www.gnu.org/software/libmatheval/
 
 To verify the code, run 'make verify'
 
