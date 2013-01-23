@@ -175,7 +175,7 @@ int LEVMAR_DER(
 		work = ( LM_REAL * )malloc( worksz * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
 		if( !work )
 		{
-			fprintf( stderr, LCAT( LEVMAR_DIF, "(): memory allocation request failed\n" ) );
+			tprintf( LCAT( LEVMAR_DIF, "ERROR (): memory allocation request failed\n" ) );
 			return LM_ERROR;
 		}
 		freework = 1;
@@ -1097,7 +1097,7 @@ int LEVMAR_DIF(
 	updjac = newjac = 0;
 	if( n < m )
 	{
-		fprintf( stderr, LCAT( LEVMAR_DIF, "(): cannot solve a problem with fewer measurements [%d] than unknowns [%d]\n" ), n, m );
+		tprintf( LCAT( LEVMAR_DIF, "ERRRO: (): cannot solve a problem with fewer measurements [%d] than unknowns [%d]\n" ), n, m );
 		return LM_ERROR;
 	}
 	if( opts )
@@ -1129,7 +1129,7 @@ int LEVMAR_DIF(
 		work = ( LM_REAL * )malloc( worksz * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
 		if( !work )
 		{
-			fprintf( stderr, LCAT( LEVMAR_DIF, "(): memory allocation request failed\n" ) );
+			tprintf( LCAT( LEVMAR_DIF, "ERROR: (): memory allocation request failed\n" ) );
 			return LM_ERROR;
 		}
 		freework = 1;

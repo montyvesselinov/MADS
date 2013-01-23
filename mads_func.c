@@ -773,8 +773,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	struct opt_data *p = ( struct opt_data * )data;
 	double *jacobian;
 	int i, j, k;
-	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
+	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	func_dx( x, f, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
 		for( i = 0; i < p->od->nTObs; i++, k++ )
@@ -787,13 +786,13 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	struct opt_data *p = ( struct opt_data * )data;
 	double *f_xpdx;
 	double x_old, dx;
-	int i, j, k, compute_center = 0, bad_data = 0, ieval;
-	ieval = p->cd->neval;
-	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 1 ); }
+	int i, j, k, old, compute_center = 0, bad_data = 0, ieval;
+	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
+	old = p->cd->compute_phi;
 	p->cd->compute_phi = 0;
 	if( p->cd->num_proc > 1 && p->cd->solution_type[0] == EXTERNAL ) // Parallel execution of external runs
 	{
+		ieval = p->cd->neval;
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
 		{
 			compute_center = 1;
@@ -814,7 +813,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			exit( 1 );
 		}
-		system( "sleep 2" );
+		system( "sleep 2" ); // TODO investigate how much sleep is needed
 		ieval -= ( p->pd->nOptParam + compute_center );
 		if( compute_center ) func_extrn_read( ++ieval, data, f_x );
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
@@ -848,7 +847,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	}
 	if( compute_center ) free( f_x );
 	free( f_xpdx );
-	p->cd->compute_phi = 1;
+	p->cd->compute_phi = old;
 	return GSL_SUCCESS;
 }
 

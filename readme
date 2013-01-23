@@ -1,6 +1,6 @@
 To compile, execute 'make'
 
-GSL, LAPACK, BLAS and LIBMATHEVAL libraries are needed
+GSL, LAPACK, BLAS and LIBMATHEVAL libraries are needed to compile MADS
 
 	GSL:      ftp://ftp.gnu.org/gnu/gsl/
 	LAPACK:   http://www.netlib.org/lapack/
@@ -8,6 +8,8 @@ GSL, LAPACK, BLAS and LIBMATHEVAL libraries are needed
 	MATHEVAL: http://www.gnu.org/software/libmatheval/
 
 To verify the code, run 'make verify'
+
+TCSH is needed to run verification scripts executed by 'make verify'.
 
 To execute, run 'mads'
 

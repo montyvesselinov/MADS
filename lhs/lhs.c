@@ -224,12 +224,14 @@ int get_seed( )
 	lt = localtime( &clock );
 	ihour = lt->tm_hour;
 	if( ihour > 12 ) ihour -= 12;
+	ihour--;
 	imin = lt->tm_min;
 	isec = lt->tm_sec;
+	// ihour = 0; imin = 0; isec = 0;
 	seed = isec + 60 * ( imin + 60 * ihour );
-	seed = seed + 1;
-	seed = ( int )( ( ( double ) seed ) * ( ( double ) 2147483647 ) / ( 60.0 * 60.0 * 12.0 ) ); 	//  Remap *seed from [1,43200] to [1,2147483647].
-	if( seed == 0 ) seed = 1;
+	// tprintf( "Seed: %d %d %d %d\n", ihour, imin, isec, seed );
+	seed = ( int )( ( double )( seed / ( 60.0 * 60.0 * 12.0 ) ) * 2147483647 ); 	//  Remap *seed from [1,43200] to [1,2147483647].
+	if( seed <= 0 ) seed = 1;
 	tprintf( "Seed: %d\n", seed );
 	return seed;
 }

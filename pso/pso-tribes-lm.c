@@ -240,8 +240,8 @@ int pso_tribes( struct opt_data *op )
 			compare_type = adapt_compare( phi_list, r, compare_type ); // Define the next comparison method
 		if( restart == 1 )
 		{
-			nRestarts = nRestarts + 1;
-			tprintf( "Restart at eval %d\n", eval );
+			nRestarts++;
+			tprintf( "Restart at evaluation #%d\n", eval );
 			r--;
 		}
 		else
@@ -251,7 +251,7 @@ int pso_tribes( struct opt_data *op )
 			if( op->cd->pdebug > 1 )
 			{
 				debug = op->cd->fdebug; op->cd->fdebug = 3;
-				func_global( S.best.x, gop, res ); // evaluate the best result
+				func_global( S.best.x, op, res ); // evaluate the best result
 				op->cd->fdebug = debug;
 				objfunc_print( &S.best.f );
 				tprintf( " current position %d: ", r ); position_print( &S.best );
@@ -277,7 +277,7 @@ int pso_tribes( struct opt_data *op )
 		if( op->cd->fdebug < 3 ) { debug = op->cd->fdebug; op->cd->fdebug = 3; }
 		else debug = 0;
 	}
-	func_global( bestBest.x, gop, res ); // evaluate the best BEST result
+	func_global( bestBest.x, op, res ); // evaluate the best BEST result
 	if( op->cd->pdebug > 1 && debug ) op->cd->fdebug = debug;
 	for( n = 0; n < pb.nPhi; n++ )
 	{
@@ -675,7 +675,7 @@ void archive_local_search( struct problem *pb )
 			if( r == n ) continue;
 			dR[m].dist = objfunc_dist( &multiobj_archive[n].x.f, &multiobj_archive[m].x.f ); // Compute the distances to the others
 			dR[m].rank = r;
-			m = m + 1;
+			m++;;
 		}
 		nPhi = multiobj_archive[0].x.f.size; // Find the nPhi nearest ones in the archive in order to complete the simplex
 		qsort( dR, nArchive - 1, sizeof( dR[0] ), compare_dist_rank );
@@ -829,7 +829,7 @@ int adapt_compare( struct objfunc phi1[], int runs, int compare_type )
 		mean[n] = 0;
 		for( r = 0; r <= runs; r++ )
 			mean[n] += phi_list[r].f[n];
-		mean[n] = mean[n] / ( runs + 1 );
+		mean[n] /= ( runs + 1 );
 	}
 	for( n = 0; n < nPhi; n++ )
 	{
@@ -1168,7 +1168,7 @@ void position_archive( struct position *pos )
 					if( i < nArchive - 1 )
 						for( j = i; j < nArchive - 1; j++ )
 							multiobj_archive[j] = multiobj_archive[j + 1];
-					nArchive = nArchive - 1;
+					nArchive--;
 				}
 			}
 		// TO TRY: one may also remove one of two "too similar" positions
@@ -1300,11 +1300,11 @@ void position_lm( struct opt_data *op, struct problem *pb, struct position *P )
 //	DeTransform( ( *P ).x, op, ( *P ).x ); // there is no need to detransform
 //	for( d = 0; d < ( *pb ).D; d++ )
 //		tprintf( "lm %g\n", ( *P ).x[d] );
-	d = gop->cd->neval;
+	d = op->cd->neval;
 	op->phi = ( *P ).f.f[0];
 	optimize_lm( op );
-	eval += gop->cd->neval - d; // add the number of evaluations performed within LM
-	if( gop->cd->sintrans )
+	eval += op->cd->neval - d; // add the number of evaluations performed within LM
+	if( op->cd->sintrans )
 	{
 		for( d = 0; d < ( *pb ).D; d++ )
 			( *P ).x[d] = asin( sin( op->pd->var[op->pd->var_index[d]] ) ); // keep the estimates within the initial range ...
@@ -1510,7 +1510,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 			case 0: // Bad tribe.
 				/* The idea is to increase diversity. This is done by adding sometimes a completely new particle
 				and by disturbing another one a bit, typically along just one dimension. */
-				disturbPart = ( double ) random_double( 0, 1 ) < 1 - 1. / ( *S ).trib[tr].size;
+				disturbPart = ( double ) random_double( 0, 1 ) < ( ( double ) -1 / ( *S ).trib[tr].size + 1 );
 				if( disturbPart )
 					if( ( *S ).trib[tr].size > 1 )
 					{
@@ -1707,7 +1707,7 @@ void swarm_print( struct swarm *S )
 	}
 	if( ( *S ).size > 1 ) tprintf( " | %i particles | ", nTotPart );
 	else tprintf( " | %i particle | ", ( *S ).size );
-	if( gop->cd->pdebug ) tprintf( "OF %g E %d S %d\n", ( *S ).best.f.f[0], eval, gop->success );
+	if( gop->cd->pdebug ) tprintf( "OF %g E %d (%d) S %d\n", ( *S ).best.f.f[0], eval, gop->cd->neval, gop->success );
 	if( debug_level > 3 )
 		for( it = 0; it < ( *S ).size; it++ )
 		{

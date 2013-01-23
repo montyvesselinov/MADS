@@ -893,6 +893,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			fscanf( infile, "%[^=]s", buf );
 			fscanf( infile, "= %lf %lf %i %lf %lf\n", &rd->regul_target[i], &rd->regul_weight[i], &rd->regul_log[i], &rd->regul_min[i], &rd->regul_max[i] );
 			if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], buf );
+			if( !( rd->regul_weight[i] > DBL_EPSILON ) )  tprintf( " WARNING Weight <= 0 " );
 			rd->regul_expressions[i] = evaluator_create( buf );
 			assert( rd->regul_expressions[i] );
 			evaluator_get_variables( rd->regul_expressions[i], &expvar_names, &expvar_count );
@@ -1155,7 +1156,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				bad_data = 1;
 			}
 			if( wd->obs_weight[i][j] > DBL_EPSILON ) od->nObs++;
-			if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( include_predictions ) od->nObs++; }
+			if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( include_predictions ) od->nObs++; } // Predictions have negative weights
 			if( j + 1 < wd->nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " ); }
 		}
 	}
@@ -1608,8 +1609,8 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		if( time > DBL_EPSILON ) v_apparent = d / time; else { v_apparent = -1; if( time < 0 ) time = -1; };
 		c = max_conc[i] / max_source_conc; // Normalized concentration
 		if( v > DBL_EPSILON ) time_expected = d / v; else time_expected = -1;
-		tprintf( "%s\tPeak Concentration  = %12g (%12g) @ time %12g (%12g exp %12g) velocity = %12g (%12g) distance = %12g\n", op->wd->id[i], max_conc[i], c, max_time[i], time, time_expected, v_apparent, v, d );
-		fprintf( outfile, "%s\tPeak Conc = %12g (%12g) @ time %12g (%12g exp %12g) velocity = %12g (%12g) distance = %12g\n", op->wd->id[i], max_conc[i], c, max_time[i], time, time_expected, v_apparent, v, d );
+		tprintf( "%s\tPeak Concentration  = %12g (%12g) @ time %12g (%12g expected %12g) velocity = %12g (%12g) distance = %12g\n", op->wd->id[i], max_conc[i], c, max_time[i], time, time_expected, v_apparent, v, d );
+		fprintf( outfile, "%s\tPeak Conc = %12g (%12g) @ time %12g (%12g expected %12g) velocity = %12g (%12g) distance = %12g\n", op->wd->id[i], max_conc[i], c, max_time[i], time, time_expected, v_apparent, v, d );
 	}
 	fclose( outfile );
 	tprintf( "Concentration peak data saved in %s\n", filename2 );

@@ -855,16 +855,22 @@ int main( int argn, char *argv[] )
 				tprintf( "%s %g\n", pd.var_id[i], cd.var[i] );
 				fprintf( out, "%s %g\n", pd.var_id[i], cd.var[i] );
 			}
-			if( od.nTObs > 0 )
+			fflush( out );
+			if( od.nTObs > 0 || wd.nW > 0 )
 			{
 				tprintf( "\nModel predictions (forward run; no calibration):\n" );
 				fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
+				fflush( out );
 				if( cd.resultscase ) sprintf( filename, "%s.%d.forward", op.root, cd.resultscase );
 				else sprintf( filename, "%s.forward", op.root );
 				out2 = Fwrite( filename );
+				predict = 1;
 			}
-			fflush( out );
-			predict = 1;
+			else
+			{
+				tprintf( "\nNo model predictions!\n" );
+				exit( 1 );
+			}
 		}
 	}
 	//
@@ -1041,6 +1047,11 @@ int optimize_lm( struct opt_data *op )
 	double opt_parm[4], *jacobian, *jacTjac, *covar, *work, eps, delta, *var_lhs;
 	double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
 	char buf[80];
+	if( op->cd->maxeval <= op->cd->neval )
+	{
+		 tprintf( "WARNING: LM optimization cannot be performed! Number of the maximum evaluations has been exceeded (%d<%d)\n", op->cd->maxeval, op->cd->neval );
+		 return( 1 );
+	}
 	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->lmstandalone;
 	if( debug == 0 && standalone && op->cd->calib_type != PPSD ) op->cd->lmstandalone = 2;
@@ -1163,8 +1174,8 @@ int optimize_lm( struct opt_data *op )
 		{
 			if( debug > 1 && standalone ) tprintf( "\nLevenberg-Marquardt Optimization:\n" );
 			else if( op->cd->ldebug ) tprintf( "\n" );
-			if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-			if( ( jacTjac = ( double * ) malloc( sizeof( double ) * ( ( op->pd->nOptParam + 1 ) * op->pd->nOptParam / 2 ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nTObs ) ) == NULL ) { tprintf( "ERROR: Not enough memory!\n" ); return( 0 ); }
+			if( ( jacTjac = ( double * ) malloc( sizeof( double ) * ( ( op->pd->nOptParam + 1 ) * op->pd->nOptParam / 2 ) ) ) == NULL ) { tprintf( "ERROR: Not enough memory!\n" ); return( 0 ); }
 			iopt = 2; /*    iopt=0 Brown's algorithm without strict descent
 		       		iopt=1 strict descent and default values for input vector parm
 					iopt=2 strict descent with user parameter choices in input vector parm */
@@ -1201,7 +1212,7 @@ int optimize_lm( struct opt_data *op )
 		}
 		else if( strcasestr( op->cd->opt_method, "tra" ) != NULL )// Transtrum version of LM
 		{
-			if( debug > 1 && standalone ) tprintf( "\nTranstrum version of Levenberg-Marquardt Optimization:\n" );
+			if( debug > 1 && standalone ) tprintf( "\nTranstrum version of Levenberg-Marquardt Optimization:\n" ); // TODO add explicit transtrum
 			else if( op->cd->ldebug ) tprintf( "\n" );
 		}
 		else // DEFAULT LevMar version of LM
@@ -2555,6 +2566,7 @@ int montecarlo( struct opt_data *op )
 					else fprintf( out, " %.15g", op->pd->var[i] );
 				}
 			if( op->od->nTObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
+			else fprintf( out, "\n" );
 			fflush( out );
 			if( ( success_all || op->od->nTObs == 0 ) && op->cd->save )
 				save_final_results( "mcrnd", op, op->gd );
@@ -2613,6 +2625,7 @@ int montecarlo( struct opt_data *op )
 					else fprintf( out, " %.15g", op->pd->var[i] );
 				}
 			if( op->od->nTObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
+			else fprintf( out, "\n" );
 			fflush( out );
 			if( ( success_all || op->od->nTObs == 0 ) && op->cd->save )
 				save_final_results( "mcrnd", op, op->gd );
