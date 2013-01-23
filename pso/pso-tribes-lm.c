@@ -227,13 +227,12 @@ int pso_tribes( struct opt_data *op )
 	{
 		if( restart == 0 )
 		{
-			eval = 0;
+			eval = op->cd->neval;
 			if( pb.repeat > 1 ) tprintf( "\nRun #%i compare_type %i\n", r + 1, compare_type );
 		}
-		else restart = 0;
+		else restart = 0; // TODO this statement does not make sense; needs work!
 		pso_solver( &pb, compare_type, r, &S );
-		if( op->cd->pdebug )
-		{ tprintf( "\nFinal results: " ); swarm_print( &S ); }
+		if( op->cd->pdebug ) { tprintf( "\nFinal results: " ); swarm_print( &S ); }
 		for( i = 0; i < pb.nPhi; i++ )
 			phi_list[r].f[i] = S.best.f.f[i];
 		if( r < pb.repeat - 1 )
@@ -437,10 +436,15 @@ void position_eval( struct problem *pb, struct position *pos )
 {
 	double f;
 	int i;
-	eval++;
 	( *pos ).f.size = ( *pb ).nPhi;
-	func_global( ( *pos ).x, gop, res ); // evaluation ... either internal of external
-	f = gop->phi;
+	if( gop->global_success )
+		f = HUGE_VAL;
+	else
+	{
+		func_global( ( *pos ).x, gop, res ); // evaluation ... either internal of external
+		f = gop->phi;
+		eval++;
+	}
 	( *pos ).f.f[0] = fabs( f - ( *pb ).objective[0] );
 	for( i = 0; i < ( *pb ).nPhi; i++ ) // Save the min and the max objfunc ever found
 	{
@@ -455,11 +459,11 @@ void position_eval( struct problem *pb, struct position *pos )
 		( *pos ).f.f[( *pb ).nPhi] = archive_spread();
 		nArchive--; // Virtually removed from the archive
 	}
-	if( gop->cd->check_success && gop->success )
+	if( gop->global_success == 0 && ( gop->cd->check_success && gop->success ) )
 	{
 		if( debug_level && gop->cd->fdebug == 0 ) tprintf( "PSO Success: Predictions are within the predefined calibration bounds (within position_eval)!\n" );
 		copy_position( pos, &( *pb ).pos_success );
-		( * pb ).success = 1;
+		gop->global_success = 1;
 	}
 	if( debug_level > 2 )
 	{
@@ -475,22 +479,23 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	( *pb ).D = op->pd->nOptParam;
 	if( ( opt_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	if( ( tr_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->ival = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->min = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->max = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->dx = ( float * ) malloc( ( *pb ).D * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->ival = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->min = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->max = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->dx = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	if( ( pb->valSize = ( int * ) malloc( ( *pb ).D * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->objective = ( float * ) malloc( MAXPHI * sizeof( float ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( pb->objective = ( double * ) malloc( MAXPHI * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	if( ( pb->code = ( int * ) malloc( MAXPHI * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	pb->val = float_matrix( ( *pb ).D, MAXVALUES );
+	pb->val = double_matrix( ( *pb ).D, MAXVALUES );
 	set_objfunc( pb, &pb->maxError );
 	for( d = 0; d < ( *pb ).D; d++ )
 		opt_var[d] = op->pd->var[ op->pd->var_index[d] ];
 	Transform( opt_var, op, tr_var );
+	op->cd->fdebug = 10; func_global( tr_var, op, op->od->res ); op->cd->fdebug = 0;
 	if( op->cd->sintrans == 0 )
 		for( d = 0; d < ( *pb ).D; d++ ) // typically used for test problems
 		{
-			( *pb ).ival[d] = ( float ) tr_var[d];
+			( *pb ).ival[d] = tr_var[d];
 			( *pb ).min[d] = op->pd->var_min[op->pd->var_index[d]];
 			( *pb ).max[d] = op->pd->var_max[op->pd->var_index[d]];
 			( *pb ).dx[d] = op->pd->var_dx[op->pd->var_index[d]]; // defines discretization
@@ -499,7 +504,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	else
 		for( d = 0; d < ( *pb ).D; d++ ) // typically used for actual problems
 		{
-			( *pb ).ival[d] = ( float ) tr_var[d];
+			( *pb ).ival[d] = tr_var[d];
 			( *pb ).min[d] = -M_PI / 2;
 			( *pb ).max[d] = M_PI / 2;
 			( *pb ).dx[d] = 0; // defines discretization
@@ -507,7 +512,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 		}
 	if( ( *pb ).nPhi > MAXPHI - 1 )
 	{
-		tprintf( "MADS Quits: Too many functions: %i (max %i) \n", ( *pb ).nPhi, MAXPHI );
+		tprintf( "ERROR: Too many multi-objective functions: %i (max %i) \n", ( *pb ).nPhi, MAXPHI );
 		exit( 1 );
 	}
 	( *pb ).code[0] = -1;
@@ -1357,8 +1362,13 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 	double phi_current_best, min, max, r1, r2;
 	for( n = 0; n < ( *pb ).nPhi; n++ ) phi_weights[n] = 1; // Initials penalties (for multiobjective)
 	nLocalSearchIter = 0; // Prepare local search (for multiobjective)
-	if( gop->cd->check_success ) gop->success = 0;
+	if( gop->cd->check_success ) gop->global_success = gop->success = 0;
 	swarm_init( pb, compare_type, S ); //Initialization of the swarm
+	if( ( gop->cd->check_success && gop->success ) || gop->global_success )
+	{
+		if( debug_level ) tprintf( "Success: Initial model predictions are within the predefined calibration bounds!\n" );
+		return;
+	}
 	phi_lm_init = ( *S ).best.f.f[0]; // Store the first best phi
 	if( lmo_flag )
 	{
@@ -1368,7 +1378,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 			shaman = ( *S ).trib[tr].best;
 			phi_current_best = ( *S ).trib[tr].part[shaman].xBest.f.f[0];
 			if( phi_current_best > max ) max = phi_current_best;
-			else if( phi_current_best < min ) min = phi_current_best;
+			if( phi_current_best < min ) min = phi_current_best;
 		}
 		r1 = ( max - min ) / min;
 		r2 = 1 + ( *pb ).lm_factor / 10;
@@ -1381,7 +1391,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 		else if( debug_level ) tprintf( "Do LM search because OF range of tribes' shamans is sufficient (min %g max %g ratio %g >= %g)!\n", min, max, r1, r2 );
 	}
 	if( debug_level ) swarm_print( S );
-	if( gop->cd->check_success && gop->success )
+	if( ( gop->cd->check_success && gop->success ) || gop->global_success )
 	{
 		if( debug_level ) tprintf( "Success: Initial model predictions are within the predefined calibration bounds!\n" );
 		return;
@@ -1403,7 +1413,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 				tprintf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
 			tprintf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 		}
-		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
+		if( ( gop->cd->check_success && gop->success ) || gop->global_success ) break; // Success: Predictions are within the predefined calibration bounds
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
 		if( debug_level > 2 ) tprintf( "Swarm adapt ...\n" );
 		swarm_adapt( pb, S, compare_type ); // SWARM ADAPT
@@ -1414,7 +1424,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 				tprintf( "T %d OF %g ", tr + 1, ( *S ).trib[tr].part[( *S ).trib[tr].best].xBest.f.f[0] );
 			tprintf( ": Tbest %d OF %g TOF %g\n", ( *S ).tr_best + 1, ( *S ).trib[( *S ).tr_best].part[( *S ).trib[( *S ).tr_best].best].xBest.f.f[0], ( *S ).best.f.f[0] );
 		}
-		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
+		if( ( gop->cd->check_success && gop->success ) || gop->global_success ) break; // Success: Predictions are within the predefined calibration bounds
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
 		if( gop->od->nTObs > 0 && lmo_flag )
 		{
@@ -1429,7 +1439,7 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 			}
 		}
 		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) tprintf( "Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
-		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
+		if( ( gop->cd->check_success && gop->success ) || gop->global_success ) break; // Success: Predictions are within the predefined calibration bounds
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
 		if( debug_level > 2 ) tprintf( "Local search ...\n" );
 		if( multiObj ) archive_local_search( pb ); else swarm_local_search( pb, S ); // LOCAL SEARCH
@@ -1443,11 +1453,11 @@ void pso_solver( struct problem *pb, int compare_type, int run, struct swarm *S 
 		//if( restart ) break; // For future automatic restart
 		if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "Maximum number of evaluations is achieved!\n" ); break; }
 		if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 ) { if( debug_level ) tprintf( "Success: OF is minimized below the cutoff value! (%g<%g)\n", ( *S ).best.f.f[0], ( *pb ).maxError.f[0] ); break; }
-		if( gop->cd->check_success && gop->success ) break; // Success: Predictions are within the predefined calibration bounds
+		if( ( gop->cd->check_success && gop->success ) || gop->global_success ) break; // Success: Predictions are within the predefined calibration bounds
 		iter++;
 		if( debug_level > 2 ) tprintf( "\n" );
 	}
-	if( gop->cd->check_success && gop->success )
+	if( ( gop->cd->check_success && gop->success ) || gop->global_success )
 	{
 		if( debug_level ) tprintf( "PSO Success: Predictions are within the predefined calibration bounds!\n" );
 		if( compare_particles( &( *S ).best.f, &( *pb ).pos_success.f, 0 ) == 1 )
@@ -1707,7 +1717,7 @@ void swarm_print( struct swarm *S )
 	}
 	if( ( *S ).size > 1 ) tprintf( " | %i particles | ", nTotPart );
 	else tprintf( " | %i particle | ", ( *S ).size );
-	if( gop->cd->pdebug ) tprintf( "OF %g E %d (%d) S %d\n", ( *S ).best.f.f[0], eval, gop->cd->neval, gop->success );
+	if( gop->cd->pdebug ) tprintf( "OF %g E %d (%d) S %d\n", ( *S ).best.f.f[0], eval, gop->cd->neval, gop->global_success );
 	if( debug_level > 3 )
 		for( it = 0; it < ( *S ).size; it++ )
 		{
@@ -1904,7 +1914,8 @@ void swarm_local_search( struct problem *pb, struct swarm( *S ) ) // Does not ad
 				mm = ( *S ).trib[tr].best; // Define a simplex
 				for( m = 0; m < ( *pb ).D + 1; m++ )
 				{
-					mm += m; if( mm > ( *S ).trib[tr].size - 1 ) mm = 0;
+					mm += m;
+					if( mm > ( *S ).trib[tr].size - 1 ) mm = 0;
 					simplex[m] = ( *S ).trib[tr].part[mm].x;
 				}
 				//out=aleaInteger(0,1); // TODO TO TRY
@@ -2000,7 +2011,7 @@ void swarm_move( struct problem *pb, struct swarm( *S ), int compare_type, int r
 	informer.xBest.size = 0;
 	modify_weights( ( *pb ).nPhi, run ); // Penalties (global variable phi_weights)
 	for( i = 0; i < ( *pb ).nPhi; i++ )
-		( *S ).fBestPrev.f[i] = ( *S ).best.f.f[i]; // Save the currenr best result of the whole swarm
+		( *S ).fBestPrev.f[i] = ( *S ).best.f.f[i]; // Save the current best result of the whole swarm
 	for( tr = 0; tr < ( *S ).size; tr++ )
 	{
 		if( debug_level > 2 )

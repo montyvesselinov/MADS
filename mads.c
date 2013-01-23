@@ -155,7 +155,7 @@ char *dir_hosts( void *data, char *timedate_stamp );
 int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
-	int i, j, k, ier, status, success, success_all, count,  predict = 0, compare, bad_data = 0;
+	int i, j, k, ier, status, success, success_all, count,  predict = 0, compare, bad_data = 0, neval_total, njac_total;
 	double c, err, phi, *opt_params;
 	struct calc_data cd;
 	struct param_data pd;
@@ -586,13 +586,17 @@ int main( int argn, char *argv[] )
 			tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
 			if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 			else optimize_func = optimize_pso; // Define optimization method: PSO
+			neval_total = njac_total = 0;
 			while( 1 )
 			{
 				tprintf( "\n\nInfo-gap optimization target %g\n", od.obs_target[k] );
 				tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
+				cd.neval = cd.njac = 0;
 				if( cd.calib_type == IGRND ) status = igrnd( &op );
 				else status = optimize_func( &op );
 				if( !status ) break;
+				neval_total += cd.neval;
+				njac_total += cd.njac;
 				tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
 				for( i = 0; i < preds.nTObs; i++ )
 				{
@@ -601,6 +605,7 @@ int main( int argn, char *argv[] )
 					else                           tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
 				}
 				if( cd.debug ) print_results( &op, 1 );
+				print_results( &op, 1 );
 				if( !op.success ) break;
 				od.obs_target[k] += cd.obsstep;
 				if( cd.obsstep > DBL_EPSILON ) // max search
@@ -628,6 +633,10 @@ int main( int argn, char *argv[] )
 					}
 				}
 			}
+			cd.neval = neval_total; // provide the correct number of total evaluations
+			cd.njac = njac_total; // provide the correct number of total evaluations
+			tprintf( "\nTotal number of evaluations = %d\n", neval_total );
+			tprintf( "Total number of jacobians = %d\n", njac_total );
 			tprintf( "\nInfo-gap results for model predictions:\n" );
 			for( i = 0; i < preds.nTObs; i++ )
 			{
@@ -1737,9 +1746,8 @@ int check( struct opt_data *op )
 // Initial guesses -- random
 int igrnd( struct opt_data *op )
 {
-	int i, k, m, q1, q2, npar, status, phi_global, success_global, count, debug_level, solution_found, no_memory = 0;
+	int i, k, m, q1, q2, npar, status, phi_global, success_global, count, debug_level, solution_found, no_memory = 0, neval_total, njac_total;
 	int *eval_success, *eval_total;
-	unsigned long neval_total, njac_total;
 	double c, phi_min, *orig_params, *opt_params,
 		   *opt_params_min, *opt_params_max, *opt_params_avg,
 		   *sel_params_min, *sel_params_max, *sel_params_avg,
@@ -1976,8 +1984,8 @@ int igrnd( struct opt_data *op )
 	free( var_lhs );
 	op->cd->neval = neval_total; // provide the correct number of total evaluations
 	op->cd->njac = njac_total; // provide the correct number of total evaluations
-	tprintf( "\nTotal number of evaluations = %lu\n", neval_total );
-	tprintf( "Total number of jacobians = %lu\n", njac_total );
+	tprintf( "\nTotal number of evaluations = %d\n", neval_total );
+	tprintf( "Total number of jacobians = %d\n", njac_total );
 	if( !solution_found )
 		tprintf( "WARNING: No IGRND solution has been identified matching required criteria!\n" );
 	op->phi = phi_min; // get the best phi
@@ -2042,7 +2050,7 @@ int igrnd( struct opt_data *op )
 			}
 		}
 	}
-	fprintf( out, "Total number of evaluations = %lu\n", neval_total );
+	fprintf( out, "Total number of evaluations = %d\n", neval_total );
 	if( op->cd->nreal > 1 )
 	{
 		if( op->cd->phi_cutoff > DBL_EPSILON ) fprintf( out, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
@@ -2052,7 +2060,7 @@ int igrnd( struct opt_data *op )
 			fprintf( out, "Number of the sequential calibration runs producing acceptable model parameters = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
 	}
 	fprintf( out2, "OF min: %g\n", phi_min );
-	fprintf( out2, "Total number of evaluations: %lu\n", neval_total );
+	fprintf( out2, "Total number of evaluations: %d\n", neval_total );
 	fprintf( out2, "Success rate %g\n", ( double ) success_global / op->cd->nreal );
 	fclose( out ); fclose( out2 );
 	tprintf( "Results are saved in %s.igrnd.results and %s.igrnd-opt=%s_eval=%d_real=%d\n", op->root, op->root, op->cd->opt_method, op->cd->maxeval, op->cd->nreal );
@@ -2072,8 +2080,7 @@ int igrnd( struct opt_data *op )
 // Initial guesses -- distributed to the parameter space
 int igpd( struct opt_data *op )
 {
-	int i, j, k, status, phi_global, success_global, count, debug_level, no_memory = 0;
-	unsigned long neval_total;
+	int i, j, k, status, phi_global, success_global, count, debug_level, no_memory = 0, neval_total, njac_total;
 	double phi_min, *orig_params, *opt_params;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
@@ -2115,10 +2122,10 @@ int igpd( struct opt_data *op )
 			orig_params[i] = op->pd->var_min[i];
 	phi_global = success_global = 0;
 	phi_min = HUGE_VAL;
-	count = neval_total = 0;
+	count = neval_total = njac_total = 0;
 	do
 	{
-		op->cd->neval = 0;
+		op->cd->neval = op->cd->njac = 0;
 		count++;
 		if( op->cd->ireal == 0 || op->cd->ireal == count )
 		{
@@ -2148,6 +2155,7 @@ int igpd( struct opt_data *op )
 				if( op->cd->debug ) op->cd->fdebug = debug_level;
 			}
 			neval_total += op->cd->neval;
+			njac_total += op->cd->njac;
 			if( op->phi < op->cd->phi_cutoff ) phi_global++;
 			if( op->cd->debug )
 			{
@@ -2193,7 +2201,9 @@ int igpd( struct opt_data *op )
 	while( 1 );
 	op->counter = 0;
 	op->cd->neval = neval_total; // provide the correct number of total evaluations
-	tprintf( "\nTotal number of evaluations = %lu\n", neval_total );
+	op->cd->njac = njac_total; // provide the correct number of total evaluations
+	tprintf( "\nTotal number of evaluations = %d\n", neval_total );
+	tprintf( "Total number of jacobians = %d\n", njac_total );
 	op->phi = phi_min; // get the best phi
 	for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
 	for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
@@ -2215,14 +2225,14 @@ int igpd( struct opt_data *op )
 			else tprintf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
 		}
 	}
-	fprintf( out, "Number of evaluations = %lu\n", neval_total );
+	fprintf( out, "Number of evaluations = %d\n", neval_total );
 	if( op->cd->nreal > 1 )
 	{
 		fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
 		if( op->cd->phi_cutoff > DBL_EPSILON ) fprintf( out, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
 	}
 	fprintf( out2, "OF min %g\n", phi_min );
-	fprintf( out2, "eval %lu\n", neval_total );
+	fprintf( out2, "eval %d\n", neval_total );
 	fprintf( out2, "success %d\n", success_global );
 	fclose( out ); fclose( out2 );
 	tprintf( "Results are saved in %s.igpd.results\n", op->root );
@@ -2234,8 +2244,7 @@ int igpd( struct opt_data *op )
 // Partial parameter space discretizations
 int ppsd( struct opt_data *op )
 {
-	int i, j, k, status, phi_global, success_global, count, debug_level, no_memory = 0;
-	unsigned long neval_total;
+	int i, j, k, status, phi_global, success_global, count, debug_level, no_memory = 0, neval_total, njac_total;
 	double phi_min, *orig_params;
 	int *orig_opt;
 	char filename[255], buf[255];
@@ -2273,7 +2282,7 @@ int ppsd( struct opt_data *op )
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 ) orig_params[i] = op->cd->var[i] = op->pd->var_min[i];
 	phi_min = HUGE_VAL;
-	count = neval_total = phi_global = success_global = 0;
+	count = neval_total = njac_total = phi_global = success_global = 0;
 	if( op->cd->pargen )
 	{
 		orig_opt = ( int * ) malloc( op->pd->nParam * sizeof( int ) );
@@ -2285,7 +2294,7 @@ int ppsd( struct opt_data *op )
 	}
 	do
 	{
-		op->cd->neval = 0;
+		op->cd->neval = op->cd->njac = 0;
 		count++;
 		if( op->cd->ireal == 0 || op->cd->ireal == count )
 		{
@@ -2343,6 +2352,7 @@ int ppsd( struct opt_data *op )
 			}
 			if( op->phi < op->cd->phi_cutoff ) phi_global++;
 			neval_total += op->cd->neval;
+			njac_total += op->cd->njac;
 			if( op->cd->debug > 2 )
 			{
 				tprintf( "\n" );
@@ -2403,7 +2413,9 @@ int ppsd( struct opt_data *op )
 		free( orig_opt );
 	}
 	op->cd->neval = neval_total; // provide the correct number of total evaluations
-	tprintf( "\nTotal number of evaluations = %lu\n", neval_total );
+	op->cd->njac = njac_total; // provide the correct number of total evaluations
+	tprintf( "\nTotal number of evaluations = %d\n", neval_total );
+	tprintf( "Total number of jacobians = %d\n", njac_total );
 	if( success_global == 0 ) tprintf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", op->cd->nreal );
 	else tprintf( "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
 	if( op->cd->phi_cutoff > DBL_EPSILON )

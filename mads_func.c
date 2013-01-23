@@ -164,7 +164,7 @@ int func_extrn( double *x, void *data, double *f )
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
-		w = p->od->obs_weight[i];
+		w = fabs( p->od->obs_weight[i] );
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
@@ -176,7 +176,7 @@ int func_extrn( double *x, void *data, double *f )
 					err = sqrt( fabs( err ) );
 					if( c < t ) err *= -1;
 				}
-				if( c < p->od->obs_min[i] ) err += c - p->od->obs_min[i];
+				if( c < p->od->obs_min[i] ) err += p->od->obs_min[i] - c;
 				else if( c > p->od->obs_max[i] ) err += c - p->od->obs_max[i];
 			}
 		}
@@ -427,7 +427,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
-		w = p->od->obs_weight[i];
+		w = fabs( p->od->obs_weight[i] );
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
@@ -439,7 +439,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 					err = sqrt( fabs( err ) );
 					if( c < t ) err *= -1;
 				}
-				if( c < p->od->obs_min[i] ) err += c - p->od->obs_min[i];
+				if( c < p->od->obs_min[i] ) err += p->od->obs_min[i] - c;
 				else if( c > p->od->obs_max[i] ) err += c - p->od->obs_max[i];
 			}
 		}
@@ -540,6 +540,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				case SSR: tprintf( "sum of squared residuals" ); break;
 				case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
 				case SSDA: tprintf( "sum of squared discrepancies and absolute residuals" ); break;
+				case SSDX: tprintf( "sum of squared discrepancies with increased to get within the bounds" ); break;
 				case SSD0: tprintf( "sum of squared discrepancies" ); break;
 				default: tprintf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 			}
@@ -682,7 +683,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			}
 			p->od->obs_current[k] = c;
 			t = p->od->obs_target[k];
-			w = p->od->obs_weight[k];
+			w = fabs( p->od->obs_weight[k] );
 			min = p->od->obs_min[k];
 			max = p->od->obs_max[k];
 			if( p->od->obs_log[k] == 0 )
@@ -696,8 +697,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 						if( c < t ) err *= -1;
 					}
 					else err = 0; // SSD0 & SSDX
-					if( p->cd->objfunc_type == SSDX ) { dx = ( max - min ) / 10; min += dx; max -= dx; }
-					if( c < min ) err += c - min;
+					if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; dx /= 10; min += dx; max -= dx; }
+					if( c < min ) err += min - c;
 					else if( c > max ) err += c - max;
 					if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[k]; max = p->od->obs_max[k]; }
 				}

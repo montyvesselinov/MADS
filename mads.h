@@ -51,6 +51,7 @@ struct opt_data // TODO class MADS (in C++)
 {
 	double phi; // current objective function (can be applied as termination criteria)
 	int success; // success (can be applied as termination criteria)
+	int global_success; // global success for TRIBES and SQUADS (can be applied as termination criteria)
 	int counter; // current run counter (Monte Carlo / paranoid / retry / igrd / igpd ... )
 	char *root; // problem name (filename root)
 	char *label; // problem label (for output file generation)
