@@ -3373,7 +3373,7 @@ void print_results( struct opt_data *op, int verbosity )
 				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
-				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON  ) success = 0;
+				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) success = 0;
 				else success = 1;
 				if( predict < 50 || ( j < 20 || j > predict - 20 ) )
 					tprintf( "%-20s:%12g - %12g = %12g success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, success, min, max );
@@ -3405,7 +3405,7 @@ void print_results( struct opt_data *op, int verbosity )
 						// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
 						if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
 					}
-					if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON  ) success = 0;
+					if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) success = 0;
 					else success = 1;
 					tprintf( "%-10s(%5g):%12g - %12g = %12g success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, success, min, max );
 				}
