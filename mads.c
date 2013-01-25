@@ -193,7 +193,7 @@ int main( int argn, char *argv[] )
 	cd.pderiv = cd.oderiv = -1; // internal flags; do not compute parameter and observation derivatives
 	cd.c_background = 0;
 	op.phi = HUGE_VAL;
-	op.success = 0;
+	op.success = op.global_success = 0;
 	op.f_ofe = NULL;
 	printf( "MADS: Model Analyses & Decision Support (v1.1) 2012\n" );
 	printf( "---------------------------------------------------\n" );
@@ -569,9 +569,9 @@ int main( int argn, char *argv[] )
 	{
 		if( fabs( cd.obsstep ) > DBL_EPSILON )
 		{
-			tprintf( "\n\nInfo-gap Observation step %g Observation domain %g\n", cd.obsstep, cd.obsdomain );
-			if( cd.obsstep > DBL_EPSILON ) tprintf( "Info-gap max search\n" );
-			else tprintf( "Info-gap min search\n" );
+			tprintf( "\n\nInfo-gap analysis: observation step %g observation domain %g\n Info-gap search: ", cd.obsstep, cd.obsdomain );
+			if( cd.obsstep > DBL_EPSILON ) tprintf( "max\n" );
+			else tprintf( "min\n" );
 			for( i = 0; i < preds.nTObs; i++ )
 			{
 				if( cd.obsstep > DBL_EPSILON ) preds.obs_best[i] = -HUGE_VAL; // max search
@@ -580,17 +580,17 @@ int main( int argn, char *argv[] )
 				od.obs_weight[j] *= -1;
 			}
 			k = preds.obs_index[0]; // first prediction is applied only
+			tprintf( "Info-gap observation:\n" );
+			tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
 			if( cd.obsstep > DBL_EPSILON ) { od.obs_target[k] = od.obs_min[k]; od.obs_min[k] -= cd.obsstep / 2; } // obsstep is negative
 			else { od.obs_target[k] = od.obs_max[k]; od.obs_max[k] -= cd.obsstep / 2; } // obsstep is negative
-			tprintf( "Info-gap Observation:\n" );
-			tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
 			if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 			else optimize_func = optimize_pso; // Define optimization method: PSO
-			neval_total = njac_total = 0;
+			neval_total = njac_total = count = 0;
 			while( 1 )
 			{
-				tprintf( "\n\nInfo-gap optimization target %g\n", od.obs_target[k] );
-				tprintf( "%-20s: target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
+				tprintf( "\n\nInfo-gap analysis #%d\n", ++count );
+				tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", od.obs_id[k], od.obs_target[k], od.obs_weight[k], od.obs_min[k], od.obs_max[k] );
 				cd.neval = cd.njac = 0;
 				if( cd.calib_type == IGRND ) status = igrnd( &op );
 				else status = optimize_func( &op );
@@ -605,7 +605,6 @@ int main( int argn, char *argv[] )
 					else                           tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", od.obs_id[j], preds.obs_best[i], cd.obsstep, cd.obsdomain );
 				}
 				if( cd.debug ) print_results( &op, 1 );
-				print_results( &op, 1 );
 				if( !op.success ) break;
 				od.obs_target[k] += cd.obsstep;
 				if( cd.obsstep > DBL_EPSILON ) // max search
@@ -613,24 +612,22 @@ int main( int argn, char *argv[] )
 					if( od.obs_target[k] > od.obs_max[k] ) break;
 					if( fabs( preds.obs_best[0] - od.obs_max[k] ) < DBL_EPSILON ) break;
 					od.obs_min[k] += cd.obsstep;
-					j = ( double )( preds.obs_best[0] - od.obs_target[k] ) / cd.obsstep;
-					if( j > 1 )
-					{
-						od.obs_target[k] += cd.obsstep * j;
-						od.obs_min[k] += cd.obsstep * j;
-					}
+					j = ( double )( preds.obs_best[0] - od.obs_min[k] + cd.obsstep / 2 ) / cd.obsstep + 1;
+					od.obs_target[k] += cd.obsstep * j;
+					od.obs_min[k] += cd.obsstep * j;
+					if( od.obs_target[k] > od.obs_max[k] ) od.obs_target[k] = od.obs_max[k];
+					if( od.obs_min[k] > od.obs_max[k] ) od.obs_min[k] = od.obs_max[k];
 				}
 				else // min search
 				{
 					if( od.obs_target[k] < od.obs_min[k] ) break;
 					if( fabs( preds.obs_best[0] - od.obs_min[k] ) < DBL_EPSILON ) break;
 					od.obs_max[k] += cd.obsstep;
-					j = ( double )( od.obs_target[k] - preds.obs_best[0] ) / -cd.obsstep; // obsstep is negative
-					if( j > 1 )
-					{
-						od.obs_target[k] += cd.obsstep * j;
-						od.obs_max[k] += cd.obsstep * j;
-					}
+					j = ( double )( od.obs_max[k] - preds.obs_best[0] - cd.obsstep / 2 ) / -cd.obsstep + 1; // obsstep is negative
+					od.obs_target[k] += cd.obsstep * j;
+					od.obs_max[k] += cd.obsstep * j;
+					if( od.obs_target[k] < od.obs_min[k] ) od.obs_target[k] = od.obs_min[k];
+					if( od.obs_max[k] < od.obs_min[k] ) od.obs_max[k] = od.obs_min[k];
 				}
 			}
 			cd.neval = neval_total; // provide the correct number of total evaluations
@@ -1058,8 +1055,8 @@ int optimize_lm( struct opt_data *op )
 	char buf[80];
 	if( op->cd->maxeval <= op->cd->neval )
 	{
-		 tprintf( "WARNING: LM optimization cannot be performed! Number of the maximum evaluations has been exceeded (%d<%d)\n", op->cd->maxeval, op->cd->neval );
-		 return( 1 );
+		tprintf( "WARNING: LM optimization cannot be performed! Number of the maximum evaluations has been exceeded (%d<%d)\n", op->cd->maxeval, op->cd->neval );
+		return( 1 );
 	}
 	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->lmstandalone;
@@ -1088,11 +1085,11 @@ int optimize_lm( struct opt_data *op )
 	if( op->cd->ldebug && standalone ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
-//	for( i = 0; i < op->pd->nOptParam; i++ )
-//		tprintf( "lmi %g\n", opt_params[i] );
+	//	for( i = 0; i < op->pd->nOptParam; i++ )
+	//		tprintf( "lmi %g\n", opt_params[i] );
 	if( !op->cd->squads ) Transform( opt_params, op, opt_params ); // No need to transform if part of SQUADS runs
-//	for( i = 0; i < op->pd->nOptParam; i++ )
-//		tprintf( "lmi %g\n", opt_params[i] );
+	//	for( i = 0; i < op->pd->nOptParam; i++ )
+	//		tprintf( "lmi %g\n", opt_params[i] );
 	if( op->cd->paranoid )
 	{
 		tprintf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " );
@@ -1251,12 +1248,12 @@ int optimize_lm( struct opt_data *op )
 				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nTObs, maxiter_levmar, opts, info, work, covar, op );
 				if( info[6] == 4 || info[6] == 5 )
 				{
-					if( op->cd->maxeval < op->cd->neval )
+					if( op->cd->maxeval > op->cd->neval )
 					{
 						opts[0] *= 10;
-						tprintf( "\nWARNING: LM optimization rerun with larger initial lambda (%g)\n", opts[0] );
+						tprintf( "\n\nIMPORTANT: LM optimization rerun with larger initial lambda (%g)\n\n", opts[0] );
 					}
-					else tprintf( "\nWARNING: LM optimization may benefit from rerun with larger initial lambda (%g)\n", opts[0] );
+					else tprintf( "\n\nWARNING: LM optimization may benefit from rerun with larger initial lambda (%g)\n\n", opts[0] );
 				}
 				else break;
 			}

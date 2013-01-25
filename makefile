@@ -1,6 +1,6 @@
 PROG = mads
 CMP = ./compare-results
-# CMP = cp -f
+CMP = cp -f
 # CC = g++ 
 ifeq ($(OSTYPE),linux) # linux
         DIRS = -I/home/monty/local/include -L/home/monty/local/lib

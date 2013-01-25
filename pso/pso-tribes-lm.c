@@ -106,7 +106,7 @@ void Transform( double *x, void *data, double *f );
 void DeTransform( double *x, void *data, double *f );
 int get_seed( );
 int optimize_lm( struct opt_data *op );
-float **float_matrix( int maxCols, int maxRows );
+double **double_matrix( int maxCols, int maxRows );
 void free_matrix( void **matrix, int maxCols );
 //----------------------------------------- Global variables
 int lmo_count;
@@ -491,7 +491,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	for( d = 0; d < ( *pb ).D; d++ )
 		opt_var[d] = op->pd->var[ op->pd->var_index[d] ];
 	Transform( opt_var, op, tr_var );
-	op->cd->fdebug = 10; func_global( tr_var, op, op->od->res ); op->cd->fdebug = 0;
+	// op->cd->fdebug = 10; func_global( tr_var, op, op->od->res ); op->cd->fdebug = 0;
 	if( op->cd->sintrans == 0 )
 		for( d = 0; d < ( *pb ).D; d++ ) // typically used for test problems
 		{
@@ -1520,7 +1520,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 			case 0: // Bad tribe.
 				/* The idea is to increase diversity. This is done by adding sometimes a completely new particle
 				and by disturbing another one a bit, typically along just one dimension. */
-				disturbPart = ( double ) random_double( 0, 1 ) < ( ( double ) -1 / ( *S ).trib[tr].size + 1 );
+				disturbPart = ( double ) random_double( 0, 1 ) < ( ( double ) - 1 / ( *S ).trib[tr].size + 1 );
 				if( disturbPart )
 					if( ( *S ).trib[tr].size > 1 )
 					{
@@ -1717,7 +1717,7 @@ void swarm_print( struct swarm *S )
 	}
 	if( ( *S ).size > 1 ) tprintf( " | %i particles | ", nTotPart );
 	else tprintf( " | %i particle | ", ( *S ).size );
-	if( gop->cd->pdebug ) tprintf( "OF %g E %d (%d) S %d\n", ( *S ).best.f.f[0], eval, gop->cd->neval, gop->global_success );
+	if( gop->cd->pdebug ) tprintf( "OF %g E %d S %d\n", ( *S ).best.f.f[0], eval, gop->global_success );
 	if( debug_level > 3 )
 		for( it = 0; it < ( *S ).size; it++ )
 		{
@@ -1793,7 +1793,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			lmo_count++;
 			phi_current_best = ( *S ).trib[tr].part[shaman].xBest.f.f[0];
 			position_lm( gop, pb, &( *S ).trib[tr].part[shaman].xBest );
-			if( debug_level ) tprintf( " OF %g -> %g E %d", phi_current_best, ( *S ).trib[tr].part[shaman].xBest.f.f[0], eval );
+			if( debug_level ) tprintf( " OF %g -> %g E %d ", phi_current_best, ( *S ).trib[tr].part[shaman].xBest.f.f[0], eval );
 			if( debug_level > 1 ) { tprintf( "new " ); position_print( &( *S ).trib[tr].part[shaman].xBest ); }
 			copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *S ).trib[tr].part[shaman].x );
 			if( gop->cd->check_success && gop->success )
@@ -1801,6 +1801,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 				if( debug_level ) tprintf( "LM Success: Predictions are within the predefined calibration bounds!\n" );
 				copy_position( &( *S ).trib[tr].part[shaman].xBest, &( *pb ).pos_success );
 				gop->phi = ( *pb ).pos_success.f.f[0];
+				gop->global_success = 1;
 				break;
 			}
 //			if( !multiObj && compare_particles( &( *S ).best.f, &( *pb ).maxError, 3 ) == 1 )
@@ -1821,7 +1822,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			if( ( *S ).trib[tr].part[shaman].xBest.f.f[0] > phi_current_best / r1 )
 			{
 				count_bad_tribes++;
-				if( debug_level ) tprintf( " Bad shaman (%g > %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
+				if( debug_level ) tprintf( "Bad shaman (%g > %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
 				// ( *S ).trib[tr].status = -1; // Bad tribe IF LABELED BAD TRIBE PERFORMANCE DIMINISHES
 				particle_init( pb, 6, &( *S ).best, &( *S ).trib[tr].part[( *S ).trib[tr].best].xBest, S, &( *S ).trib[tr].part[shaman] ); // reset shaman based on current shamans
 				if( debug_level > 1 ) position_print( &( *S ).trib[tr].part[shaman].x );
@@ -1841,7 +1842,7 @@ void swarm_lm( struct problem *pb, struct swarm( *S ) )
 			else
 			{
 				count_not_good_tribes++;
-				if( debug_level ) tprintf( " Good shaman (%g <= %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
+				if( debug_level ) tprintf( "Good shaman (%g <= %g / %g)!\n", ( *S ).trib[tr].part[shaman].xBest.f.f[0], phi_current_best, r1 );
 			}
 			if( eval >= ( *pb ).maxEval ) { if( debug_level ) tprintf( "LM optimization cannot be performed; the maximum number of evaluations is achieved!\n" ); return; }
 		}

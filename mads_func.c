@@ -65,7 +65,7 @@ int func_extrn( double *x, void *data, double *f )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000];
-	double c, t, w, err, phi = 0.0;
+	double c, t, w, min, max, err, phi = 0.0;
 	int i, k, success, success_all = 1, bad_data = 0;
 	if( p->cd->num_proc > 1 ) // Parallel execution of a serial job to archive all the intermediate results
 	{
@@ -164,7 +164,9 @@ int func_extrn( double *x, void *data, double *f )
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
-		w = fabs( p->od->obs_weight[i] );
+		w = p->od->obs_weight[i];
+		min = p->od->obs_min[i];
+		max = p->od->obs_max[i];
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
@@ -195,13 +197,13 @@ int func_extrn( double *x, void *data, double *f )
 		}
 		else // if( p->cd->obsrange )
 		{
-			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
+			if( min - c > DBL_EPSILON || c - max > DBL_EPSILON ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
 		{
 			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
-				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
+				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, min, max );
 			if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
@@ -387,7 +389,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
-	double c, t, w, err, phi = 0.0;
+	double c, t, w, min, max, err, phi = 0.0;
 	int i, success, success_all = 1, bad_data;
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
@@ -427,7 +429,9 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	{
 		c = p->od->obs_current[i];
 		t = p->od->obs_target[i];
-		w = fabs( p->od->obs_weight[i] );
+		w = p->od->obs_weight[i];
+		min = p->od->obs_min[i];
+		max = p->od->obs_max[i];
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
@@ -458,13 +462,13 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		else // if( p->cd->obsrange )
 		{
-			if( ( c < p->od->obs_min[i] || c > p->od->obs_max[i] ) ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
+			if( min - c > DBL_EPSILON || c - max > DBL_EPSILON ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
 		{
 			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
-				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, p->od->obs_min[i], p->od->obs_max[i] );
+				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, min, max );
 			if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
@@ -683,7 +687,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			}
 			p->od->obs_current[k] = c;
 			t = p->od->obs_target[k];
-			w = fabs( p->od->obs_weight[k] );
+			w = p->od->obs_weight[k];
 			min = p->od->obs_min[k];
 			max = p->od->obs_max[k];
 			if( p->od->obs_log[k] == 0 )
@@ -697,7 +701,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 						if( c < t ) err *= -1;
 					}
 					else err = 0; // SSD0 & SSDX
-					if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; dx /= 10; min += dx; max -= dx; }
+					if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
 					if( c < min ) err += min - c;
 					else if( c > max ) err += c - max;
 					if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[k]; max = p->od->obs_max[k]; }
@@ -718,7 +722,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			}
 			else // if( p->cd->obsrange )
 			{
-				if( ( c < min || c > max ) ) { success = success_all = 0; } // weight should be > DBL_EPSILON by default; if( w > DBL_EPSILON ) is not needed
+				if( min - c > DBL_EPSILON || c - max > DBL_EPSILON ) { success = success_all = 0; } // weight should be > DBL_EPSILON by default; if( w > DBL_EPSILON ) is not needed
 				else success = 1;
 			}
 			if( p->cd->fdebug >= 2 )
