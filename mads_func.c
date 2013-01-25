@@ -65,7 +65,7 @@ int func_extrn( double *x, void *data, double *f )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000];
-	double c, t, w, min, max, err, phi = 0.0;
+	double c, t, w, min, max, dx, err, phi = 0.0;
 	int i, k, success, success_all = 1, bad_data = 0;
 	if( p->cd->num_proc > 1 ) // Parallel execution of a serial job to archive all the intermediate results
 	{
@@ -119,6 +119,7 @@ int func_extrn( double *x, void *data, double *f )
 			case SSR: tprintf( "sum of squared residuals" ); break;
 			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
 			case SSDA: tprintf( "sum of squared discrepancies and absolute residuals" ); break;
+			case SSDX: tprintf( "sum of squared discrepancies with increased to get within the bounds" ); break;
 			case SSD0: tprintf( "sum of squared discrepancies" ); break;
 			default: tprintf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 		}
@@ -170,23 +171,26 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
-			if( p->cd->objfunc_type != SSR )
-			{
-				if( p->cd->objfunc_type == SSD0 ) err = 0;
-				else if( p->cd->objfunc_type == SSDA )
-				{
-					err = sqrt( fabs( err ) );
-					if( c < t ) err *= -1;
-				}
-				if( c < p->od->obs_min[i] ) err += p->od->obs_min[i] - c;
-				else if( c > p->od->obs_max[i] ) err += c - p->od->obs_max[i];
-			}
 		}
 		else
 		{
 			if( c < DBL_EPSILON ) c = DBL_EPSILON;
 			if( t < DBL_EPSILON ) t = DBL_EPSILON;
 			err = log10( c ) - log10( t );
+		}
+		if( p->cd->objfunc_type != SSR )
+		{
+			if( p->cd->objfunc_type == SSDA )
+			{
+				err = sqrt( fabs( err ) );
+				if( c < t ) err *= -1;
+			}
+			else err = 0; // SSD0 & SSDX
+			if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
+			if( c < min ) err += min - c;
+			else if( c > max ) err += c - max;
+			// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
+			if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[i]; max = p->od->obs_max[i]; }
 		}
 		f[i] = err * w;
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
@@ -269,6 +273,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 			case SSR: tprintf( "sum of squared residuals" ); break;
 			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
 			case SSDA: tprintf( "sum of squared discrepancies and absolute residuals" ); break;
+			case SSDX: tprintf( "sum of squared discrepancies with increased to get within the bounds" ); break;
 			case SSD0: tprintf( "sum of squared discrepancies" ); break;
 			default: tprintf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
 		}
@@ -389,7 +394,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
-	double c, t, w, min, max, err, phi = 0.0;
+	double c, t, w, min, max, dx, err, phi = 0.0;
 	int i, success, success_all = 1, bad_data;
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
@@ -435,23 +440,26 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		if( p->od->obs_log[i] == 0 )
 		{
 			err = c - t;
-			if( p->cd->objfunc_type != SSR )
-			{
-				if( p->cd->objfunc_type == SSD0 ) err = 0;
-				else if( p->cd->objfunc_type == SSDA )
-				{
-					err = sqrt( fabs( err ) );
-					if( c < t ) err *= -1;
-				}
-				if( c < p->od->obs_min[i] ) err += p->od->obs_min[i] - c;
-				else if( c > p->od->obs_max[i] ) err += c - p->od->obs_max[i];
-			}
 		}
 		else
 		{
 			if( c < DBL_EPSILON ) c = DBL_EPSILON;
 			if( t < DBL_EPSILON ) t = DBL_EPSILON;
 			err = log10( c ) - log10( t );
+		}
+		if( p->cd->objfunc_type != SSR )
+		{
+			if( p->cd->objfunc_type == SSDA )
+			{
+				err = sqrt( fabs( err ) );
+				if( c < t ) err *= -1;
+			}
+			else err = 0; // SSD0 & SSDX
+			if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
+			if( c < min ) err += min - c;
+			else if( c > max ) err += c - max;
+			// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
+			if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[i]; max = p->od->obs_max[i]; }
 		}
 		f[i] = err * w;
 		if( p->cd->compute_phi ) phi += f[i] * f[i];
@@ -693,26 +701,26 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( p->od->obs_log[k] == 0 )
 			{
 				err = c - t;
-				if( p->cd->objfunc_type != SSR )
-				{
-					if( p->cd->objfunc_type == SSDA )
-					{
-						err = sqrt( fabs( err ) );
-						if( c < t ) err *= -1;
-					}
-					else err = 0; // SSD0 & SSDX
-					if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-					if( c < min ) err += min - c;
-					else if( c > max ) err += c - max;
-					// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
-					if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[k]; max = p->od->obs_max[k]; }
-				}
 			}
 			else
 			{
 				if( c < DBL_EPSILON ) c = DBL_EPSILON;
 				if( t < DBL_EPSILON ) t = DBL_EPSILON;
 				err = log10( c ) - log10( t );
+			}
+			if( p->cd->objfunc_type != SSR )
+			{
+				if( p->cd->objfunc_type == SSDA )
+				{
+					err = sqrt( fabs( err ) );
+					if( c < t ) err *= -1;
+				}
+				else err = 0; // SSD0 & SSDX
+				if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
+				if( c < min ) err += min - c;
+				else if( c > max ) err += c - max;
+				// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
+				if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[k]; max = p->od->obs_max[k]; }
 			}
 			f[k] = err * w;
 			if( p->cd->compute_phi ) phi += f[k] * f[k];

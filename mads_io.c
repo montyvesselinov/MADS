@@ -597,7 +597,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					tprintf( "Parameter %s: %g min %g max %g\n", pd->var_id[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
 					bad_data = 1;
 				}
-				if( pd->var_max[i] <= pd->var_min[i] )
+				if( pd->var_max[i] < pd->var_min[i] )
 				{
 					tprintf( "ERROR: Parameter min/max range is not correctly specified! " );
 					tprintf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );

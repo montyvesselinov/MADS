@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -47,7 +48,7 @@ void tprintf( char const *fmt, ... );
 FILE *mads_output;
 int quiet;
 
-#define COMPARE_EPSILON sqrt( sqrt( FLT_EPSILON ) )
+#define COMPARE_EPSILON pow( FLT_EPSILON, (double) 1/2 ) // EPSILON FOR BOUND COMPARISON
 
 struct opt_data // TODO class MADS (in C++)
 {

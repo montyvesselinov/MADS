@@ -911,8 +911,8 @@ int main( int argn, char *argv[] )
 				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				compare = 1;
 				c = od.obs_current[i];
-				// err = od.obs_target[i] - c;
-				err = od.res[i];
+				err = od.obs_target[i] - c;
+				// err = od.res[i];
 				min = od.obs_min[i];
 				max = od.obs_max[i];
 				if( cd.objfunc_type != SSR )
@@ -3283,8 +3283,8 @@ void print_results( struct opt_data *op, int verbosity )
 			{
 				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nCObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
-				// err = op->od->obs_target[i] - c;
-				err = op->od->res[i];
+				err = op->od->obs_target[i] - c;
+				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
 				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
@@ -3297,8 +3297,8 @@ void print_results( struct opt_data *op, int verbosity )
 			for( i = op->od->nObs; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				// err = op->od->obs_target[i] - c;
-				err = op->od->res[i];
+				err = op->od->obs_target[i] - c;
+				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
 				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
@@ -3369,8 +3369,8 @@ void print_results( struct opt_data *op, int verbosity )
 			{
 				if( op->od->obs_weight[i] != 0 ) { if( predict > 50 && j == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
-				// err = op->od->obs_target[i] - c;
-				err = op->od->res[i];
+				err = op->od->obs_target[i] - c;
+				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
 				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON  ) success = 0;
@@ -3472,8 +3472,8 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 			for( i = 0; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				// err = op->od->obs_target[i] - c;
-				err = op->od->res[i];
+				err = op->od->obs_target[i] - c;
+				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
 				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { if( op->od->obs_weight[i] != 0 ) success_all = 0; success = 0; }
