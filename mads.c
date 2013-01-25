@@ -156,7 +156,7 @@ int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
 	int i, j, k, ier, status, success, success_all, count,  predict = 0, compare, bad_data = 0, neval_total, njac_total;
-	double c, err, phi, *opt_params;
+	double c, err, min, max, dx, phi, *opt_params;
 	struct calc_data cd;
 	struct param_data pd;
 	struct regul_data rd;
@@ -622,7 +622,7 @@ int main( int argn, char *argv[] )
 				{
 					if( od.obs_target[k] < od.obs_min[k] ) break;
 					if( fabs( preds.obs_best[0] - od.obs_min[k] ) < DBL_EPSILON ) break;
-					od.obs_max[k] += cd.obsstep;
+					od.obs_max[k] += cd.obsstep; // obsstep is negative
 					j = ( double )( od.obs_max[k] - preds.obs_best[0] - cd.obsstep / 2 ) / -cd.obsstep + 1; // obsstep is negative
 					od.obs_target[k] += cd.obsstep * j;
 					od.obs_max[k] += cd.obsstep * j;
@@ -911,13 +911,29 @@ int main( int argn, char *argv[] )
 				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				compare = 1;
 				c = od.obs_current[i];
-				err = od.obs_target[i] - c;
+				// err = od.obs_target[i] - c;
+				err = od.res[i];
+				min = od.obs_min[i];
+				max = od.obs_max[i];
+				if( cd.objfunc_type != SSR )
+				{
+					if( cd.objfunc_type == SSDA )
+					{
+						err = sqrt( fabs( err ) );
+						if( c < od.obs_target[i] ) err *= -1;
+					}
+					else err = 0; // SSD0 & SSDX
+					if( cd.objfunc_type == SSDX ) { dx = max - min; if( cd.obsdomain > DBL_EPSILON && cd.obsdomain < dx ) dx = cd.obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
+					if( c < min ) err += min - c;
+					else if( c > max ) err += c - max;
+					if( cd.objfunc_type == SSDX ) { min = od.obs_min[i]; max = od.obs_max[i]; }
+				}
 				phi += ( err * err ) * od.obs_weight[i];
-				if( ( c < od.obs_min[i] || c > od.obs_max[i] ) && ( od.obs_weight[i] > 0.0 ) ) { success_all = 0; success = 0; }
+				if( ( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) && ( od.obs_weight[i] > 0.0 ) ) { success_all = 0; success = 0; }
 				else success = 1;
-				if( od.nTObs < 50 || ( i < 20 || i > od.nTObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
+				if( od.nTObs < 50 || ( i < 20 || i > od.nTObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, min, max );
 				if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" );
-				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, od.obs_min[i], od.obs_max[i] );
+				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, min, max );
 				else od.obs_target[i] = c; // Save computed values as calibration targets
 			}
 		}
@@ -929,14 +945,29 @@ int main( int argn, char *argv[] )
 					compare = 1;
 					c = func_solver( wd.x[i], wd.y[i], wd.z1[i], wd.z2[i], wd.obs_time[i][j], &cd );
 					err = wd.obs_target[i][j] - c;
+					min = wd.obs_min[i][j];
+					max = wd.obs_max[i][j];
+					if( cd.objfunc_type != SSR )
+					{
+						if( cd.objfunc_type == SSDA )
+						{
+							err = sqrt( fabs( err ) );
+							if( c < wd.obs_target[i][j] ) err *= -1;
+						}
+						else err = 0; // SSD0 & SSDX
+						if( cd.objfunc_type == SSDX ) { dx = max - min; if( cd.obsdomain > DBL_EPSILON && cd.obsdomain < dx ) dx = cd.obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
+						if( c < min ) err += min - c;
+						else if( c > max ) err += c - max;
+						if( cd.objfunc_type == SSDX ) { min = od.obs_min[i]; max = od.obs_max[i]; }
+					}
 					if( cd.problem_type != CALIBRATE ) phi += ( err * err ) * wd.obs_weight[i][j];
 					else phi += ( err * err );
-					if( ( c < wd.obs_min[i][j] || c > wd.obs_max[i][j] ) && ( wd.obs_weight[i][j] > 0.0 ) ) { success_all = 0; success = 0; }
+					if( ( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) && ( wd.obs_weight[i][j] > 0.0 ) ) { success_all = 0; success = 0; }
 					else success = 1;
 					if( cd.problem_type != CALIBRATE )
-						tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success, wd.obs_min[i][j], wd.obs_max[i][j] );
+						tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success, min, max );
 					else
-						tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err, success, wd.obs_min[i][j], wd.obs_max[i][j] );
+						tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err, success, min, max );
 					if( cd.problem_type != CREATE ) fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success );
 					else wd.obs_target[i][j] = c; // Save computed values as calibration targets
 					if( cd.problem_type == FORWARD ) fprintf( out2, "%s(%g) %g\n", wd.id[i], wd.obs_time[i][j], c ); // Forward run
@@ -3222,7 +3253,7 @@ void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data
 void print_results( struct opt_data *op, int verbosity )
 {
 	int i, j, k, success, success_all, predict = 0;
-	double c, err;
+	double c, err, min, max, dx;
 	success_all = 1;
 	if( verbosity > 0 ) tprintf( "Optimized model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
@@ -3252,21 +3283,27 @@ void print_results( struct opt_data *op, int verbosity )
 			{
 				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nCObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
-				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
+				// err = op->od->obs_target[i] - c;
+				err = op->od->res[i];
+				min = op->od->obs_min[i];
+				max = op->od->obs_max[i];
+				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
 				else success = 1;
 				if( op->od->nCObs < 50 || ( i < 20 || i > op->od->nCObs - 20 ) )
-					tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
+					tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
 				if( op->od->nCObs > 50 && i == 21 ) tprintf( "...\n" );
 			}
 			if( op->rd->nRegul > 0 ) tprintf( "Model regularization terms:\n" );
 			for( i = op->od->nObs; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
-				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
+				// err = op->od->obs_target[i] - c;
+				err = op->od->res[i];
+				min = op->od->obs_min[i];
+				max = op->od->obs_max[i];
+				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
 				else success = 1;
-				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
+				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
 			}
 		}
 		else
@@ -3275,20 +3312,27 @@ void print_results( struct opt_data *op, int verbosity )
 				for( j = 0; j < op->wd->nWellObs[i]; j++ )
 				{
 					if( op->wd->obs_weight[i][j] == 0 ) { predict = 1; continue; }
-					c = op->od->obs_current[k++];
-					err = op->wd->obs_target[i][j] - c;
-					if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { success_all = 0; success = 0; }
+					c = op->od->obs_current[k];
+					// err = op->wd->obs_target[i][j] - c;
+					err = op->od->res[k];
+					k++;
+					min = op->wd->obs_min[i][j];
+					max = op->wd->obs_max[i][j];
+					if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
 					else success = 1;
-					tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
+					tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
 				}
 			if( op->rd->nRegul > 0 )  tprintf( "Model regularization terms:\n" );
 			for( i = op->od->nObs; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
-				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { success_all = 0; success = 0; }
+				// err = op->od->obs_target[i] - c;
+				err = op->od->res[i];
+				min = op->od->obs_min[i];
+				max = op->od->obs_max[i];
+				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
 				else success = 1;
-				tprintf( "%-17s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
+				tprintf( "%-17s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
 			}
 		}
 	}
@@ -3325,11 +3369,14 @@ void print_results( struct opt_data *op, int verbosity )
 			{
 				if( op->od->obs_weight[i] != 0 ) { if( predict > 50 && j == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
-				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) success = 0;
+				// err = op->od->obs_target[i] - c;
+				err = op->od->res[i];
+				min = op->od->obs_min[i];
+				max = op->od->obs_max[i];
+				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON  ) success = 0;
 				else success = 1;
 				if( predict < 50 || ( j < 20 || j > predict - 20 ) )
-					tprintf( "%-20s:%12g - %12g = %12g success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, success, op->od->obs_min[i], op->od->obs_max[i] );
+					tprintf( "%-20s:%12g - %12g = %12g success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, success, min, max );
 				if( predict > 50 && j == 21 ) tprintf( "...\n" );
 				j++;
 			}
@@ -3342,9 +3389,25 @@ void print_results( struct opt_data *op, int verbosity )
 					if( op->wd->obs_weight[i][j] != 0 ) continue;
 					c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
 					err = op->wd->obs_target[i][j] - c;
-					if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) success = 0;
+					min = op->wd->obs_min[i][j];
+					max = op->wd->obs_max[i][j];
+					if( op->cd->objfunc_type != SSR )
+					{
+						if( op->cd->objfunc_type == SSDA )
+						{
+							err = sqrt( fabs( err ) );
+							if( c < op->wd->obs_target[i][j] ) err *= -1;
+						}
+						else err = 0; // SSD0 & SSDX
+						if( op->cd->objfunc_type == SSDX ) { dx = max - min; if( op->cd->obsdomain > DBL_EPSILON && op->cd->obsdomain < dx ) dx = op->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
+						if( c < min ) err += min - c;
+						else if( c > max ) err += c - max;
+						// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
+						if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
+					}
+					if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON  ) success = 0;
 					else success = 1;
-					tprintf( "%-10s(%5g):%12g - %12g = %12g success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
+					tprintf( "%-10s(%5g):%12g - %12g = %12g success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, success, min, max );
 				}
 		}
 	}
@@ -3354,7 +3417,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 {
 	FILE *out, *out2;
 	int i, j, k, success, success_all;
-	double c, err;
+	double c, err, min, max, dx;
 	char filename[255], filename2[255], fileroot[255];
 	success_all = 1;
 	// Generate general filename
@@ -3409,32 +3472,50 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 			for( i = 0; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
-				if( c < op->od->obs_min[i] || c > op->od->obs_max[i] ) { if( op->od->obs_weight[i] != 0 ) success_all = 0; success = 0; }
+				// err = op->od->obs_target[i] - c;
+				err = op->od->res[i];
+				min = op->od->obs_min[i];
+				max = op->od->obs_max[i];
+				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { if( op->od->obs_weight[i] != 0 ) success_all = 0; success = 0; }
 				else success = 1;
-				fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
-				fprintf( out2, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, op->od->obs_min[i], op->od->obs_max[i] );
+				fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
+				fprintf( out2, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
 			}
 		else
 		{
 			for( k = 0, i = 0; i < op->wd->nW; i++ )
 				for( j = 0; j < op->wd->nWellObs[i]; j++ )
 				{
+					min = op->wd->obs_min[i][j];
+					max = op->wd->obs_max[i][j];
 					if( op->wd->obs_weight[i][j] != 0 )
 					{
 						c = op->od->obs_current[k++];
-						if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) { success_all = 0; success = 0; }
+						if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
 						else success = 1;
 					}
 					else
 					{
 						c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
-						if( c < op->wd->obs_min[i][j] || c > op->wd->obs_max[i][j] ) success = 0;
+						if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) success = 0;
 						else success = 1;
 					}
 					err = op->wd->obs_target[i][j] - c;
-					fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
-					fprintf( out2, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, op->wd->obs_min[i][j], op->wd->obs_max[i][j] );
+					if( op->cd->objfunc_type != SSR )
+					{
+						if( op->cd->objfunc_type == SSDA )
+						{
+							err = sqrt( fabs( err ) );
+							if( c < op->wd->obs_target[i][j] ) err *= -1;
+						}
+						else err = 0; // SSD0 & SSDX
+						if( op->cd->objfunc_type == SSDX ) { dx = max - min; if( op->cd->obsdomain > DBL_EPSILON && op->cd->obsdomain < dx ) dx = op->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
+						if( c < min ) err += min - c;
+						else if( c > max ) err += c - max;
+						if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
+					}
+					fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+					fprintf( out2, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
 				}
 		}
 		fclose( out2 );

@@ -197,7 +197,7 @@ int func_extrn( double *x, void *data, double *f )
 		}
 		else // if( p->cd->obsrange )
 		{
-			if( min - c > DBL_EPSILON || c - max > DBL_EPSILON ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
+			if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
@@ -462,7 +462,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		else // if( p->cd->obsrange )
 		{
-			if( min - c > DBL_EPSILON || c - max > DBL_EPSILON ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
+			if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
 			else success = 1;
 		}
 		if( p->cd->fdebug >= 2 )
@@ -704,6 +704,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 					if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
 					if( c < min ) err += min - c;
 					else if( c > max ) err += c - max;
+					// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
 					if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[k]; max = p->od->obs_max[k]; }
 				}
 			}
@@ -722,7 +723,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			}
 			else // if( p->cd->obsrange )
 			{
-				if( min - c > DBL_EPSILON || c - max > DBL_EPSILON ) { success = success_all = 0; } // weight should be > DBL_EPSILON by default; if( w > DBL_EPSILON ) is not needed
+				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success = success_all = 0; } // weight should be > DBL_EPSILON by default; if( w > DBL_EPSILON ) is not needed
 				else success = 1;
 			}
 			if( p->cd->fdebug >= 2 )

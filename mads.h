@@ -47,6 +47,8 @@ void tprintf( char const *fmt, ... );
 FILE *mads_output;
 int quiet;
 
+#define COMPARE_EPSILON sqrt( sqrt( FLT_EPSILON ) )
+
 struct opt_data // TODO class MADS (in C++)
 {
 	double phi; // current objective function (can be applied as termination criteria)
