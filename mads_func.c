@@ -745,7 +745,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		}
 	}
 	p->success = success_all; // Just in case
-	if( fabs( p->cd->obsstep ) > DBL_EPSILON && p->success )
+	if( fabs( p->cd->obsstep ) > DBL_EPSILON && p->success ) // INFOGAP analysis
 	{
 		for( i = 0; i < p->preds->nTObs; i++ )
 		{
