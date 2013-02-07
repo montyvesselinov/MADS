@@ -3343,17 +3343,17 @@ void print_results( struct opt_data *op, int verbosity )
 	tprintf( "Objective function: %g Success: %d (%d)\n", op->phi, op->success, success_all );
 	if( op->cd->check_success > 0 && op->cd->obserror < 0 && op->cd->parerror < 0 )
 	{
-		if( success_all ) tprintf( "SUCCESS: All the model predictions are within calibration ranges!\n" );
+		if( op->success ) tprintf( "SUCCESS: All the model predictions are within calibration ranges!\n" );
 		else tprintf( "At least one of the model predictions is outside calibration ranges!\n" );
 	}
 	if( op->cd->check_success > 0 && op->cd->obserror > 0 )
 	{
-		if( success_all ) tprintf( "SUCCESS: All the model predictions are within a predefined absolute error %g!\n", op->cd->obserror );
+		if( op->success ) tprintf( "SUCCESS: All the model predictions are within a predefined absolute error %g!\n", op->cd->obserror );
 		else tprintf( "At least one of the model predictions has an absolute error greater than %g!\n", op->cd->obserror );
 	}
 	if( op->cd->check_success > 0 && op->cd->parerror > 0 )
 	{
-		if( success_all ) tprintf( "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
+		if( op->success ) tprintf( "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
 		else tprintf( "At least one of the estimated model parameters has an absolute error from the true parameters greater than %g!\n", op->cd->parerror );
 	}
 	if( op->cd->phi_cutoff > DBL_EPSILON && op->phi < op->cd->phi_cutoff )
@@ -3532,17 +3532,17 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	fprintf( out, "Objective function: %g Success: %d (%d)\n", op->phi, op->success, success_all );
 	if( op->cd->check_success > 0 && op->cd->obserror < 0 && op->cd->parerror < 0 )
 	{
-		if( success_all ) fprintf( out, "SUCCESS: All the model predictions are within calibration ranges!\n" );
+		if( op->success ) fprintf( out, "SUCCESS: All the model predictions are within calibration ranges!\n" );
 		else fprintf( out, "At least one of the model predictions is outside calibration ranges!\n" );
 	}
 	if( op->cd->check_success > 0 && op->cd->obserror > 0 )
 	{
-		if( success_all ) fprintf( out, "SUCCESS: All the model predictions are within a predefined absolute error %g!\n", op->cd->obserror );
+		if( op->success ) fprintf( out, "SUCCESS: All the model predictions are within a predefined absolute error %g!\n", op->cd->obserror );
 		else fprintf( out, "At least one of the model predictions has an absolute error greater than %g!\n", op->cd->obserror );
 	}
 	if( op->cd->check_success > 0 && op->cd->parerror > 0 )
 	{
-		if( success_all ) fprintf( out, "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
+		if( op->success ) fprintf( out, "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
 		else fprintf( out, "At least one of the estimated model parameters has an absolute error from the true parameters greater than %g!\n", op->cd->parerror );
 	}
 	if( op->cd->phi_cutoff > DBL_EPSILON && op->phi < op->cd->phi_cutoff )
