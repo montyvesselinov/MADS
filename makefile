@@ -2,11 +2,15 @@ PROG = mads
 CMP = ./compare-results
 # CMP = cp -f
 # CC = g++ 
-ifeq ($(OSTYPE),linux) # linux
+ifeq ($(OSTYPE),linux)
         DIRS = -I/home/monty/local/include -L/home/monty/local/lib
 	LG = -lgfortran -lmatheval -Wl,--rpath -Wl,/home/monty/local/lib
-	CC = gcc 
-else # mac os x, ....
+	CC = gcc
+endif
+ifeq ($(OSTYPE),cygwin)
+        CC = gcc
+endif
+ifeq ($(OSTYPE),darwin)
         DIRS = -I/Users/monty/include -I/opt/local/include -L/Users/monty/lib 
 	LG = -lgfortran -lmatheval
 	CC = gcc

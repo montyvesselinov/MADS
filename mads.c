@@ -35,7 +35,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <float.h>
-#include <matheval.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_vector.h>
@@ -50,6 +49,7 @@
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_sort_vector.h>
 #include <gsl/gsl_interp.h>
+#include <matheval.h>
 #include "levmar-2.5/levmar.h"
 #include "mads.h"
 

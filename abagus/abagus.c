@@ -145,9 +145,9 @@ struct position
 double perf_pssa( int s, int function ); // Fitness evaluation
 double round_to_res( double x, double dx );
 int compare_pos( double x[], double y[], int size );
-void read_in( void *kdtree, int size, double eps, int check_success, double *finv, int *ind, char *file );
+void read_in( struct kdtree *kdtree, int size, double eps, int check_success, double *finv, int *ind, char *file );
 void write_loc( double of, double *x, int x_size, int *ind );
-void print_collected( void *kd, double *eps, double *dmax, double *dxmin, FILE *fid ); 	// Save result
+void print_collected( struct kdtree *kd, double *eps, double *dmax, double *dxmin, FILE *fid ); 	// Save result
 void print_particles( struct position *X, FILE *fid );
 // in Standard_PSO_2006.c
 double alea( double a, double b );
@@ -206,8 +206,8 @@ int abagus( struct opt_data *op )
 	//double variance;
 	double w; // First confidence coefficient
 	int f_ind = 0, f_ind_bad = 0, f_ind_old = 0; // finv index
-	void *kd; // pointer to kdtree
-	void *kdbad; // pointer to kdtree of points not to keep
+	struct kdtree *kd; // pointer to kdtree
+	struct kdtree *kdbad; // pointer to kdtree of points not to keep
 	struct kdres *kdset; // nearest neighbor search results
 	struct kdres *kdsetbad; // nearest neighbor search results
 	double *pch; // retrieved phi from kd tree search
@@ -245,29 +245,12 @@ int abagus( struct opt_data *op )
 	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed ); }
 	E = exp( 1 );
 	pi = acos( -1 );
-	//----------------------------------------------- PROBLEM
-	function = 19; //Function code
-	/*
-	0 Parabola (Sphere)
-	1 De Jong' f4
-	2 Griewank
-	3 Rosenbrock (Banana)
-	4 Step
-	6 Foxholes 2D
-	7 Polynomial fitting problem 9D
-	8 Alpine
-	9 Rastrigin
-	10 Ackley
-	13 Tripod 2D
-	17 KrishnaKumar
-	18 Eason 2D
-	*/
 	D = op->pd->nOptParam; // Search space dimension
 	gop = op;
-	kd = kd_create( D ); // initialize kdtree
-	kdbad = kd_create( D ); // initialize kdtree
+	kd = (struct kdtree *) kd_create( D ); // initialize kdtree
+	kdbad = (struct kdtree *) kd_create( D ); // initialize kdtree
 	energy = op->cd->energy;
-	enrgy_add = energy * 0.1;
+	enrgy_add = energy / 10;
 	// D-cube data
 	for( d = 0; d < D; d++ )
 	{
@@ -333,7 +316,7 @@ int abagus( struct opt_data *op )
 	{
 		if( f_ind > 0 )
 		{
-			kdset = kd_nearest_range( kd, G.x, dmax );
+			kdset = (struct kdres *) kd_nearest_range( kd, G.x, dmax );
 			i = 0;
 			while( !kd_res_end( kdset ) )
 			{
@@ -398,8 +381,8 @@ int abagus( struct opt_data *op )
 	{
 		if( f_ind > 0 || f_ind_bad > 0 )
 		{
-			kdset = kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
-			kdsetbad = kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
+			kdset = (struct kdres *) kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
+			kdsetbad = (struct kdres *) kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
 			if( kd_res_size( kdset ) == 0 && kd_res_size( kdsetbad ) == 0 )
 				X[s].f = fabs( perf_pssa( s, function ) - f_min );
 			else if( kd_res_size( kdset ) == 1 && kd_res_size( kdsetbad ) == 0 )
@@ -508,8 +491,8 @@ loop:
 		if( f_ind > 0 || f_ind_bad > 0 )
 		{
 			reinvert_flag = 1;
-			kdset = kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
-			kdsetbad = kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
+			kdset = (struct kdres *) kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
+			kdsetbad = (struct kdres *) kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
 			kdsize = kd_res_size( kdset );
 			kdsizebad = kd_res_size( kdsetbad );
 			if( kdsize == 0 && kdsizebad == 0 )
@@ -760,7 +743,7 @@ int compare_pos( double x[], double y[], int size )
 	return 1;
 }
 
-void read_in( void *kdtree, int size, double eps, int check_success, double *finv, int *ind, char *file )
+void read_in( struct kdtree *kdtree, int size, double eps, int check_success, double *finv, int *ind, char *file )
 {
 	FILE *fl;
 	char buf[500];
@@ -799,7 +782,7 @@ void write_loc( double of, double *x, int x_size, int *ind )
 	fflush( f_run );
 }
 
-void print_collected( void *kd, double *eps, double *dmax, double *dxmin, FILE *fid ) 	// Save result
+void print_collected( struct kdtree *kd, double *eps, double *dmax, double *dxmin, FILE *fid ) 	// Save result
 {
 	int d;
 	struct kdres *kdset; // nearest neighbor search results

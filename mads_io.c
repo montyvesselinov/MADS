@@ -976,7 +976,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			else if( cd->ologtrans == 0 ) od->obs_log[i] = 0;
 			if( cd->oweight == 1 ) od->obs_weight[i] = 1;
 			else if( cd->oweight == 0 ) od->obs_weight[i] = 0;
-			else if( cd->oweight == 2 ) { if( abs( od->obs_target[i] ) > DBL_EPSILON ) od->obs_weight[i] = ( double ) 1.0 / od->obs_target[i]; else od->obs_weight[i] = HUGE_VAL; }
+			else if( cd->oweight == 2 ) { if( fabs( od->obs_target[i] ) > DBL_EPSILON ) od->obs_weight[i] = ( double ) 1.0 / od->obs_target[i]; else od->obs_weight[i] = HUGE_VAL; }
 			if( od->obs_weight[i] > DBL_EPSILON ) od->nCObs++;
 		}
 		tprintf( "Number of calibration targets = %d\n", od->nCObs );
@@ -1140,7 +1140,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			else if( cd->ologtrans == 0 ) wd->obs_log[i][j] = 0;
 			if( cd->oweight == 1 ) wd->obs_weight[i][j] = 1;
 			else if( cd->oweight == 0 ) wd->obs_weight[i][j] = 0;
-			else if( cd->oweight == 2 ) { if( abs( wd->obs_target[i][j] ) > DBL_EPSILON ) wd->obs_weight[i][j] = ( double ) 1.0 / wd->obs_target[i][j]; else wd->obs_weight[i][j] = HUGE_VAL; }
+			else if( cd->oweight == 2 ) { if( fabs( wd->obs_target[i][j] ) > DBL_EPSILON ) wd->obs_weight[i][j] = ( double ) 1.0 / wd->obs_target[i][j]; else wd->obs_weight[i][j] = HUGE_VAL; }
 			if( cd->debug )
 				tprintf( "t %5g c %5g weight %7g log %1d acceptable range: min %5g max %5g\n", wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
 			if( wd->obs_max[i][j] < wd->obs_target[i][j] || wd->obs_min[i][j] > wd->obs_target[i][j] )
@@ -1320,7 +1320,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( gd->nz == 1 ) gd->dz = 0;
 	else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
 	if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
-	gd->nt = 1 + ( gd->max_t - gd->min_t ) / gd->dt;
+	gd->nt = 1 + (double) ( gd->max_t - gd->min_t ) / gd->dt;
 	return( 1 );
 }
 
@@ -1795,7 +1795,7 @@ char *str_replace( char *orig, char *rep, char *with )
 	//    tmp points to the end of the result string
 	//    ins points to the next occurrence of rep in orig
 	//    orig points to the remainder of orig after "end of rep"
-	tmp = result = malloc( strlen( orig ) + ( len_with - len_rep ) * count + 1 );
+	tmp = result = (char *) malloc( strlen( orig ) + ( len_with - len_rep ) * count + 1 );
 	if( !result ) return NULL;
 	while( count-- )
 	{
