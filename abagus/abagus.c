@@ -247,8 +247,8 @@ int abagus( struct opt_data *op )
 	pi = acos( -1 );
 	D = op->pd->nOptParam; // Search space dimension
 	gop = op;
-	kd = (struct kdtree *) kd_create( D ); // initialize kdtree
-	kdbad = (struct kdtree *) kd_create( D ); // initialize kdtree
+	kd = ( struct kdtree * ) kd_create( D ); // initialize kdtree
+	kdbad = ( struct kdtree * ) kd_create( D ); // initialize kdtree
 	energy = op->cd->energy;
 	enrgy_add = energy / 10;
 	// D-cube data
@@ -316,7 +316,7 @@ int abagus( struct opt_data *op )
 	{
 		if( f_ind > 0 )
 		{
-			kdset = (struct kdres *) kd_nearest_range( kd, G.x, dmax );
+			kdset = ( struct kdres * ) kd_nearest_range( kd, G.x, dmax );
 			i = 0;
 			while( !kd_res_end( kdset ) )
 			{
@@ -381,8 +381,8 @@ int abagus( struct opt_data *op )
 	{
 		if( f_ind > 0 || f_ind_bad > 0 )
 		{
-			kdset = (struct kdres *) kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
-			kdsetbad = (struct kdres *) kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
+			kdset = ( struct kdres * ) kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
+			kdsetbad = ( struct kdres * ) kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
 			if( kd_res_size( kdset ) == 0 && kd_res_size( kdsetbad ) == 0 )
 				X[s].f = fabs( perf_pssa( s, function ) - f_min );
 			else if( kd_res_size( kdset ) == 1 && kd_res_size( kdsetbad ) == 0 )
@@ -491,8 +491,8 @@ loop:
 		if( f_ind > 0 || f_ind_bad > 0 )
 		{
 			reinvert_flag = 1;
-			kdset = (struct kdres *) kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
-			kdsetbad = (struct kdres *) kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
+			kdset = ( struct kdres * ) kd_nearest_range( kd, X[s].x, dxmin * 0.9 );
+			kdsetbad = ( struct kdres * ) kd_nearest_range( kdbad, X[s].x, dxmin * 0.9 );
 			kdsize = kd_res_size( kdset );
 			kdsizebad = kd_res_size( kdsetbad );
 			if( kdsize == 0 && kdsizebad == 0 )

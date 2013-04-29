@@ -1320,7 +1320,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( gd->nz == 1 ) gd->dz = 0;
 	else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
 	if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
-	gd->nt = 1 + (double) ( gd->max_t - gd->min_t ) / gd->dt;
+	gd->nt = 1 + ( double )( gd->max_t - gd->min_t ) / gd->dt;
 	return( 1 );
 }
 
@@ -1795,7 +1795,7 @@ char *str_replace( char *orig, char *rep, char *with )
 	//    tmp points to the end of the result string
 	//    ins points to the next occurrence of rep in orig
 	//    orig points to the remainder of orig after "end of rep"
-	tmp = result = (char *) malloc( strlen( orig ) + ( len_with - len_rep ) * count + 1 );
+	tmp = result = ( char * ) malloc( strlen( orig ) + ( len_with - len_rep ) * count + 1 );
 	if( !result ) return NULL;
 	while( count-- )
 	{
