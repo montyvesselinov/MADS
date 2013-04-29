@@ -5,7 +5,7 @@ CMP = ./compare-results
 ifeq ($(OSTYPE),linux)
         DIRS = -I/home/monty/local/include -L/home/monty/local/lib
 	LG = -lgfortran -lmatheval -Wl,--rpath -Wl,/home/monty/local/lib
-	CC = g++
+	CC = gcc
 endif
 ifeq ($(OSTYPE),cygwin)
         CC = gcc
