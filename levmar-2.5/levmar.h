@@ -95,9 +95,15 @@ extern "C" {
 #ifdef LM_DBL_PREC
 /* double precision LM, with & without Jacobian */
 /* unconstrained minimization */
-extern int dlevmar_der(
+extern int dlevmar_der2(
       void (*func)(double *p, double *hx, int m, int n, void *adata),
       void ( *jacf )( double *p, double *f, double *j, int m, int n, void *adata ),
+      double *p, double *x, int m, int n, int itmax, double *opts,
+      double *info, double *work, double *covar, void *adata);
+
+extern int dlevmar_der(
+      void (*func)(double *p, double *hx, int m, int n, void *adata),
+      void ( *jacf )( double *p, double *j, int m, int n, void *adata ),
       double *p, double *x, int m, int n, int itmax, double *opts,
       double *info, double *work, double *covar, void *adata);
 

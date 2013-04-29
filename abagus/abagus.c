@@ -154,7 +154,7 @@ double alea( double a, double b );
 int alea_integer( int a, int b );
 // in ../mads.c
 int get_seed( );
-void seed_rand_kiss( unsigned long seed );
+void seed_rand_kiss( unsigned int seed );
 
 // Global variables
 int best; // Best of the best position (rank in the swarm)

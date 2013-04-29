@@ -1197,7 +1197,7 @@ int optimize_lm( struct opt_data *op )
 				if( maxiter_levmar > maxiter ) maxiter_levmar = maxiter;
 				// dlevmar_der called by DEFAULT
 				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nTObs, maxiter_levmar, opts, info, work, covar, op );
-				else ier = dlevmar_der( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nTObs, maxiter_levmar, opts, info, work, covar, op );
+				else ier = dlevmar_der2( func_levmar, func_dx_levmar, opt_params, res, op->pd->nOptParam, op->od->nTObs, maxiter_levmar, opts, info, work, covar, op );
 				if( info[6] == 4 || info[6] == 5 )
 				{
 					if( op->cd->maxeval > op->cd->neval )
