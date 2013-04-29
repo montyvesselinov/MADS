@@ -577,7 +577,7 @@ struct position archiveCrowDistSelect( int size )
 	archive_crowding_dist(); // Compute the Crowding Distances
 	qsort( multiobj_archive, nArchive, sizeof( multiobj_archive[0] ), compare_crowding_dist ); // Sort the archive by increasing Crowding Distance
 	pr = 2 * log( ( double ) 1 + size ); // Choose at random according to a non uniform distribution:
-	n = pow( random_double( 0, pow( ( double ) nArchive - 1, pr ) ), ( double ) 1. / pr );
+	n = ( int ) pow( random_double( ( double ) 0, pow( ( double ) nArchive - 1, pr ) ), ( double ) 1. / pr );
 	return multiobj_archive[n].x;
 }
 
@@ -1730,7 +1730,7 @@ void swarm_init( struct problem *pb, int compare_type, struct swarm *S )
 {
 	int nPart, nTribe, i;
 	if( gop->cd->init_particles > 0 ) nTribe = gop->cd->init_particles; // Imported number of tribe
-	else { nTribe = 10 + ( int ) 2 * sqrt( ( double )( *pb ).D ); if( nTribe < ( *pb ).D ) nTribe = ( *pb ).D; } // Initial number of tribes
+	else { nTribe = ( int )( ( double ) 10 + 2 * sqrt( ( double )( *pb ).D ) ); if( nTribe < ( *pb ).D ) nTribe = ( *pb ).D; } // Initial number of tribes
 	if( nTribe > MAXTRIBE ) nTribe = MAXTRIBE;
 	( *S ).size = nTribe; // Number of tribes
 	nPart = 1; // Initial number of particles in each tribe
@@ -2127,7 +2127,7 @@ void tribe_init( struct problem *pb, int nPart, int compare_type, struct swarm( 
 {
 	int i, init_option;
 	( *T ).status = 0;
-	( *T ).size = minXY( nPart, MAXPART );
+	( *T ).size = ( int ) minXY( ( double ) nPart, ( double ) MAXPART );
 	for( i = 0; i < ( *T ).size; i++ )
 	{
 		if( ( *pb ).init == 1 ) { ( *pb ).init = 0; init_option = 5; } // User provided initial values

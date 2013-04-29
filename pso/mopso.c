@@ -231,14 +231,14 @@ struct distRank { double dist; int rank; };
 
 //----------------------------------------- Subroutines
 int mopso( struct opt_data *op );
-static unsigned long rand_kiss();
+// static unsigned long rand_kiss();
 static void seed_rand_kiss( unsigned long seed );
 static double random_double( double a, double b );
 static double random_gaussian( double mean, double std_dev );
 static int random_int( int a, int b );
 static void archive_crowding_dist();
 static struct position archiveCrowDistSelect( int size );
-static void archive_print();
+// static void archive_print();
 static struct fitness archiveFitnessVar();
 static void archive_local_search( struct problem pb );
 static void archive_save( struct archived archiv[], int archiveNb, FILE *fArchive );
@@ -265,17 +265,17 @@ static struct position position_update( struct problem pb, struct particle par, 
 static void problem_print( struct problem pb );
 // static struct problem problemRead( FILE *fProblem );
 static struct swarm pso_solver( struct problem pb, int compare_type, int run );
-static int sign( double x );
+// static int sign( double x );
 static struct swarm swarm_adapt( struct problem pb, struct swarm S, int compare_type );
 static void swarm_print( struct swarm S );
 static struct swarm swarm_init( struct problem pb, int compare_type );
 static struct swarm swarm_local_search( struct problem pb, struct swarm S );
 static struct swarm swarm_move( struct problem pb, struct swarm S, int compare_type, int run );
-static int swarm_particle_count( struct swarm S );
+// static int swarm_particle_count( struct swarm S );
 static int	tribe_best_particle( struct tribe T, int compare_type );
 static void tribe_print( struct tribe T );
 static struct tribe tribe_init( struct problem pb, int partNb, int compare_type, struct swarm S );
-static int tribe_varmin_dimension( struct tribe T );
+// static int tribe_varmin_dimension( struct tribe T );
 static void modify_weights( int fNb, int run );
 double irand();
 //----------------------------------------- Global variables
@@ -322,8 +322,8 @@ static unsigned int kiss_y = 2;
 static unsigned int kiss_z = 4;
 static unsigned int kiss_w = 8;
 static unsigned int kiss_carry = 0;
-static unsigned int kiss_k;
-static unsigned int kiss_m;
+//static unsigned int kiss_k;
+//static unsigned int kiss_m;
 //--------Internal random generator
 int *irand_seed;
 
@@ -613,7 +613,7 @@ static struct position archiveCrowDistSelect( int size )
 	archive_crowding_dist(); // Compute the Crowding Distances
 	qsort( multiobj_archive, archiveNb, sizeof( multiobj_archive[0] ), compare_crowding_dist ); // Sort the archive by increasing Crowding Distance
 	pr = 2 * log( 1 + size ); // Choose at random according to a non uniform distribution:
-	n = pow( random_double( 0, pow( archiveNb - 1, pr ) ), 1. / pr );
+	n = ( int ) pow( random_double( 0, pow( archiveNb - 1, pr ) ), ( double ) 1. / pr );
 	return multiobj_archive[n].x;
 }
 
@@ -636,7 +636,7 @@ static void archive_crowding_dist() // Compute the crowding distances in archive
 		}
 	}
 }
-
+/*
 static void archive_print()
 {
 	int n;
@@ -648,7 +648,7 @@ static void archive_print()
 	}
 	tprintf( "\n" );
 }
-
+*/
 static struct fitness archiveFitnessVar()
 {
 	// Variance of the archive for each fitness
@@ -1417,14 +1417,14 @@ static struct swarm pso_solver( struct problem pb, int compare_type, int run )
 	}
 	return S;
 }
-
+/*
 static int sign( double x )
 {
 	if( x > 0 ) return 1;
 	if( x < 0 ) return -1;
 	return 0;
 }
-
+*/
 static struct swarm swarm_adapt( struct problem pb, struct swarm S0, int compare_type )
 {
 	int adaptSwarm;
@@ -1876,7 +1876,7 @@ static struct swarm swarm_move( struct problem pb, struct swarm S, int compare_t
 	}
 	return St;
 }
-
+/*
 static int swarm_particle_count( struct swarm S ) // Compute the total number of particles
 {
 	int partNb = 0;
@@ -1885,7 +1885,7 @@ static int swarm_particle_count( struct swarm S ) // Compute the total number of
 		partNb += S.trib[tr].size;
 	return partNb;
 }
-
+*/
 static int tribe_best_particle( struct tribe T, int compare_type )
 {
 	// Find the best particle (shaman)
@@ -1919,7 +1919,7 @@ static struct tribe tribe_init( struct problem pb, int partNb, int compare_type,
 
 	newTribe.best = 0;
 	newTribe.status = 0;
-	newTribe.size = minXY( partNb, partMax );
+	newTribe.size = ( int ) minXY( ( double ) partNb, ( double ) partMax );
 	for( ip = 0; ip < newTribe.size; ip++ )
 	{
 		if( pb.init == 1 ) { pb.init = 0; init_option = 5; } // User provided initial values
@@ -1930,7 +1930,7 @@ static struct tribe tribe_init( struct problem pb, int partNb, int compare_type,
 	newTribe.fBestPrev = newTribe.part[newTribe.best].xBest.f;
 	return newTribe;
 }
-
+/*
 static int tribe_varmin_dimension( struct tribe T )
 {
 	int i, ip, dim_varmin = -1;
@@ -1953,7 +1953,7 @@ static int tribe_varmin_dimension( struct tribe T )
 	}
 	return dim_varmin; // Return the dimension on which the variance of the tribe is minimum
 }
-
+*/
 static void modify_weights( int fNb, int run )
 {
 	// Modify the penalties
@@ -2006,7 +2006,7 @@ static void seed_rand_kiss( unsigned long seed )
 	kiss_w = seed | 8;
 	kiss_carry = 0;
 }
-
+/*
 static unsigned long rand_kiss()
 {
 	kiss_x = kiss_x * 69069 + 1;
@@ -2020,3 +2020,4 @@ static unsigned long rand_kiss()
 	kiss_carry = kiss_k >> 30;
 	return kiss_x + kiss_y + kiss_w;
 }
+*/

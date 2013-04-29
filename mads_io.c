@@ -24,7 +24,11 @@
 // RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
 // PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
+
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -194,18 +198,18 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "plog", 4 ) ) { w = 1; if( sscanf( word, "plog=%d", &cd->plogtrans ) != 1 ) cd->plogtrans = 1; }
 		if( !strncasecmp( word, "olog", 4 ) ) { w = 1; if( sscanf( word, "olog=%d", &cd->ologtrans ) != 1 ) cd->ologtrans = 1; }
 		if( !strncasecmp( word, "oweight", 7 ) ) { w = 1; if( sscanf( word, "oweight=%d", &cd->oweight ) != 1 ) cd->oweight = 1; }
-		if( !strncasecmp( word, "cutoff=", 7 ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); cd->check_success = cd->obsrange = cd->obserror = cd->parerror = 0; }
-		if( !strncasecmp( word, "obsrange", 8 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; }
-		if( !strncasecmp( word, "success", 7 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = 0; } // legacy
-		if( !strncasecmp( word, "truth", 5 ) ) { w = 1; sscanf( word, "truth=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; } // legacy
+		if( !strncasecmp( word, "cutoff=", 7 ) ) { w = 1; sscanf( word, "cutoff=%lf", &cd->phi_cutoff ); cd->check_success = cd->obsrange = 0; cd->obserror = cd->parerror = ( double ) 0; }
+		if( !strncasecmp( word, "obsrange", 8 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = ( double ) 0; }
+		if( !strncasecmp( word, "success", 7 ) ) { w = 1; cd->check_success = 1; cd->obsrange = 1; cd->phi_cutoff = cd->obserror = cd->parerror = ( double ) 0; } // legacy
+		if( !strncasecmp( word, "truth", 5 ) ) { w = 1; sscanf( word, "truth=%lf", &cd->parerror ); cd->check_success = 1; cd->obsrange = 0; cd->phi_cutoff = cd->obserror = ( double ) 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; } // legacy
 		if( !strncasecmp( word, "sindx=", 5 ) ) { w = 1; cd->sintrans = 1; sscanf( word, "sindx=%lf", &cd->sindx ); if( cd->sindx < DBL_EPSILON ) cd->sindx = 0.0000001; }
 		if( !strncasecmp( word, "lindx=", 5 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "lindx=%lf", &cd->lindx ); if( cd->lindx < DBL_EPSILON ) cd->lindx = 0.001; }
 		if( !strncasecmp( word, "pardx", 5 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardx=%lf", &cd->pardx ); if( cd->pardx < DBL_EPSILON ) cd->pardx = 0.1; }
-		if( !strncasecmp( word, "parerror", 8 ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->obserror = 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
-		if( !strncasecmp( word, "obserror", 8 ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->phi_cutoff = cd->obsrange = cd->parerror = 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
-		if( !strncasecmp( word, "pardomain=", 10 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardomain=%lf", &cd->pardomain ); if( cd->pardomain < DBL_EPSILON ) cd->pardomain = 100; }
-		if( !strncasecmp( word, "obsdomain=", 10 ) ) { w = 1; sscanf( word, "obsdomain=%lf", &cd->obsdomain ); if( cd->obsdomain < DBL_EPSILON ) cd->pardomain = 0; }
-		if( !strncasecmp( word, "obsstep=", 8 ) ) { w = 1; sscanf( word, "obsstep=%lf", &cd->obsstep ); if( fabs( cd->obsstep ) < DBL_EPSILON ) cd->obsstep = 0; else cd->problem_type = INFOGAP; }
+		if( !strncasecmp( word, "parerror", 8 ) ) { w = 1; sscanf( word, "parerror=%lf", &cd->parerror ); cd->check_success = 1; cd->obsrange = 0; cd->phi_cutoff = cd->obserror = ( double ) 0; if( cd->parerror < DBL_EPSILON ) cd->parerror = 0.1; }
+		if( !strncasecmp( word, "obserror", 8 ) ) { w = 1; sscanf( word, "obserror=%lf", &cd->obserror ); cd->check_success = 1; cd->obsrange = 0; cd->phi_cutoff =  cd->parerror = ( double ) 0; if( cd->obserror < DBL_EPSILON ) cd->obserror = 0.1; }
+		if( !strncasecmp( word, "pardomain=", 10 ) ) { w = 1; cd->sintrans = 0; sscanf( word, "pardomain=%lf", &cd->pardomain ); if( cd->pardomain < DBL_EPSILON ) cd->pardomain = ( double ) 100; }
+		if( !strncasecmp( word, "obsdomain=", 10 ) ) { w = 1; sscanf( word, "obsdomain=%lf", &cd->obsdomain ); if( cd->obsdomain < DBL_EPSILON ) cd->pardomain = ( double ) 0; }
+		if( !strncasecmp( word, "obsstep=", 8 ) ) { w = 1; sscanf( word, "obsstep=%lf", &cd->obsstep ); if( fabs( cd->obsstep ) < DBL_EPSILON ) cd->obsstep = ( double ) 0; else cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
 		if( !strncasecmp( word, "np", 2 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( !strncasecmp( word, "restart", 7 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
@@ -1320,7 +1324,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( gd->nz == 1 ) gd->dz = 0;
 	else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
 	if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
-	gd->nt = 1 + ( double )( gd->max_t - gd->min_t ) / gd->dt;
+	gd->nt = 1 + ( int )( ( double )( gd->max_t - gd->min_t ) / gd->dt );
 	return( 1 );
 }
 

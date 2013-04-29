@@ -27,7 +27,10 @@
 // RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
 // PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -79,7 +82,7 @@ void save_final_results( char *filename, struct opt_data *op, struct grid_data *
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
 void ave_sorted( double data[], int n, double *ave, double *ep );
 int sort_int( const void *x, const void *y );
-int sort_double( const void *a, const void *b );
+double sort_double( const void *a, const void *b );
 
 /* Functions elsewhere */
 // Optimization strategies
@@ -1046,7 +1049,7 @@ int optimize_lm( struct opt_data *op )
 	{
 		tprintf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " );
 		npar = op->pd->nOptParam;
-		if( op->cd->nretries <= 0 ) op->cd->nretries = ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * npar / 10 );
+		if( op->cd->nretries <= 0 ) op->cd->nretries = ( int )( ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * npar / 10 ) );
 		if( debug ) tprintf( "\nRandom sampling for MSLM optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
 		if( ( var_lhs = ( double * ) malloc( npar * op->cd->nretries * sizeof( double ) ) ) == NULL )
 		{ tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -1192,8 +1195,8 @@ int optimize_lm( struct opt_data *op )
 				// ... it uses the number of LM iterations that count the jacobian and lambda evaluations
 				// ... assuming about 10 lambda searches per jacobian iteration
 				// Levmar has now adder terminaitonal based on op->cd->maxeval and op->cd->niter
-				if( opts[4] > 0 ) maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 1 ) + 1 ); // Forward derivatives
-				else              maxiter_levmar = ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 1 ) + 1 ); // Central derivatives
+				if( opts[4] > 0 ) maxiter_levmar = ( int )( ( double )( ( op->cd->maxeval - op->cd->neval ) / ( op->pd->nOptParam + 1 ) + 1 ) ); // Forward derivatives
+				else              maxiter_levmar = ( int )( ( double )( ( op->cd->maxeval - op->cd->neval ) / ( 2 * op->pd->nOptParam + 1 ) + 1 ) ); // Central derivatives
 				if( maxiter_levmar > maxiter ) maxiter_levmar = maxiter;
 				// dlevmar_der called by DEFAULT
 				if( strcasestr( op->cd->opt_method, "dif" ) != NULL ) ier = dlevmar_dif( func_levmar, opt_params, res, op->pd->nOptParam, op->od->nTObs, maxiter_levmar, opts, info, work, covar, op );
@@ -1215,7 +1218,7 @@ int optimize_lm( struct opt_data *op )
 				tprintf( "initial phi %g final phi %g ||J^T e||_inf %g ||Dp||_2 %g mu/max[J^T J]_ii %g\n", info[0], info[1], info[2], info[3], info[4] );
 				tprintf( "function evaluation %g jacobian evaluations %g linear systems solved %g\n", info[7], info[8], info[9] );
 			}
-			op->cd->njac += info[8];
+			op->cd->njac += ( int ) info[8];
 			for( k = j = 0; j < op->od->nTObs; j++ )
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					gsl_matrix_set( gsl_jacobian, j, i, jacobian[k++] );
@@ -1958,17 +1961,17 @@ int igrnd( struct opt_data *op )
 		}
 		qsort( eval_success, success_global, sizeof( int ), sort_int );
 		qsort( eval_total, op->cd->nreal, sizeof( int ), sort_int );
-		q1 = ( double ) success_global / 4 - 0.25;
-		m = ( double ) success_global / 2 - 0.5;
-		q2 = ( double ) success_global * 3 / 4 - 0.25;
+		q1 = ( int )( ( double ) success_global / 4 - 0.25 ) ;
+		m = ( int )( ( double ) success_global / 2 - 0.5 );
+		q2 = ( int )( ( double ) success_global * 3 / 4 - 0.25 );
 		if( success_global > 0 )
 		{
 			tprintf( "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
 			fprintf( out2, "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
 		}
-		q1 = ( double ) op->cd->nreal / 4 - 0.25;
-		m = ( double ) op->cd->nreal / 2 - 0.5;
-		q2 = ( double ) op->cd->nreal * 3 / 4 - 0.25;
+		q1 = ( int )( ( double ) op->cd->nreal / 4 - 0.25 );
+		m = ( int )( ( double ) op->cd->nreal / 2 - 0.5 );
+		q2 = ( int )( ( double ) op->cd->nreal * 3 / 4 - 0.25 );
 		tprintf( "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[op->cd->nreal - 1], op->cd->nreal );
 		fprintf( out2, "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[op->cd->nreal - 1], op->cd->nreal );
 		tprintf( "Statistics of all the model parameter estimates:\n" );
@@ -2049,7 +2052,7 @@ int igpd( struct opt_data *op )
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 )
 		{
-			j = ( double )( op->pd->var_max[i] - op->pd->var_min[i] ) / op->pd->var_dx[i] + 2;
+			j = ( int )( ( double )( op->pd->var_max[i] - op->pd->var_min[i] ) / op->pd->var_dx[i] + 2 );
 			if( op->pd->var_dx[i] > ( op->pd->var_max[i] - op->pd->var_min[i] ) ) j++;
 			k *= j;
 		}
@@ -2213,7 +2216,7 @@ int ppsd( struct opt_data *op )
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 )
 		{
-			j = ( double )( op->pd->var_max[i] - op->pd->var_min[i] ) / op->pd->var_dx[i] + 2;
+			j = ( int )( ( double )( op->pd->var_max[i] - op->pd->var_min[i] ) / op->pd->var_dx[i] + 2 );
 			if( op->pd->var_dx[i] > ( op->pd->var_max[i] - op->pd->var_min[i] ) ) j++;
 			k *= j;
 		}
@@ -2951,7 +2954,7 @@ int infogap_obs( struct opt_data *op )
 			if( op->od->obs_target[k] > op->od->obs_max[k] ) break;
 			if( fabs( op->preds->obs_best[0] - op->od->obs_max[k] ) < DBL_EPSILON ) break;
 			op->od->obs_min[k] += op->cd->obsstep;
-			j = ( double )( op->preds->obs_best[0] - op->od->obs_min[k] + op->cd->obsstep / 2 ) / op->cd->obsstep + 1;
+			j = ( int )( ( double )( op->preds->obs_best[0] - op->od->obs_min[k] + op->cd->obsstep / 2 ) / op->cd->obsstep + 1 );
 			op->od->obs_target[k] += op->cd->obsstep * j;
 			op->od->obs_min[k] += op->cd->obsstep * j;
 			if( op->od->obs_target[k] > op->od->obs_max[k] ) op->od->obs_target[k] = op->od->obs_max[k];
@@ -2962,7 +2965,7 @@ int infogap_obs( struct opt_data *op )
 			if( op->od->obs_target[k] < op->od->obs_min[k] ) break;
 			if( fabs( op->preds->obs_best[0] - op->od->obs_min[k] ) < DBL_EPSILON ) break;
 			op->od->obs_max[k] += op->cd->obsstep; // obsstep is negative
-			j = ( double )( op->od->obs_max[k] - op->preds->obs_best[0] - op->cd->obsstep / 2 ) / -op->cd->obsstep + 1; // obsstep is negative
+			j = ( int )( ( double )( op->od->obs_max[k] - op->preds->obs_best[0] - op->cd->obsstep / 2 ) / -op->cd->obsstep + 1 ); // obsstep is negative
 			op->od->obs_target[k] += op->cd->obsstep * j;
 			op->od->obs_max[k] += op->cd->obsstep * j;
 			if( op->od->obs_target[k] < op->od->obs_min[k] ) op->od->obs_target[k] = op->od->obs_min[k];
@@ -3614,7 +3617,7 @@ int sort_int( const void *x, const void *y )
 	return ( *( int * ) x - * ( int * ) y );
 }
 
-int sort_double( const void *x, const void *y )
+double sort_double( const void *x, const void *y )
 {
 	return ( *( double * ) x - * ( double * ) y );
 }
