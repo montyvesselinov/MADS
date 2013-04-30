@@ -17,7 +17,7 @@ ifeq ($(OSTYPE),darwin)
 endif
 # CFLAGS = -Wall -g $(DIRS) # debug
 CFLAGS = -Wall $(DIRS) # release
-LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas $(LG) $(DIRS)
+LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas -lmatheval -lfl $(LG) $(DIRS)
 OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o 
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o abagus/abagus.o
 OBJSMPUN = mprun/mprun.o mprun/mprun_io.o
