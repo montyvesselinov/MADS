@@ -57,6 +57,8 @@ struct opt_data // TODO class MADS (in C++)
 	int global_success; // global success for TRIBES and SQUADS (can be applied as termination criteria)
 	int counter; // current run counter (Monte Carlo / paranoid / retry / igrd / igpd ... )
 	char *root; // problem name (filename root)
+	char *filename; // problem filename
+	int yaml;
 	char *label; // problem label (for output file generation)
 	char *datetime_stamp; // date & time of the simulation
 	FILE *f_ofe; // runtime output file with current best objective function

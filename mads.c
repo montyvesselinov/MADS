@@ -105,6 +105,7 @@ char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
+int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
@@ -229,13 +230,29 @@ int main( int argn, char *argv[] )
 		sprintf( filename, "%s.mads", argv[1] );
 		extension[0] = 0;
 	}
-	if( cd.debug ) printf( "Input file name: %s\n", filename );
+	if( cd.debug ) printf( "Input file name: %s ", filename );
+	if( strcasestr( filename, "yaml" ) || strcasestr( filename, "yml" ) )
+	{
+		printf( "(YAML format expected)\n" );
+		op.yaml = 1; // YAML format
+	}
+	else if( strcasecmp( extension, "pst" ) == 0 )
+	{
+		printf( "(PEST format expected)\n" );
+		op.yaml = 0; // PEST format
+	}
+	else
+	{
+		printf( "(Plain text MADS format expected)\n ");
+		op.yaml = 0; // MADS plain text format
+	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
 	printf( "Problem root name: %s", root );
 	if( cd.debug && extension[0] != 0 )	printf( " Extension: %s\n", extension );
 	else printf( "\n" );
 	op.root = root;
+	op.filename = filename;
 	op.counter = 0;
 	sprintf( filename2, "%s.mads_output", op.root );
 	if( Ftest( filename2 ) == 0 ) // If file already exists quit ...
@@ -284,7 +301,9 @@ int main( int argn, char *argv[] )
 	}
 	else // MADS Problem
 	{
-		if( ( ier = load_problem( filename, argn, argv, &op ) ) <= 0 )
+		if( op.yaml )	ier = load_yaml_problem( filename, argn, argv, &op ); // YAML format
+		else			ier = load_problem( filename, argn, argv, &op ); // MADS plain text format
+		if( ier <= 0 )
 		{
 			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
 			if( ier == 0 )

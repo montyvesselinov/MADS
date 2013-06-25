@@ -3,21 +3,25 @@ CMP = ./compare-results
 # CMP = cp -f
 # CC = g++ 
 ifeq ($(OSTYPE),linux)
-        DIRS = -I/home/monty/local/include -L/home/monty/local/lib
-	LG = -lgfortran -lmatheval -Wl,--rpath -Wl,/home/monty/local/lib
+        CG = -I/home/monty/local/include `pkg-config --cflags glib-2.0`
+	LG = -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
 	CC = gcc
 endif
 ifeq ($(OSTYPE),cygwin)
         CC = gcc
 endif
 ifeq ($(OSTYPE),darwin)
-        DIRS = -I/Users/monty/include -I/opt/local/include -L/Users/monty/lib 
-	LG = -lgfortran -lmatheval
+        CG = -I/Users/monty/include -I/opt/local/include `pkg-config --cflags glib-2.0`
+	LG = -L/Users/monty/lib -lgfortran /opt/local/lib/libglib-2.0.a /Users/monty/lib/liblapack.a
+	LG = -lgfortran -L/opt/local/lib -L/Users/monty/lib
 	CC = gcc
 endif
-# CFLAGS = -Wall -g $(DIRS) # debug
-CFLAGS = -Wall $(DIRS) # release
-LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas -lmatheval -lfl $(LG) $(DIRS)
+
+# CFLAGS = -Wall -g $(CG) # debug
+CFLAGS = -Wall $(CG) # release
+LDLIBS = -lgsl -lgslcblas -lm -lmatheval -lfl -llapack -lyaml -lglib-2.0 $(LG)
+LDLIBS = -lgsl -lgslcblas -lm -lmatheval -lfl -llapack -lyaml -lglib-2.0 -lcblas -lblas -latlas -lrefblas $(LG)
+
 OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o 
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o abagus/abagus.o
 OBJSMPUN = mprun/mprun.o mprun/mprun_io.o

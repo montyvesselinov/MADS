@@ -1,0 +1,2 @@
+#!/bin/tcsh
+awk '{ print "- { name: " $1 ", x: " $2 ", y: " $3 ", z0: " $4 ", z1: " $5 ", obs: [ { t: " $7 ", c: " $8 ", use: yes, log: no, min: " $11 ", max: " $12 " } ] }" }' $1

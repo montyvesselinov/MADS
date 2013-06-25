@@ -1,0 +1,6 @@
+#!/bin/tcsh
+awk 'BEGIN{ FS=":" }{print "- { name: \""$1"\", " }' $1 > $1-$$-1
+awk 'BEGIN{ FS=":" }{print $2 }' $1 | awk '{print " init " $1 ", type: opt, log: no, step: " $4 ", min: " $5 ", max: " $6 " }"}' > $1-$$-2
+paste $1-$$-1 $1-$$-2
+rm -f $1-$$-1 $1-$$-2
+# awk '{ print "- { name: " $1 ", x: " $2 ", y: " $3 ", z0: " $4 ", z1: " $5 ", obs: [ { t: " $7 ", c: " $8 ", use: yes, log: no, min: " $11 ", max: " $12 " } ] }" }' $1
