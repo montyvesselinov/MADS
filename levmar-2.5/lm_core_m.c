@@ -578,7 +578,7 @@ int LEVMAR_DER2(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}
@@ -1551,7 +1551,7 @@ int LEVMAR_DER(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}
@@ -2273,7 +2273,7 @@ int LEVMAR_DIF(
 				for( i = 0; i < n; ++i )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i *m, tmp = e[i]; l < m; ++l )
+					for( l = 0, jacrow = jac + i * m, tmp = e[i]; l < m; ++l )
 						jacTe[l] += jacrow[l] * tmp;
 				}
 			}

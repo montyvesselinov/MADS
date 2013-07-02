@@ -93,12 +93,17 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->pd->nExpParam > 0 )
 	{
 		if( p->cd->fdebug >= 3 ) tprintf( "Tied model parameters (%d):\n", p->pd->nExpParam );
+#ifdef MATHEVAL
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
 			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
 			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
 		}
+#else
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		exit( 0 );
+#endif
 	}
 	if( p->cd->fdebug >= 3 )
 	{
@@ -158,8 +163,16 @@ int func_extrn( double *x, void *data, double *f )
 		}
 	}
 	if( bad_data ) exit( -1 );
+#ifdef MATHEVAL
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
 		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id, p->cd->var );
+#else
+	if( p->od->nObs < p->od->nTObs )
+	{
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		exit( 0 );
+	}
+#endif
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
@@ -247,12 +260,17 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	if( p->pd->nExpParam > 0 )
 	{
 		if( p->cd->fdebug >= 3 ) tprintf( "Tied model parameters (%d):\n", p->pd->nExpParam );
+#ifdef MATHEVAL
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
 			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
 			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
 		}
+#else
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		exit( 0 );
+#endif
 	}
 	if( p->cd->fdebug >= 3 )
 	{
@@ -427,8 +445,16 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	system( buf );
 	if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
+#ifdef MATHEVAL
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
 		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id, p->cd->var );
+#else
+	if( p->od->nObs < p->od->nTObs )
+	{
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		exit( 0 );
+	}
+#endif
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions (model run = %d):\n", ieval );
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
@@ -524,12 +550,17 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	if( p->pd->nExpParam > 0 )
 	{
 		if( p->cd->fdebug >= 3 ) tprintf( "Tied model parameters (%d):\n", p->pd->nExpParam );
+#ifdef MATHEVAL
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
 			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id_short, p->cd->var );
 			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
 		}
+#else
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		exit( 0 );
+#endif
 	}
 	if( p->cd->fdebug >= 3 )
 	{
@@ -632,7 +663,12 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			if( k >= p->od->nObs )
 			{
 				// regularization term
+#ifdef MATHEVAL
 				c = evaluator_evaluate( p->rd->regul_expressions[k - p->od->nObs], p->pd->nParam, p->pd->var_id_short, p->cd->var );
+#else
+				tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+				exit( 0 );
+#endif
 			}
 			else
 			{

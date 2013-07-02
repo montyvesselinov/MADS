@@ -105,7 +105,6 @@ char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
@@ -130,6 +129,10 @@ void lhs_edge( int nvar, int npoint, int *seed, double x[] );
 void lhs_random( int nvar, int npoint, int *seed, double x[] );
 void smp_random( int nvar, int npoint, int *seed, double x[] );
 int get_seed( );
+// YAML
+#ifdef YAML
+int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
+#endif
 // Memory
 double **double_matrix( int maxCols, int maxRows );
 void free_matrix( void **matrix, int maxCols );
@@ -243,7 +246,7 @@ int main( int argn, char *argv[] )
 	}
 	else
 	{
-		printf( "(Plain text MADS format expected)\n ");
+		printf( "(Plain text MADS format expected)\n" );
 		op.yaml = 0; // MADS plain text format
 	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
@@ -301,7 +304,15 @@ int main( int argn, char *argv[] )
 	}
 	else // MADS Problem
 	{
-		if( op.yaml )	ier = load_yaml_problem( filename, argn, argv, &op ); // YAML format
+		if( op.yaml ) // YAML format
+		{
+#ifdef YAML
+			ier = load_yaml_problem( filename, argn, argv, &op );
+#else
+			tprintf( "\nMADS quits! YAML format is not supported in the compiled version of MADS. Recompile with YAML libraries.\n" );
+			exit( 0 );
+#endif
+		}
 		else			ier = load_problem( filename, argn, argv, &op ); // MADS plain text format
 		if( ier <= 0 )
 		{
@@ -3286,6 +3297,7 @@ void print_results( struct opt_data *op, int verbosity )
 		tprintf( "%s %g\n", op->pd->var_id[k], op->cd->var[k] );
 	}
 	if( verbosity > 0 && op->pd->nExpParam > 0 ) tprintf( "Tied model parameters:\n" );
+#ifdef MATHEVAL
 	for( i = 0; i < op->pd->nExpParam; i++ )
 	{
 		k = op->pd->param_expressions_index[i];
@@ -3295,6 +3307,13 @@ void print_results( struct opt_data *op, int verbosity )
 		else op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id_short, op->cd->var );
 		tprintf( " = %g\n", op->pd->var[k] );
 	}
+#else
+	if( op->pd->nExpParam > 0 )
+	{
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		exit( 0 );
+	}
+#endif
 	if( verbosity == 0 ) return;
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{
@@ -3474,6 +3493,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		fprintf( out, "%s %g\n", op->pd->var_id[k], op->cd->var[k] );
 	}
 	if( op->pd->nExpParam > 0 ) fprintf( out, "Tied model parameters:\n" );
+#ifdef MATHEVAL
 	for( i = 0; i < op->pd->nExpParam; i++ )
 	{
 		k = op->pd->param_expressions_index[i];
@@ -3483,6 +3503,14 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		else op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id_short, op->cd->var );
 		fprintf( out, " = %g\n", op->pd->var[k] );
 	}
+#else
+	if( op->pd->nExpParam > 0 )
+	{
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		fprintf( out, "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		exit( 0 );
+	}
+#endif
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{
 		fprintf( out, "\nModel predictions:\n" );

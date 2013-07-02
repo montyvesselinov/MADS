@@ -1,33 +1,46 @@
 PROG = mads
-CMP = ./compare-results
+CMP = ./compare-results 
+# MathEval required to evaluate expression for tied parameters and regularization terms
+MATHEVAL = true
+# Support for YAML input files is optional 
+YAML = true
 # CMP = cp -f
 # CC = g++ 
 ifeq ($(OSTYPE),linux)
-        CG = -I/home/monty/local/include `pkg-config --cflags glib-2.0`
+	CG = -I/home/monty/local/include
 	LG = -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
 	CC = gcc
 endif
 ifeq ($(OSTYPE),cygwin)
-        CC = gcc
+	CC = gcc
 endif
 ifeq ($(OSTYPE),darwin)
-        CG = -I/Users/monty/include -I/opt/local/include `pkg-config --cflags glib-2.0`
-	LG = -L/Users/monty/lib -lgfortran /opt/local/lib/libglib-2.0.a /Users/monty/lib/liblapack.a
+	CG = -I/Users/monty/include -I/opt/local/include
 	LG = -lgfortran -L/opt/local/lib -L/Users/monty/lib
 	CC = gcc
 endif
 
 # CFLAGS = -Wall -g $(CG) # debug
 CFLAGS = -Wall $(CG) # release
-LDLIBS = -lgsl -lgslcblas -lm -lmatheval -lfl -llapack -lyaml -lglib-2.0 $(LG)
-LDLIBS = -lgsl -lgslcblas -lm -lmatheval -lfl -llapack -lyaml -lglib-2.0 -lcblas -lblas -latlas -lrefblas $(LG)
-
+LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lcblas -lblas -latlas -lrefblas $(LG)
 OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o 
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o abagus/abagus.o
 OBJSMPUN = mprun/mprun.o mprun/mprun_io.o
 OBJSKDTREE = abagus/kdtree-0.5.5/kdtree.o
 OBJSLEVMAR = levmar-2.5/lm_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o 
 OBJSLEVMARSTYLE = levmar-2.5/lm_m.o levmar-2.5/lm_core_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o 
+
+ifeq ($(YAML),true)
+	OBJSMADS += mads_io_yaml.o
+	CFLAGS += -DYAML `pkg-config --cflags glib-2.0`
+	LDLIBS += -lyaml -lglib-2.0
+endif
+
+ifeq ($(MATHEVAL),true)
+	CFLAGS += -DMATHEVAL
+	LDLIBS += -lmatheval
+endif
+
 SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
 SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
 
@@ -37,6 +50,7 @@ $(PROG): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSLEVMAR) $(OBJSKDTREE)
 
 mads.o: mads.c mads.h levmar-2.5/levmar.h
 mads_io.o: mads_io.c mads.h
+mads_io_yaml.o: mads_io_yaml.c mads.h
 mads_io_external.o: mads_io_external.c mads.h
 mads_func.o: mads_func.c mads.h
 mads_mem.o: mads_mem.c
