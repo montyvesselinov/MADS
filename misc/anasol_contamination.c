@@ -39,10 +39,13 @@ double point_source( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
 double rectangle_source_vz( double x, double y, double z, double t, void *params );
 double box_source( double x, double y, double z, double t, void *params );
+double gaussian_source_2d( double x, double y, double z, double t, void *params);
 double int_point_source( double tau, void *params );
 double int_rectangle_source( double tau, void *params );
 double int_rectangle_source_vz( double tau, void *params );
 double int_box_source( double tau, void *params );
+double int_gaussian_source_2d( double tau, void *params );
+
 
 double point_source( double x, double y, double z, double t, void *params )
 {
@@ -278,4 +281,61 @@ double int_rectangle_source_vz( double tau, void *params )
 	ez = 1. / sqrt( tau * ( M_PI * az * v ) ) * exp( -tz * tz / ( tau * ( 4 * az * v ) ) ) -
 		 vz / ( 2 * az * v ) * exp( vz * ze / ( az * v ) ) * erfc( ( ze + tau * vz ) / rz );
 	return( e1 * ex * ey * ez );
+}
+
+double gaussian_source_2d( double x, double y, double z, double t, void *params)
+{
+	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
+	gsl_function F;
+	int status;
+	struct anal_data *p = ( struct anal_data * )params;
+	double result, error, time;
+	if( t <= p->var[TIME_INIT] ) return( 0 );
+	p->xe = x;
+	p->ye = y;
+	p->ze = z;
+	time = t - p->var[TIME_INIT];
+	w = gsl_integration_workspace_alloc( NUMITER );
+	F.function = &int_gaussian_source_2d;
+	F.params = p;
+	gsl_set_error_handler_off();
+	if( t < p->var[TIME_END] )
+		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+	else
+		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+	if( status != 0 ) result = 0;
+	//	printf("result %g ", result, var[C0], p );
+	gsl_integration_workspace_free( w );
+	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	return( p->var[C0] * 1e6 / sqrt(8 * M_PI * M_PI * M_PI) * result);
+}
+
+double int_gaussian_source_2d( double tau, void *params )
+{
+	struct anal_data *p = ( struct anal_data * )params;
+	double lambda = ( p->var[LAMBDA] );
+	double vx = ( p->var[VX] );
+	double ax = ( p->var[AX] );
+	double ay = ( p->var[AY] );
+	double az = ( p->var[AZ] );
+	double source_sizex = ( p->var[SOURCE_DX] );
+	double source_sizey = ( p->var[SOURCE_DY] );
+	double rx, ry, rz;
+	double sx, sy, sz;
+	double d, alpha, beta, xe, ye, ze, x0, y0;
+	x0 = ( p->xe - p->var[SOURCE_X] );
+	y0 = ( p->ye - p->var[SOURCE_Y] );
+	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
+	alpha = cos( d );
+	beta = sin( d );
+	xe = x0 * alpha - y0 * beta;
+	ye = x0 * beta  + y0 * alpha;
+	ze = ( p->ze - p->var[SOURCE_Z] );
+	rx = tau * ax * vx + source_sizex * source_sizex;
+	ry = tau * ay * vx + source_sizey * source_sizey;
+	rz = tau * az * vx;
+	sx = (xe - vx * tau) * (xe - vx * tau) / (2 * rx);
+	sy = ye * ye / (2 * ry);
+	sz = ze * ze / (2 * rz);
+	return exp(-tau * lambda - sx - sy - sz);
 }

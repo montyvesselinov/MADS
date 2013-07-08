@@ -680,6 +680,10 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 							c1 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 							c2 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 							break;
+						case GAUSSIAN2D:
+							c1 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							c2 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							break;
 						default:
 						case BOX:
 							c1 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
@@ -927,6 +931,9 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 			case PLANE3D:
 				c += rectangle_source_vz( x, y, z, t, ( void * ) &ad );
 				break;
+			case GAUSSIAN2D:
+				c += gaussian_source_2d( x, y, z, t, ( void * ) &ad );
+				break;
 			default:
 			case BOX:
 				c += box_source( x, y, z, t, ( void * ) &ad );
@@ -1004,6 +1011,10 @@ double func_solver( double x, double y, double z1, double z2, double t, void *da
 			case PLANE3D:
 				c1 += rectangle_source_vz( x, y, z1, t, ( void * ) &ad );
 				c2 += rectangle_source_vz( x, y, z2, t, ( void * ) &ad );
+				break;
+			case GAUSSIAN2D:
+				c1 += gaussian_source_2d( x, y, z1, t, ( void * ) &ad );
+				c2 += gaussian_source_2d( x, y, z2, t, ( void * ) &ad );
 				break;
 			default:
 			case BOX:
