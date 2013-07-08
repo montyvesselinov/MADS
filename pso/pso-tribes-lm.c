@@ -160,7 +160,7 @@ int pso_tribes( struct opt_data *op )
 	struct problem pb;
 	struct swarm S = {0};
 	struct position bestBest;
-	double successRate[MAXPHI], errorMean[MAXPHI], errorTot;
+	double successRate[MAXPHI], errorMean[MAXPHI];
 	int debug, i, n, r, eval_total;
 	char filename[255];
 	pb.nPhi = 1;
@@ -185,7 +185,6 @@ int pso_tribes( struct opt_data *op )
 	set_swarm( &pb, &S );
 	set_position( &pb, &bestBest );
 	set_position( &pb, &( pb ).pos_success );
-	errorTot = 0;
 	eval_total = 0;
 	nArchive = 0;
 	compare_type = 0; // Kind of comparison, to begin (see objfuncCompare() )
@@ -1050,7 +1049,7 @@ double minXY( double x, double y )
 
 void particle_init( struct problem *pb, int initOption, struct position *guide1, struct position *guide2, struct swarm *S, struct particle *P )
 {
-	double mean, range, sort_vec[2 * MAXTRIBE * MAXPART], min, max, x;
+	double mean, range, sort_vec[2 * MAXTRIBE * MAXPART], x;
 	int i, ip, it, k, count, rank, tr_best;
 	( *P ).x.size = ( *pb ).D; // Initial number of particles equal number of dimensions (optimized variables)
 	switch( initOption )
@@ -1118,8 +1117,6 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 			for( k = 0; k < ( *pb ).D; k++ )
 			{
 				mean = 0;
-				min = HUGE_VAL;
-				max = 0;
 				count = 0;
 				for( it = 0; it < ( *S ).size; it++ )
 					for( ip = 0; ip < ( *S ).trib[it].size; ip++ )

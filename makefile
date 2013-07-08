@@ -1,38 +1,98 @@
 PROG = mads
-CMP = ./compare-results
-# CMP = cp -f
-# CC = g++ 
-ifeq ($(OSTYPE),linux)
-        DIRS = -I/home/monty/local/include -L/home/monty/local/lib
-	LG = -lgfortran -lmatheval -Wl,--rpath -Wl,/home/monty/local/lib
-	CC = gcc
+CMP = ./compare-results # MADS testing
+# CMP = cp -f # Save current results for future testing DANGEROUS!
+
+# MathEval required to evaluate expression for tied parameters and regularization terms
+ifndef MATHEVAL
+MATHEVAL = true
 endif
-ifeq ($(OSTYPE),cygwin)
-        CC = gcc
+# Support for YAML input files is optional 
+ifndef YAML
+YAML = false
 endif
+# Compilation setup
+$(info OS type -- $(OSTYPE))
+$(info Machine -- $(HOST))
 ifeq ($(OSTYPE),darwin)
-        DIRS = -I/Users/monty/include -I/opt/local/include -L/Users/monty/lib 
-	LG = -lgfortran -lmatheval
-	CC = gcc
+OSTYPE = macosx
 endif
-# CFLAGS = -Wall -g $(DIRS) # debug
-CFLAGS = -Wall $(DIRS) # release
-LDLIBS = -lgsl -lm -lgslcblas -llapack -lblas $(LG) $(DIRS)
+CC = gcc
+CFLAGS = -Wall 
+LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lcblas -lblas -latlas -lrefblas
+ifeq ($(OSTYPE),linux)
+# Linux
+$(info LINUX)
+ifeq ($(HOST),aquifer.lanl.gov)
+$(info Machine -- AQUIFER)
+LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lblas
+CFLAGS += -I/home/monty/local/include
+LDLIBS += -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
+endif
+else
+ifeq ($(OSTYPE),cygwin)
+# Cygwin
+$(info CYGWIN)
+else
+ifeq ($(OSTYPE),macosx)
+# Mac
+$(info MAC OS X)
+CFLAGS += -I/opt/local/include -I/Users/monty/include
+LDLIBS += -lgfortran -L/opt/local/lib -L/Users/monty/lib
+CC = /opt/local/bin/gcc
+YAML = true
+ifeq ($(HOST),dazed.local)
+$(info Machine -- Dazed)
+YAML = true
+CFLAGS += -I/Users/monty/include
+LDLIBS += -L/Users/monty/lib
+endif
+else
+$(error UNKNOWN OS type -- $(OSTYPE)!)
+endif
+endif
+endif
+# MADS files
 OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o 
-OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o abagus/abagus.o
+OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o
+OBJSA = sa/abagus.o sa/postpua.o sa/global.o
+OBJDS = ds/infogap.o ds/glue.o
 OBJSMPUN = mprun/mprun.o mprun/mprun_io.o
-OBJSKDTREE = abagus/kdtree-0.5.5/kdtree.o
-OBJSLEVMAR = levmar-2.5/lm_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o 
-OBJSLEVMARSTYLE = levmar-2.5/lm_m.o levmar-2.5/lm_core_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o 
-SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
-SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
+OBJSKDTREE = misc/kdtree-0.5.5/kdtree.o
+OBJSLEVMAR = misc/levmar-2.5/lm_m.o misc/levmar-2.5/Axb.o misc/levmar-2.5/misc.o misc/levmar-2.5/lmlec.o misc/levmar-2.5/lmbc.o misc/levmar-2.5/lmblec.o misc/levmar-2.5/lmbleic.o 
+OBJSlEVMARSTYLE = misc/levmar-2.5/lm_m.o misc/levmar-2.5/lm_core_m.o misc/levmar-2.5/Axb.o misc/levmar-2.5/misc.o misc/levmar-2.5/lmlec.o misc/levmar-2.5/lmbc.o misc/levmar-2.5/lmblec.o misc/levmar-2.5/lmbleic.o 
+
+ifeq ($(YAML),true)
+OBJSMADS += mads_io_yaml.o
+CFLAGS += -DYAML `pkg-config --cflags glib-2.0`
+LDLIBS += -lyaml -lglib-2.0
+$(info YAML Support included)
+endif
+
+ifeq ($(MATHEVAL),true)
+CFLAGS += -DMATHEVAL
+LDLIBS += -lmatheval
+$(info MathEval Support included)
+endif
+
+SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
+SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
 
 all: $(PROG)
 
-$(PROG): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSLEVMAR) $(OBJSKDTREE)
+release: $(PROG)
 
-mads.o: mads.c mads.h levmar-2.5/levmar.h
+debug: CFLAGS += -g
+debug: $(PROG)
+
+$(PROG): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE)
+
+clean:
+	rm -f $(PROG) $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE)
+
+
+mads.o: mads.c mads.h misc/levmar-2.5/levmar.h
 mads_io.o: mads_io.c mads.h
+mads_io_yaml.o: mads_io_yaml.c mads.h
 mads_io_external.o: mads_io_external.c mads.h
 mads_func.o: mads_func.c mads.h
 mads_mem.o: mads_mem.c
@@ -43,24 +103,24 @@ lm/opt_lm_mon.o: lm/opt_lm_mon.c mads.h
 lm/opt_lm_gsl.o: lm/opt_lm_gsl.c mads.h
 lm/opt_lm_ch.o: lm/opt_lm_gsl.c mads.h
 lhs/lhs.o: lhs/lhs.c
-misc/test_problems.o: misc/test_problems.c mads.h
-misc/anasol_contamination.o: misc/anasol_contamination.c mads.h
 pso/pso-tribes-lm.o: pso/pso-tribes-lm.c pso/pso.h mads.h
 pso/Standard_PSO_2006.o: pso/Standard_PSO_2006.c mads.h
 pso/mopso.o: pso/mopso.c pso/mopso.h
-abagus/abagus.o: abagus/abagus.c mads.h abagus/kdtree-0.5.5/kdtree.o
-abagus/kdtree-0.5.5/kdtree.o: abagus/kdtree-0.5.5/kdtree.c abagus/kdtree-0.5.5/kdtree.h
-levmar-2.5/lm_m.o: levmar-2.5/lm_m.c levmar-2.5/lm_core_m.c levmar-2.5/levmar.h levmar-2.5/misc.h levmar-2.5/compiler.h mads.h
-levmar-2.5/Axb.o: levmar-2.5/Axb.c levmar-2.5/levmar.h levmar-2.5/misc.h
-levmar-2.5/misc.o: levmar-2.5/misc.c levmar-2.5/misc_core.c levmar-2.5/levmar.h levmar-2.5/misc.h
-levmar-2.5/lmlec.o: levmar-2.5/lmlec.c levmar-2.5/lmlec_core.c levmar-2.5/levmar.h levmar-2.5/misc.h
-levmar-2.5/lmbc.o: levmar-2.5/lmbc.c levmar-2.5/lmbc_core.c levmar-2.5/levmar.h levmar-2.5/misc.h levmar-2.5/compiler.h
-levmar-2.5/lmblec.o: levmar-2.5/lmblec.c levmar-2.5/lmblec_core.c levmar-2.5/levmar.h levmar-2.5/misc.h
-levmar-2.5/lmbleic.o: levmar-2.5/lmbleic.c levmar-2.5/lmbleic_core.c levmar-2.5/levmar.h levmar-2.5/misc.h
-
-clean:
-	rm -f $(PROG) $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSLEVMAR) $(OBJSKDTREE)
-
+sa/abagus.o: sa/abagus.c mads.h misc/kdtree-0.5.5/kdtree.o
+sa/postpua.o: sa/postpua.c mads.h
+sa/global.o: sa/global.c mads.h
+ds/infogap.o: ds/infogap.c mads.h
+ds/glue.o: ds/glue.c mads.h
+misc/anasol_contamination.o: misc/anasol_contamination.c mads.h
+misc/test_problems.o: misc/test_problems.c mads.h
+misc/kdtree-0.5.5/kdtree.o: misc/kdtree-0.5.5/kdtree.c misc/kdtree-0.5.5/kdtree.h
+misc/levmar-2.5/lm_m.o: misc/levmar-2.5/lm_m.c misc/levmar-2.5/lm_core_m.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h misc/levmar-2.5/compiler.h mads.h
+misc/levmar-2.5/Axb.o: misc/levmar-2.5/Axb.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
+misc/levmar-2.5/misc.o: misc/levmar-2.5/misc.c misc/levmar-2.5/misc_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
+misc/levmar-2.5/lmlec.o: misc/levmar-2.5/lmlec.c misc/levmar-2.5/lmlec_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
+misc/levmar-2.5/lmbc.o: misc/levmar-2.5/lmbc.c misc/levmar-2.5/lmbc_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h misc/levmar-2.5/compiler.h
+misc/levmar-2.5/lmblec.o: misc/levmar-2.5/lmblec.c misc/levmar-2.5/lmblec_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
+misc/levmar-2.5/lmbleic.o: misc/levmar-2.5/lmbleic.c misc/levmar-2.5/lmbleic_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
 
 examples:
 	@echo "**************************************************************************************"

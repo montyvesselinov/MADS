@@ -29,6 +29,8 @@
 #define _GNU_SOURCE
 #endif
 
+#include "mads.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -40,7 +42,7 @@
 #include <assert.h>
 #include <matheval.h>
 
-#include "mads.h"
+enum storage_flags { VAR, VAL, SEQ }; // "Store as" switch
 
 /* Functions here */
 int parse_cmd( char *buf, struct calc_data *cd );
@@ -154,7 +156,10 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "eigen", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->lm_eigen = 1; else cd->problem_type = EIGEN; }
 		if( !strncasecmp( word, "lmeigen", 7 ) ) { w = 1; cd->problem_type = CALIBRATE; sscanf( word, "lmeigen=%d", &cd->lm_eigen ); if( cd->lm_eigen == 0 ) cd->lm_eigen = 1; }
 		if( !strncasecmp( word, "monte", 5 ) ) { w = 1; cd->problem_type = MONTECARLO; }
-		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; }
+		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SOBOL; }
+		if( !strncasecmp( word, "sobol", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SOBOL; }
+		if( !strncasecmp( word, "saltelli", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SALTELLI; }
+		if( !strncasecmp( word, "moat", 4 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = MOAT; }
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
 		if( !strncasecmp( word, "abagus", 6 ) ) { w = 1; cd->problem_type = ABAGUS; }
 		if( !strncasecmp( word, "infogap", 7 ) ) { w = 1; cd->problem_type = INFOGAP; }
@@ -642,9 +647,13 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			fscanf( infile, "\n" );
 			if( cd->debug ) tprintf( " %s", buf );
 			pd->param_expressions_index[pd->nExpParam] = i;
+#ifdef MATHEVAL
 			pd->param_expressions[pd->nExpParam] = evaluator_create( buf );
 			assert( pd->param_expressions[pd->nExpParam] );
 			evaluator_get_variables( pd->param_expressions[pd->nExpParam], &expvar_names, &expvar_count );
+#else
+			expvar_count = 0;
+#endif
 			if( expvar_count > 0 )
 			{
 				if( cd->debug )
@@ -659,8 +668,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 			else
 			{
+#ifdef MATHEVAL
 				pd->var[i] = cd->var[i] = evaluator_evaluate_x( pd->param_expressions[pd->nExpParam], 0 );
 				if( cd->debug ) tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[i] );
+#else
+				tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
 			}
 		}
 	}
@@ -819,11 +832,18 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	// ------------------------------------------------------------ Set parameters with computational expressions (coupled or tied parameters) ----------------------------------------------------------------
 	tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", pd->nExpParam );
 	short_names_printed = 0;
+#ifndef MATHEVAL
+	tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
 	if( pd->nExpParam > 0 )
 	{
 		for( i = 0; i < pd->nExpParam; i++ )
 		{
+#ifdef MATHEVAL
 			evaluator_get_variables( pd->param_expressions[i], &expvar_names, &expvar_count );
+#else
+			expvar_count = 0;
+#endif
 			for( j = 0; j < expvar_count; j++ )
 			{
 				l1 = strlen( expvar_names[j] );
@@ -835,7 +855,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					l2 = strlen( word );
 					if( l1 == l2 && strcmp( expvar_names[j], word ) == 0 ) { status = 1; break; }
 				}
+#ifdef MATHEVAL
 				if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in expression \'%s\' for parameter \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( pd->param_expressions[i] ), pd->var_id[pd->param_expressions_index[i]] ); bad_data = 1; }
+#endif
 			}
 		}
 		if( bad_data ) return( 0 );
@@ -856,10 +878,14 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			{
 				k = pd->param_expressions_index[i];
 				tprintf( "%-26s= ", pd->var_id[k] );
+#ifdef MATHEVAL
 				tprintf( "%s", evaluator_get_string( pd->param_expressions[i] ) );
 				if( cd->solution_type[0] == EXTERNAL ) pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id, cd->var );
 				else pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id_short, cd->var );
 				tprintf( " = %g\n", pd->var[k] );
+#else
+				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
 			}
 		}
 	}
@@ -894,16 +920,23 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		rd->regul_min = ( double * ) malloc( rd->nRegul * sizeof( double ) );
 		rd->regul_max = ( double * ) malloc( rd->nRegul * sizeof( double ) );
 		rd->regul_log = ( int * ) malloc( rd->nRegul * sizeof( int ) );
+#ifndef MATHEVAL
+		tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
 		for( i = 0; i < rd->nRegul; i++ )
 		{
 			sprintf( rd->regul_id[i], "reg%d", i + 1 );
 			fscanf( infile, "%[^=]s", buf );
 			fscanf( infile, "= %lf %lf %i %lf %lf\n", &rd->regul_target[i], &rd->regul_weight[i], &rd->regul_log[i], &rd->regul_min[i], &rd->regul_max[i] );
 			if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], buf );
-			if( !( rd->regul_weight[i] > DBL_EPSILON ) )  tprintf( " WARNING Weight <= 0 " );
+			if( !( rd->regul_weight[i] > DBL_EPSILON ) ) tprintf( " WARNING Weight <= 0 " );
+#ifdef MATHEVAL
 			rd->regul_expressions[i] = evaluator_create( buf );
 			assert( rd->regul_expressions[i] );
 			evaluator_get_variables( rd->regul_expressions[i], &expvar_names, &expvar_count );
+#else
+			expvar_count = 0;
+#endif
 			if( expvar_count > 0 )
 			{
 				if( cd->debug )
@@ -924,20 +957,28 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 						l2 = strlen( word );
 						if( l1 == l2 && strcmp( expvar_names[j], word ) == 0 ) { status = 1; break; }
 					}
+#ifdef MATHEVAL
 					if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' defined in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expressions[i] ) ); bad_data = 1; }
+#endif
 				}
 			}
+#ifdef MATHEVAL
 			else { tprintf( "ERROR: no variables\n" ); bad_data = 1; }
+#endif
 		}
 		if( cd->debug )
 		{
 			for( i = 0; i < rd->nRegul; i++ )
 			{
 				tprintf( "%-12s= ", rd->regul_id[i] );
+#ifdef MATHEVAL
 				tprintf( "%s", evaluator_get_string( rd->regul_expressions[i] ) );
 				if( cd->solution_type[0] == EXTERNAL ) d = evaluator_evaluate( rd->regul_expressions[i], pd->nParam, pd->var_id, cd->var );
 				else d = evaluator_evaluate( rd->regul_expressions[i], pd->nParam, pd->var_id_short, cd->var );
 				tprintf( " = %g\n", d );
+#else
+				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
 			}
 		}
 		fscanf( infile, "%[^:]s", buf );
@@ -1323,7 +1364,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else gd->dx = ( gd->max_x - gd->min_x ) / ( gd->nx - 1 );
 	if( gd->ny == 1 ) gd->dy = 0;
 	gd->dy = ( gd->max_y - gd->min_y ) / ( gd->ny - 1 );
-	//	if(gd->nz == 1 ) gd->dz = gd->max_z - gd->min_z ); // In this way compute_grid computed for min_z
+	// if(gd->nz == 1 ) gd->dz = gd->max_z - gd->min_z ); // In this way compute_grid computed for min_z
 	if( gd->nz == 1 ) gd->dz = 0;
 	else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
 	if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
@@ -1433,7 +1474,11 @@ int save_problem( char *filename, struct opt_data *op )
 	for( i = j = 0; i < pd->nParam; i++ )
 	{
 		if( pd->var_opt[i] == -1 ) // tied parameter
+#ifdef MATHEVAL
 			fprintf( outfile, "%s= %s\n", pd->var_id[i], evaluator_get_string( pd->param_expressions[j++] ) );
+#else
+			fprintf( outfile, "%s= MathEval is not installed; expressions cannot be evaluated\n", pd->var_id[i] );
+#endif
 		else if( pd->var_opt[i] >= 1 && pd->var_log[i] == 1 ) // optimized log transformed parameter
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_id[i], pow( 10, pd->var[i] ), pd->var_opt[i], pd->var_log[i], pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );
 		else // fixed or not log-transformed parameter
@@ -1443,7 +1488,11 @@ int save_problem( char *filename, struct opt_data *op )
 	{
 		fprintf( outfile, "Number of regularization terms: %d\n", rd->nRegul );
 		for( i = 0; i < rd->nRegul; i++ )
+#ifdef MATHEVAL
 			fprintf( outfile, "%s = %g %g %i %g %g\n", evaluator_get_string( rd->regul_expressions[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+#else
+			fprintf( outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+#endif
 	}
 	if( cd->solution_type[0] != EXTERNAL )
 	{

@@ -691,7 +691,8 @@ int AX_EQ_B_SVD( LM_REAL *A, LM_REAL *B, LM_REAL *x, int m )
 	int a_sz, u_sz, s_sz, vt_sz, tot_sz;
 	LM_REAL thresh, one_over_denom;
 	register LM_REAL sum;
-	int info, rank, worksz, *iwork, iworksz;
+	int info, rank, worksz, iworksz;
+//	int *iwork;
 	if( !A )
 #ifdef LINSOLVERS_RETAIN_MEMORY
 	{
@@ -744,7 +745,7 @@ int AX_EQ_B_SVD( LM_REAL *A, LM_REAL *B, LM_REAL *x, int m )
 	s = u + u_sz;
 	vt = s + s_sz;
 	work = vt + vt_sz;
-	iwork = ( int * )( work + worksz );
+//	iwork = ( int * )( work + worksz );
 	/* store A (column major!) into a */
 	for( i = 0; i < m; i++ )
 		for( j = 0; j < m; j++ )
