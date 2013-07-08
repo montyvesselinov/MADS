@@ -334,7 +334,7 @@ int mopso( struct opt_data *op )
 	struct position bestBest;
 	struct problem pb;
 	struct swarm S;
-	double successRate[fMax], errorMean[fMax], errorTot;
+	double successRate[fMax], errorMean[fMax];
 	char filename[80];
 	int debug, i, n, r, eval_total;
 	gop = op;
@@ -356,7 +356,6 @@ int mopso( struct opt_data *op )
 	}
 	pb = problemset( op );
 	problem_print( pb );
-	errorTot = 0;
 	eval_total = 0;
 	archiveNb = 0;
 	fCompare = 0; // Kind of comparison, to begin (see fitnessCompare() )
@@ -1258,7 +1257,7 @@ static struct position position_update( struct problem pb, struct particle par, 
 	struct position pos, pos1, pos2;
 	double dx;
 	double radius;
-	int strat[3];
+//	int strat[3];
 	int type;
 
 	double w1 = 0.74; // => gaussian fifty-fifty
@@ -1266,9 +1265,9 @@ static struct position position_update( struct problem pb, struct particle par, 
 	double c = 1.19; // < 0.5 + ln(2) Just for tests
 
 	// Define the three strategies
-	strat[0] = 0; // For good particle
-	strat[1] = 1; // For neutral particle
-	strat[2] = 2; // For bad particle
+//	strat[0] = 0; // For good particle
+//	strat[1] = 1; // For neutral particle
+//	strat[2] = 2; // For bad particle
 
 	pos.size = pb.D;
 	Dim = informer.xBest.size; // May be zero if there is no informer

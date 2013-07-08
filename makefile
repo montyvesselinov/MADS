@@ -1,28 +1,55 @@
 PROG = mads
-CMP = ./compare-results 
-# MathEval required to evaluate expression for tied parameters and regularization terms
-MATHEVAL = true
-# Support for YAML input files is optional 
-YAML = true
-# CMP = cp -f
-# CC = g++ 
-ifeq ($(OSTYPE),linux)
-	CG = -I/home/monty/local/include
-	LG = -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
-	CC = gcc
-endif
-ifeq ($(OSTYPE),cygwin)
-	CC = gcc
-endif
-ifeq ($(OSTYPE),darwin)
-	CG = -I/Users/monty/include -I/opt/local/include
-	LG = -lgfortran -L/opt/local/lib -L/Users/monty/lib
-	CC = gcc
-endif
+CMP = ./compare-results # MADS testing
+# CMP = cp -f # Save current results for future testing DANGEROUS!
 
-# CFLAGS = -Wall -g $(CG) # debug
-CFLAGS = -Wall $(CG) # release
-LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lcblas -lblas -latlas -lrefblas $(LG)
+# MathEval required to evaluate expression for tied parameters and regularization terms
+ifndef MATHEVAL
+MATHEVAL = true
+endif
+# Support for YAML input files is optional 
+ifndef YAML
+YAML = false
+endif
+# Compilation setup
+$(info OS type -- $(OSTYPE))
+$(info Machine -- $(HOST))
+ifeq ($(OSTYPE),darwin)
+OSTYPE = macosx
+endif
+CC = gcc
+CFLAGS = -Wall 
+LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lcblas -lblas -latlas -lrefblas
+ifeq ($(OSTYPE),linux)
+# Linux
+$(info LINUX)
+ifeq ($(HOST),well)
+CFLAGS += -I/home/monty/local/include
+LDLIBS += -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
+$(info Machine -- Well)
+endif
+else
+ifeq ($(OSTYPE),cygwin)
+# Cygwin
+$(info CYGWIN)
+else
+ifeq ($(OSTYPE),macosx)
+# Mac
+$(info MAC OS X)
+CFLAGS += -I/opt/local/include -I/Users/monty/include
+LDLIBS += -lgfortran -L/opt/local/lib -L/Users/monty/lib
+CC = /opt/local/bin/gcc
+ifeq ($(HOST),dazed.local)
+$(info Machine -- Dazed)
+YAML = true
+CFLAGS += -I/Users/monty/include
+LDLIBS += -L/Users/monty/lib
+endif
+else
+$(error UNKNOWN OS type -- $(OSTYPE)!)
+endif
+endif
+endif
+# MADS files
 OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o 
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o abagus/abagus.o
 OBJSMPUN = mprun/mprun.o mprun/mprun_io.o
@@ -31,20 +58,28 @@ OBJSLEVMAR = levmar-2.5/lm_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lml
 OBJSLEVMARSTYLE = levmar-2.5/lm_m.o levmar-2.5/lm_core_m.o levmar-2.5/Axb.o levmar-2.5/misc.o levmar-2.5/lmlec.o levmar-2.5/lmbc.o levmar-2.5/lmblec.o levmar-2.5/lmbleic.o 
 
 ifeq ($(YAML),true)
-	OBJSMADS += mads_io_yaml.o
-	CFLAGS += -DYAML `pkg-config --cflags glib-2.0`
-	LDLIBS += -lyaml -lglib-2.0
+OBJSMADS += mads_io_yaml.o
+CFLAGS += -DYAML `pkg-config --cflags glib-2.0`
+LDLIBS += -lyaml -lglib-2.0
+$(info YAML Support included)
 endif
 
 ifeq ($(MATHEVAL),true)
-	CFLAGS += -DMATHEVAL
-	LDLIBS += -lmatheval
+CFLAGS += -DMATHEVAL
+LDLIBS += -lmatheval
+$(info MathEval Support included)
 endif
+
 
 SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
 SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
 
 all: $(PROG)
+
+release: $(PROG)
+
+debug: CFLAGS += -g
+debug: $(PROG)
 
 $(PROG): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSLEVMAR) $(OBJSKDTREE)
 

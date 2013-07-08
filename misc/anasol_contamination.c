@@ -202,7 +202,7 @@ double int_rectangle_source( double tau, void *params )
 	double az = ( p->var[AZ] );
 	double source_sizex = ( p->var[SOURCE_DX] );
 	double source_sizey = ( p->var[SOURCE_DY] );
-	double rx, ry, rz, e1, ex, ey;
+	double rx, ry, e1, ex, ey;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -214,7 +214,6 @@ double int_rectangle_source( double tau, void *params )
 	ze = ( p->ze - p->var[SOURCE_Z] );
 	rx = 2.*sqrt( tau * ax * vx );
 	ry = 2.*sqrt( tau * ay * vx );
-	rz = 2.*sqrt( tau * az * vx );
 	e1 = exp( -tau * lambda - ze * ze / ( tau * ( 4 * az * vx ) ) );
 	ex = erfc( ( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2 - tau * vx ) / rx );
 	ey = erfc( ( ye - source_sizey / 2 ) / ry ) - erfc( ( ye + source_sizey / 2 ) / ry );
