@@ -320,7 +320,8 @@ static int LEVMAR_PSEUDOINVERSE( LM_REAL *A, LM_REAL *B, int m )
 	LM_REAL *a, *u, *s, *vt, *work;
 	int a_sz, u_sz, s_sz, vt_sz, tot_sz;
 	LM_REAL thresh, one_over_denom;
-	int info, rank, worksz, *iwork, iworksz;
+	int info, rank, worksz, iworksz;
+//	int *iwork;
 	/* calculate required memory size */
 	worksz = 5 * m; // min worksize for GESVD
 	//worksz=m*(7*m+4); // min worksize for GESDD
@@ -340,7 +341,7 @@ static int LEVMAR_PSEUDOINVERSE( LM_REAL *A, LM_REAL *B, int m )
 	s = u + u_sz;
 	vt = s + s_sz;
 	work = vt + vt_sz;
-	iwork = ( int * )( work + worksz );
+//	iwork = ( int * )( work + worksz );
 	/* store A (column major!) into a */
 	for( i = 0; i < m; i++ )
 		for( j = 0; j < m; j++ )

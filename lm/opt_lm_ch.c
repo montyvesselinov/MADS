@@ -41,9 +41,10 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 			 double xjac[], int ixjac, double xjtj[], int *infer )
 {
 	int     imjc, ieval, ibad, isw, iter, j, ijac, i, ier, k, l, is, js, icount, izero, label;
-	double   al, cons2, dnorm, dsq, erl2, erl2x, f0, f0sq, f0sqs4, g, hh, onesf0, ax,
+	double   al, cons2, dnorm, dsq, erl2, erl2x, f0, f0sq, g, hh, onesf0, ax,
 			 prec, rel, rhh, sig, sqdif, ssqold, sum, xdif, xhold, up, xdabs,
 			 relcon, delta2, temp;
+//	double   f0sqs4;
 	double  *work, *grad, *delx, *scall, *xnew, *xbad, *fplus, *fminus;
 	sig = 6.3;
 	ax = 0.1;
@@ -79,7 +80,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 		else { al = 0.01; f0 = 2.0; up = 1.2e2; }
 		onesf0 = 1.0 / f0;
 		f0sq = f0 * f0;
-		f0sqs4 = f0sq * f0sq * f0sq * f0sq;
+		// f0sqs4 = f0sq * f0sq * f0sq * f0sq;
 	}
 	ieval = 0;
 	delta2 = delta * 0.5;

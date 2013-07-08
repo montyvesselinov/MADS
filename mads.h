@@ -37,6 +37,7 @@
 
 enum PROBLEM_TYPE {UNKNOWN = -3, CHECK, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, INFOGAP, POSTPUA, GLUE };
 enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
+enum GSA_TYPE {SOBOL, SALTELLI, MOAT};
 enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDX, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3 };
 #define NUM_ANAL_PARAMS 19
@@ -78,6 +79,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 {
 	int problem_type; // problem type: forward, calibration, ...
 	int calib_type; // calibration type: simple, igpd, ...
+	int gsa_type; // global sensitivity analysis type: sobol, saltelli, moat, ...
 	int paranoid; // paranoid calibration
 	int num_solutions; // number of internal solutions
 	int *solution_type; // external / internal (box, ... )
@@ -285,7 +287,7 @@ struct extrn_data // data structure for external problem
 	char **fn_obs; // model output filename associated with the instruction file
 };
 
-struct gsens_data // global sensitivity analysis data structure
+struct gsa_data // global sensitivity analysis data structure
 {
 	double **var_a_lhs;	// sample a for global sensitivity analysis
 	double **var_b_lhs;	// sample b for global sensitivity analysis

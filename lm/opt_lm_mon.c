@@ -145,7 +145,8 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 {
 	struct opt_data *func_data = ( struct opt_data * )data;
 	int ieval, singular_count, central_derivatives, iter, iter_best, max_iter_best, max_phi_range, ranking_count, lambda_count, max_lambda_count, i, j, ier, k, l, is, js, iphi, bad_count, max_bad_count, lambda_up_count, izero, add, rank, debug, ofe_close;
-	double lambda, limit_central_difference, dnorm, temp, temp2, grad_norm, grad_norm_old, factor, factor_squared, factor_pow8, dx, factor_recipical, phi_range, precision, rel, phi_diff, phi_old, phi_init, phi_best, phi_ibest, sum, x_diff, x_old, upper_bound, x_abs, relcon, rel_dx, *hessian, *grad, *x_update, *scale, *x_new, *x_best, *x_cur_best, *x_bad, *f_xpdx, *f_xmdx, *vphi, phi_range_min, phi_range_max, phi_cutoff;
+	double lambda, limit_central_difference, dnorm, temp, temp2, grad_norm, grad_norm_old, factor, factor_squared, dx, factor_recipical, phi_range, precision, rel, phi_old, phi_init, phi_best, phi_ibest, sum, x_diff, x_old, upper_bound, x_abs, relcon, *hessian, *grad, *x_update, *scale, *x_new, *x_best, *x_cur_best, *x_bad, *f_xpdx, *f_xmdx, *vphi, phi_range_min, phi_range_max, phi_cutoff;
+//	double rel_dx, phi_diff, factor_pow8;
 	char filename[80];
 	/* ERROR CHECKS FIRST EXECUTABLE STATEMENT */
 	debug = func_data->cd->ldebug;
@@ -169,7 +170,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 	*/
 	rel = sqrt( precision );
 	phi_range = rel;
-	rel_dx = sqrt( rel ) * 100;
+	// rel_dx = sqrt( rel ) * 100;
 	max_lambda_count = 5; // nax number of bad lambda's
 	max_iter_best = max_iter / 2; // max number of interations since the current best one
 	max_phi_range = max_iter / 4; // number of iterations to evaluate phi decline
@@ -211,7 +212,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 		}
 		factor_recipical = 1.0 / factor;
 		factor_squared = factor * factor;
-		factor_pow8 = factor_squared * factor_squared * factor_squared * factor_squared;
+		// factor_pow8 = factor_squared * factor_squared * factor_squared * factor_squared;
 	}
 	else { lambda = 1.0; limit_central_difference = 0.1; }
 	grad_norm = 1.0e10;
@@ -609,7 +610,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 					if( x_diff > relcon ) break;
 				}
 				if( j == nParam ) *infer += 1;
-				phi_diff = fabs( *phi - phi_old ) / MAX( phi_old, DAX );
+//				phi_diff = fabs( *phi - phi_old ) / MAX( phi_old, DAX );
 //				if( phi_diff <= eps ) *infer += 2;
 				if( lambda > 1e2 && lambda_count > max_lambda_count ) { rank = NO; if( debug ) printf( "New interation because the lambda is large and there were enough attempts (%d < %d)\n", max_lambda_count, lambda_count ); break; }
 				rank = YES; /* YES == standard LM; NO == may help to avoid local minimum */

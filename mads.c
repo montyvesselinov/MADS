@@ -33,6 +33,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include <time.h>
 #include <sys/types.h>
@@ -53,7 +54,7 @@
 #include <gsl/gsl_sort_vector.h>
 #include <gsl/gsl_interp.h>
 #include <matheval.h>
-#include "levmar-2.5/levmar.h"
+#include "misc/levmar-2.5/levmar.h"
 #include "mads.h"
 
 #define FIT(i) gsl_vector_get(solver->x, i)
@@ -69,12 +70,6 @@ int igrnd( struct opt_data *op );
 int igpd( struct opt_data *op );
 int ppsd( struct opt_data *op );
 int montecarlo( struct opt_data *op );
-int gsens( struct opt_data *op );
-int abagus( struct opt_data *op );
-int infogap_obs( struct opt_data *op );
-int infogap( struct opt_data *op );
-int postpua( struct opt_data *op );
-int glue( struct opt_data *op );
 //
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op, int verbosity ); // Print final results
@@ -116,8 +111,6 @@ FILE *Fwrite( char *filename );
 FILE *Fappend( char *filename );
 char *Fdatetime( char *filename, int debug );
 time_t Fdatetime_t( char *filename, int debug );
-int count_lines( char *filename );
-int count_cols( char *filename, int row );
 // External IO
 int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
@@ -159,6 +152,15 @@ void DeTransform( double *v, void *data, double *vt );
 // Parallel
 int mprun( int nJob, void *data );
 char *dir_hosts( void *data, char *timedate_stamp );
+// Methods
+int sa_sobol( struct opt_data *op );
+int sa_saltelli( struct opt_data *op );
+int sa_moat( struct opt_data *op );
+int abagus( struct opt_data *op );
+int infogap_obs( struct opt_data *op );
+int infogap( struct opt_data *op );
+int postpua( struct opt_data *op );
+int glue( struct opt_data *op );
 
 int main( int argn, char *argv[] )
 {
@@ -559,7 +561,15 @@ int main( int argn, char *argv[] )
 		status = montecarlo( &op );
 	// ------------------------------------------------------------------------------------------------ GLOBALSENS
 	if( cd.problem_type == GLOBALSENS ) /* Global sensitivity analysis */
-		status = gsens( &op );
+	{
+		switch( cd.gsa_type )
+		{
+			case SOBOL: status = sa_sobol( &op ); break;
+			case SALTELLI: status = sa_saltelli( &op ); break;
+			case MOAT: status = sa_moat( &op ); break;
+			default: tprintf( "WARNING: unknown global sensitivity analysis type; Sobol's method assumed" ); status = sa_sobol( &op ); break;
+		}
+	}
 	// ------------------------------------------------------------------------------------------------ SIMPLE CALIBRATION
 	if( cd.problem_type == CALIBRATE && cd.calib_type == SIMPLE ) /* Inverse analysis */
 	{
@@ -2642,613 +2652,6 @@ int montecarlo( struct opt_data *op )
 	}
 	free( opt_params );
 	save_final_results( "", op, op->gd );
-	return( 1 );
-}
-
-int gsens( struct opt_data *op )
-{
-	int i, j, k, count;
-	double *opt_params, *var_a_lhs, *var_b_lhs;
-	char filename[255], buf[255];
-	FILE *out, *out2;
-	struct gsens_data gs;
-	strcpy( op->label, "gsens" );
-	double fhat, fhat2, *phis_full, *phis_half;
-	int n_sub; //! number of samples for subsets a and b
-	//		gsl_qrng *q = gsl_qrng_alloc( gsl_qrng_sobol, op->pd->nOptParam );
-	n_sub = op->cd->nreal / 2;	// set to half of user specified reals
-	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	// Temporary variable to store op->cd->nreal phis
-	if( ( phis_full = ( double * ) malloc( op->cd->nreal * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	// Temporary variable to store m_sub phis
-	if( ( phis_half = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	// Temporary variable to store random sample a
-	if( ( var_a_lhs = ( double * ) malloc( op->pd->nOptParam * n_sub * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	// Sample a phis
-	if( ( gs.f_a = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	// Sample b phis
-	if( ( gs.f_b = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	// Temporary variable to store random sample b
-	if( ( var_b_lhs = ( double * ) malloc( op->pd->nOptParam * n_sub * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	// matrices to store lhs samples
-	gs.var_a_lhs = double_matrix( n_sub, op->pd->nOptParam );
-	gs.var_b_lhs = double_matrix( n_sub, op->pd->nOptParam );
-	// Matrices to store phis with different combinations of parameters from samples a and b
-	if( ( gs.fmat_a = double_matrix( op->pd->nOptParam, n_sub ) ) == NULL )
-	{ tprintf( "Error creating 3D matrix\n" ); return( 0 ); }
-	if( ( gs.fmat_b = double_matrix( op->pd->nOptParam, n_sub ) ) == NULL )
-	{ tprintf( "Error creating 3D matrix\n" ); return( 0 ); }
-	// Vector of variances for individual component contribution
-	if( ( gs.D_hat = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	// Vector of variances for total component contribution
-	if( ( gs.D_hat_n = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	tprintf( "\nGlobal sensitivity analysis using random sampling:\n" );
-	// Create samples
-	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
-	else tprintf( "Current seed: %d\n", op->cd->seed );
-	tprintf( "Random sampling set 1 (variables %d; realizations %d) using ", op->pd->nOptParam, op->cd->nreal );
-	sampling( op->pd->nOptParam, n_sub, &op->cd->seed, var_a_lhs, op, 1 );
-	tprintf( "done.\n" );
-	tprintf( "Random sampling set 2 (variables %d; realizations %d) using ", op->pd->nOptParam, op->cd->nreal );
-	sampling( op->pd->nOptParam, n_sub, &op->cd->seed, var_b_lhs, op, 1 );
-	tprintf( "done.\n" );
-	// Create samples using Sobol's quasi-random sequence
-	/*		for( count = 0; count < n_sub; count++ )
-			{
-				double v[ op->pd->nOptParam ];
-				gsl_qrng_get( q, v);
-				for( i = 0; i < op->pd->nOptParam; i++ )
-				{
-					k = op->pd->var_index[i];
-					gs.var_a_lhs[count][i] = v[i] * op->pd->var_range[k] + op->pd->var_min[k];
-				}
-			}
-
-			for( count = 0; count < n_sub; count++ )
-			{
-				double v[ op->pd->nOptParam ];
-				gsl_qrng_get( q, v);
-				for( i = 0; i < op->pd->nOptParam; i++ )
-				{
-					k = op->pd->var_index[i];
-					gs.var_b_lhs[count][i] = v[i] * op->pd->var_range[k] + op->pd->var_min[k];
-				}
-			}*/
-	// Copy temp lhs vectors to matrices
-	for( count = 0; count < n_sub; count++ )
-		for( i = 0; i < op->pd->nOptParam; i++ )
-		{
-			k = op->pd->var_index[i];
-			gs.var_a_lhs[count][i] = var_a_lhs[i + count * op->pd->nOptParam] * op->pd->var_range[k] + op->pd->var_min[k];
-			gs.var_b_lhs[count][i] = var_b_lhs[i + count * op->pd->nOptParam] * op->pd->var_range[k] + op->pd->var_min[k];
-		}
-	free( var_a_lhs );
-	free( var_b_lhs );
-	// Output samples to files
-	if( op->cd->mdebug )
-	{
-		sprintf( filename, "%s.gsens.zip", op->root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.gsens.zip %s.gsens_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-		sprintf( buf, "zip -m %s.gsens.zip %s.gsens_set_* >& /dev/null", op->root, op->root ); system( buf );
-		sprintf( buf, "mv %s.gsens.zip %s.gsens_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
-		sprintf( filename, "%s.gsens_set_a", op->root ); out = Fwrite( filename );
-		sprintf( filename, "%s.gsens_set_b", op->root ); out2 = Fwrite( filename );
-		for( count = 0; count < n_sub; count ++ )
-		{
-			for( k = 0; k < op->pd->nOptParam; k++ )
-			{
-				fprintf( out, "%.15g ", gs.var_a_lhs[count][k] );
-				fprintf( out2, "%.15g ", gs.var_b_lhs[count][k] );
-			}
-			fprintf( out, "\n" );
-			fprintf( out2, "\n" );
-		}
-		fclose( out );
-		fclose( out2 );
-		tprintf( "Random sampling sets a and b saved in %s.mcrnd_set_a and %s.mcrnd_set_b\n", op->root, op->root );
-	}
-	sprintf( filename, "%s.gsens.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.gsens_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	out = Fwrite( filename );
-	// Accumulate phis into fhat and fhat2 for total output mean and variance
-	fhat = fhat2 = 0;
-	tprintf( "Computing phis to calculate total output mean and variance...\n" );
-	// Compute sample a phis
-	for( count = 0; count < n_sub; count ++ )
-	{
-		for( i = 0; i < op->pd->nOptParam; i++ )
-		{
-			k = op->pd->var_index[i];
-			opt_params[i] = op->pd->var[k] = gs.var_a_lhs[count][i];
-		}
-		Transform( opt_params, op, opt_params );
-		func_global( opt_params, op, op->od->res );
-		// Sum phi and phi^2
-		fhat += op->phi;
-		fhat2 += pow( op->phi, 2 );
-		// Save sample a phis
-		gs.f_a[count] = op->phi;
-		phis_full[count] = op->phi;
-		// save to results file
-		fprintf( out, "%d : ", count + 1 ); // counter
-		fprintf( out, "%g :", op->phi );
-		for( i = 0; i < op->pd->nParam; i++ )
-			if( op->pd->var_opt[i] >= 1 )
-				fprintf( out, " %.15g", op->pd->var[i] );
-		fprintf( out, "\n" );
-		fflush( out );
-	}
-	// Compute sample b phis
-	for( count = 0; count < n_sub; count ++ )
-	{
-		for( i = 0; i < op->pd->nOptParam; i++ )
-		{
-			k = op->pd->var_index[i];
-			opt_params[i] = op->pd->var[k] = gs.var_b_lhs[count][i];
-		}
-		Transform( opt_params, op, opt_params );
-		func_global( opt_params, op, op->od->res );
-		// Sum phi and phi^2
-		fhat += op->phi;
-		fhat2 += pow( op->phi, 2 );
-		// Save sample b phis
-		gs.f_b[count] = op->phi;
-		phis_full[ n_sub + count ] = op->phi;
-		// save to results file
-		fprintf( out, "%d : ", n_sub + count ); // counter
-		fprintf( out, "%g :", op->phi );
-		for( i = 0; i < op->pd->nParam; i++ )
-			if( op->pd->var_opt[i] >= 1 )
-				fprintf( out, " %.15g", op->pd->var[i] );
-		fprintf( out, "\n" );
-		fflush( out );
-	}
-	fclose( out );
-	tprintf( "Global Sensitivity MC results are saved in %s.gsens.results\n", op->root );
-	// Calculate total output mean and variance based on sample a
-	gs.f_hat_0 = fhat / ( 2 * n_sub );
-	gs.D_hat_t = fhat2 / ( 2 * n_sub ) - gs.f_hat_0;
-	tprintf( "Total output mean = %g\n", gs.f_hat_0 );
-	tprintf( "Total output variance = %g\n", gs.D_hat_t );
-	gs.f_hat_0 = gsl_stats_mean( phis_full, 1, op->cd->nreal );
-	gs.D_hat_t = gsl_stats_variance( phis_full, 1, op->cd->nreal );
-	tprintf( "Total output mean = %g\n", gs.f_hat_0 );
-	tprintf( "Total output variance = %g\n", gs.D_hat_t );
-	gs.f_hat_0 = gs.D_hat_t = 0.0;
-	ave_sorted( phis_full, op->cd->nreal, &gs.f_hat_0, &gs.ep );
-	tprintf( "Total output mean = %g abs 1st moment = %g\n", gs.f_hat_0, gs.ep );
-	var_sorted( phis_full, phis_full, op->cd->nreal, gs.f_hat_0, gs.ep, &gs.D_hat_t );
-	tprintf( "Total output variance = %g\n", gs.D_hat_t );
-	/*		// Subtract f_hat_0 from phis and recalculate total output variance
-			fhat2 = 0;
-			for( count = 0; count < n_sub; count++ )
-			{
-				gs.f_a[count] -= gs.f_hat_0;
-				gs.f_b[count] -= gs.f_hat_0;
-				phis_full[ count ] = gs.f_a[count];
-				phis_full[ n_sub + count ] = gs.f_b[count];
-				fhat2 += pow( gs.f_a[count], 2 );
-				fhat2 += pow( gs.f_b[count], 2 );
-			}
-			gs.D_hat_t = fhat2 / (2 * n_sub);
-		 	tprintf( "Total output variance = %g\n", gs.D_hat_t );
-			gs.D_hat_t = gsl_stats_variance( phis_full, 1, op->cd->nreal );
-		 	tprintf( "Total output variance = %g\n", gs.D_hat_t );
-	 */		free( phis_full );
-	// Collect matrix of phis for fmat_a
-	tprintf( "Computing phis for calculation of individual output variances:\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ )
-	{
-		tprintf( "Parameter %d...\n", i + 1 );
-		for( count = 0; count < n_sub; count ++ )
-		{
-			for( j = 0; j < op->pd->nOptParam; j++ )
-			{
-				k = op->pd->var_index[j];
-				if( i == j ) // then select from sample a
-					opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
-				else // else select from sample b
-					opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
-			}
-			Transform( opt_params, op, opt_params );
-			func_global( opt_params, op, op->od->res );
-			// Save phi to fmat_a
-			gs.fmat_a[i][count] = op->phi;
-		}
-	}
-	// Collect matrix of phis for fmat_b
-	tprintf( "Computing phis for calculation of individual plus interaction output variances:\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ )
-	{
-		tprintf( "Parameter %d...\n", i + 1 );
-		for( count = 0; count < n_sub; count ++ )
-		{
-			for( j = 0; j < op->pd->nOptParam; j++ )
-			{
-				k = op->pd->var_index[j];
-				if( i == j ) // then select from sample b
-					opt_params[j] = op->pd->var[k] = gs.var_b_lhs[count][j];
-				else // else select from sample a
-					opt_params[j] = op->pd->var[k] = gs.var_a_lhs[count][j];
-			}
-			Transform( opt_params, op, opt_params );
-			func_global( opt_params, op, op->od->res );
-			// Save phi to fmat_b
-			gs.fmat_b[i][count] = op->phi;
-		}
-	}
-	tprintf( "done.\n" );
-	// Calculate individual and interaction output variances
-	for( i = 0; i < op->pd->nOptParam; i++ )
-	{
-		fhat2 = 0;
-		for( j = 0; j < n_sub; j++ )
-		{
-			fhat2 += ( gs.f_a[j] * gs.fmat_a[i][j] );
-			phis_half[ j ] = ( gs.f_a[j] * gs.fmat_a[i][j] );
-		}
-		gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		gs.D_hat[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
-		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		gs.D_hat[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_a[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
-		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		var_sorted( gs.f_a, gs.fmat_a[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat[i] );
-		tprintf( "hat{D}_%d = %g\n", i, gs.D_hat[i] );
-		//gs.D_hat[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		fhat2 = 0;
-		for( j = 0; j < n_sub; j++ )
-		{
-			fhat2 += ( gs.f_a[j] * gs.fmat_b[i][j] );
-			phis_half[ j ] = ( gs.f_a[j] * gs.fmat_b[i][j] );
-		}
-		gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		gs.D_hat_n[i] = gsl_stats_mean( phis_half, 1, n_sub ) - pow( gs.f_hat_0, 2 );
-		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		gs.D_hat_n[i] = gsl_stats_covariance_m( gs.f_a, 1, gs.fmat_b[i], 1, n_sub, gs.f_hat_0, gs.f_hat_0 );
-		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		var_sorted( gs.f_a, gs.fmat_b[i], n_sub, gs.f_hat_0, gs.ep, &gs.D_hat_n[i] );
-		tprintf( "hat{D}_n%d = %g\n", i, gs.D_hat_n[i] );
-		//gs.D_hat_n[i] = ( fhat2 / n_sub ) - pow( gs.f_hat_0, 2 );
-	}
-	// Print sensitivity indices
-	tprintf( "\nParameter sensitivity indices:\n" );
-	tprintf( "parameter individual interaction\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, gs.D_hat[i] / gs.D_hat_t, 1 - ( gs.D_hat_n[i] / gs.D_hat_t ) );
-	tprintf( "\n" );
-	free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat ); free( gs.D_hat_n );
-	free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
-	free_matrix( ( void ** ) gs.var_b_lhs, n_sub );
-	free_matrix( ( void ** ) gs.fmat_a, op->pd->nOptParam );
-	free_matrix( ( void ** ) gs.fmat_b, op->pd->nOptParam );
-	return( 1 );
-}
-
-int infogap_obs( struct opt_data *op )
-{
-	int i, j, k, status, count, neval_total, njac_total;
-	int ( *optimize_func )( struct opt_data * op );
-	tprintf( "\n\nInfo-gap analysis: observation step %g observation domain %g\nInfo-gap search: ", op->cd->obsstep, op->cd->obsdomain );
-	if( op->cd->obsstep > DBL_EPSILON ) tprintf( "maximum\n" );
-	else tprintf( "minimum\n" );
-	for( i = 0; i < op->preds->nTObs; i++ )
-	{
-		// op->preds->obs_best are updated in mads_func.c
-		if( op->cd->obsstep > DBL_EPSILON ) op->preds->obs_best[i] = -HUGE_VAL; // max search
-		else op->preds->obs_best[i] = HUGE_VAL; // min search
-		j = op->preds->obs_index[i];
-		op->od->obs_weight[j] *= -1;
-	}
-	k = op->preds->obs_index[0]; // first prediction is applied only
-	tprintf( "Info-gap observation:\n" );
-	tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[k], op->od->obs_target[k], op->od->obs_weight[k], op->od->obs_min[k], op->od->obs_max[k] );
-	if( op->cd->obsstep > DBL_EPSILON ) { op->od->obs_target[k] = op->od->obs_min[k]; op->od->obs_min[k] -= op->cd->obsstep / 2; } // obsstep is negative
-	else { op->od->obs_target[k] = op->od->obs_max[k]; op->od->obs_max[k] -= op->cd->obsstep / 2; } // obsstep is negative
-	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
-	else optimize_func = optimize_pso; // Define optimization method: PSO
-	neval_total = njac_total = count = 0;
-	while( 1 )
-	{
-		tprintf( "\n\nInfo-gap analysis #%d\n", ++count );
-		tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[k], op->od->obs_target[k], op->od->obs_weight[k], op->od->obs_min[k], op->od->obs_max[k] );
-		op->cd->neval = op->cd->njac = 0;
-		if( op->cd->calib_type == IGRND ) status = igrnd( op );
-		else status = optimize_func( op );
-		if( !status ) break;
-		neval_total += op->cd->neval;
-		njac_total += op->cd->njac;
-		tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
-		for( i = 0; i < op->preds->nTObs; i++ )
-		{
-			j = op->preds->obs_index[i];
-			if( op->cd->obsstep > DBL_EPSILON ) tprintf( "%-20s: Current info-gap max %12g Observation step %g Observation domain %g\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain );
-			else                           tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain );
-		}
-		if( op->cd->debug ) print_results( op, 1 );
-		save_final_results( "infogap", op, op->gd );
-		if( !op->success ) break;
-		op->od->obs_target[k] += op->cd->obsstep;
-		if( op->cd->obsstep > DBL_EPSILON ) // max search
-		{
-			if( op->od->obs_target[k] > op->od->obs_max[k] ) break;
-			if( fabs( op->preds->obs_best[0] - op->od->obs_max[k] ) < DBL_EPSILON ) break;
-			op->od->obs_min[k] += op->cd->obsstep;
-			j = ( int )( ( double )( op->preds->obs_best[0] - op->od->obs_min[k] + op->cd->obsstep / 2 ) / op->cd->obsstep + 1 );
-			op->od->obs_target[k] += op->cd->obsstep * j;
-			op->od->obs_min[k] += op->cd->obsstep * j;
-			if( op->od->obs_target[k] > op->od->obs_max[k] ) op->od->obs_target[k] = op->od->obs_max[k];
-			if( op->od->obs_min[k] > op->od->obs_max[k] ) op->od->obs_min[k] = op->od->obs_max[k];
-		}
-		else // min search
-		{
-			if( op->od->obs_target[k] < op->od->obs_min[k] ) break;
-			if( fabs( op->preds->obs_best[0] - op->od->obs_min[k] ) < DBL_EPSILON ) break;
-			op->od->obs_max[k] += op->cd->obsstep; // obsstep is negative
-			j = ( int )( ( double )( op->od->obs_max[k] - op->preds->obs_best[0] - op->cd->obsstep / 2 ) / -op->cd->obsstep + 1 ); // obsstep is negative
-			op->od->obs_target[k] += op->cd->obsstep * j;
-			op->od->obs_max[k] += op->cd->obsstep * j;
-			if( op->od->obs_target[k] < op->od->obs_min[k] ) op->od->obs_target[k] = op->od->obs_min[k];
-			if( op->od->obs_max[k] < op->od->obs_min[k] ) op->od->obs_max[k] = op->od->obs_min[k];
-		}
-	}
-	op->cd->neval = neval_total; // provide the correct number of total evaluations
-	op->cd->njac = njac_total; // provide the correct number of total evaluations
-	tprintf( "\nTotal number of evaluations = %d\n", neval_total );
-	tprintf( "Total number of jacobians = %d\n", njac_total );
-	tprintf( "\nInfo-gap results for model predictions:\n" );
-	for( i = 0; i < op->preds->nTObs; i++ )
-	{
-		j = op->preds->obs_index[i];
-		if( op->cd->obsstep > DBL_EPSILON ) tprintf( "%-20s: Info-gap max %12g Observation step %g Observation domain %g\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain ); // max search
-		else                           tprintf( "%-20s: Info-gap min %12g Observation step %g Observation domain %g\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain ); // min search
-		op->od->obs_target[j] = op->preds->obs_target[i];
-		op->od->obs_min[j] = op->preds->obs_min[i];
-		op->od->obs_max[j] = op->preds->obs_max[i];
-		op->od->obs_weight[j] *= -1;
-	}
-	tprintf( "\n" );
-	print_results( op, 1 );
-	save_final_results( "", op, op->gd );
-	return( 1 );
-}
-
-int infogap( struct opt_data *op )
-{
-	FILE *fl, *outfl;
-	double *opt_params, of, maxof;
-	char buf[80], filename[80];
-	int i, j, k, n, npar, nrow, ncol, *nPreds, col;
-	gsl_matrix *ig_mat; //! info gap matrix for sorting
-	gsl_permutation *p;
-	nPreds = &op->preds->nTObs; // Set pointer to nObs for convenience
-	if( op->cd->infile[0] == 0 ) { tprintf( "\nInfile must be specified for infogap run\n" ); return( 0 );}
-	nrow = count_lines( op->cd->infile ); nrow--; // Determine number of parameter sets in file
-	npar = count_cols( op->cd->infile, 2 ); npar = npar - 2; // Determine number of parameter sets in file
-	if( npar != op->pd->nOptParam ) { tprintf( "Number of optimization parameters in %s does not match input file\n", op->cd->infile ); return( 0 ); } // Make sure MADS input file and PSSA file agree
-	tprintf( "\n%s contains %d parameters and %d parameter sets\n", op->cd->infile, npar, nrow );
-	ncol = npar + *nPreds + 1; // Number of columns for ig_mat = #pars + #preds + #ofs
-	ig_mat = gsl_matrix_alloc( nrow, ncol );
-	p = gsl_permutation_alloc( nrow );
-	fl = fopen( op->cd->infile, "r" );
-	if( fl == NULL ) { tprintf( "\nError opening %s\n", op->cd->infile ); return( 0 ); }
-	tprintf( "Computing predictions for %s...", op->cd->infile );
-	if( ( opt_params = ( double * ) malloc( npar * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	fgets( buf, sizeof buf, fl ); // Skip header
-	// Fill in ig_mat
-	for( i = 0; i < nrow; i++ )
-	{
-		fscanf( fl, "%d %lf", &n, &of );
-		gsl_matrix_set( ig_mat, i, *nPreds, of ); // Place of after predictions
-		for( j = 0; j < npar; j++ )
-		{
-			fscanf( fl, "%lf", &opt_params[j] );
-			col = *nPreds + 1 + j;
-			gsl_matrix_set( ig_mat, i, col, opt_params[j] ); // Place after of
-		}
-		fscanf( fl, " \n" );
-		func_global( opt_params, op, op->preds->res );
-		for( j = 0; j < *nPreds; j++ )
-		{
-			gsl_matrix_set( ig_mat, i, j, op->preds->obs_current[j] ); // Place in first columns
-		}
-	}
-	fclose( fl );
-	for( k = 0; k < *nPreds; k++ )
-	{
-		gsl_vector_view column = gsl_matrix_column( ig_mat, k );
-		gsl_sort_vector_index( p, &column.vector );
-		// Print out ig_mat with headers
-		sprintf( filename, "%s-pred%d.igap", op->root, k );
-		outfl = fopen( filename , "w" );
-		if( outfl == NULL ) { tprintf( "\nError opening %s\n", filename ); return( 0 ); }
-		fprintf( outfl, " %-12s", op->preds->obs_id[k] );
-		fprintf( outfl, " OFmax OF" );
-		for( i = 0; i < npar; i++ )
-			fprintf( outfl, " (%-12s)", op->pd->var_id[i] );
-		fprintf( outfl, "\n" );
-		maxof = gsl_matrix_get( ig_mat, gsl_permutation_get( p, 0 ), *nPreds );
-		for( i = 0; i < nrow; i++ )
-		{
-			if( maxof < gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), *nPreds ) )
-				maxof = gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), *nPreds );
-			fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), k ) );
-			fprintf( outfl, "%-12g", maxof );
-			fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), *nPreds ) );
-			for( j = *nPreds + 1; j < ncol; j++ )
-				fprintf( outfl, "%-12g", gsl_matrix_get( ig_mat, gsl_permutation_get( p, i ), j ) );
-			fprintf( outfl, "\n" );
-		}
-		fclose( outfl );
-		tprintf( "Done\n" );
-		tprintf( "Results written to %s\n\n", filename );
-	}
-	gsl_matrix_free( ig_mat );
-	return( 1 );
-}
-
-int postpua( struct opt_data *op )
-{
-	FILE *in, *out;
-	double *opt_params, of;
-	char buf[80], filename[80];
-	int i, n;
-	op->od = op->preds;
-	if( op->cd->infile[0] == 0 ) { tprintf( "\nInfile (results file from abagus run) must be specified for postpua run\n" ); return( 0 );}
-	in = Fread( op->cd->infile );
-	// Create postpua output file
-	sprintf( filename, "%s.pua", op->root );
-	out = Fwrite( filename );
-	tprintf( "\nComputing predictions for %s...", op->cd->infile );
-	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	fgets( buf, sizeof buf, in ); // Skip header
-	fprintf( out, "Number       OF           " );
-	for( i = 0; i < op->od->nTObs; i++ )
-		fprintf( out, " %-12s", op->od->obs_id[i] );
-	fprintf( out, "\n" );
-	while( fscanf( in, "%d %lf", &n, &of ) > 0 )
-	{
-		fprintf( out, "%-12d %-12lf ", n, of );
-		for( i = 0; i < op->pd->nOptParam; i++ )
-			fscanf( in, "%lf", &opt_params[i] );
-		fscanf( in, " \n" );
-		func_global( opt_params, op, op->od->res );
-		for( i = 0; i < op->od->nTObs; i++ )
-			fprintf( out, " %-12g", op->od->obs_current[i] );
-		fprintf( out, "\n" );
-	}
-	fclose( in );
-	fclose( out );
-	tprintf( "Done.\n" );
-	tprintf( "Results written to %s\n\n", filename );
-	return( 1 );
-}
-
-int glue( struct opt_data *op )
-{
-	FILE *in, *out;
-	double *phi, **preds, phi_temp, *percentile, *pred_temp, *sum;
-	char buf[200], filename[80], pred_id[100][30];
-	int num_lines = 0, j;
-	gsl_matrix *glue_mat; // matrix for sorting predictions
-	gsl_permutation *p1;
-	// Open postpua output file
-	if( op->cd->infile[0] == 0 ) { tprintf( "\nInfile (results file from postpua run) must be specified for glue run\n" ); return( 0 );}
-	in = Fread( op->cd->infile );
-	// Create glue output file
-	sprintf( filename, "%s.glue", op->root );
-	out = Fwrite( filename );
-	fgets( buf, sizeof buf, in ); // Skip header
-	// Count number of acceptable solutions
-	while( fgets( buf, sizeof buf, in ) != NULL )
-	{
-		sscanf( buf, "%*d %lf ", &phi_temp );
-		if( phi_temp <= op->cd->phi_cutoff ) num_lines++; // Count lines
-	}
-	tprintf( "\nNumber of solutions with phi <= %g: %d\n", op->cd->phi_cutoff, num_lines );
-	tprintf( "\nPerforming GLUE analysis for %s...", op->cd->infile );
-	// Read in data
-	rewind( in );
-	fscanf( in, "%*s %*s %[^\n]s", buf ); // Skip first part of header ("Number OF")
-	int i = 0;
-	// Read in names of predictions (e.g. combination of well names and times)
-	while( sscanf( buf, " %s %[^\n]s", pred_id[i], buf ) > 1 ) { i++; }
-	int num_preds = i + 1;
-	// Allocate memory for phis and predictions
-	if( ( phi = ( double * ) malloc( num_lines * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	//phi = ( double * ) malloc( num_lines * sizeof( double ) );
-	preds = double_matrix( num_lines, num_preds );
-	// Collect acceptable solutions
-	glue_mat = gsl_matrix_alloc( num_lines, num_preds + 1 );
-	int phi_index = num_preds; // phi_index indicates column of phis in glue_mat
-	i = 0;
-	// tprintf( "\n\nAcceptable lines from %s:\n", op->cd->infile );
-	while( fgets( buf, sizeof buf, in ) != NULL )
-	{
-		sscanf( buf, "%*d %lf %[^\n]s", &phi_temp, buf );
-		if( phi_temp <= op->cd->phi_cutoff )
-		{
-			// tprintf( "%lf %s\n", phi_temp, buf );
-			phi[i] = phi_temp;
-			gsl_matrix_set( glue_mat, i, phi_index, phi_temp ); // Place phi after predictions
-			for( j = 0; j < num_preds; j++ )
-			{
-				sscanf( buf, " %lf %[^\n]s", &preds[i][j], buf );
-				gsl_matrix_set( glue_mat, i, j, preds[i][j] ); // Place phi after predictions
-			}
-			i++;
-		}
-	}
-	fclose( in );
-	// tprintf( "\nglue_mat:\n" );
-	// gsl_matrix_fprintf( stdout, glue_mat, "%g" );
-	// Calculate weighted percentile of each phi; note: low phis imply high percentile
-	p1 = gsl_permutation_alloc( num_lines );
-	percentile = ( double * ) malloc( num_lines * sizeof( double ) );
-	pred_temp = ( double * ) malloc( num_lines * sizeof( double ) );
-	sum = ( double * ) malloc( num_lines * sizeof( double ) );
-	double p05, p95; // 5th and 95th percentiles
-	tprintf( "\n\nprediction p05 p95\n" );
-	int count;
-	for( i = 0; i < num_preds; i++ )
-	{
-		gsl_vector_view column = gsl_matrix_column( glue_mat, i );
-		gsl_sort_vector_index( p1, &column.vector );
-		sum[0] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, 0 ), num_preds );
-		pred_temp[0] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, 0 ), i );
-		// tprintf( "\nSample sum prediction:\n" );
-		// tprintf( "0 %g %g\n", sum[0], pred_temp[0] );
-		// Collect summation of weights and ordered predictions
-		for( j = 1; j < num_lines; j++ )
-		{
-			sum[j] = sum[j - 1] + gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), num_preds );
-			pred_temp[j] = gsl_matrix_get( glue_mat, gsl_permutation_get( p1, j ), i );
-			// tprintf( "%d %g %g\n", j, sum[j], pred_temp[j] );
-		}
-		// tprintf( "\nno prediction percentile:\n" );
-		for( j = 0; j < num_lines; j++ ) { percentile[j] = ( 1.0 / sum[num_lines - 1] ) * ( sum[j] - pred_temp[j] / 2.0 ); /*printf( "%d %g %g\n", j+1, pred_temp[j], percentile[j]);*/ }
-		if( percentile[0] > 0.05 ) p05 = pred_temp[0];
-		else if( percentile[num_lines - 1] < 0.05 ) p05 = pred_temp[num_lines - 1];
-		else
-		{
-			count = 0;
-			for( j = 1; j < num_lines; j++ ) { if( percentile[j] < 0.05 ) count++; else {break;} }
-			p05 = pred_temp[j - 1] + ( ( 0.05 - percentile[j - 1] ) / ( percentile[j] - percentile[j - 1] ) ) * ( pred_temp[j] - pred_temp[j - 1] );
-		}
-		// tprintf( "\n%d\n", j );
-		// tprintf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p05 );
-		if( percentile[0] > 0.95 ) p95 = pred_temp[0];
-		else if( percentile[num_lines - 1] < 0.95 ) p95 = pred_temp[num_lines - 1];
-		else
-		{
-			count = 0;
-			for( j = 1; j < num_lines; j++ ) { if( percentile[j] < 0.95 ) count++; else {break;}  }
-			p95 = pred_temp[j - 1] + ( ( 0.95 - percentile[j - 1] ) / ( percentile[j] - percentile[j - 1] ) ) * ( pred_temp[j] - pred_temp[j - 1] );
-		}
-		// tprintf( "\n%d\n", j );
-		// tprintf( "\n%g %g %g %g %g\n", pred_temp[j], pred_temp[j-1], percentile[j], percentile[j-1], p95 );
-		tprintf( "%d %g %g\n", i + 1, p05, p95 );
-		// tprintf( "%g ", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.95, accelerator ) );
-		// tprintf( " %g\n", gsl_interp_eval( pred_interp, pred_temp, percentile, 0.05, accelerator ) );
-	}
-	tprintf( "\n" );
-	fclose( out );
-	tprintf( "Done.\n" );
-	tprintf( "Results written to %s\n\n", filename );
-	gsl_matrix_free( glue_mat );
 	return( 1 );
 }
 

@@ -42,6 +42,7 @@ struct opt_data *gop;
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
+
 #include <yaml.h>
 #include <glib.h>
 
@@ -66,7 +67,6 @@ int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 void compute_btc( char *filename, struct opt_data *op );
-static char *strsave( const char *s, const char *lim );
 char **shellpath( void );
 void freeshellpath( char *shellpath[] );
 unsigned maxpathlen( char *path[], const char *base );
@@ -228,13 +228,11 @@ int load_ymal_params( GNode *node, gpointer data )
 {
 	struct calc_data *cd;
 	struct param_data *pd;
-	struct obs_data *od, *preds;
 	GNode *node_key, *node_value, *node_par;
 	cd = gop->cd;
-	od = gop->od;
 	pd = gop->pd;
-	preds = gop->preds;
-	int i, j, k, m, bad_data = 0, include_predictions;
+	int i, k, bad_data = 0;
+//	int include_predictions;
 	cd->debug = 5;
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
 	pd->nParam = g_node_n_children( node );
@@ -322,22 +320,22 @@ int load_ymal_params( GNode *node, gpointer data )
 			if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
 		}
 	}
-	return( 1 );
+	if( bad_data ) return( 0 );
+	else return( 1 );
 }
 
 int load_ymal_wells( GNode *node, gpointer data )
 {
 	struct well_data *wd;
 	struct calc_data *cd;
-	struct param_data *pd;
 	struct obs_data *od, *preds;
 	GNode *node_key, *node_value, *node_well, *node_key2, *node_value2, *node_obs;
 	wd = gop->wd;
 	cd = gop->cd;
 	od = gop->od;
-	pd = gop->pd;
 	preds = gop->preds;
 	int i, j, k, m, bad_data = 0, include_predictions;
+	include_predictions = 1; // TODO include_predictions needs to be properly initiated
 	cd->debug = 5;
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
 	wd->nW = g_node_n_children( node );

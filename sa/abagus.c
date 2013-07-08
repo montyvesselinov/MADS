@@ -117,7 +117,7 @@ Last updates
 #include <assert.h>
 #include <ctype.h>
 //#include "alea.c"
-#include "kdtree-0.5.5/kdtree.h"
+#include "../misc/kdtree-0.5.5/kdtree.h"
 #include "../mads.h"
 
 #define	D_max 100  // Max number of dimensions of the search space
@@ -186,11 +186,11 @@ int abagus( struct opt_data *op )
 	double c; // Second onfidence coefficient
 	int d; // Current dimension
 	double eps, err; // Admissible error
-	double eps_mean; // Average error
+//	double eps_mean; // Average error
 	double error; // Error for a given position
 	double error_prev; // Error after previous iteration
 	int eval_max; // Max number of evaluations
-	double eval_mean; // Mean number of evaluations
+//	double eval_mean; // Mean number of evaluations
 	int function; // Code of the objective function
 	int g; // Rank of the best informant
 	int init_links; // Flag to (re)init or not the information links
@@ -198,7 +198,7 @@ int abagus( struct opt_data *op )
 	int K; // Max number of particles informed by a given one
 	int m;
 	//double mean_best[R_max];
-	double min; // Best result through several runs
+//	double min; // Best result through several runs
 	int n_exec, n_exec_max; // Nbs of executions
 	int n_failure; // Number of failures
 	int s; // Rank of the current particle
@@ -251,6 +251,7 @@ int abagus( struct opt_data *op )
 	kdbad = ( struct kdtree * ) kd_create( D ); // initialize kdtree
 	energy = op->cd->energy;
 	enrgy_add = energy / 10;
+	function = 0; // TODO function was not initialized; use more general test function defined elsewhere
 	// D-cube data
 	for( d = 0; d < D; d++ )
 	{
@@ -349,7 +350,8 @@ int abagus( struct opt_data *op )
 	//----------------------------------------------------- INITIALISATION
 	//t1 = clock(); // Init time
 	// Initialisation of information variables
-	n_exec = 0; eval_mean = 0; eps_mean = 0; n_failure = 0;
+	n_exec = 0; n_failure = 0;
+	// eps_mean = 0; eval_mean = 0;
 //init:
 	n_exec = n_exec + 1;
 	// Set first particle to IVs from mads input file
@@ -425,7 +427,7 @@ int abagus( struct opt_data *op )
 	for( s = 1; s < S; s++ )
 		if( P[s].f < P[best].f ) best = s;
 	error =  P[best].f ; // Current min error
-	if( n_exec == 1 ) min = error;
+//	if( n_exec == 1 ) min = error;
 	error_prev = error; // Previous min error
 	energy_prev = energy; // Previous energy
 	init_links = 1; // So that information links will be initialized

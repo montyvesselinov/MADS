@@ -156,7 +156,10 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "eigen", 5 ) ) { w = 1; if( cd->problem_type == CALIBRATE ) cd->lm_eigen = 1; else cd->problem_type = EIGEN; }
 		if( !strncasecmp( word, "lmeigen", 7 ) ) { w = 1; cd->problem_type = CALIBRATE; sscanf( word, "lmeigen=%d", &cd->lm_eigen ); if( cd->lm_eigen == 0 ) cd->lm_eigen = 1; }
 		if( !strncasecmp( word, "monte", 5 ) ) { w = 1; cd->problem_type = MONTECARLO; }
-		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; }
+		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SOBOL; }
+		if( !strncasecmp( word, "sobol", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SOBOL; }
+		if( !strncasecmp( word, "saltelli", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SALTELLI; }
+		if( !strncasecmp( word, "moat", 4 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = MOAT; }
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
 		if( !strncasecmp( word, "abagus", 6 ) ) { w = 1; cd->problem_type = ABAGUS; }
 		if( !strncasecmp( word, "infogap", 7 ) ) { w = 1; cd->problem_type = INFOGAP; }
