@@ -22,10 +22,11 @@ LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lcblas -lblas -latlas -lrefblas
 ifeq ($(OSTYPE),linux)
 # Linux
 $(info LINUX)
-ifeq ($(HOST),well)
+ifeq ($(HOST),aquifer.lanl.gov)
+$(info Machine -- AQUIFER)
+LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lblas
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
-$(info Machine -- Well)
 endif
 else
 ifeq ($(OSTYPE),cygwin)
