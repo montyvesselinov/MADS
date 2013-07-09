@@ -18,13 +18,13 @@ OSTYPE = macosx
 endif
 CC = gcc
 CFLAGS = -Wall 
-LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lcblas -lblas -latlas -lrefblas
+LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lblas
 ifeq ($(OSTYPE),linux)
 # Linux
+LDLIBS += -lgfortran 
 $(info LINUX)
 ifeq ($(HOST),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
-LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lblas
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
 endif
@@ -36,15 +36,14 @@ else
 ifeq ($(OSTYPE),macosx)
 # Mac
 $(info MAC OS X)
-CFLAGS += -I/opt/local/include -I/Users/monty/include
-LDLIBS += -lgfortran -L/opt/local/lib -L/Users/monty/lib
+CFLAGS += -I/opt/local/include
+LDLIBS += -lgfortran -L/opt/local/lib
 CC = /opt/local/bin/gcc
 YAML = true
 ifeq ($(HOST),dazed.local)
 $(info Machine -- Dazed)
-YAML = true
 CFLAGS += -I/Users/monty/include
-LDLIBS += -L/Users/monty/lib
+LDLIBS += -latlas -lrefblas -lcblas -L/Users/monty/lib
 endif
 else
 $(error UNKNOWN OS type -- $(OSTYPE)!)

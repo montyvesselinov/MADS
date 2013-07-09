@@ -39,7 +39,7 @@ double point_source( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
 double rectangle_source_vz( double x, double y, double z, double t, void *params );
 double box_source( double x, double y, double z, double t, void *params );
-double gaussian_source_2d( double x, double y, double z, double t, void *params);
+double gaussian_source_2d( double x, double y, double z, double t, void *params );
 double int_point_source( double tau, void *params );
 double int_rectangle_source( double tau, void *params );
 double int_rectangle_source_vz( double tau, void *params );
@@ -282,7 +282,7 @@ double int_rectangle_source_vz( double tau, void *params )
 	return( e1 * ex * ey * ez );
 }
 
-double gaussian_source_2d( double x, double y, double z, double t, void *params)
+double gaussian_source_2d( double x, double y, double z, double t, void *params )
 {
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
 	gsl_function F;
@@ -306,7 +306,7 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params)
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return( p->var[C0] * 1e6 / sqrt(8 * M_PI * M_PI * M_PI) * result);
+	return( p->var[C0] * 1e6 / sqrt( 8 * M_PI * M_PI * M_PI ) * result );
 }
 
 double int_gaussian_source_2d( double tau, void *params )
@@ -333,8 +333,8 @@ double int_gaussian_source_2d( double tau, void *params )
 	rx = tau * ax * vx + source_sizex * source_sizex;
 	ry = tau * ay * vx + source_sizey * source_sizey;
 	rz = tau * az * vx;
-	sx = (xe - vx * tau) * (xe - vx * tau) / (2 * rx);
-	sy = ye * ye / (2 * ry);
-	sz = ze * ze / (2 * rz);
-	return exp(-tau * lambda - sx - sy - sz);
+	sx = ( xe - vx * tau ) * ( xe - vx * tau ) / ( 2 * rx );
+	sy = ye * ye / ( 2 * ry );
+	sz = ze * ze / ( 2 * rz );
+	return exp( -tau * lambda - sx - sy - sz );
 }

@@ -27,8 +27,10 @@
 #include <math.h>
 #include <string.h>
 #include <gsl/gsl_math.h>
-#include <matheval.h>
 #include "mads.h"
+#ifdef MATHEVAL
+#include <matheval.h>
+#endif
 #define MAX(X,Y) ( ((X) > (Y)) ? (X) : (Y) )
 
 /* Functions here */
@@ -51,6 +53,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t,
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 double test_problems( int D, int function, double *x, int nObs, double *o );
 double point_source( double x, double y, double z, double t, void *params );
+double gaussian_source_2d( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
 double rectangle_source_vz( double x, double y, double z, double t, void *params );
 double box_source( double x, double y, double z, double t, void *params );
