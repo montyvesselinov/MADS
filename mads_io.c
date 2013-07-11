@@ -40,7 +40,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
+#ifdef MATHEVAL
 #include <matheval.h>
+#endif
 
 enum storage_flags { VAR, VAL, SEQ }; // "Store as" switch
 

@@ -53,9 +53,11 @@
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_sort_vector.h>
 #include <gsl/gsl_interp.h>
-#include <matheval.h>
 #include "misc/levmar-2.5/levmar.h"
 #include "mads.h"
+#ifdef MATHEVAL
+#include <matheval.h>
+#endif
 
 #define FIT(i) gsl_vector_get(solver->x, i)
 #define MAX(X,Y) ( ((X) > (Y)) ? (X) : (Y) )

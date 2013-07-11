@@ -301,7 +301,7 @@ double int_rectangle_source_vz( double tau, void *params )
 	return( e1 * ex * ey * ez );
 }
 
-double gaussian_source_2d( double x, double y, double z, double t, void *params)
+double gaussian_source_2d( double x, double y, double z, double t, void *params )
 {
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
 	gsl_function F;
