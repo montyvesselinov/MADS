@@ -108,7 +108,7 @@ int sa_sobol( struct opt_data *op )
 	// Vector of variances for total component contribution
 	if( ( gs.D_hat_n = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	tprintf( "\nGlobal sensitivity analysis using random sampling:\n" );
+	tprintf( "\nGlobal sensitivity analysis (Sobol) using random sampling:\n" );
 	// Create samples
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
@@ -354,9 +354,6 @@ int sa_sobol( struct opt_data *op )
 
 int sa_saltelli( struct opt_data *op )
 {
-	pritntf( "Saltelli\n");
-	return( 1 );
-
 	int i, j, k, count;
 	double *opt_params, *var_a_lhs, *var_b_lhs;
 	char filename[255], buf[255];
@@ -401,7 +398,7 @@ int sa_saltelli( struct opt_data *op )
 	// Vector of variances for total component contribution
 	if( ( gs.D_hat_n = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	tprintf( "\nGlobal sensitivity analysis using random sampling:\n" );
+	tprintf( "\nGlobal sensitivity analysis (Saltelli) using random sampling:\n" );
 	// Create samples
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
@@ -647,6 +644,6 @@ int sa_saltelli( struct opt_data *op )
 
 int sa_moat( struct opt_data *op )
 {
-	pritntf( "MOAT\n");
+	tprintf( "MOAT\n");
 	return( 1 );
 }

@@ -160,7 +160,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "monte", 5 ) ) { w = 1; cd->problem_type = MONTECARLO; }
 		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SOBOL; }
 		if( !strncasecmp( word, "sobol", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SOBOL; }
-		if( !strncasecmp( word, "saltelli", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SALTELLI; }
+		if( !strncasecmp( word, "salt", 4 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SALTELLI; }
 		if( !strncasecmp( word, "moat", 4 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = MOAT; }
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
 		if( !strncasecmp( word, "abagus", 6 ) ) { w = 1; cd->problem_type = ABAGUS; }
