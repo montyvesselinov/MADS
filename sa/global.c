@@ -354,6 +354,9 @@ int sa_sobol( struct opt_data *op )
 
 int sa_saltelli( struct opt_data *op )
 {
+	pritntf( "Saltelli\n");
+	return( 1 );
+
 	int i, j, k, count;
 	double *opt_params, *var_a_lhs, *var_b_lhs;
 	char filename[255], buf[255];
@@ -644,5 +647,6 @@ int sa_saltelli( struct opt_data *op )
 
 int sa_moat( struct opt_data *op )
 {
+	pritntf( "MOAT\n");
 	return( 1 );
 }
