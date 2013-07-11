@@ -1,0 +1,72 @@
+MADS: Model Analyses & Decision Support (v1.1) 2012
+---------------------------------------------------
+Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: a02.mads
+Problem root name: a02
+Problem type: forward run (no calibration)
+
+Optimization method: opt=lm --- Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 5000
+2: Objective function cutoff value: NOT implemented (ADD keyword cutoff=[value] to implement)
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: sum of squared residuals
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Model: internal rectangular contaminant source
+Transverse dispersivities are neither tied or scaled!
+
+Number of model parameters: 19
+Number of optimized parameters = 11
+Number of flagged parameters = 0
+Number of fixed parameters = 8
+Number of parameters with computational expressions (coupled or tied parameters) = 0
+Number of regularization terms = 0
+Number of calibration targets = 4
+WARNING: Number of optimized model parameters is greater than number of observations and regularizations (11>4)
+Number of predictions = 0
+
+
+Execution date & time stamp: 20130711-110714
+
+Model parameter values:
+Source x coordinate [L] 0
+Source y coordinate [L] 0
+Source z coordinate [L] 10
+Source x dimension [L] 1e-05
+Source y dimension [L] 1e-05
+Source z dimension [L] 1e-05
+Contaminant flux [M/T] 100000
+Start Time [T] 0
+End Time [T] 1
+Porosity [L3/L3] 0.1
+Kd [-] 1
+Lambda [1/T] 1
+Flow Angle [degrees] 3
+Pore x velocity [L/T] 1
+Pore y velocity [L/T] 0
+Pore z velocity [L/T] 0
+Dispersivity x [L] 2
+Dispersivity y [L] 1.5
+Dispersivity z [L] 0.1
+
+Model predictions (forward run; no calibration):
+W-1       (   49):           0 -  1.47529e-18 = -1.47529e-18 (-1.47529e-18) success 1 range            0 -           25
+W-2       (   49):           0 -  1.48871e-20 = -1.48871e-20 (-1.48871e-20) success 1 range            0 -           25
+W-3       (   49):           0 -  6.11085e-14 = -6.11085e-14 (-6.11085e-14) success 1 range            0 -           25
+W-4       (   49):           0 -  9.03293e-14 = -9.03293e-14 (-9.03293e-14) success 1 range            0 -           25
+Objective function: 1.18936e-26 Success: 1
+All the predictions are within acceptable ranges!
+Simulation time = 0 seconds
+Functional evaluations = 1
+Execution  started  on Thu Jul 11 11:07:14 2013
+Execution completed on Thu Jul 11 11:07:14 2013
+Execution date & time stamp: 20130711-110714

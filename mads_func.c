@@ -52,6 +52,8 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 double test_problems( int D, int function, double *x, int nObs, double *o );
 double point_source( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
+double gaussian_source_2d( double x, double y, double z, double t, void *params );
+double gaussian_source_3d( double x, double y, double z, double t, void *params );
 double rectangle_source_vz( double x, double y, double z, double t, void *params );
 double box_source( double x, double y, double z, double t, void *params );
 int create_mprun_dir( char *dir );
@@ -720,6 +722,9 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 							c1 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 							c2 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 							break;
+						case GAUSSIAN3D:
+							c1 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							c2 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 						default:
 						case BOX:
 							c1 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
@@ -970,6 +975,9 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 			case GAUSSIAN2D:
 				c += gaussian_source_2d( x, y, z, t, ( void * ) &ad );
 				break;
+			case GAUSSIAN3D:
+				c += gaussian_source_3d( x, y, z, t, ( void * ) &ad );
+				break;
 			default:
 			case BOX:
 				c += box_source( x, y, z, t, ( void * ) &ad );
@@ -985,85 +993,7 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 
 double func_solver( double x, double y, double z1, double z2, double t, void *data ) // Compute for (x, y, z1, t) and (x, y, z2, t) and average
 {
-	int i, j, k, s;
-	double c1, c2, dx, dy, dz, x1, y1, z3, dist;
-	struct calc_data *p = ( struct calc_data * )data;
-	struct anal_data ad;
-	c1 = c2 = p->c_background;
-	k = NUM_ANAL_PARAMS_SOURCE * p->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
-	j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
-	for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
-		ad.var[j] = p->var[i];
-	if( p->disp_tied && p->disp_scaled == 0 ) // Tied dispersivities
-	{
-		if( p->fdebug >= 5 )
-		{
-			tprintf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
-			tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ( ad.var[AX] / ad.var[AY] ) / ad.var[AZ], ad.var[AX] / ad.var[AY], ad.var[AZ] );
-		}
-		ad.var[AY] = ad.var[AX] / ad.var[AY];
-		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
-	}
-	for( s = 0; s < p->num_solutions; s++ )
-	{
-		k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
-		j = 0;
-		for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
-			ad.var[j] = p->var[i];
-		if( p->fdebug >= 6 )
-			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
-				tprintf( "func_solver source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
-		if( p->disp_scaled ) // Scaled dispersivities
-		{
-			dx = ad.var[AX]; dy = ad.var[AY]; dz = ad.var[AZ];
-			x1 = x - ad.var[SOURCE_X];
-			y1 = y - ad.var[SOURCE_Y];
-			z3 = ( z1 + z2 ) - ad.var[SOURCE_Z];
-			dist = sqrt( x1 * x1 + y1 * y1 + z3 * z3 );
-			// tprintf( "func_solver\n" );
-			if( p->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
-			ad.var[AX] *= dist;
-			if( p->disp_scaled > 1 && !p->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
-			else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
-			if( p->fdebug >= 5 )
-			{
-				if( p->disp_scaled > 1 && !p->disp_tied ) tprintf( "Transverse dispersivities scaled!\n" );
-				else if( p->disp_tied ) tprintf( "Transverse dispersivities tied!\n" );
-				else tprintf( "Transverse dispersivities not tied and not scaled!\n" );
-				tprintf( "AY %.12g\n", ad.var[AY] );
-				tprintf( "AZ %.12g\n", ad.var[AZ] );
-			}
-		}
-		switch( p->solution_type[s] )
-		{
-			case POINT:
-				c1 += point_source( x, y, z1, t, ( void * ) &ad );
-				c2 += point_source( x, y, z2, t, ( void * ) &ad );
-				break;
-			case PLANE:
-				c1 += rectangle_source( x, y, z1, t, ( void * ) &ad );
-				c2 += rectangle_source( x, y, z2, t, ( void * ) &ad );
-				break;
-			case PLANE3D:
-				c1 += rectangle_source_vz( x, y, z1, t, ( void * ) &ad );
-				c2 += rectangle_source_vz( x, y, z2, t, ( void * ) &ad );
-				break;
-			case GAUSSIAN2D:
-				c1 += gaussian_source_2d( x, y, z1, t, ( void * ) &ad );
-				c2 += gaussian_source_2d( x, y, z2, t, ( void * ) &ad );
-				break;
-			default:
-			case BOX:
-				c1 += box_source( x, y, z1, t, ( void * ) &ad );
-				c2 += box_source( x, y, z2, t, ( void * ) &ad );
-				break;
-		}
-		if( p->disp_scaled ) // Scaled dispersivities
-		{
-			ad.var[AX] = dx; ad.var[AY] = dy; ad.var[AZ] = dz;
-		}
-	}
-	return( ( c1 + c2 ) / 2 );
+	return func_solver1(x, y, 0.5 * (z1 + z2), t, data);
 }
 
 void Transform( double *v, void *data, double *vt )

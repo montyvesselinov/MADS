@@ -240,7 +240,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "npar=", 5 ) ) { w = 1; sscanf( word, "npar=%d", &cd->test_func_npar ); }
 		if( !strncasecmp( word, "nobs=", 5 ) ) { w = 1; sscanf( word, "nobs=%d", &cd->test_func_nobs ); }
 		if( !strncasecmp( word, "poi", 3 ) ) { w = 1; cd->solution_type[0] = POINT; }
-		if( !strncasecmp( word, "gau", 3 ) ) { w = 1; cd->solution_type[0] = GAUSSIAN2D; }
+		if( !strncasecmp( word, "gau", 3 ) ) { w = 1; if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
 		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) ) cd->solution_type[0] = PLANE3D; else cd->solution_type[0] = PLANE; }
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; cd->solution_type[0] = BOX; }
 		if( !strncasecmp( word, "paran", 5 ) ) { w = 1; cd->paranoid = 1; } // legacy
@@ -506,7 +506,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		sscanf( word, "%d", &cd->solution_type[c] );
 		if( strcasestr( word, "ext" ) ) { cd->solution_type[c] = EXTERNAL; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
 		if( strcasestr( word, "poi" ) ) cd->solution_type[c] = POINT;
-		if( strcasestr( word, "gau" ) ) cd->solution_type[c] = GAUSSIAN2D;
+		if( strcasestr( word, "gau") ) { if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
 		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) ) cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
 		if( strcasestr( word, "box" ) ) cd->solution_type[c] = BOX;
 		if( strcasestr( word, "test" ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
@@ -535,6 +535,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			case POINT: { tprintf( "internal point contaminant source" ); strcat( cd->solution_id, "point" ); break; }
 			case PLANE: { tprintf( "internal rectangular contaminant source" ); strcat( cd->solution_id, "rect" ); break; }
 			case GAUSSIAN2D: { tprintf( "internal planar gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_2d" ); break; }
+			case GAUSSIAN3D: { tprintf( "internal gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_3d" ); break; }
 			case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( cd->solution_id, "rect_vert" ); break; }
 			case BOX: { tprintf( "internal box contaminant source" ); strcat( cd->solution_id, "box" ); break; }
 			case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); sprintf( cd->solution_id, "test=%d", cd->test_func ); break; }

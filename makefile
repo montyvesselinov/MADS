@@ -142,8 +142,9 @@ examples:
 	@echo "Example 2: DONE"
 	@echo "**************************************************************************************"
 
-verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-parallel
+verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-parallel verify-forward
 	@echo VERIFICATION DONE
+
 
 verify-internal:
 	@echo "**************************************************************************************"
@@ -342,6 +343,45 @@ verify-parallel:
 	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 8: DONE"
+
+verify-forward:
+	@echo "**************************************************************************************"
+	@echo " Forward analytical contaminant modeling "
+	@echo "**************************************************************************************"
+	@echo "TEST 9: Analytical contaminant concentrations with various sources ..."
+	@echo "TEST 9.1: Point source ... "
+	rm -f example/forward/a01.mads_output example/forward/a01.results
+	cd example/forward; ../../mads a01 > /dev/null
+	@$(CMP) example/forward/a01.mads_output example/forward/a01.mads_output-correct
+	@$(CMP) example/forward/a01.results example/forward/a01.results-correct
+	@echo ""
+	@echo "TEST 9.2: Rectangular source ... "
+	rm -f example/forward/a02.mads_output example/forward/a02.results
+	cd example/forward; ../../mads a02 > /dev/null
+	@$(CMP) example/forward/a02.mads_output example/forward/a02.mads_output-correct
+	@$(CMP) example/forward/a02.results example/forward/a02.results-correct
+	@echo ""
+	@echo "TEST 9.3: Planar gaussian source ... "
+	rm -f example/forward/a03.mads_output example/forward/a03.results
+	cd example/forward; ../../mads a03 > /dev/null
+	@$(CMP) example/forward/a03.mads_output example/forward/a03.mads_output-correct
+	@$(CMP) example/forward/a03.results example/forward/a03.results-correct
+	@echo ""
+	@echo "TEST 9.4: Gaussian source ... "
+	rm -f example/forward/a04.mads_output example/forward/a04.results
+	cd example/forward; ../../mads a04 > /dev/null
+	@$(CMP) example/forward/a04.mads_output example/forward/a04.mads_output-correct
+	@$(CMP) example/forward/a04.results example/forward/a04.results-correct
+	@echo "" 
+	@echo "TEST 9.5: Box source ... "
+	rm -f example/forward/a05.mads_output example/forward/a05.results
+	cd example/forward; ../../mads a05 > /dev/null
+	@$(CMP) example/forward/a05.mads_output example/forward/a05.mads_output-correct
+	@$(CMP) example/forward/a05.results example/forward/a05.results-correct
+	@echo "**************************************************************************************"
+	@echo "TEST 9: DONE"
+	@echo ""
+	@echo ""
 
 clean-example:
 	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running
