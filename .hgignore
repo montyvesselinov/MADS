@@ -5,6 +5,7 @@ wells
 latex/*
 html/*
 Debug/*
+.cproject
 *.exe
 *.results
 *-rerun.mads
