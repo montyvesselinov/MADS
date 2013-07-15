@@ -160,7 +160,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "monte", 5 ) ) { w = 1; cd->problem_type = MONTECARLO; }
 		if( !strncasecmp( word, "gsens", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SOBOL; }
 		if( !strncasecmp( word, "sobol", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SOBOL; }
-		if( !strncasecmp( word, "saltelli", 5 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SALTELLI; }
+		if( !strncasecmp( word, "salt", 4 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = SALTELLI; }
 		if( !strncasecmp( word, "moat", 4 ) ) { w = 1; cd->problem_type = GLOBALSENS; cd->gsa_type = MOAT; }
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
 		if( !strncasecmp( word, "abagus", 6 ) ) { w = 1; cd->problem_type = ABAGUS; }
@@ -508,7 +508,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		sscanf( word, "%d", &cd->solution_type[c] );
 		if( strcasestr( word, "ext" ) ) { cd->solution_type[c] = EXTERNAL; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
 		if( strcasestr( word, "poi" ) ) cd->solution_type[c] = POINT;
-		if( strcasestr( word, "gau") ) { if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
+		if( strcasestr( word, "gau" ) ) { if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
 		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) ) cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
 		if( strcasestr( word, "box" ) ) cd->solution_type[c] = BOX;
 		if( strcasestr( word, "test" ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }

@@ -996,7 +996,7 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 
 double func_solver( double x, double y, double z1, double z2, double t, void *data ) // Compute for (x, y, z1, t) and (x, y, z2, t) and average
 {
-	return func_solver1(x, y, 0.5 * (z1 + z2), t, data);
+	return func_solver1( x, y, 0.5 * ( z1 + z2 ), t, data );
 }
 
 void Transform( double *v, void *data, double *vt )

@@ -39,8 +39,8 @@ double point_source( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
 double rectangle_source_vz( double x, double y, double z, double t, void *params );
 double box_source( double x, double y, double z, double t, void *params );
-double gaussian_source_2d( double x, double y, double z, double t, void *params);
-double gaussian_source_3d( double x, double y, double z, double t, void *params);
+double gaussian_source_2d( double x, double y, double z, double t, void *params );
+double gaussian_source_3d( double x, double y, double z, double t, void *params );
 double int_point_source( double tau, void *params );
 double int_rectangle_source( double tau, void *params );
 double int_rectangle_source_vz( double tau, void *params );
@@ -61,7 +61,7 @@ double point_source( double x, double y, double z, double t, void *params )
 	p->ye = y;
 	p->ze = z;
 	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
-		return( p->var[C0] * 1e6 / ( 8 * pow(M_PI, 1.5) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
+		return( p->var[C0] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
 	time = t - p->var[TIME_INIT];
 	F.function = &int_point_source;
 	F.params = p;
@@ -76,7 +76,7 @@ double point_source( double x, double y, double z, double t, void *params )
 //	printf ("intervals =  %d\n", w->size);
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return( p->var[C0] * 1e6 / ( 8 * pow(M_PI, 1.5) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
+	return( p->var[C0] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
 }
 
 double int_point_source( double tau, void *params )
@@ -109,7 +109,7 @@ double int_point_source( double tau, void *params )
 	tz2 = ze + 2. * source_z;
 	ez = exp( -tz1 * tz1 / rz ) + exp( -tz2 * tz2 / rz );
 //	printf("tau %g %g %g %g\n",tau,ez,e1,ze);
-	return( e1 * ez * pow( tau, -1.5 ));
+	return( e1 * ez * pow( tau, -1.5 ) );
 }
 
 double box_source( double x, double y, double z, double t, void *params )
@@ -134,12 +134,12 @@ double box_source( double x, double y, double z, double t, void *params )
 		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
-		printf ("error: %s\n", gsl_strerror (status));
+		printf( "error: %s\n", gsl_strerror( status ) );
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return( p->var[C0] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ]) * result );
+	return( p->var[C0] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
 }
 
 double int_box_source( double tau, void *params )
@@ -156,27 +156,22 @@ double int_box_source( double tau, void *params )
 	double source_z = ( p->var[SOURCE_Z] );
 	double rx, ry, rz, e1, ex, ey, ez;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
-
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
 	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
-
 	alpha = cos( d );
 	beta = sin( d );
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - source_z );
-
 //	if( p->debug >= 3 ) printf( "param %g %g %g %g %g %g %g %.12g %.12g %.12g %.12g\n", d, alpha, beta, xe, ye, x0, y0, p->xe, p->var[SOURCE_X], p->ye, p->var[SOURCE_Y] );
 	rx = 2.*sqrt( tau * ax * vx );
 	ry = 2.*sqrt( tau * ay * vx );
 	rz = 2.*sqrt( tau * az * vx );
-
 	e1 = exp( -tau * lambda );
 	ex = erfc( ( xe - source_sizex / 2. - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2. - tau * vx ) / rx );
 	ey = erfc( ( ye - source_sizey / 2. ) / ry ) - erfc( ( ye + source_sizey / 2. ) / ry );
-	ez = erfc( ( ze - source_sizez) / rz ) - erfc( ze / rz) + erfc( ( ze + 2. * source_z ) / rz ) - erfc( ( ze + 2. * source_z + source_sizez ) / rz );
-
+	ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ze / rz ) + erfc( ( ze + 2. * source_z ) / rz ) - erfc( ( ze + 2. * source_z + source_sizez ) / rz );
 //	if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
 	return( e1 * ex * ey * ez );
 }
@@ -205,7 +200,7 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return( p->var[C0] * 1e6 / ( 8. * sqrt( M_PI * p->var[AZ] * p->var[VX] )  * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY]) * result );
+	return( p->var[C0] * 1e6 / ( 8. * sqrt( M_PI * p->var[AZ] * p->var[VX] )  * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] ) * result );
 }
 
 double int_rectangle_source( double tau, void *params )
@@ -220,22 +215,18 @@ double int_rectangle_source( double tau, void *params )
 	double source_sizey = ( p->var[SOURCE_DY] );
 	double rx, ry, e1, ex, ey, ez;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
-
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
 	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
 	alpha = cos( d );
 	beta = sin( d );
-
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-
 	rx = 2.*sqrt( tau * ax * vx );
 	ry = 2.*sqrt( tau * ay * vx );
-
 	e1 = exp( -tau * lambda );
-	ez = exp(- ze * ze / ( tau * ( 4. * az * vx ) ) ) + exp( -(ze + 2 * p->var[SOURCE_Z]) * (ze + 2 * p->var[SOURCE_Z]));
+	ez = exp( - ze * ze / ( tau * ( 4. * az * vx ) ) ) + exp( -( ze + 2 * p->var[SOURCE_Z] ) * ( ze + 2 * p->var[SOURCE_Z] ) );
 	ex = erfc( ( xe - source_sizex / 2. - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2. - tau * vx ) / rx );
 	ey = erfc( ( ye - source_sizey / 2. ) / ry ) - erfc( ( ye + source_sizey / 2. ) / ry );
 	return( e1 * ex * ey * ez / sqrt( tau ) );
@@ -325,7 +316,7 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return p->var[C0] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * (2. * ( 2. * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] )) * (2. * ( 2. * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] )) * 4. * p->var[AZ] * p->var[VX] ) );
+	return p->var[C0] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2. * ( 2. * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2. * ( 2. * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 4. * p->var[AZ] * p->var[VX] ) );
 }
 
 double int_gaussian_source_2d( double tau, void *params )
@@ -341,29 +332,24 @@ double int_gaussian_source_2d( double tau, void *params )
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	double ex, ey, ez;
 	double varx, vary, varz;
-
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
 	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
 	alpha = cos( d );
 	beta = sin( d );
-
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-
 	varx = 2. * tau * ax * vx + source_sizex * source_sizex;
 	vary = 2. * tau * ay * vx + source_sizey * source_sizey;
 	varz = 2. * tau * az * vx;
-
-	ex = exp(-(xe - vx * tau) * (xe - vx * tau) / (2. * varx));
-	ey = exp(-ye * ye / (2. * vary));
-	ez = (exp(-ze * ze / (2. * varz)) + exp(-(ze + 2. * p->var[SOURCE_Z]) * (ze + 2. * p->var[SOURCE_Z]) / (2. * varz)));
-
-	return exp(-tau * lambda) * ex * ey * ez * pow(tau, -1.5);
+	ex = exp( -( xe - vx * tau ) * ( xe - vx * tau ) / ( 2. * varx ) );
+	ey = exp( -ye * ye / ( 2. * vary ) );
+	ez = ( exp( -ze * ze / ( 2. * varz ) ) + exp( -( ze + 2. * p->var[SOURCE_Z] ) * ( ze + 2. * p->var[SOURCE_Z] ) / ( 2. * varz ) ) );
+	return exp( -tau * lambda ) * ex * ey * ez * pow( tau, -1.5 );
 }
 
-double gaussian_source_3d( double x, double y, double z, double t, void *params)
+double gaussian_source_3d( double x, double y, double z, double t, void *params )
 {
 	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
 	gsl_function F;
@@ -387,7 +373,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params)
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return p->var[C0] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * (2. * ( 2. * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] )) * (2. * ( 2. * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] )) * 2. * ( 2 * p->var[AZ] * p->var[VX] + p->var[SOURCE_DZ] * p->var[SOURCE_DZ] ) ) );
+	return p->var[C0] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2. * ( 2. * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2. * ( 2. * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 2. * ( 2 * p->var[AZ] * p->var[VX] + p->var[SOURCE_DZ] * p->var[SOURCE_DZ] ) ) );
 }
 
 double int_gaussian_source_3d( double tau, void *params )
@@ -404,24 +390,19 @@ double int_gaussian_source_3d( double tau, void *params )
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	double ex, ey, ez;
 	double varx, vary, varz;
-
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
 	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
 	alpha = cos( d );
 	beta = sin( d );
-
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-
 	varx = 2. * tau * ax * vx + source_sizex * source_sizex;
 	vary = 2. * tau * ay * vx + source_sizey * source_sizey;
 	varz = 2. * tau * az * vx + source_sizez * source_sizez;
-
-	ex = exp(-(xe - vx * tau) * (xe - vx * tau) / (2. * varx));
-	ey = exp(-ye * ye / (2. * vary));
-	ez = (exp(-ze * ze / (2. * varz)) + exp(-(ze + 2. * p->var[SOURCE_Z]) * (ze + 2. * p->var[SOURCE_Z]) / (2. * varz)));
-
-	return exp(-tau * lambda) * ex * ey * ez * pow(tau, -1.5);
+	ex = exp( -( xe - vx * tau ) * ( xe - vx * tau ) / ( 2. * varx ) );
+	ey = exp( -ye * ye / ( 2. * vary ) );
+	ez = ( exp( -ze * ze / ( 2. * varz ) ) + exp( -( ze + 2. * p->var[SOURCE_Z] ) * ( ze + 2. * p->var[SOURCE_Z] ) / ( 2. * varz ) ) );
+	return exp( -tau * lambda ) * ex * ey * ez * pow( tau, -1.5 );
 }
