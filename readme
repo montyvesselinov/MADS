@@ -1,11 +1,16 @@
 To compile, execute 'make'
 
-GSL, LAPACK, BLAS and LIBMATHEVAL libraries are needed to compile MADS
+GSL (including LAPACK/BLAS), LIBMATHEVAL, LIBYAML, GLIB-2.0 and PKG-CONGIG libraries are needed to compile MADS
 
-	GSL:      ftp://ftp.gnu.org/gnu/gsl/
+	GSL:      http://www.gnu.org/s/gsl
 	LAPACK:   http://www.netlib.org/lapack/
 	BLAS:     http://www.netlib.org/blas/
 	MATHEVAL: http://www.gnu.org/software/libmatheval/
+	YAML:     http://www.yaml.org/spec/1.2/spec.html
+	GLIB:     https://developer.gnome.org/glib/2.36/glib-N-ary-Trees.html
+
+MAC OS X:
+	sudo port install gsl glib2 libyaml libmatheval pkgconfig
 
 To verify the code, run 'make verify'
 

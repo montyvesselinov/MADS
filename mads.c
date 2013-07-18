@@ -1634,12 +1634,12 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			tprintf( "KIC (Kashyap Information Criterion) : %g\n", kic );
 		}
 	}
-	if( dof < 0 ) tt = 1;
-	else if( dof < 30 )  tt = student_dist[dof];
-	else if( dof < 40 )  tt = student_dist[30] + ( dof - 30 ) * ( student_dist[31] - student_dist[30] ) / 10;
-	else if( dof < 60 )  tt = student_dist[31] + ( dof - 40 ) * ( student_dist[32] - student_dist[31] ) / 20;
-	else if( dof < 120 ) tt = student_dist[32] + ( dof - 60 ) * ( student_dist[33] - student_dist[32] ) / 60;
-	else tt = student_dist[34];
+	if( dof <= 0 ) tt = 1;
+	else if( dof <= 30 )  tt = student_dist[dof - 1]; // Critical values of Student's t distribution for 0.975
+	else if( dof <= 40 )  tt = student_dist[30] + ( dof - 30 ) * ( student_dist[31] - student_dist[30] ) / 10;
+	else if( dof <= 60 )  tt = student_dist[31] + ( dof - 40 ) * ( student_dist[32] - student_dist[31] ) / 20;
+	else if( dof <= 120 ) tt = student_dist[32] + ( dof - 60 ) * ( student_dist[33] - student_dist[32] ) / 60;
+	else tt = student_dist[33];
 	if( dof > 0 )
 	{
 		tprintf( "\nObtained fit is " );

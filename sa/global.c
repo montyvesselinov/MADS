@@ -644,6 +644,6 @@ int sa_saltelli( struct opt_data *op )
 
 int sa_moat( struct opt_data *op )
 {
-	tprintf( "MOAT\n");
+	tprintf( "MOAT\n" );
 	return( 1 );
 }

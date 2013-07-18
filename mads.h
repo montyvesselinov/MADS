@@ -42,7 +42,7 @@ enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDX, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3, GAUSSIAN2D = 4, GAUSSIAN3D = 5};
 #define NUM_ANAL_PARAMS 19
 #define NUM_ANAL_PARAMS_SOURCE 9
-enum PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END, POROSITY, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ };
+enum PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END, POROSITY, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, SCALING_EXPONENT};
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
@@ -306,6 +306,7 @@ struct anal_data
 {
 	int num_param;
 	int debug;
+	int scaling_dispersion;
 	double xe; // x coordinate; needed only for the functions during integration (can be a subclass)
 	double ye; // y coordinate; needed only for the functions during integration (can be a subclass)
 	double ze; // z coordinate; needed only for the functions during integration (can be a subclass)

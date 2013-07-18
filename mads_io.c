@@ -536,8 +536,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			case EXTERNAL: { tprintf( "external" ); strcat( cd->solution_id, "external" ); break; }
 			case POINT: { tprintf( "internal point contaminant source" ); strcat( cd->solution_id, "point" ); break; }
 			case PLANE: { tprintf( "internal rectangular contaminant source" ); strcat( cd->solution_id, "rect" ); break; }
-			case GAUSSIAN2D: { tprintf( "internal planar gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_2d" ); break; }
-			case GAUSSIAN3D: { tprintf( "internal gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_3d" ); break; }
+			case GAUSSIAN2D: { tprintf( "internal planar (2d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_2d" ); break; }
+			case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_3d" ); break; }
 			case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( cd->solution_id, "rect_vert" ); break; }
 			case BOX: { tprintf( "internal box contaminant source" ); strcat( cd->solution_id, "box" ); break; }
 			case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); sprintf( cd->solution_id, "test=%d", cd->test_func ); break; }

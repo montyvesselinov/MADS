@@ -10,43 +10,41 @@ endif
 ifndef YAML
 YAML = false
 endif
+OS = $(shell uname -s)
+ND = $(shell uname -n)
 # Compilation setup
-$(info OS type -- $(OSTYPE))
-$(info Machine -- $(HOST))
-ifeq ($(OSTYPE),darwin)
-OSTYPE = macosx
-endif
+$(info OS type -- $(OS))
+$(info Machine -- $(ND))
 CC = gcc
 CFLAGS = -Wall 
-LDLIBS = -lgsl -lgslcblas -lm -lfl -llapack -lblas
-ifeq ($(OSTYPE),linux)
+LDLIBS = -lgsl -lgslcblas -lm -llapack -lblas
+ifeq ($(OS),Linux)
 # Linux
 LDLIBS += -lgfortran 
 $(info LINUX)
-ifeq ($(HOST),aquifer.lanl.gov)
+ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
 endif
 else
-ifeq ($(OSTYPE),cygwin)
+ifeq ($(OS),Cygwin)
 # Cygwin
 $(info CYGWIN)
 else
-ifeq ($(OSTYPE),macosx)
+ifeq ($(OS),Darwin)
 # Mac
 $(info MAC OS X)
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -L/opt/local/lib
-CC = /opt/local/bin/gcc
 YAML = true
-ifeq ($(HOST),dazed.local)
+ifeq ($(ND),dazed.local)
 $(info Machine -- Dazed)
 CFLAGS += -I/Users/monty/include
 LDLIBS += -latlas -lrefblas -lcblas -L/Users/monty/lib
 endif
 else
-$(error UNKNOWN OS type -- $(OSTYPE)!)
+$(error UNKNOWN OS type -- $(OS)!)
 endif
 endif
 endif
@@ -61,16 +59,16 @@ OBJSLEVMAR = misc/levmar-2.5/lm_m.o misc/levmar-2.5/Axb.o misc/levmar-2.5/misc.o
 OBJSlEVMARSTYLE = misc/levmar-2.5/lm_m.o misc/levmar-2.5/lm_core_m.o misc/levmar-2.5/Axb.o misc/levmar-2.5/misc.o misc/levmar-2.5/lmlec.o misc/levmar-2.5/lmbc.o misc/levmar-2.5/lmblec.o misc/levmar-2.5/lmbleic.o 
 
 ifeq ($(YAML),true)
+$(info YAML Support included)
 OBJSMADS += mads_io_yaml.o
 CFLAGS += -DYAML `pkg-config --cflags glib-2.0`
-LDLIBS += -lyaml -lglib-2.0
-$(info YAML Support included)
+LDLIBS += -lyaml `pkg-config --libs glib-2.0`
 endif
 
 ifeq ($(MATHEVAL),true)
+$(info MathEval Support included)
 CFLAGS += -DMATHEVAL
 LDLIBS += -lmatheval
-$(info MathEval Support included)
 endif
 
 SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c)
