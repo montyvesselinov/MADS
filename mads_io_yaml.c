@@ -24,6 +24,8 @@
 // RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
 // PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
+// this file is loaded only if YAML is defined
+// #ifdef YAML is not needed
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -42,9 +44,10 @@ struct opt_data *gop;
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
-
+// YAML includes
 #include <yaml.h>
 #include <glib.h>
+#include <glib-unix.h>
 
 #define C2P(c)          ((gpointer) ((long) (c)))
 #define P2C(p)          ((gchar) ((long) (p)))

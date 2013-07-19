@@ -201,33 +201,33 @@ verify-contaminant:
 	@echo "TEST 3: Internal contaminant transport problems using different dispersivities ..."
 	@echo "TEST 3.1: Problem example/contamination/s01 with independent dispersivities ..."
 	rm -f example/contamination/s01.mads_output example/contamination/s01.results
-	mads example/contamination/s01 lmeigen > /dev/null
+	./mads example/contamination/s01 lmeigen > /dev/null
 	@$(CMP) example/contamination/s01.mads_output example/contamination/s01.mads_output-correct
 	@$(CMP) example/contamination/s01.results example/contamination/s01.results-correct
 	@echo ""
 	@echo "TEST 3.2: Problem example/contamination/s01 with tied dispersivities ..."
 	rm -f example/contamination/s01-tied_dispersivities.results
-	mads example/contamination/s01-tied_dispersivities > /dev/null
+	./mads example/contamination/s01-tied_dispersivities > /dev/null
 	@$(CMP) example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-correct
 	@echo ""
 	@echo "TEST 3.3: Problem example/contamination/s01 with scaled dispersivities ..."
 	rm -f example/contamination/s01-scaled_dispersivities.results
-	mads example/contamination/s01-scaled_dispersivities > /dev/null
+	./mads example/contamination/s01-scaled_dispersivities > /dev/null
 	@$(CMP) example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-correct
 	@echo ""
 	@echo "TEST 3.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
 	rm -f example/contamination/s01-scaled+tied_dispersivities.results
-	mads example/contamination/s01-scaled+tied_dispersivities > /dev/null
+	./mads example/contamination/s01-scaled+tied_dispersivities > /dev/null
 	@$(CMP) example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-correct
 	@echo ""
 	@echo "TEST 3.5: Problem example/contamination/s02 with coupled (tied) parameters based on mathematical expressions  ..."
 	rm -f example/contamination/s02tied.results
-	mads example/contamination/s02tied > /dev/null
+	./mads example/contamination/s02tied > /dev/null
 	@$(CMP) example/contamination/s02tied.results example/contamination/s02tied.results-correct
 	@echo ""
 	@echo "TEST 3.6: Problem example/contamination/s02 with regularization terms for optimized model parameters ..."
 	rm -f example/contamination/s02regul.results
-	mads example/contamination/s02regul > /dev/null
+	./mads example/contamination/s02regul > /dev/null
 	@$(CMP) example/contamination/s02regul.results example/contamination/s02regul.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
@@ -241,25 +241,25 @@ verify-multistart2:
 	@echo "TEST 4: Internal contaminant transport problems using different optimization techniques ..."
 	@echo "TEST 4.1: Problem example/contamination/s01 IGRND ..."
 	rm -f example/contamination/s01-igrnd.results example/contamination/s01-igrnd.igrnd.results
-	mads example/contamination/s01-igrnd seed=2096575428 > /dev/null
+	./mads example/contamination/s01-igrnd seed=2096575428 > /dev/null
 	@$(CMP) example/contamination/s01-igrnd.results example/contamination/s01-igrnd.results-correct
 	@$(CMP) example/contamination/s01-igrnd.igrnd.results example/contamination/s01-igrnd.igrnd.results-correct
 	@echo ""
 	@echo "TEST 4.2: Problem example/contamination/s01 PPSD ..."
 	rm -f example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.ppsd.results
-	mads example/contamination/s01-ppsd seed=2096575428 > /dev/null
+	./mads example/contamination/s01-ppsd seed=2096575428 > /dev/null
 	@$(CMP) example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.mads_output-correct
 	@$(CMP) example/contamination/s01-ppsd.ppsd.results example/contamination/s01-ppsd.ppsd.results-correct
 	@echo ""
 	@echo "TEST 4.3: Problem example/contamination/s01 IGPD ..."
 	rm -f example/contamination/s01-igpd.results example/contamination/s01-igpd.igpd.results
-	mads example/contamination/s01-igpd seed=2096575428 > /dev/null
+	./mads example/contamination/s01-igpd seed=2096575428 > /dev/null
 	@$(CMP) example/contamination/s01-igpd.results example/contamination/s01-igpd.results-correct
 	@$(CMP) example/contamination/s01-igpd.igpd.results example/contamination/s01-igpd.igpd.results-correct
 	@echo ""
 	@echo "TEST 4.4: Problem example/contamination/s01 Multi-Start LM  ..."
 	rm -f example/contamination/s01-mslm.results
-	mads example/contamination/s01-mslm seed=2096575428 > /dev/null
+	./mads example/contamination/s01-mslm seed=2096575428 > /dev/null
 	@$(CMP) example/contamination/s01-mslm.results example/contamination/s01-mslm.results-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 4: DONE"

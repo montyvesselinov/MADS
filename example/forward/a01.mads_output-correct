@@ -35,7 +35,7 @@ WARNING: Number of optimized model parameters is greater than number of observat
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130711-110539
+Execution date & time stamp: 20130719-124814
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -67,6 +67,6 @@ Objective function: 1.18936e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Thu Jul 11 11:05:39 2013
-Execution completed on Thu Jul 11 11:05:39 2013
-Execution date & time stamp: 20130711-110539
+Execution  started  on Fri Jul 19 12:48:14 2013
+Execution completed on Fri Jul 19 12:48:14 2013
+Execution date & time stamp: 20130719-124814

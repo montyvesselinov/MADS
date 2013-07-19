@@ -14,7 +14,7 @@ Dispersivity z [L] 1
 Model predictions:
 W-1       (   49):           0 -     0.633843 =    -0.633843 (   -0.633843) success 1 range            0 -           25
 W-2       (   49):           0 -  0.000514678 = -0.000514678 (-0.000514678) success 1 range            0 -           10
-W-3       (   49):           0 -            0 =            0 (           0) success 1 range            0 -           25
+W-3       (   49):           0 -  2.25939e-11 = -2.25939e-11 (-2.25939e-11) success 1 range            0 -           25
 W-4       (   44):         350 -   0.00650041 =      349.993 (     349.993) success 0 range          300 -          700
 W-4       (   49):         432 -   0.00650041 =      431.993 (     431.993) success 0 range          300 -          700
 W-5       (   49):           0 -  4.03118e-07 = -4.03118e-07 (-4.03118e-07) success 1 range            0 -           10
@@ -32,7 +32,7 @@ W-13#1    (   50):          72 -  8.03064e-06 =           72 (          72) succ
 W-13#2    (   50):        0.26 -  5.54057e-06 =     0.259994 (    0.259994) success 1 range            0 -           20
 W-14a     (   50):           0 -  2.60362e-09 = -2.60362e-09 (-2.60362e-09) success 1 range            0 -            5
 W-14b     (   50):          30 -  1.29035e-06 =           30 (          30) success 1 range            0 -           50
-W-14c     (   50):          10 -  9.04204e-06 =      9.99999 (           0) success 1 range            0 -           20
+W-14c     (   50):          10 -  9.05074e-06 =      9.99999 (           0) success 1 range            0 -           20
 Objective function: 1.27827e+06 Success: 0 (0)
 Number of function evaluations = 37
 Seed = -2096575428

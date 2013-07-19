@@ -1027,7 +1027,13 @@ int optimize_pso( struct opt_data *op )
 	}
 	else
 	{
-		if( op->cd->debug ) tprintf( " TRIBES\n" );
+		if( op->cd->debug )
+		{
+			if( strncasecmp( op->cd->opt_method, "squads", 5 ) == 0 || strcasestr( op->cd->opt_method, "lm" ) != NULL )
+				tprintf( " SQUADS\n" );
+			else
+				tprintf( " TRIBES (modified based on Clerc, 2006)\n" );
+		}
 		pso_tribes( op );
 	}
 	if( op->cd->debug )

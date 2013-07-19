@@ -728,6 +728,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 						case GAUSSIAN3D:
 							c1 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 							c2 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+							break;
 						default:
 						case BOX:
 							c1 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
@@ -994,9 +995,13 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 	return( c );
 }
 
-double func_solver( double x, double y, double z1, double z2, double t, void *data ) // Compute for (x, y, z1, t) and (x, y, z2, t) and average
+double func_solver( double x, double y, double z1, double z2, double t, void *data )
 {
-	return func_solver1( x, y, 0.5 * ( z1 + z2 ), t, data );
+	struct calc_data *cd = ( struct calc_data * )data;
+	if( cd->obs_int == 1 )
+		return func_solver1( x, y, ( z1 + z2 ) / 2, t, data );
+	else
+		return( ( double )( func_solver1( x, y, z1, t, data ) + func_solver1( x, y, z2, t, data ) ) / 2 ); // Compute for (x, y, z1, t) and (x, y, z2, t) and average
 }
 
 void Transform( double *v, void *data, double *vt )

@@ -37,7 +37,7 @@ Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130124-171236
+Execution date & time stamp: 20130719-124742
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -91,11 +91,11 @@ Total number of evaluations = 130
 Total number of jacobians = 9
 None of the 9 sequential calibration runs produced predictions within calibration ranges!
 Results are saved in example/contamination/s01-ppsd.ppsd.results
-Simulation time = 8 seconds
+Simulation time = 7 seconds
 Functional evaluations = 130
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
-Functional evaluations per second = 16
-Execution  started  on Thu Jan 24 17:12:36 2013
-Execution completed on Thu Jan 24 17:12:44 2013
-Execution date & time stamp: 20130124-171236
+Functional evaluations per second = 18
+Execution  started  on Fri Jul 19 12:47:42 2013
+Execution completed on Fri Jul 19 12:47:49 2013
+Execution date & time stamp: 20130719-124742

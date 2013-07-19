@@ -98,7 +98,7 @@ double int_point_source( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - source_z );
-	tv = (double) 4 * tau * vx;
+	tv = ( double ) 4 * tau * vx;
 	rx = tv * ax;
 	ry = tv * ay;
 	rz = tv * az;
@@ -141,6 +141,7 @@ double box_source( double x, double y, double z, double t, void *params )
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
 	return( p->var[C0] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
+	// return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
 }
 
 double int_box_source( double tau, void *params )
@@ -165,8 +166,9 @@ double int_box_source( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - source_z );
-//	if( p->debug >= 3 ) printf( "param %g %g %g %g %g %g %g %.12g %.12g %.12g %.12g\n", d, alpha, beta, xe, ye, x0, y0, p->xe, p->var[SOURCE_X], p->ye, p->var[SOURCE_Y] );
-	tv = (double) 4 * tau * vx;
+	// if( p->debug >= 3 ) printf( "param %g %g %g %g %g %g %g %.12g %.12g %.12g %.12g\n", d, alpha, beta, xe, ye, x0, y0, p->xe, p->var[SOURCE_X], p->ye, p->var[SOURCE_Y] );
+	// printf( "param %g %g %g %g %g %g\n", source_z, source_sizez, ze, p->ze, rz, az );
+	tv = ( double ) 4 * tau * vx;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
 	rz = sqrt( tv * az );
@@ -174,7 +176,8 @@ double int_box_source( double tau, void *params )
 	ex = erfc( ( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2 - tau * vx ) / rx );
 	ey = erfc( ( ye - source_sizey / 2 ) / ry ) - erfc( ( ye + source_sizey / 2 ) / ry );
 	ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ze / rz ) + erfc( ( ze + 2 * source_z ) / rz ) - erfc( ( ze + 2 * source_z + source_sizez ) / rz );
-//	if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
+	// ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz ) - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz );
+	// if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
 	return( e1 * ex * ey * ez );
 }
 
@@ -225,7 +228,7 @@ double int_rectangle_source( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-	tv = (double) 4 * tau * vx;
+	tv = ( double ) 4 * tau * vx;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
 	e1 = exp( -tau * lambda );
@@ -283,7 +286,7 @@ double int_rectangle_source_vz( double tau, void *params )
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
 	v = sqrt( vx * vx + vz * vz );
-	tv = (double) 4 * tau * v;
+	tv = ( double ) 4 * tau * v;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
 	rz = sqrt( tv * az );
@@ -344,7 +347,7 @@ double int_gaussian_source_2d( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-	tv = (double) 2 * tau * vx;
+	tv = ( double ) 2 * tau * vx;
 	varx = tv * ax + source_sizex * source_sizex;
 	vary = tv * ay + source_sizey * source_sizey;
 	varz = tv * az;
@@ -378,7 +381,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return p->var[C0] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2. * ( 2. * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2. * ( 2. * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 2. * ( 2 * p->var[AZ] * p->var[VX] + p->var[SOURCE_DZ] * p->var[SOURCE_DZ] ) ) );
+	return p->var[C0] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2 * ( 2 * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2 * ( 2 * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 2 * ( 2 * p->var[AZ] * p->var[VX] + p->var[SOURCE_DZ] * p->var[SOURCE_DZ] ) ) );
 }
 
 double int_gaussian_source_3d( double tau, void *params )
@@ -403,7 +406,7 @@ double int_gaussian_source_3d( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-	tv = (double) 2 * tau * vx;
+	tv = ( double ) 2 * tau * vx;
 	varx = tv * ax + source_sizex * source_sizex;
 	vary = tv * ay + source_sizey * source_sizey;
 	varz = tv * az + source_sizez * source_sizez;

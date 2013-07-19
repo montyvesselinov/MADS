@@ -114,6 +114,7 @@ void mads_info()
 	printf( "   point              - point contaminant source in 3D flow domain\n" );
 	printf( "   plane              - areal contaminant source in 3D flow domain\n" );
 	printf( "   box                - brick contaminant source in 3D flow domain\n" );
+	printf( "   obs_int=[1,2]      - concentration integration along observation well screens (1 - mid point; 2 - two end points [default=1]\n" );
 	printf( "   disp_tied          - lateral and vertical transverse dispersivities are fractions of the longitudinal dispersivity\n" );
 	printf( "   disp_scaled        - longitudinal dispersivity is scaled with the travel distance\n" );
 	printf( "                        if disp_scaled and disp_tied are applied, longitudinal dispersivity is scaled and\n" );

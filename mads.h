@@ -42,7 +42,8 @@ enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDX, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3, GAUSSIAN2D = 4, GAUSSIAN3D = 5};
 #define NUM_ANAL_PARAMS 19
 #define NUM_ANAL_PARAMS_SOURCE 9
-enum PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END, POROSITY, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, SCALING_EXPONENT};
+enum SOURCE_PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END };
+enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, SCALING_EXPONENT};
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
@@ -109,6 +110,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int disp_scaled;
 	int save;
 	int pargen;
+	int obs_int;
 	double lm_factor;
 	int lm_acc; // to accelerate or npt LM
 	int lm_indir;
