@@ -76,7 +76,7 @@ int load_pst( char *filename, struct opt_data *op )
 	cd->solution_id = ( char * ) malloc( 50 * sizeof( char ) );
 	cd->solution_type = ( int * ) malloc( 1 * sizeof( int ) );
 	strcpy( cd->solution_id, "external" );
-	cd->num_solutions = 1;
+	cd->num_sources = 1;
 	cd->solution_type = ( int * ) malloc( sizeof( int ) );
 	cd->solution_type[0] = EXTERNAL;
 	for( i = 0; i < 4; i++ ) // skip 4 lines

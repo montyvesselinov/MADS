@@ -282,6 +282,10 @@ int main( int argn, char *argv[] )
 		// exit( 0 );
 	}
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
+	// set anal data TODO need to be more general
+	cd.num_aquifer_params = NUM_ANAL_PARAMS_AQUIFER;
+	cd.num_source_params = NUM_ANAL_PARAMS_SOURCE;
+	if( ( ad.var = ( double * ) malloc( ( cd.num_aquifer_params + cd.num_source_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	/*
 	 *  Read input data
 	 */
@@ -1007,7 +1011,7 @@ int main( int argn, char *argv[] )
 	tprintf( "Execution date & time stamp: %s\n", op.datetime_stamp );
 	sprintf( buf, "rm -f %s.running", op.root ); system( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
-	free( op.cd->solution_id ); free( op.cd->solution_type );
+	free( op.cd->solution_id ); free( op.cd->solution_type ); free( ad.var );
 	fclose( mads_output );
 	exit( 0 ); // DONE
 }

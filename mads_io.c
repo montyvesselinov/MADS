@@ -487,7 +487,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
 	cd->solution_id = ( char * ) malloc( 150 * sizeof( char ) );
 	cd->solution_id[0] = 0;
-	cd->num_solutions = 1;
+	cd->num_sources = 1;
 	cd->solution_type = ( int * ) malloc( sizeof( int ) );
 	if( parse_cmd( buf, cd ) == -1 ) return( 0 );
 	// Read Solution Type
@@ -495,25 +495,25 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	strcpy( buf, cd->solution_id );
 	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
 		if( cd->debug > 1 ) tprintf( "Model #%d %s\n", c + 1, word );
-	cd->num_solutions = c;
-	if( cd->num_solutions > 1 )
+	cd->num_sources = c;
+	if( cd->num_sources > 1 )
 	{
-		tprintf( "Number of analytical solutions: %d\n", cd->num_solutions );
+		tprintf( "Number of analytical solutions: %d\n", cd->num_sources );
 		free( cd->solution_type );
-		cd->solution_type = ( int * ) malloc( cd->num_solutions * sizeof( int ) );
+		cd->solution_type = ( int * ) malloc( cd->num_sources * sizeof( int ) );
 	}
 	strcpy( buf, cd->solution_id );
 	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
 	{
 		sscanf( word, "%d", &cd->solution_type[c] );
-		if( strcasestr( word, "ext" ) ) { cd->solution_type[c] = EXTERNAL; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
+		if( strcasestr( word, "ext" ) ) { cd->solution_type[c] = EXTERNAL; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
 		if( strcasestr( word, "poi" ) ) cd->solution_type[c] = POINT;
 		if( strcasestr( word, "gau" ) ) { if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
 		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) ) cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
 		if( strcasestr( word, "box" ) ) cd->solution_type[c] = BOX;
-		if( strcasestr( word, "test" ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
+		if( strcasestr( word, "test" ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	}
-	if( cd->num_solutions == 0 && cd->test_func >= 0 ) { cd->num_solutions = 1; cd->solution_type[0] = TEST; od->nTObs = 0; if( cd->num_solutions > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
+	if( cd->num_sources == 0 && cd->test_func >= 0 ) { cd->num_sources = 1; cd->solution_type[0] = TEST; od->nTObs = 0; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	if( bad_data ) return( -1 );
 	if( nofile )
 	{
@@ -526,11 +526,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 	}
 	cd->solution_id[0] = 0;
-	if( cd->num_solutions > 1 ) tprintf( "\nModels:" );
+	if( cd->num_sources > 1 ) tprintf( "\nModels:" );
 	else tprintf( "Model: " );
-	for( c = 0; c < cd->num_solutions; c++ )
+	for( c = 0; c < cd->num_sources; c++ )
 	{
-		if( cd->num_solutions > 1 ) tprintf( " (%d) ", c + 1 );
+		if( cd->num_sources > 1 ) tprintf( " (%d) ", c + 1 );
 		switch( cd->solution_type[c] )
 		{
 			case EXTERNAL: { tprintf( "external" ); strcat( cd->solution_id, "external" ); break; }
@@ -543,7 +543,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); sprintf( cd->solution_id, "test=%d", cd->test_func ); break; }
 			default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 		}
-		if( cd->num_solutions > 1 ) { strcat( cd->solution_id, " " ); tprintf( ";" ); }
+		if( cd->num_sources > 1 ) { strcat( cd->solution_id, " " ); tprintf( ";" ); }
 	}
 	if( cd->c_background ) tprintf( " | background concentration = %g", cd->c_background );
 	tprintf( "\n" );
@@ -562,12 +562,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	tprintf( "\nNumber of model parameters: %d\n", pd->nParam );
 	if( cd->solution_type[0] != TEST && cd->solution_type[0] != EXTERNAL )
 	{
-		k = cd->num_solutions * NUM_ANAL_PARAMS_SOURCE + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
+		k = cd->num_source_params * cd->num_sources + cd->num_aquifer_params;
 		if( k != pd->nParam )
 		{
 			tprintf( "ERROR: Internal analytical solver expects %d parameters (%d != %d)!\n", k, k, pd->nParam );
-			bad_data = 1;
-			return( -1 );
+			// bad_data = 1;
+			// return( -1 );
 		}
 	}
 	pd->var_id = char_matrix( pd->nParam, 50 );
@@ -1617,7 +1617,7 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		max_conc[i] = 0;
 		max_time[i] = -1;
 	}
-	for( s = 0; s < op->cd->num_solutions; s++ )
+	for( s = 0; s < op->cd->num_sources; s++ )
 		fprintf( outfile, " \"S%d\"", s + 1 );
 	fprintf( outfile, "\n" );
 	for( k = 0; k < gd->nt; k++ )
@@ -1630,7 +1630,7 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 			fprintf( outfile, " %g", c );
 			if( max_conc[i] < c ) { max_conc[i] = c; max_time[i] = time; }
 		}
-		for( s = 0; s < op->cd->num_solutions; s++ )
+		for( s = 0; s < op->cd->num_sources; s++ )
 		{
 			p = s * NUM_ANAL_PARAMS_SOURCE;
 			c = func_solver( op->pd->var[p + SOURCE_X], op->pd->var[p + SOURCE_Y], op->pd->var[p + SOURCE_Z], op->pd->var[p + SOURCE_Z], time, ( void * ) op->cd );
@@ -1650,7 +1650,7 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	for( i = 0; i < op->pd->nParam; i++ ) // IMPORTANT: Take care of log transformed variable
 		if( op->pd->var_opt[i] >= 1 && op->pd->var_log[i] == 1 )
 			op->pd->var[i] = pow( 10, op->pd->var[i] );
-	i = ( op->cd->num_solutions - 1 ) * NUM_ANAL_PARAMS_SOURCE;
+	i = ( op->cd->num_sources - 1 ) * NUM_ANAL_PARAMS_SOURCE;
 	v = sqrt( op->pd->var[i + VX] * op->pd->var[i + VX] + op->pd->var[i + VY] * op->pd->var[i + VY] + op->pd->var[i + VZ] * op->pd->var[i + VZ] ); // Flow velocity
 	// tprintf( "Flow velocity pointers = (%d %d %d)\n", i+VX, i+VY, i+VZ );
 	tprintf( "Flow velocity = %g (%g %g %g)\n", v, op->pd->var[i + VX], op->pd->var[i + VY], op->pd->var[i + VZ] );
@@ -1658,7 +1658,7 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	{
 		x0 = ( op->wd->x[i] - max_source_x );
 		y0 = ( op->wd->y[i] - max_source_y );
-		d = ( -op->pd->var[( op->cd->num_solutions - 1 ) * NUM_ANAL_PARAMS_SOURCE + FLOW_ANGLE] * M_PI ) / 180;
+		d = ( -op->pd->var[( op->cd->num_sources - 1 ) * NUM_ANAL_PARAMS_SOURCE + FLOW_ANGLE] * M_PI ) / 180;
 		alpha = cos( d );
 		beta = sin( d );
 		xe = x0 * alpha - y0 * beta;

@@ -40,10 +40,12 @@ enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
 enum GSA_TYPE {SOBOL, SALTELLI, MOAT};
 enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDX, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3, GAUSSIAN2D = 4, GAUSSIAN3D = 5};
-#define NUM_ANAL_PARAMS 19
 #define NUM_ANAL_PARAMS_SOURCE 9
 enum SOURCE_PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END };
-enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, SCALING_EXPONENT};
+#define NUM_ANAL_PARAMS_AQUIFER 10
+enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ };
+// #define NUM_ANAL_PARAMS_AQUIFER 13
+// enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, TSCALE_DISP, TSCALE_ADV, TSACLE_REACT};
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
@@ -82,7 +84,9 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int calib_type; // calibration type: simple, igpd, ...
 	int gsa_type; // global sensitivity analysis type: sobol, saltelli, moat, ...
 	int paranoid; // paranoid calibration
-	int num_solutions; // number of internal solutions
+	int num_sources; // number of contaminant sources (internal solutions)
+	int num_source_params; // number of parameters for contaminant sources
+	int num_aquifer_params; // number of aquifer parameters
 	int *solution_type; // external / internal (box, ... )
 	int nlmo; // number of LM calls
 	int nreal; // number of realizations 
@@ -313,7 +317,7 @@ struct anal_data
 	double ye; // y coordinate; needed only for the functions during integration (can be a subclass)
 	double ze; // z coordinate; needed only for the functions during integration (can be a subclass)
 	double te; // t coordinate; needed only for the functions during integration (can be a subclass)
-	double var[NUM_ANAL_PARAMS]; // optimized model parameters; needed only for the functions during integration (can be a subclass)
+	double *var; // optimized model parameters; needed only for the functions during integration (can be a subclass)
 };
 
 // mads.c

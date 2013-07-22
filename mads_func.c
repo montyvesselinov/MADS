@@ -648,9 +648,9 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	else
 	{
 		if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
-		l = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE ); // copy model parameters
-		p2 = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
-		for( p1 = NUM_ANAL_PARAMS_SOURCE * p->cd->num_solutions; p1 < l; p1++, p2++ )
+		l = p->cd->num_source_params * p->cd->num_sources + p->cd->num_aquifer_params;
+		p2 = p->cd->num_aquifer_params - 1;
+		for( p1 = p->cd->num_source_params * p->cd->num_sources; p1 < l; p1++, p2++ )
 			p->ad->var[p2] = p->cd->var[p1];
 		if( p->cd->disp_tied && p->cd->disp_scaled == 0 ) // Tied dispersivities
 		{
@@ -681,11 +681,11 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				i = p->od->obs_well_index[k];
 				j = p->od->obs_time_index[k];
 				c1 = c2 = p->cd->c_background;
-				for( s = 0; s < p->cd->num_solutions; s++ )
+				for( s = 0; s < p->cd->num_sources; s++ )
 				{
-					l = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+					l = p->cd->num_source_params * ( s + 1 );
 					p2 = 0;
-					for( p1 = NUM_ANAL_PARAMS_SOURCE * s; p1 < l; p1++, p2++ )
+					for( p1 = p->cd->num_source_params * s; p1 < l; p1++, p2++ )
 						p->ad->var[p2] = p->cd->var[p1];
 					if( p->cd->disp_scaled ) // Scaled dispersivities
 					{
@@ -916,18 +916,20 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 
 double func_solver1( double x, double y, double z, double t, void *data ) // Compute for given (x, y, z, t)
 {
-	int i, j, k, s;
+	int i, j, k, s, num_params;
 	double c, dx, dy, dz, x1, y1, z1, dist;
-	struct calc_data *p = ( struct calc_data * )data;
+	struct calc_data *cd = ( struct calc_data * )data;
 	struct anal_data ad;
-	c = p->c_background;
-	k = NUM_ANAL_PARAMS_SOURCE * p->num_solutions + ( NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE );
-	j = NUM_ANAL_PARAMS - NUM_ANAL_PARAMS_SOURCE - 1;
-	for( i = NUM_ANAL_PARAMS_SOURCE * p->num_solutions; i < k; i++, j++ )
-		ad.var[j] = p->var[i];
-	if( p->disp_tied && p->disp_scaled == 0 ) // Tied dispersivities
+	c = cd->c_background;
+	num_params = cd->num_source_params + cd->num_aquifer_params;
+	if( ( ad.var = ( double * ) malloc( ( num_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	k = cd->num_source_params * cd->num_sources + cd->num_aquifer_params;
+	j = cd->num_aquifer_params - 1;
+	for( i = cd->num_source_params * cd->num_sources; i < k; i++, j++ )
+		ad.var[j] = cd->var[i];
+	if( cd->disp_tied && cd->disp_scaled == 0 ) // Tied dispersivities
 	{
-		if( p->fdebug >= 5 )
+		if( cd->fdebug >= 5 )
 		{
 			tprintf( "Tied AY %.12g = %.12g / %.12g\n", ad.var[AX] / ad.var[AY], ad.var[AX], ad.var[AY] );
 			tprintf( "Tied AZ %.12g = %.12g / %.12g\n", ( ad.var[AX] / ad.var[AY] ) / ad.var[AZ],  ad.var[AX] / ad.var[AY], ad.var[AZ] );
@@ -935,13 +937,13 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 		ad.var[AY] = ad.var[AX] / ad.var[AY];
 		ad.var[AZ] = ad.var[AY] / ad.var[AZ];
 	}
-	for( s = 0; s < p->num_solutions; s++ )
+	for( s = 0; s < cd->num_sources; s++ )
 	{
-		k = NUM_ANAL_PARAMS_SOURCE * ( s + 1 );
+		k = cd->num_source_params * ( s + 1 );
 		j = 0;
-		for( i = NUM_ANAL_PARAMS_SOURCE * s; i < k; i++, j++ )
-			ad.var[j] = p->var[i];
-		if( p->disp_scaled ) // Scaled dispersivities
+		for( i = cd->num_source_params * s; i < k; i++, j++ )
+			ad.var[j] = cd->var[i];
+		if( cd->disp_scaled ) // Scaled dispersivities
 		{
 			dx = ad.var[AX]; dy = ad.var[AY]; dz = ad.var[AZ];
 			x1 = x - ad.var[SOURCE_X];
@@ -949,23 +951,23 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 			z1 = z - ad.var[SOURCE_Z];
 			dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
 			// tprintf( "func_solver1\n" );
-			if( p->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
+			if( cd->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", ad.var[AX] * dist, ad.var[AX], dist );
 			ad.var[AX] *= dist;
-			if( p->disp_scaled > 1 && !p->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
-			else if( p->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
-			if( p->fdebug >= 5 )
+			if( cd->disp_scaled > 1 && !cd->disp_tied ) { ad.var[AY] *= dist; ad.var[AZ] *= dist; }
+			else if( cd->disp_tied ) { ad.var[AY] = ad.var[AX] / ad.var[AY]; ad.var[AZ] = ad.var[AY] / ad.var[AZ]; };
+			if( cd->fdebug >= 5 )
 			{
-				if( p->disp_scaled > 1 && !p->disp_tied ) tprintf( "Transverse dispersivities are scaled!\n" );
-				else if( p->disp_tied ) tprintf( "Transverse dispersivities are tied!\n" );
+				if( cd->disp_scaled > 1 && !cd->disp_tied ) tprintf( "Transverse dispersivities are scaled!\n" );
+				else if( cd->disp_tied ) tprintf( "Transverse dispersivities are tied!\n" );
 				else tprintf( "Transverse dispersivities are neither tied nor scaled!\n" );
 				tprintf( "AY %.12g\n", ad.var[AY] );
 				tprintf( "AZ %.12g\n", ad.var[AZ] );
 			}
 		}
-		if( p->fdebug > 6 )
-			for( i = 0; i < NUM_ANAL_PARAMS; i++ )
+		if( cd->fdebug > 6 )
+			for( i = 0; i < num_params; i++ )
 				tprintf( "func_solver1 source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
-		switch( p->solution_type[s] )
+		switch( cd->solution_type[s] )
 		{
 			case POINT:
 				c += point_source( x, y, z, t, ( void * ) &ad );
@@ -987,18 +989,19 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 				c += box_source( x, y, z, t, ( void * ) &ad );
 				break;
 		}
-		if( p->disp_scaled ) // Scaled dispersivities
+		if( cd->disp_scaled ) // Scaled dispersivities
 		{
 			ad.var[AX] = dx; ad.var[AY] = dy; ad.var[AZ] = dz;
 		}
 	}
+	free( ad.var );
 	return( c );
 }
 
 double func_solver( double x, double y, double z1, double z2, double t, void *data )
 {
 	struct calc_data *cd = ( struct calc_data * )data;
-	if( cd->obs_int == 1 )
+	if( cd->obs_int == 1 ) // TODO add other integration models ...
 		return func_solver1( x, y, ( z1 + z2 ) / 2, t, data );
 	else
 		return( ( double )( func_solver1( x, y, z1, t, data ) + func_solver1( x, y, z2, t, data ) ) / 2 ); // Compute for (x, y, z1, t) and (x, y, z2, t) and average
