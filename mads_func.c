@@ -707,6 +707,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 							tprintf( "AZ %.12g\n", p->ad->var[AZ] );
 						}
 					}
+					if( p->ad->var[TSCALE_DISP] <= 2 ) p->ad->scaling_dispersion = 0;
+					else p->ad->scaling_dispersion = 1;
 					// TODO merge func_intrn and func_solver; func_intrn is called by methods (PE, UQ, ..); func_solver is called by forward and grid solvers
 					if( p->cd->obs_int == 1 ) // TODO add other integration models ...
 					{
@@ -763,7 +765,6 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 								c2 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 								break;
 						}
-
 					}
 					if( p->cd->disp_scaled ) // Scaled dispersivities
 					{
@@ -995,6 +996,8 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 				tprintf( "AZ %.12g\n", ad.var[AZ] );
 			}
 		}
+		if( ad.var[TSCALE_DISP] <= 2 ) ad.scaling_dispersion = 0;
+		else ad.scaling_dispersion = 1;
 		if( cd->fdebug > 6 )
 			for( i = 0; i < num_params; i++ )
 				tprintf( "func_solver1 source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );

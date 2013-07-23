@@ -88,7 +88,7 @@ double int_point_source( double tau, void *params )
 	double ay = ( p->var[AY] );
 	double az = ( p->var[AZ] );
 	double source_z = ( p->var[SOURCE_Z] );
-	double rx, ry, rz, e1, ez, tv, tx, tz1, tz2;
+	double rx, ry, rz, e1, ez, tau_d, tv, ts, tx, tz1, tz2;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -98,7 +98,9 @@ double int_point_source( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - source_z );
-	tv = ( double ) 4 * tau * vx;
+	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
+	else { tau_d = tau; ts = pow( tau, -1.5 ); }
+	tv = ( double ) 4 * tau_d * vx;
 	rx = tv * ax;
 	ry = tv * ay;
 	rz = tv * az;
@@ -110,7 +112,7 @@ double int_point_source( double tau, void *params )
 	tz2 = ze + 2. * source_z;
 	ez = exp( -tz1 * tz1 / rz ) + exp( -tz2 * tz2 / rz );
 //	printf("tau %g %g %g %g\n",tau,ez,e1,ze);
-	return( e1 * ez * pow( tau, -1.5 ) );
+	return( e1 * ez * ts );
 }
 
 double box_source( double x, double y, double z, double t, void *params )
@@ -156,7 +158,7 @@ double int_box_source( double tau, void *params )
 	double source_sizey = ( p->var[SOURCE_DY] );
 	double source_sizez = ( p->var[SOURCE_DZ] );
 	double source_z = ( p->var[SOURCE_Z] );
-	double rx, ry, rz, e1, ex, ey, ez, tv;
+	double rx, ry, rz, e1, ex, ey, ez, tau_d, tv;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -168,7 +170,9 @@ double int_box_source( double tau, void *params )
 	ze = ( p->ze - source_z );
 	// if( p->debug >= 3 ) printf( "param %g %g %g %g %g %g %g %.12g %.12g %.12g %.12g\n", d, alpha, beta, xe, ye, x0, y0, p->xe, p->var[SOURCE_X], p->ye, p->var[SOURCE_Y] );
 	// printf( "param %g %g %g %g %g %g\n", source_z, source_sizez, ze, p->ze, rz, az );
-	tv = ( double ) 4 * tau * vx;
+	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
+	else tau_d = tau;
+	tv = ( double ) 4 * tau_d * vx;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
 	rz = sqrt( tv * az );
@@ -218,7 +222,7 @@ double int_rectangle_source( double tau, void *params )
 	double az = ( p->var[AZ] );
 	double source_sizex = ( p->var[SOURCE_DX] );
 	double source_sizey = ( p->var[SOURCE_DY] );
-	double rx, ry, e1, ex, ey, ez, tv;
+	double rx, ry, e1, ex, ey, ez, tau_d, tv;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -228,14 +232,16 @@ double int_rectangle_source( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-	tv = ( double ) 4 * tau * vx;
+	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
+	else tau_d = tau;
+	tv = ( double ) 4 * tau_d * vx;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
 	e1 = exp( -tau * lambda );
 	ez = exp( -ze * ze / ( tau * ( 4. * az * vx ) ) ) + exp( -( ze + 2 * p->var[SOURCE_Z] ) * ( ze + 2 * p->var[SOURCE_Z] ) );
 	ex = erfc( ( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2 - tau * vx ) / rx );
 	ey = erfc( ( ye - source_sizey / 2 ) / ry ) - erfc( ( ye + source_sizey / 2 ) / ry );
-	return( e1 * ex * ey * ez / sqrt( tau ) );
+	return( e1 * ex * ey * ez / sqrt( tau_d ) );
 }
 
 double rectangle_source_vz( double x, double y, double z, double t, void *params )
@@ -275,7 +281,7 @@ double int_rectangle_source_vz( double tau, void *params )
 	double az = ( p->var[AZ] );
 	double source_sizex = ( p->var[SOURCE_DX] );
 	double source_sizey = ( p->var[SOURCE_DY] );
-	double rx, ry, rz, e1, ex, ey, ez, tz, tv, v;
+	double rx, ry, rz, e1, ex, ey, ez, tz, tv, tau_d, v;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -286,7 +292,9 @@ double int_rectangle_source_vz( double tau, void *params )
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
 	v = sqrt( vx * vx + vz * vz );
-	tv = ( double ) 4 * tau * v;
+	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
+	else tau_d = tau;
+	tv = ( double ) 4 * tau_d * v;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
 	rz = sqrt( tv * az );
@@ -294,8 +302,8 @@ double int_rectangle_source_vz( double tau, void *params )
 	ex = erfc( ( xe - source_sizex / 2 - tau * vx ) / rx ) - erfc( ( xe + source_sizex / 2 - tau * vx ) / rx );
 	ey = erfc( ( ye - source_sizey / 2 ) / ry ) - erfc( ( ye + source_sizey / 2 ) / ry );
 	tz = ze - tau * vz;
-	ez = exp( -tz * tz / ( tau * ( 4 * az * v ) ) ) / sqrt( tau * ( M_PI * az * v ) ) -
-		 vz / ( 2 * az * v ) * exp( vz * ze / ( az * v ) ) * erfc( ( ze + tau * vz ) / rz );
+	ez = exp( -tz * tz / ( tau_d * ( 4. * az * v ) ) ) / sqrt( tau_d * ( M_PI * az * v ) ) -
+		 vz / ( 2. * az * v ) * exp( vz * ze / ( az * v ) ) * erfc( ( ze + tau * vz ) / rz );
 	return( e1 * ex * ey * ez );
 }
 
@@ -337,7 +345,7 @@ double int_gaussian_source_2d( double tau, void *params )
 	double source_sizex = ( p->var[SOURCE_DX] );
 	double source_sizey = ( p->var[SOURCE_DY] );
 	double d, alpha, beta, xe, ye, ze, x0, y0;
-	double ex, ey, ez, tv;
+	double ex, ey, ez, tau_d, tv, ts;
 	double varx, vary, varz;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -347,14 +355,16 @@ double int_gaussian_source_2d( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-	tv = ( double ) 2 * tau * vx;
+	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
+	else { tau_d = tau; ts = pow( tau, -1.5 ); }
+	tv = ( double ) 2 * tau_d * vx;
 	varx = tv * ax + source_sizex * source_sizex;
 	vary = tv * ay + source_sizey * source_sizey;
 	varz = tv * az;
 	ex = exp( -( xe - vx * tau ) * ( xe - vx * tau ) / ( 2 * varx ) );
 	ey = exp( -ye * ye / ( 2 * vary ) );
 	ez = ( exp( -ze * ze / ( 2 * varz ) ) + exp( -( ze + 2 * p->var[SOURCE_Z] ) * ( ze + 2 * p->var[SOURCE_Z] ) / ( 2 * varz ) ) );
-	return exp( -tau * lambda ) * ex * ey * ez * pow( tau, -1.5 );
+	return exp( -tau * lambda ) * ex * ey * ez * ts;
 }
 
 double gaussian_source_3d( double x, double y, double z, double t, void *params )
@@ -396,7 +406,7 @@ double int_gaussian_source_3d( double tau, void *params )
 	double source_sizey = ( p->var[SOURCE_DY] );
 	double source_sizez = ( p->var[SOURCE_DZ] );
 	double d, alpha, beta, xe, ye, ze, x0, y0;
-	double ex, ey, ez, tv;
+	double ex, ey, ez, tau_d, tv, ts;
 	double varx, vary, varz;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -406,12 +416,14 @@ double int_gaussian_source_3d( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-	tv = ( double ) 2 * tau * vx;
+	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
+	else { tau_d = tau; ts = pow( tau, -1.5 ); }
+	tv = ( double ) 2 * tau_d * vx;
 	varx = tv * ax + source_sizex * source_sizex;
 	vary = tv * ay + source_sizey * source_sizey;
 	varz = tv * az + source_sizez * source_sizez;
 	ex = exp( -( xe - vx * tau ) * ( xe - vx * tau ) / ( 2 * varx ) );
 	ey = exp( -ye * ye / ( 2 * vary ) );
 	ez = ( exp( -ze * ze / ( 2 * varz ) ) + exp( -( ze + 2 * p->var[SOURCE_Z] ) * ( ze + 2 * p->var[SOURCE_Z] ) / ( 2 * varz ) ) );
-	return exp( -tau * lambda ) * ex * ey * ez * pow( tau, -1.5 );
+	return exp( -tau * lambda ) * ex * ey * ez * ts;
 }

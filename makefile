@@ -1,6 +1,6 @@
 PROG = mads
 CMP = ./compare-results # MADS testing
-CMP = cp -f # Save current results for future testing DANGEROUS!
+# CMP = cp -f # Save current results for future testing DANGEROUS!
 
 # MathEval required to evaluate expression for tied parameters and regularization terms
 ifndef MATHEVAL

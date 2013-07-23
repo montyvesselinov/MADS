@@ -254,6 +254,7 @@ int load_ymal_params( GNode *node, gpointer data )
 	pd->nOptParam = pd->nFlgParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
 	{
+		pd->var[i] = 0;
 		node_par = g_node_nth_child( node, i );
 		tprintf( "\nParameter %s\n", ( char * ) node_par->data );
 		strcpy( pd->var_id[i], node_par->data );

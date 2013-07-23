@@ -88,7 +88,7 @@ double int_point_source_nlc( double tau, void *params )
 	double ay = ( p->var[AY] );
 	double az = ( p->var[AZ] );
 	double source_z = ( p->var[SOURCE_Z] );
-	double scaling_exponent = p->var[SCALING_EXPONENT];
+	double scaling_exponent = p->var[TSCALE_DISP];
 	double rx, ry, rz, e1, ez, tx, tz1, tz2;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
@@ -155,7 +155,7 @@ double int_box_source_nlc( double tau, void *params )
 	double source_sizey = ( p->var[SOURCE_DY] );
 	double source_sizez = ( p->var[SOURCE_DZ] );
 	double source_z = ( p->var[SOURCE_Z] );
-	double scaling_exponent = p->var[SCALING_EXPONENT];
+	double scaling_exponent = p->var[TSCALE_DISP];
 	double rx, ry, rz, e1, ex, ey, ez;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
@@ -215,7 +215,7 @@ double int_rectangle_source_nlc( double tau, void *params )
 	double az = ( p->var[AZ] );
 	double source_sizex = ( p->var[SOURCE_DX] );
 	double source_sizey = ( p->var[SOURCE_DY] );
-	double scaling_exponent = p->var[SCALING_EXPONENT];
+	double scaling_exponent = p->var[TSCALE_DISP];
 	double rx, ry, e1, ex, ey, ez;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
@@ -272,7 +272,7 @@ double int_rectangle_source_vz_nlc( double tau, void *params )
 	double az = ( p->var[AZ] );
 	double source_sizex = ( p->var[SOURCE_DX] );
 	double source_sizey = ( p->var[SOURCE_DY] );
-	double scaling_exponent = p->var[SCALING_EXPONENT];
+	double scaling_exponent = p->var[TSCALE_DISP];
 	double rx, ry, rz, e1, ex, ey, ez, tz, v;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
@@ -333,7 +333,7 @@ double int_gaussian_source_2d_nlc( double tau, void *params )
 	double az = ( p->var[AZ] );
 	double source_sizex = ( p->var[SOURCE_DX] );
 	double source_sizey = ( p->var[SOURCE_DY] );
-	double scaling_exponent = p->var[SCALING_EXPONENT];
+	double scaling_exponent = p->var[TSCALE_DISP];
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	double ex, ey, ez;
 	double varx, vary, varz;

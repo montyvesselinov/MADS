@@ -566,7 +566,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( k != pd->nParam )
 		{
 			tprintf( "ERROR: Internal analytical solver expects %d parameters (%d != %d)!\n", k, k, pd->nParam );
-			// bad_data = 1;
+			// bad_data = 1; TODO revisit this; currently the code does not check for consistency
 			// return( -1 );
 		}
 	}
@@ -584,6 +584,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	pd->nOptParam = pd->nFlgParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
 	{
+		pd->var[i] = 0;
 		fscanf( infile, "%[^:=]s", pd->var_id[i] );
 		fscanf( infile, "%c", &charecter );
 		if( charecter == ':' ) // regular parameter
