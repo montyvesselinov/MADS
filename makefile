@@ -17,10 +17,10 @@ $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
 CFLAGS = -Wall 
-LDLIBS = -lgsl -lgslcblas -lm -llapack -lblas
+LDLIBS = -lgsl -lgslcblas -lm -llapack -lblas -lcblas
 ifeq ($(OS),Linux)
 # Linux
-LDLIBS += -lgfortran 
+# LDLIBS += -lgfortran 
 $(info LINUX)
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
@@ -36,12 +36,12 @@ ifeq ($(OS),Darwin)
 # Mac
 $(info MAC OS X)
 CFLAGS += -I/opt/local/include
-LDLIBS += -lgfortran -L/opt/local/lib
+LDLIBS += -lgfortran -latlas -L/opt/local/lib
 YAML = true
 ifeq ($(ND),dazed.local)
 $(info Machine -- Dazed)
 CFLAGS += -I/Users/monty/include
-LDLIBS += -latlas -lrefblas -lcblas -L/Users/monty/lib
+LDLIBS += -lrefblas -lcblas -L/Users/monty/lib
 endif
 else
 $(error UNKNOWN OS type -- $(OS)!)
