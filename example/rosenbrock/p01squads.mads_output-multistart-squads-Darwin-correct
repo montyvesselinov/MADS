@@ -1,0 +1,78 @@
+MADS: Model Analyses & Decision Support (v1.1) 2012
+---------------------------------------------------
+Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: p01squads.mads
+Problem root name: p01squads
+Test Function 3 Dimensionality 3 
+Problem type: calibration
+
+Calibration technique: sequential calibration using a set of random initial values (realizations = 10)
+
+Optimization method: opt=squads --- SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt optimization (Vesselinov & Harp, 2012)
+Number of Levenberg-Marquardt iterations = will be computed internally
+Number of particles = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 1000
+2: Objective function cutoff value: 0.001
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: test function 3
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Model: internal test optimization problem #3: 
+
+
+Execution date & time stamp: 20130722-194345
+
+SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
+No flagged parameters; all optimizable parameters are randomized
+Imported seed: 2096575428
+Random sampling (variables 3; realizations 10) using 
+Improved Distributed LHS method (number of realizations < 500) ... done.
+
+Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 621 Jacobians: 100 Objective function: 2.38278e-09 Success: 1
+Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 442 Jacobians: 66 Objective function: 1.3481e-06 Success: 1
+Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 102 Jacobians: 14 Objective function: 4.17175e-09 Success: 1
+Random set #4: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 564 Jacobians: 90 Objective function: 4.05052e-06 Success: 1
+Random set #5: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 632 Jacobians: 97 Objective function: 4.42108e-07 Success: 1
+Random set #6: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 161 Jacobians: 24 Objective function: 7.75295e-05 Success: 1
+Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 783 Jacobians: 113 Objective function: 2.46675e-10 Success: 1
+Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 45 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
+Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 307 Jacobians: 48 Objective function: 0.000188811 Success: 1
+Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 421 Jacobians: 67 Objective function: 6.57759e-05 Success: 1
+Total number of evaluations = 4078
+Total number of jacobians = 623
+Minimum objective function: 2.46675e-10
+Repeat the run producing the best results ...
+Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 10 (out of 10; success ratio 1)
+Statistics of total number of evaluations      : 45 - 161 [1m421[0m 621 - 783 : 10
+Statistics of all the model parameter estimates:
+Parameter #1                        : average     0.999578 min     0.998557 max      1.00002
+Parameter #2                        : average     0.999105 min     0.997044 max      1.00002
+Parameter #3                        : average     0.997897 min     0.992765 max     0.999994
+Statistics of all the successful model parameter estimates:
+Parameter #1                        : average     0.999578 min     0.998557 max      1.00002
+Parameter #2                        : average     0.999105 min     0.997044 max      1.00002
+Parameter #3                        : average     0.997897 min     0.992765 max     0.999994
+Results are saved in p01squads.igrnd.results and p01squads.igrnd-opt=squads_eval=1000_real=10
+
+Final results:
+Optimized model parameters:
+Parameter #1 0.999997
+Parameter #2 0.999993
+Parameter #3 0.999985
+Objective function: 2.46675e-10 Success: 1 (1)
+SUCCESS: Objective function is below the predefined cutoff value (2.46675e-10 < 0.001)!
+Simulation time = 0 seconds
+Functional evaluations = 4079
+Jacobian evaluations = 623
+Levenberg-Marquardt optimizations = 84
+Execution  started  on Mon Jul 22 19:43:45 2013
+Execution completed on Mon Jul 22 19:43:45 2013
+Execution date & time stamp: 20130722-194345

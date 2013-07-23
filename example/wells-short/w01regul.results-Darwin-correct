@@ -1,0 +1,20 @@
+Model parameters:
+k -1.83189
+S -4.54601
+
+Model predictions:
+o1                  :           0 -            0 =            0 (           0) success 1 range            0 -         0.05
+o2                  :        5.98 -      6.42748 =     -0.44748 (    -0.44748) success 0 range         5.93 -         6.03
+o3                  :        8.02 -      7.48393 =      0.53607 (     0.53607) success 0 range         7.97 -         8.07
+o4                  :        8.67 -      8.10355 =      0.56645 (     0.56645) success 0 range         8.62 -         8.72
+o5                  :        8.97 -      8.54365 =      0.42635 (     0.42635) success 0 range         8.92 -         9.02
+o6                  :        9.14 -       8.8852 =       0.2548 (      0.2548) success 0 range         9.09 -         9.19
+o7                  :        9.25 -      9.16437 =      0.08563 (     0.08563) success 0 range          9.2 -          9.3
+o8                  :        9.31 -      9.40045 =     -0.09045 (    -0.09045) success 0 range         9.26 -         9.36
+o9                  :        9.38 -        9.605 =       -0.225 (      -0.225) success 0 range         9.33 -         9.43
+o10                 :        9.41 -      9.78545 =     -0.37545 (    -0.37545) success 0 range         9.36 -         9.46
+o11                 :        9.45 -      9.94688 =     -0.49688 (    -0.49688) success 0 range          9.4 -          9.5
+reg1                :           0 -     0.168109 =    -0.168109 (   -0.168109) success 1 range           -1 -            1
+reg2                :           0 -    -0.546008 =     0.546008 (    0.546008) success 1 range           -1 -            1
+Objective function: 1.83555 Success: 0 (0)
+Number of function evaluations = 49

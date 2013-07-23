@@ -1,6 +1,6 @@
 PROG = mads
 CMP = ./compare-results # MADS testing
-# CMP = cp -f # Save current results for future testing DANGEROUS!
+CMP = cp -f # Save current results for future testing DANGEROUS!
 
 # MathEval required to evaluate expression for tied parameters and regularization terms
 ifndef MATHEVAL
@@ -204,33 +204,33 @@ verify-contaminant:
 	@echo "TEST 3: Internal contaminant transport problems using different dispersivities ..."
 	@echo "TEST 3.1: Problem example/contamination/s01 with independent dispersivities ..."
 	rm -f example/contamination/s01.mads_output example/contamination/s01.results
-	./mads example/contamination/s01 lmeigen > /dev/null
+	./mads example/contamination/s01 obs_int=2 lmeigen > /dev/null
 	@$(CMP) example/contamination/s01.mads_output example/contamination/s01.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01.results example/contamination/s01.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.2: Problem example/contamination/s01 with tied dispersivities ..."
 	rm -f example/contamination/s01-tied_dispersivities.results
-	./mads example/contamination/s01-tied_dispersivities > /dev/null
+	./mads example/contamination/s01-tied_dispersivities obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.3: Problem example/contamination/s01 with scaled dispersivities ..."
 	rm -f example/contamination/s01-scaled_dispersivities.results
-	./mads example/contamination/s01-scaled_dispersivities > /dev/null
+	./mads example/contamination/s01-scaled_dispersivities obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
 	rm -f example/contamination/s01-scaled+tied_dispersivities.results
-	./mads example/contamination/s01-scaled+tied_dispersivities > /dev/null
+	./mads example/contamination/s01-scaled+tied_dispersivities obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.5: Problem example/contamination/s02 with coupled (tied) parameters based on mathematical expressions  ..."
 	rm -f example/contamination/s02tied.results
-	./mads example/contamination/s02tied > /dev/null
+	./mads example/contamination/s02tied obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s02tied.results example/contamination/s02tied.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.6: Problem example/contamination/s02 with regularization terms for optimized model parameters ..."
 	rm -f example/contamination/s02regul.results
-	./mads example/contamination/s02regul > /dev/null
+	./mads example/contamination/s02regul obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s02regul.results example/contamination/s02regul.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
@@ -343,6 +343,8 @@ verify-parallel:
 	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 8: DONE"
+	@echo ""
+	@echo ""
 
 verify-forward:
 	@echo "**************************************************************************************"
@@ -380,7 +382,6 @@ verify-forward:
 	@$(CMP) example/forward/a05.results example/forward/a05.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 9: DONE"
-	@echo ""
 	@echo ""
 
 clean-example:

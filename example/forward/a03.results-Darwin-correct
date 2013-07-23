@@ -1,0 +1,20 @@
+Model parameters:
+Source x coordinate [L] 0
+Source y coordinate [L] 0
+Source x dimension [L] 1e-05
+Source y dimension [L] 1e-05
+Contaminant flux [M/T] 100000
+Start Time [T] 0
+Flow Angle [degrees] 3
+Pore x velocity [L/T] 1
+Dispersivity x [L] 2
+Dispersivity y [L] 1.5
+Dispersivity z [L] 0.1
+
+Model predictions:
+W-1       (   49):           0 -            0 =            0 (           0) success 1 range            0 -           25
+W-2       (   49):           0 -            0 =            0 (           0) success 1 range            0 -           25
+W-3       (   49):           0 -            0 =            0 (           0) success 1 range            0 -           25
+W-4       (   49):           0 -            0 =            0 (           0) success 1 range            0 -           25
+Objective function: 1.18936e-26 Success: 0 (1)
+Number of function evaluations = 1

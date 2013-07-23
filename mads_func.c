@@ -707,40 +707,71 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 							tprintf( "AZ %.12g\n", p->ad->var[AZ] );
 						}
 					}
-					switch( p->cd->solution_type[s] )
+					// TODO merge func_intrn and func_solver; func_intrn is called by methods (PE, UQ, ..); func_solver is called by forward and grid solvers
+					if( p->cd->obs_int == 1 ) // TODO add other integration models ...
 					{
-						case POINT:
-							c1 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							c2 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							break;
-						case PLANE:
-							c1 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							c2 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							break;
-						case PLANE3D:
-							c1 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							c2 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							break;
-						case GAUSSIAN2D:
-							c1 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							c2 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							break;
-						case GAUSSIAN3D:
-							c1 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							c2 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							break;
-						default:
-						case BOX:
-							c1 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							c2 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-							break;
+						switch( p->cd->solution_type[s] )
+						{
+							case POINT:
+								c1 += point_source( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case PLANE:
+								c1 += rectangle_source( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case PLANE3D:
+								c1 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case GAUSSIAN2D:
+								c1 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case GAUSSIAN3D:
+								c1 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							default:
+							case BOX:
+								c1 += box_source( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+						}
+					}
+					else
+					{
+						switch( p->cd->solution_type[s] )
+						{
+							case POINT:
+								c1 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								c2 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case PLANE:
+								c1 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								c2 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case PLANE3D:
+								c1 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								c2 += rectangle_source_vz( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case GAUSSIAN2D:
+								c1 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								c2 += gaussian_source_2d( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case GAUSSIAN3D:
+								c1 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								c2 += gaussian_source_3d( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							default:
+							case BOX:
+								c1 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								c2 += box_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+						}
+
 					}
 					if( p->cd->disp_scaled ) // Scaled dispersivities
 					{
 						p->ad->var[AX] = dx; p->ad->var[AY] = dy; p->ad->var[AZ] = dz;
 					}
 				}
-				c = ( c1 + c2 ) / 2;
+				if( p->cd->obs_int == 1 ) c = c1;
+				else c = ( c1 + c2 ) / 2;
 			}
 			p->od->obs_current[k] = c;
 			t = p->od->obs_target[k];
