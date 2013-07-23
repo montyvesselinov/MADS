@@ -1,3 +1,20 @@
+MADS is an open-source code designed as an integrated high-performance computational framework performing
+a wide range of model-based analyses: Sensitivity Analysis (SA), Parameter Estimation (PE), Model Inversion and Calibration,
+Uncertainty Quantification (UQ), Model Selection and Averaging, and Decision Support (DS).
+
+MADS utilizes adaptive rules and techniques which allows the analyses to be performed with minimum user input. The code
+provides a series of alternative algorithms to perform each type of model analyses. The code allows for coupled model
+parameters and regularization terms that are internally computed based on user-defined mathematical expressions.
+
+USAGE: mads problem_name [ keywords | options ]       OR
+       mads MADS_input_file [ keywords | options ]    OR
+       mads PEST_input_file [ keywords | options ] (MADS is compatible with PEST control, template and instruction files)
+
+For additional information:
+       web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+       email: Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+
+
 To compile, execute 'make'
 
 GSL (including LAPACK/BLAS), LIBMATHEVAL, LIBYAML, GLIB-2.0 and PKG-CONGIG libraries are needed to compile MADS

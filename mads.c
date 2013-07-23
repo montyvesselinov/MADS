@@ -1011,7 +1011,7 @@ int main( int argn, char *argv[] )
 	tprintf( "Execution date & time stamp: %s\n", op.datetime_stamp );
 	sprintf( buf, "rm -f %s.running", op.root ); system( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
-	free( op.cd->solution_id ); free( op.cd->solution_type ); free( ad.var );
+	free( op.cd->solution_id ); free( op.cd->solution_type );
 	fclose( mads_output );
 	exit( 0 ); // DONE
 }

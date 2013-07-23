@@ -649,7 +649,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	{
 		if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
 		l = p->cd->num_source_params * p->cd->num_sources + p->cd->num_aquifer_params;
-		p2 = p->cd->num_aquifer_params - 1;
+		p2 = p->cd->num_source_params;
 		for( p1 = p->cd->num_source_params * p->cd->num_sources; p1 < l; p1++, p2++ )
 			p->ad->var[p2] = p->cd->var[p1];
 		if( p->cd->disp_tied && p->cd->disp_scaled == 0 ) // Tied dispersivities
@@ -924,7 +924,7 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 	num_params = cd->num_source_params + cd->num_aquifer_params;
 	if( ( ad.var = ( double * ) malloc( ( num_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	k = cd->num_source_params * cd->num_sources + cd->num_aquifer_params;
-	j = cd->num_aquifer_params - 1;
+	j = cd->num_source_params;
 	for( i = cd->num_source_params * cd->num_sources; i < k; i++, j++ )
 		ad.var[j] = cd->var[i];
 	if( cd->disp_tied && cd->disp_scaled == 0 ) // Tied dispersivities
