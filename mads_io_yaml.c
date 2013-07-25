@@ -81,6 +81,7 @@ char *datestamp(); // create date stamp
 char *str_replace( char *orig, char *rep, char *with ); // replace all string occurrences
 
 /* Functions elsewhere */
+int set_param_id( struct opt_data *op );
 char **char_matrix( int maxCols, int maxRows );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
@@ -88,7 +89,6 @@ int set_test_problems( struct opt_data *op );
 void *malloc_check( const char *what, size_t n );
 int Ftest( char *filename );
 FILE *Fread( char *filename );
-
 
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 {
@@ -227,11 +227,12 @@ void gnode_tree_dump_classes( GNode *node, gpointer data )
 	printf( "%s -> %i components\n", ( char * ) node->data, g_node_n_children( node ) );
 }
 
-int load_ymal_params( GNode *node, gpointer data )
+int load_ymal_params( GNode *node, gpointer data ) // TODO currently INTERNAL problem is assumed; needs to be generalized for external problem
 {
 	struct calc_data *cd;
 	struct param_data *pd;
 	GNode *node_key, *node_value, *node_par;
+	set_param_id( gop ); // set analytical parameter id's
 	cd = gop->cd;
 	pd = gop->pd;
 	int i, k, bad_data = 0;

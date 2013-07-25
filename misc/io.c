@@ -25,6 +25,7 @@
 // PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 #include <stdio.h>
+#include <stddef.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>

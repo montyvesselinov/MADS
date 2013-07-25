@@ -29,6 +29,8 @@ ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
 Number of optimized parameters = 11
 Number of flagged parameters = 0
 Number of fixed parameters = 8
+
+Parameter ID's:
 Number of parameters with computational expressions (coupled or tied parameters) = 0
 Number of regularization terms = 0
 Number of calibration targets = 4
@@ -36,7 +38,7 @@ WARNING: Number of optimized model parameters is greater than number of observat
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130722-194416
+Execution date & time stamp: 20130725-084516
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -68,6 +70,6 @@ Objective function: 1.18936e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Mon Jul 22 19:44:16 2013
-Execution completed on Mon Jul 22 19:44:16 2013
-Execution date & time stamp: 20130722-194416
+Execution  started  on Thu Jul 25 08:45:16 2013
+Execution completed on Thu Jul 25 08:45:16 2013
+Execution date & time stamp: 20130725-084516

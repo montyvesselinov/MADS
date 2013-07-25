@@ -61,7 +61,7 @@ double point_source( double x, double y, double z, double t, void *params )
 	p->ye = y;
 	p->ze = z;
 	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
-		return( p->var[C0] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
+		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
 	time = t - p->var[TIME_INIT];
 	F.function = &int_point_source;
 	F.params = p;
@@ -76,7 +76,7 @@ double point_source( double x, double y, double z, double t, void *params )
 //	printf ("intervals =  %d\n", w->size);
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return( p->var[C0] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
+	return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
 }
 
 double int_point_source( double tau, void *params )
@@ -142,7 +142,7 @@ double box_source( double x, double y, double z, double t, void *params )
 	}
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return( p->var[C0] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
+	return( p->var[FLUX] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
 	// return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
 }
 
@@ -209,7 +209,7 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return( p->var[C0] * 1e6 / ( 8. * sqrt( M_PI * p->var[AZ] * p->var[VX] )  * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] ) * result );
+	return( p->var[FLUX] * 1e6 / ( 8. * sqrt( M_PI * p->var[AZ] * p->var[VX] )  * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] ) * result );
 }
 
 double int_rectangle_source( double tau, void *params )
@@ -267,7 +267,7 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 	if( status != 0 ) result = 0;
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return( p->var[C0] * 1e6 * p->var[VZ] / ( 4. * p->var[POROSITY] ) * result );
+	return( p->var[FLUX] * 1e6 * p->var[VZ] / ( 4. * p->var[POROSITY] ) * result );
 }
 
 double int_rectangle_source_vz( double tau, void *params )
@@ -331,7 +331,7 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return p->var[C0] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2. * ( 2. * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2. * ( 2. * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 4. * p->var[AZ] * p->var[VX] ) );
+	return p->var[FLUX] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2. * ( 2. * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2. * ( 2. * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 4. * p->var[AZ] * p->var[VX] ) );
 }
 
 double int_gaussian_source_2d( double tau, void *params )
@@ -391,7 +391,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-	return p->var[C0] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2 * ( 2 * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2 * ( 2 * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 2 * ( 2 * p->var[AZ] * p->var[VX] + p->var[SOURCE_DZ] * p->var[SOURCE_DZ] ) ) );
+	return p->var[FLUX] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2 * ( 2 * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2 * ( 2 * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 2 * ( 2 * p->var[AZ] * p->var[VX] + p->var[SOURCE_DZ] * p->var[SOURCE_DZ] ) ) );
 }
 
 double int_gaussian_source_3d( double tau, void *params )

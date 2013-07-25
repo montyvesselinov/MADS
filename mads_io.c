@@ -45,6 +45,7 @@
 #endif
 
 /* Functions here */
+int set_param_id( struct opt_data *op );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
@@ -70,6 +71,23 @@ int set_test_problems( struct opt_data *op );
 void *malloc_check( const char *what, size_t n );
 int Ftest( char *filename );
 FILE *Fread( char *filename );
+
+int set_param_id( struct opt_data *op )
+{
+	op->cd->num_aquifer_params = NUM_ANAL_PARAMS_AQUIFER;
+	op->cd->num_source_params = NUM_ANAL_PARAMS_SOURCE;
+	if( ( op->ad->var = ( double * ) malloc( ( op->cd->num_aquifer_params + op->cd->num_source_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	op->sd->param_id = char_matrix( op->cd->num_source_params, 10 );
+	op->qd->param_id = char_matrix( op->cd->num_aquifer_params, 10 );
+	strcpy( op->sd->param_id[0], "x" ); strcpy( op->sd->param_id[1], "y" ); strcpy( op->sd->param_id[2], "z" );
+	strcpy( op->sd->param_id[3], "dx" ); strcpy( op->sd->param_id[4], "dy" ); strcpy( op->sd->param_id[5], "dz" );
+	strcpy( op->sd->param_id[6], "f" ); strcpy( op->sd->param_id[7], "t0" ); strcpy( op->sd->param_id[8], "t1" );
+	strcpy( op->qd->param_id[0], "phi" ); strcpy( op->qd->param_id[1], "kd" ); strcpy( op->qd->param_id[2], "lambda" );
+	strcpy( op->qd->param_id[3], "angle" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
+	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
+	strcpy( op->qd->param_id[10], "ts_disp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_react" );
+	return( 1 );
+}
 
 int parse_cmd( char *buf, struct calc_data *cd )
 {
@@ -562,6 +580,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	tprintf( "\nNumber of model parameters: %d\n", pd->nParam );
 	if( cd->solution_type[0] != TEST && cd->solution_type[0] != EXTERNAL )
 	{
+		set_param_id( op ); // set analytical parameter id's
 		k = cd->num_source_params * cd->num_sources + cd->num_aquifer_params;
 		if( k != pd->nParam )
 		{
@@ -829,8 +848,28 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else // create short names for the internal model parameters
 	{
 		pd->var_id_short = char_matrix( pd->nParam, 10 );
-		for( i = 0; i < pd->nParam; i++ )
-			sprintf( pd->var_id_short[i], "p%d", i + 1 );
+		if( cd->num_sources == 1 )
+		{
+			for( i = 0; i < cd->num_source_params; i++ )
+				sprintf( pd->var_id_short[i], "%s", op->sd->param_id[i] );
+		}
+		else
+		{
+			for( j = c = 0; c < cd->num_sources; c++ )
+				for( i = 0; i < cd->num_source_params; i++, j++ )
+					sprintf( pd->var_id_short[j], "%s_%d", op->sd->param_id[i], c + 1 );
+		}
+		j = cd->num_sources * cd->num_source_params;
+		for( i = 0; j < pd->nParam; i++, j++ )
+			sprintf( pd->var_id_short[j], "%s", op->qd->param_id[i] );
+		tprintf( "\nParameter ID's:\n" );
+		if( op->cd->debug )
+		{
+			tprintf( "\nParameter ID's:\n" );
+			for( i = 0; i < pd->nParam; i++ )
+				tprintf( "%d %s\n", i + 1, pd->var_id_short[i] );
+		}
+
 	}
 	if( cd->debug ) tprintf( "\n" );
 	// ------------------------------------------------------------ Set parameters with computational expressions (coupled or tied parameters) ----------------------------------------------------------------

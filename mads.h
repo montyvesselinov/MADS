@@ -41,7 +41,7 @@ enum GSA_TYPE {SOBOL, SALTELLI, MOAT};
 enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDX, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3, GAUSSIAN2D = 4, GAUSSIAN3D = 5};
 #define NUM_ANAL_PARAMS_SOURCE 9
-enum SOURCE_PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, C0, TIME_INIT, TIME_END };
+enum SOURCE_PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, FLUX, TIME_INIT, TIME_END };
 #define NUM_ANAL_PARAMS_AQUIFER 13
 enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, TSCALE_DISP, TSCALE_ADV, TSACLE_REACT};
 
@@ -72,7 +72,9 @@ struct opt_data // TODO class MADS (in C++)
 	struct calc_data *cd; // calculation parameters subclass
 	struct grid_data *gd; // grid subclass to compute model predictions
 	struct extrn_data *ed; // parameter subclass for external simulations
-	struct anal_data *ad;
+	struct anal_data *ad; // parameter subclass for the internal analytical simulations
+	struct source_data *sd; // source parameters
+	struct aquifer_data *qd; // aquifer parameters
 	// TODO model of the MADS functions should be part of this class
 };
 
@@ -316,6 +318,16 @@ struct anal_data
 	double ze; // z coordinate; needed only for the functions during integration (can be a subclass)
 	double te; // t coordinate; needed only for the functions during integration (can be a subclass)
 	double *var; // optimized model parameters; needed only for the functions during integration (can be a subclass)
+};
+
+struct source_data
+{
+	char **param_id;
+};
+
+struct aquifer_data
+{
+	char **param_id;
 };
 
 // mads.c

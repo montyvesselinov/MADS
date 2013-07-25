@@ -21,8 +21,8 @@ Dispersivity x [L]: 130 1 1 5 10 140
 Dispersivity y [L]: 15 1 1 5 1 30
 Dispersivity z [L]: 0.3 1 1 2.22192 0.1 1
 Number of regularization terms: 2
-p7 * ( 49 - p8 ) = 3000 1 0 2000 4000
-137 - p17 = 0 1 0 -10 10
+t0 * ( 49 - t1 ) = 3000 1 0 2000 4000
+137 - ax = 0 1 0 -10 10
 Number of wells: 20
 W-1 1503 1954 5.57 12.55 1 49 0 1 0 0 25
 W-2 2113 1479 36.73 55.14 1 49 0 1 0 0 10

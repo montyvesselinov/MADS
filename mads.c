@@ -179,6 +179,8 @@ int main( int argn, char *argv[] )
 	struct grid_data gd;
 	struct opt_data op;
 	struct anal_data ad;
+	struct source_data sd;
+	struct aquifer_data qd;
 	char filename[255], filename2[255], root[255], extension[255], buf[255], *dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
@@ -197,6 +199,8 @@ int main( int argn, char *argv[] )
 	op.gd = &gd;
 	op.ed = &ed;
 	op.ad = &ad;
+	op.sd = &sd;
+	op.qd = &qd;
 	cd.neval = 0;
 	cd.njac = 0;
 	cd.nlmo = 0;
@@ -282,10 +286,6 @@ int main( int argn, char *argv[] )
 		// exit( 0 );
 	}
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
-	// set anal data TODO need to be more general
-	cd.num_aquifer_params = NUM_ANAL_PARAMS_AQUIFER;
-	cd.num_source_params = NUM_ANAL_PARAMS_SOURCE;
-	if( ( ad.var = ( double * ) malloc( ( cd.num_aquifer_params + cd.num_source_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	/*
 	 *  Read input data
 	 */

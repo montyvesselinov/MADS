@@ -8,10 +8,10 @@ Flow Angle [degrees] 3
 Pore x velocity [L/T] 5
 Dispersivity x [L] 70
 Tied model parameters:
-Source z dimension [L]  = (p3+1) = 1
-Contaminant flux [M/T]  = (4000/(49-p8)) = 85.1064
-Dispersivity y [L]  = (p17/100) = 0.7
-Dispersivity z [L]  = (p18/1.1) = 0.636364
+Source z dimension [L]  = (z+1) = 1
+Contaminant flux [M/T]  = (4000/(49-t0)) = 85.1064
+Dispersivity y [L]  = (ax/100) = 0.7
+Dispersivity z [L]  = (ay/1.1) = 0.636364
 
 Model predictions:
 W-1       (   49):           0 -  2.02603e-91 = -2.02603e-91 (-2.02603e-91) success 1 range            0 -           25
