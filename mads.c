@@ -241,7 +241,7 @@ int main( int argn, char *argv[] )
 		sprintf( filename, "%s.mads", argv[1] );
 		extension[0] = 0;
 	}
-	if( cd.debug ) printf( "Input file name: %s ", filename );
+	printf( "Input file name: %s ", filename );
 	if( strcasestr( filename, "yaml" ) || strcasestr( filename, "yml" ) )
 	{
 		printf( "(YAML format expected)\n" );
@@ -260,7 +260,7 @@ int main( int argn, char *argv[] )
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
 	printf( "Problem root name: %s", root );
-	if( cd.debug && extension[0] != 0 )	printf( " Extension: %s\n", extension );
+	if( extension[0] != 0 )	printf( " Extension: %s\n", extension );
 	else printf( "\n" );
 	op.root = root;
 	op.filename = filename;
@@ -314,6 +314,11 @@ int main( int argn, char *argv[] )
 	{
 		if( op.yaml ) // YAML format
 		{
+			// TODO parse command line after parsing the Problem and Solution YAML classes; the lines below should be removed
+			buf[0] = 0;
+			for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
+			cd.solution_type = ( int * ) malloc( sizeof( int ) );
+			if( parse_cmd( buf, &cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 #ifdef YAML
 			ier = load_yaml_problem( filename, argn, argv, &op );
 #else

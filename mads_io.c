@@ -62,6 +62,7 @@ int count_cols( char *filename, int row );
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 char *str_replace( char *orig, char *rep, char *with ); // replace all string occurrences
+int set_optimized_params( struct opt_data *op );
 
 /* Functions elsewhere */
 char **char_matrix( int maxCols, int maxRows );
@@ -82,8 +83,8 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->sd->param_id[0], "x" ); strcpy( op->sd->param_id[1], "y" ); strcpy( op->sd->param_id[2], "z" );
 	strcpy( op->sd->param_id[3], "dx" ); strcpy( op->sd->param_id[4], "dy" ); strcpy( op->sd->param_id[5], "dz" );
 	strcpy( op->sd->param_id[6], "f" ); strcpy( op->sd->param_id[7], "t0" ); strcpy( op->sd->param_id[8], "t1" );
-	strcpy( op->qd->param_id[0], "phi" ); strcpy( op->qd->param_id[1], "kd" ); strcpy( op->qd->param_id[2], "lambda" );
-	strcpy( op->qd->param_id[3], "angle" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
+	strcpy( op->qd->param_id[0], "n" ); strcpy( op->qd->param_id[1], "rf" ); strcpy( op->qd->param_id[2], "lambda" );
+	strcpy( op->qd->param_id[3], "tetha" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
 	strcpy( op->qd->param_id[10], "ts_disp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_react" );
 	return( 1 );
@@ -274,7 +275,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->nretries > 0 && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) cd->paranoid = 1;
 	if( cd->test_func > 0 )
 	{
-		tprintf( "Test Function %d ", cd->test_func );
+		tprintf( "\nTest Function %d ", cd->test_func );
 		if( cd->test_func < 40 )
 		{
 			tprintf( "Dimensionality %d ", cd->test_func );
@@ -287,7 +288,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		}
 		tprintf( "\n" );
 	}
-	tprintf( "Problem type: " );
+	tprintf( "\nProblem type: " );
 	switch( cd->problem_type )
 	{
 		case CHECK: tprintf( "check model setup and input/output files (no model execution)" ); break;
@@ -317,7 +318,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 			{
 				if( cd->resultscase == 0 ) cd->resultscase = 1;
 				if( cd->resultscase > 0 ) tprintf( "Model analyses for case #%d", cd->resultscase );
-				else tprintf( "Model analyses for first %d cases", -cd->resultscase );
+				else tprintf( "Model analyses for first %d cases", cd->resultscase );
 			}
 			tprintf( "\n" );
 		}
@@ -503,12 +504,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else buf[0] = 0;
 	// Add commands provided as arguments
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
+	cd->solution_type = ( int * ) malloc( sizeof( int ) );
+	if( parse_cmd( buf, cd ) == -1 ) return( -1 );
+	// Read Solution Type
 	cd->solution_id = ( char * ) malloc( 150 * sizeof( char ) );
 	cd->solution_id[0] = 0;
-	cd->num_sources = 1;
-	cd->solution_type = ( int * ) malloc( sizeof( int ) );
-	if( parse_cmd( buf, cd ) == -1 ) return( 0 );
-	// Read Solution Type
 	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fgets( cd->solution_id, 150, infile ); /*fscanf( infile, "%s\n", cd->solution_id );*/ }
 	strcpy( buf, cd->solution_id );
 	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
@@ -526,7 +526,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		sscanf( word, "%d", &cd->solution_type[c] );
 		if( strcasestr( word, "ext" ) ) { cd->solution_type[c] = EXTERNAL; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
 		if( strcasestr( word, "poi" ) ) cd->solution_type[c] = POINT;
-		if( strcasestr( word, "gau" ) ) { if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
+		if( strcasestr( word, "gau" ) ) { if( strcasestr( word, "2" ) ) cd->solution_type[c] = GAUSSIAN2D; else cd->solution_type[c] = GAUSSIAN3D; }
 		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) ) cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
 		if( strcasestr( word, "box" ) ) cd->solution_type[c] = BOX;
 		if( strcasestr( word, "test" ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
@@ -784,53 +784,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 		}
 	 */
-	if( cd->problem_type == CALIBRATE && pd->nFlgParam == 0 )
-	{
-		if( cd->calib_type == PPSD )
-		{
-			tprintf( "\nERROR: Partial parameter-space discretization (PPSD) is selected.\nHowever no parameters are flagged! Use optimization code value = 2 to flag model parameters.\n\n" );
-			bad_data = 1;
-			return( 0 );
-		}
-		if( cd->calib_type == IGPD )
-		{
-			tprintf( "\nERROR: Partial parameter-space discretization of initial guesses (IGPD) is selected.\nHowever no parameters are flagged! Use optimization code value = 2 to flag model parameters.\n\n" );
-			bad_data = 1;
-			return( 0 );
-		}
-	}
-	if( cd->debug ) tprintf( "\n" );
-	tprintf( "Number of optimized parameters = %d\n", pd->nOptParam );
-	pd->var_index = ( int * ) malloc( pd->nOptParam * sizeof( int ) );
-	pd->var_current = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
-	pd->var_best = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
-	for( k = i = 0; i < pd->nParam; i++ )
-		if( pd->var_opt[i] == 1 || ( pd->var_opt[i] > 1 && cd->calib_type != PPSD ) )
-		{
-			if( cd->debug ) tprintf( "%-26s: init %9g step %8.3g min %9g max %9g\n", pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
-			pd->var_index[k++] = i;
-		}
-	if( cd->debug ) tprintf( "\n" );
-	tprintf( "Number of flagged parameters = %d\n", pd->nFlgParam );
-	if( cd->debug )
-	{
-		for( i = 0; i < pd->nParam; i++ )
-			if( pd->var_opt[i] == 2 )
-				tprintf( "%-26s: init %9g step %6g min %9g max %9g\n", pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
-	}
-	pd->nFixParam = pd->nParam - pd->nOptParam - pd->nFlgParam - pd->nExpParam;
-	if( pd->nFixParam == 0 && cd->debug ) tprintf( "\nNO fixed parameters\n" );
-	else
-	{
-		if( cd->debug ) tprintf( "\n" );
-		tprintf( "Number of fixed parameters = %d\n", pd->nFixParam );
-		if( cd->debug )
-		{
-			for( i = 0; i < pd->nParam; i++ )
-				if( pd->var_opt[i] == 0 )
-					tprintf( "%-26s: %g\n", pd->var_id[i], pd->var[i] );
-		}
-	}
+	set_optimized_params( op );
 	if( cd->solution_type[0] == EXTERNAL ) // check for consistent parameter names
 	{
 		for( i = 0; i < pd->nParam; i++ )
@@ -1922,4 +1876,59 @@ void tprintf( char const *fmt, ... )
 	vfprintf( mads_output, fmt, ap );
 	va_end( ap );
 	fflush( mads_output );
+}
+
+int set_optimized_params( struct opt_data *op )
+{
+	struct calc_data *cd;
+	struct param_data *pd;
+	int i, k, bad_data = 0;
+	cd = op->cd;
+	pd = op->pd;
+	if( cd->problem_type == CALIBRATE && pd->nFlgParam == 0 )
+	{
+		if( cd->calib_type == PPSD )
+		{
+			tprintf( "\nERROR: Partial parameter-space discretization (PPSD) is selected.\nHowever no parameters are flagged! Use optimization code value = 2 to flag model parameters.\n\n" );
+			bad_data = 1;
+		}
+		if( cd->calib_type == IGPD )
+		{
+			tprintf( "\nERROR: Partial parameter-space discretization of initial guesses (IGPD) is selected.\nHowever no parameters are flagged! Use optimization code value = 2 to flag model parameters.\n\n" );
+			bad_data = 1;
+		}
+	}
+	if( cd->debug ) tprintf( "\n" );
+	tprintf( "Number of optimized parameters = %d\n", pd->nOptParam );
+	pd->var_index = ( int * ) malloc( pd->nOptParam * sizeof( int ) );
+	pd->var_current = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
+	pd->var_best = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
+	for( k = i = 0; i < pd->nParam; i++ )
+		if( pd->var_opt[i] == 1 || ( pd->var_opt[i] > 1 && cd->calib_type != PPSD ) )
+		{
+			if( cd->debug ) tprintf( "%-26s: init %9g step %8.3g min %9g max %9g\n", pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+			pd->var_index[k++] = i;
+		}
+	if( cd->debug ) tprintf( "\n" );
+	tprintf( "Number of flagged parameters = %d\n", pd->nFlgParam );
+	if( cd->debug )
+	{
+		for( i = 0; i < pd->nParam; i++ )
+			if( pd->var_opt[i] == 2 )
+				tprintf( "%-26s: init %9g step %6g min %9g max %9g\n", pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+	}
+	pd->nFixParam = pd->nParam - pd->nOptParam - pd->nFlgParam - pd->nExpParam;
+	if( pd->nFixParam == 0 && cd->debug ) tprintf( "\nNO fixed parameters\n" );
+	else
+	{
+		if( cd->debug ) tprintf( "\n" );
+		tprintf( "Number of fixed parameters = %d\n", pd->nFixParam );
+		if( cd->debug )
+		{
+			for( i = 0; i < pd->nParam; i++ )
+				if( pd->var_opt[i] == 0 )
+					tprintf( "%-26s: %g\n", pd->var_id[i], pd->var[i] );
+		}
+	}
+	return( bad_data );
 }

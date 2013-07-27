@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: example/contamination/s01-ppsd.mads
 Problem root name: example/contamination/s01-ppsd
+
 Problem type: calibration
 
 Calibration technique: sequential calibration using partial parameter parameter discretization
@@ -40,7 +41,7 @@ Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130725-084451
+Execution date & time stamp: 20130727-103639
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -99,6 +100,6 @@ Functional evaluations = 129
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
 Functional evaluations per second = 32
-Execution  started  on Thu Jul 25 08:44:51 2013
-Execution completed on Thu Jul 25 08:44:55 2013
-Execution date & time stamp: 20130725-084451
+Execution  started  on Sat Jul 27 10:36:39 2013
+Execution completed on Sat Jul 27 10:36:43 2013
+Execution date & time stamp: 20130727-103639

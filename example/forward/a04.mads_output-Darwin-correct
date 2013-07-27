@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a04.mads
 Problem root name: a04
+
 Problem type: forward run (no calibration)
 
 Optimization method: opt=lm --- Levenberg-Marquardt optimization
@@ -38,7 +39,7 @@ WARNING: Number of optimized model parameters is greater than number of observat
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130725-084516
+Execution date & time stamp: 20130727-103706
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -70,6 +71,6 @@ Objective function: 1.18936e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Thu Jul 25 08:45:16 2013
-Execution completed on Thu Jul 25 08:45:16 2013
-Execution date & time stamp: 20130725-084516
+Execution  started  on Sat Jul 27 10:37:06 2013
+Execution completed on Sat Jul 27 10:37:06 2013
+Execution date & time stamp: 20130727-103706

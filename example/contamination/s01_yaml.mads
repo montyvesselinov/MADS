@@ -1,8 +1,7 @@
-Problem: { opt: lm, debug: 0 }
+Problem: { opt: lm, debug: 1 }
 Solution: internal
 Sources: 
-- 1: {
-  type: box,
+- box: {
   x:  { longname: "Source x coordinate [L]", init: 1124, type:  opt, log: no, step: 25, min:  210,    max: 1460 },
   y:  { longname: "Source y coordinate [L]", init: 1393, type:  opt, log: no, step: 25, min: 1230,    max: 1930 },
   z:  { longname: "Source z coordinate [L]", init:    0, type: null, log: no, step:  1, min:    0,    max:  100 },
@@ -13,7 +12,7 @@ Sources:
   t0: { longname: "Start Time [T]",          init:    0, type:  opt, log: no, step:  1, min:    0,    max:   43 },
   t1: { longname: "End Time [T]",            init:  100, type: null, log: no, step:  1, min:    1,    max:  100 } }
 Parameters:
-- phi:    { longname: "Porosity [L3/L3]",       init:  0.1, type: null, log: no, step: 0.1, min:   0,    max:   1 }
+- n:      { longname: "Porosity [L3/L3]",       init:  0.1, type: null, log: no, step: 0.1, min:   0,    max:   1 }
 - rf:     { longname: "Retardation Factor [-]", init:  1,   type: null, log: no, step: 1,   min:   1,    max:  10 }
 - lambda: { longname: "Half-life decay [1/T]",  init:  0,   type: null, log: no, step: 1,   min:   0,    max:   1 }
 - tetha:  { longname: "Flow Angle [degrees]",   init:  3,   type:  opt, log: no, step: 5,   min: -30,    max:  30 }

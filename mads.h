@@ -43,7 +43,7 @@ enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2,
 #define NUM_ANAL_PARAMS_SOURCE 9
 enum SOURCE_PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, FLUX, TIME_INIT, TIME_END };
 #define NUM_ANAL_PARAMS_AQUIFER 13
-enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, KD, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, TSCALE_DISP, TSCALE_ADV, TSACLE_REACT};
+enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, RF, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, TSCALE_DISP, TSCALE_ADV, TSACLE_REACT};
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
@@ -322,11 +322,13 @@ struct anal_data
 
 struct source_data
 {
+	int num_param;
 	char **param_id;
 };
 
 struct aquifer_data
 {
+	int num_param;
 	char **param_id;
 };
 
