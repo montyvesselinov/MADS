@@ -1,0 +1,8 @@
+Model parameters:
+Parameter #1 0.999995
+Parameter #2 0.999988
+Parameter #3 0.999929
+Objective function: 2.19572e-07 Success: 1 (1)
+SUCCESS: Objective function is below the predefined cutoff value (2.19572e-07 < 0.001)!
+Number of function evaluations = 563
+Seed = -2096575428
