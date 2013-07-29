@@ -63,6 +63,7 @@ char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 char *str_replace( char *orig, char *rep, char *with ); // replace all string occurrences
 int set_optimized_params( struct opt_data *op );
+int map_well_obs( struct opt_data *op );
 
 /* Functions elsewhere */
 char **char_matrix( int maxCols, int maxRows );
@@ -78,15 +79,15 @@ int set_param_id( struct opt_data *op )
 	op->cd->num_aquifer_params = NUM_ANAL_PARAMS_AQUIFER;
 	op->cd->num_source_params = NUM_ANAL_PARAMS_SOURCE;
 	if( ( op->ad->var = ( double * ) malloc( ( op->cd->num_aquifer_params + op->cd->num_source_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	op->sd->param_id = char_matrix( op->cd->num_source_params, 10 );
-	op->qd->param_id = char_matrix( op->cd->num_aquifer_params, 10 );
+	op->sd->param_id = char_matrix( op->cd->num_source_params, 6 );
+	op->qd->param_id = char_matrix( op->cd->num_aquifer_params, 6 );
 	strcpy( op->sd->param_id[0], "x" ); strcpy( op->sd->param_id[1], "y" ); strcpy( op->sd->param_id[2], "z" );
 	strcpy( op->sd->param_id[3], "dx" ); strcpy( op->sd->param_id[4], "dy" ); strcpy( op->sd->param_id[5], "dz" );
 	strcpy( op->sd->param_id[6], "f" ); strcpy( op->sd->param_id[7], "t0" ); strcpy( op->sd->param_id[8], "t1" );
 	strcpy( op->qd->param_id[0], "n" ); strcpy( op->qd->param_id[1], "rf" ); strcpy( op->qd->param_id[2], "lambda" );
 	strcpy( op->qd->param_id[3], "tetha" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
-	strcpy( op->qd->param_id[10], "ts_disp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_react" );
+	strcpy( op->qd->param_id[10], "ts_dsp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_rct" );
 	return( 1 );
 }
 
@@ -456,10 +457,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 {
 	FILE *infile, *infile2;
 	//	FILE *infileb;
-	double x0, y0, x, y, d, alpha, beta;
+	double d;
 	char buf[5000], *file, **path, exec[1000], *word, *start, charecter;
 	char *separator = " \t\n";
-	int  i, j, k, c, l1, l2, bad_data, status, nofile = 0, skip = 0, short_names_printed, include_predictions;
+	int  i, j, k, c, l1, l2, bad_data, status, nofile = 0, skip = 0, short_names_printed;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct regul_data *rd;
@@ -486,6 +487,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	// internal test problem: nTObs = nCObs = nObs
 	wd->nW = 0;
 	ed->ntpl = ed->nins = 0;
+	gd->min_t = 0;
 	bad_data = 0;
 	if( ( infile = fopen( filename, "r" ) ) == NULL )
 	{
@@ -506,8 +508,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
 	cd->solution_type = ( int * ) malloc( sizeof( int ) );
 	if( parse_cmd( buf, cd ) == -1 ) return( -1 );
+	od->include_predictions = 1;
+	if( cd->problem_type == INFOGAP ) od->include_predictions = 0;
+	if( fabs( cd->obsstep ) > DBL_EPSILON ) od->include_predictions = 1;
 	// Read Solution Type
-	cd->solution_id = ( char * ) malloc( 150 * sizeof( char ) );
+	cd->solution_id = ( char * ) malloc( 150 * sizeof( char ) ); // Needed only to save text MADS files
 	cd->solution_id[0] = 0;
 	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fgets( cd->solution_id, 150, infile ); /*fscanf( infile, "%s\n", cd->solution_id );*/ }
 	strcpy( buf, cd->solution_id );
@@ -524,12 +529,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
 	{
 		sscanf( word, "%d", &cd->solution_type[c] );
-		if( strcasestr( word, "ext" ) ) { cd->solution_type[c] = EXTERNAL; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
-		if( strcasestr( word, "poi" ) ) cd->solution_type[c] = POINT;
-		if( strcasestr( word, "gau" ) ) { if( strcasestr( word, "2" ) ) cd->solution_type[c] = GAUSSIAN2D; else cd->solution_type[c] = GAUSSIAN3D; }
-		if( strcasestr( word, "rec" ) ) { if( strcasestr( word, "ver" ) ) cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
-		if( strcasestr( word, "box" ) ) cd->solution_type[c] = BOX;
-		if( strcasestr( word, "test" ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
+		if( !strncasecmp( word, "ext", 3 ) ) { cd->solution_type[c] = EXTERNAL; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no external!\n" ); bad_data = 1; } }
+		if( !strncasecmp( word, "poi", 3 ) ) cd->solution_type[c] = POINT;
+		if( !strncasecmp( word, "gau", 3 ) ) { if( strcasestr( word, "2" ) ) cd->solution_type[c] = GAUSSIAN2D; else cd->solution_type[c] = GAUSSIAN3D; }
+		if( !strncasecmp( word, "rec", 3 ) ) { if( strcasestr( word, "ver" ) ) cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
+		if( !strncasecmp( word, "box", 3 ) ) cd->solution_type[c] = BOX;
+		if( !strncasecmp( word, "test", 4 ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	}
 	if( cd->num_sources == 0 && cd->test_func >= 0 ) { cd->num_sources = 1; cd->solution_type[0] = TEST; od->nTObs = 0; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	if( bad_data ) return( -1 );
@@ -543,7 +548,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			return( -1 );
 		}
 	}
-	cd->solution_id[0] = 0;
+	cd->solution_id[0] = 0; // Regenerate the solution ID to save in the text MADS output file
 	if( cd->num_sources > 1 ) tprintf( "\nModels:" );
 	else tprintf( "Model: " );
 	for( c = 0; c < cd->num_sources; c++ )
@@ -784,7 +789,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 		}
 	 */
-	set_optimized_params( op );
 	if( cd->solution_type[0] == EXTERNAL ) // check for consistent parameter names
 	{
 		for( i = 0; i < pd->nParam; i++ )
@@ -816,16 +820,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		j = cd->num_sources * cd->num_source_params;
 		for( i = 0; j < pd->nParam; i++, j++ )
 			sprintf( pd->var_id_short[j], "%s", op->qd->param_id[i] );
-		tprintf( "\nParameter ID's:\n" );
 		if( op->cd->debug )
 		{
 			tprintf( "\nParameter ID's:\n" );
 			for( i = 0; i < pd->nParam; i++ )
 				tprintf( "%d %s\n", i + 1, pd->var_id_short[i] );
 		}
-
 	}
 	if( cd->debug ) tprintf( "\n" );
+	set_optimized_params( op );
 	// ------------------------------------------------------------ Set parameters with computational expressions (coupled or tied parameters) ----------------------------------------------------------------
 	tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", pd->nExpParam );
 	short_names_printed = 0;
@@ -1134,9 +1137,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		// TODO add performance criteria (predictions with weight = -1) for INFOGAP and GLUE analysis
 	}
 	// ------------------------------------------------------------ Reading internal problem ----------------------------------------------------------------
-	include_predictions = 1;
-	if( cd->problem_type == INFOGAP ) include_predictions = 0;
-	if( fabs( cd->obsstep ) > DBL_EPSILON ) include_predictions = 1;
 	fscanf( infile, ": %i\n", &wd->nW );
 	wd->id = char_matrix( wd->nW, 40 );
 	wd->x = ( double * ) malloc( wd->nW * sizeof( double ) );
@@ -1201,96 +1201,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				bad_data = 1;
 			}
 			if( wd->obs_weight[i][j] > DBL_EPSILON ) od->nObs++;
-			if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( include_predictions ) od->nObs++; } // Predictions have negative weights
+			if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( od->include_predictions ) od->nObs++; } // Predictions have negative weights
 			if( j + 1 < wd->nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " ); }
 		}
 	}
-	od->nCObs = od->nObs;
-	for( i = 0; i < wd->nW; i++ )
-	{
-		if( wd->nWellObs[i] <= 0 )
-			tprintf( "WARNING: Well %s has no observations!\n", wd->id[i] );
-		for( j = 0; j < wd->nWellObs[i]; j++ )
-			if( wd->obs_time[i][j] < DBL_EPSILON )
-				tprintf( "WARNING: Observation #%d time for well %s is too small (%g); potential error in the input file %s!\n", j + 1, wd->id[i], wd->obs_time[i][j], filename );
-		for( j = i + 1; j < wd->nW; j++ )
-			if( strcmp( wd->id[i], wd->id[j] ) == 0 )
-				tprintf( "WARNING: Well names #%i (%s) and #%i (%s) are identical!\n", i + 1, wd->id[i], j + 1, wd->id[j] );
-	}
-	if( od->nObs == 0 )
-	{
-		if( cd->problem_type != FORWARD && cd->problem_type != MONTECARLO )
-		{ tprintf( "\nERROR: Number of calibration targets is equal to zero!\n\n" ); bad_data = 1; }
-		else tprintf( "\nWARNING: Number of calibration targets is equal to zero!\n\n" );
-	}
-	if( bad_data ) return( 0 );
-	if( cd->debug > 2 )
-	{
-		d = ( -pd->var[FLOW_ANGLE] * M_PI ) / 180;
-		alpha = cos( d );
-		beta = sin( d );
-		tprintf( "\nCoordinate transformation of the observation points relative to the source:\n" );
-		for( i = 0; i < wd->nW; i++ )
-		{
-			x0 = wd->x[i] - pd->var[SOURCE_X];
-			y0 = wd->y[i] - pd->var[SOURCE_Y];
-			x = x0 * alpha - y0 * beta;
-			y = x0 * beta  + y0 * alpha;
-			tprintf( "Well %10s %.15g %.15g : %.15g %.15g\n", wd->id[i], wd->x[i], wd->y[i], x, y );
-		}
-	}
-	if( cd->debug ) tprintf( "\n" );
-	tprintf( "Number of calibration targets = %d", od->nObs );
-	if( preds->nTObs )
-	{
-		if( include_predictions ) tprintf( " (including predictions; observations with weight < 0)\n" );
-		else tprintf( " (excluding predictions; observations with weight < 0)\n" );
-	}
-	else tprintf( "\n" );
-	od->nTObs = od->nObs + rd->nRegul;
-	if( rd->nRegul > 0 ) tprintf( "Number of total calibration targets (including regularization terms) = %d", od->nTObs );
-	if( op->pd->nOptParam > op->od->nTObs ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations and regularizations (%d>%d)\n", op->pd->nOptParam, op->od->nTObs ); }
-	od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
-	od->obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
-	od->obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
-	od->obs_id = char_matrix( od->nTObs, 50 );
-	od->pred_id = char_matrix( od->nTObs, 50 );
-	od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
-	od->obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
-	od->obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
-	od->res = ( double * ) malloc( od->nTObs * sizeof( double ) );
-	od->obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
-	od->obs_well_index = ( int * ) malloc( od->nTObs * sizeof( int ) );
-	od->obs_time_index = ( int * ) malloc( od->nTObs * sizeof( int ) );
-	for( k = i = 0; i < wd->nW; i++ )
-		for( j = 0; j < wd->nWellObs[i]; j++ )
-			if( ( wd->obs_weight[i][j] > DBL_EPSILON ) || ( include_predictions && wd->obs_weight[i][j] < -DBL_EPSILON ) )
-			{
-				od->obs_target[k] = wd->obs_target[i][j];
-				od->obs_weight[k] = wd->obs_weight[i][j];
-				od->obs_min[k] = wd->obs_min[i][j];
-				od->obs_max[k] = wd->obs_max[i][j];
-				od->obs_log[k] = wd->obs_log[i][j];
-				od->obs_well_index[k] = i;
-				od->obs_time_index[k] = j;
-				sprintf( od->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
-				if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
-				k++;
-			}
-	for( i = 0; i < rd->nRegul; i++ ) // add regularization targets
-	{
-		strcpy( od->obs_id[k], rd->regul_id[i] );
-		od->obs_target[k] = rd->regul_target[i];
-		od->obs_weight[k] = rd->regul_weight[i];
-		od->obs_min[k] = rd->regul_min[i];
-		od->obs_max[k] = rd->regul_max[i];
-		od->obs_log[k] = rd->regul_log[i];
-		od->obs_well_index[k] = -1;
-		od->obs_time_index[k] = -1;
-		if( cd->debug ) tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
-		k++;
-	}
-	if( cd->debug ) tprintf( "\n" );
+	if( !map_well_obs( op ) ) return( 0 );
 	// ------------------------------------------------------------ Set predictions ----------------------------------------------------------------
 	if( preds->nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
 	{
@@ -1906,7 +1821,7 @@ int set_optimized_params( struct opt_data *op )
 	for( k = i = 0; i < pd->nParam; i++ )
 		if( pd->var_opt[i] == 1 || ( pd->var_opt[i] > 1 && cd->calib_type != PPSD ) )
 		{
-			if( cd->debug ) tprintf( "%-26s: init %9g step %8.3g min %9g max %9g\n", pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+			if( cd->debug ) tprintf( "%-26s :%-6s: init %9g step %8.3g min %9g max %9g\n", pd->var_id[i], pd->var_id_short[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 			pd->var_index[k++] = i;
 		}
 	if( cd->debug ) tprintf( "\n" );
@@ -1915,9 +1830,12 @@ int set_optimized_params( struct opt_data *op )
 	{
 		for( i = 0; i < pd->nParam; i++ )
 			if( pd->var_opt[i] == 2 )
-				tprintf( "%-26s: init %9g step %6g min %9g max %9g\n", pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+				tprintf( "%-26s :%-6s: init %9g step %6g min %9g max %9g\n", pd->var_id[i], pd->var[i], pd->var_id_short[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 	}
-	pd->nFixParam = pd->nParam - pd->nOptParam - pd->nFlgParam - pd->nExpParam;
+	pd->nIgnParam = 0;
+	for( i = 0; i < pd->nParam; i++ )
+		if( pd->var_id[i][0] == 0 ) pd->nIgnParam++;
+	pd->nFixParam = pd->nParam - pd->nOptParam - pd->nFlgParam - pd->nExpParam - pd->nIgnParam;
 	if( pd->nFixParam == 0 && cd->debug ) tprintf( "\nNO fixed parameters\n" );
 	else
 	{
@@ -1926,9 +1844,115 @@ int set_optimized_params( struct opt_data *op )
 		if( cd->debug )
 		{
 			for( i = 0; i < pd->nParam; i++ )
-				if( pd->var_opt[i] == 0 )
-					tprintf( "%-26s: %g\n", pd->var_id[i], pd->var[i] );
+				if( pd->var_opt[i] == 0 && pd->var_id[i][0] != 0 )
+					tprintf( "%-26s :%-6s: %g\n", pd->var_id[i], pd->var_id_short[i],  pd->var[i] );
 		}
 	}
-	return( bad_data );
+	if( bad_data ) return( -1 );
+	return( 1 );
+}
+
+int map_well_obs( struct opt_data *op )
+{
+	struct calc_data *cd;
+	struct obs_data *od;
+	struct obs_data *preds;
+	struct well_data *wd;
+	struct param_data *pd;
+	struct regul_data *rd;
+	int i, j, k, bad_data = 0;
+	cd = op->cd;
+	pd = op->pd;
+	od = op->od;
+	rd = op->rd;
+	preds = op->preds;
+	wd = op->wd;
+	od->nCObs = od->nObs;
+	for( i = 0; i < wd->nW; i++ )
+	{
+		if( wd->nWellObs[i] <= 0 )
+			tprintf( "WARNING: Well %s has no observations!\n", wd->id[i] );
+		for( j = 0; j < wd->nWellObs[i]; j++ )
+			if( wd->obs_time[i][j] < DBL_EPSILON )
+				tprintf( "WARNING: Observation #%d time for well %s is too small (%g); potential error in the input file %s!\n", j + 1, wd->id[i], wd->obs_time[i][j], op->filename );
+		for( j = i + 1; j < wd->nW; j++ )
+			if( strcmp( wd->id[i], wd->id[j] ) == 0 )
+				tprintf( "WARNING: Well names #%i (%s) and #%i (%s) are identical!\n", i + 1, wd->id[i], j + 1, wd->id[j] );
+	}
+	if( od->nObs == 0 )
+	{
+		if( cd->problem_type != FORWARD && cd->problem_type != MONTECARLO )
+		{ tprintf( "\nERROR: Number of calibration targets is equal to zero!\n\n" ); bad_data = 1; }
+		else tprintf( "\nWARNING: Number of calibration targets is equal to zero!\n\n" );
+	}
+	if( bad_data ) return( 0 );
+	if( cd->debug > 2 )
+	{
+		double d = ( pd->var[FLOW_ANGLE] * M_PI ) / 180;
+		double alpha = cos( d );
+		double beta = sin( d );
+		tprintf( "\nCoordinate transformation of the observation points relative to the source:\n" );
+		for( i = 0; i < wd->nW; i++ )
+		{
+			double x0 = wd->x[i] - pd->var[SOURCE_X];
+			double y0 = wd->y[i] - pd->var[SOURCE_Y];
+			double x = x0 * alpha - y0 * beta;
+			double y = x0 * beta  + y0 * alpha;
+			tprintf( "Well %10s %.15g %.15g : %.15g %.15g\n", wd->id[i], wd->x[i], wd->y[i], x, y );
+		}
+	}
+	if( cd->debug ) tprintf( "\n" );
+	tprintf( "Number of calibration targets = %d", od->nObs );
+	if( preds->nTObs )
+	{
+		if( od->include_predictions ) tprintf( " (including predictions; observations with weight < 0)\n" );
+		else tprintf( " (excluding predictions; observations with weight < 0)\n" );
+	}
+	else tprintf( "\n" );
+	od->nTObs = od->nObs + rd->nRegul;
+	if( rd->nRegul > 0 ) tprintf( "Number of total calibration targets (including regularization terms) = %d", od->nTObs );
+	if( op->pd->nOptParam > op->od->nTObs ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations and regularizations (%d>%d)\n", op->pd->nOptParam, op->od->nTObs ); }
+	od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_id = char_matrix( od->nTObs, 50 );
+	od->pred_id = char_matrix( od->nTObs, 50 );
+	od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->res = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
+	od->obs_well_index = ( int * ) malloc( od->nTObs * sizeof( int ) );
+	od->obs_time_index = ( int * ) malloc( od->nTObs * sizeof( int ) );
+	for( k = i = 0; i < wd->nW; i++ )
+		for( j = 0; j < wd->nWellObs[i]; j++ )
+			if( ( wd->obs_weight[i][j] > DBL_EPSILON ) || ( od->include_predictions && wd->obs_weight[i][j] < -DBL_EPSILON ) )
+			{
+				od->obs_target[k] = wd->obs_target[i][j];
+				od->obs_weight[k] = wd->obs_weight[i][j];
+				od->obs_min[k] = wd->obs_min[i][j];
+				od->obs_max[k] = wd->obs_max[i][j];
+				od->obs_log[k] = wd->obs_log[i][j];
+				od->obs_well_index[k] = i;
+				od->obs_time_index[k] = j;
+				sprintf( od->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
+				if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
+				k++;
+			}
+	for( i = 0; i < rd->nRegul; i++ ) // add regularization targets
+	{
+		strcpy( od->obs_id[k], rd->regul_id[i] );
+		od->obs_target[k] = rd->regul_target[i];
+		od->obs_weight[k] = rd->regul_weight[i];
+		od->obs_min[k] = rd->regul_min[i];
+		od->obs_max[k] = rd->regul_max[i];
+		od->obs_log[k] = rd->regul_log[i];
+		od->obs_well_index[k] = -1;
+		od->obs_time_index[k] = -1;
+		if( cd->debug ) tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
+		k++;
+	}
+	if( cd->debug ) tprintf( "\n" );
+	if( bad_data ) return( -1 );
+	return( 1 );
 }

@@ -190,7 +190,7 @@ verify-multistart1:
 	@$(CMP) example/rosenbrock/p01squads.mads_output example/rosenbrock/p01squads.mads_output-multistart-squads-$(OS)-correct
 	@$(CMP) example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-$(OS)-correct
 	@echo ""
-	@echo "WARNING: Currently TEST 2.2 fails! Ignore this problem! This does not impacts MADS/Squads performance!"
+	@echo "WARNING: Currently TEST 2.2 fails on MAC OS X only! Ignore this problem! This does not impacts MADS/Squads performance!"
 	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2: DONE"
@@ -202,11 +202,18 @@ verify-contaminant:
 	@echo " Internal contaminant transport problems "
 	@echo "**************************************************************************************"
 	@echo "TEST 3: Internal contaminant transport problems using different dispersivities ..."
-	@echo "TEST 3.1: Problem example/contamination/s01 with independent dispersivities ..."
+	@echo "TEST 3.1.a: Problem example/contamination/s01 with independent dispersivities (MADS text input format) ..."
 	rm -f example/contamination/s01.mads_output example/contamination/s01.results
 	./mads example/contamination/s01 obs_int=2 lmeigen > /dev/null
 	@$(CMP) example/contamination/s01.mads_output example/contamination/s01.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01.results example/contamination/s01.results-$(OS)-correct
+	@echo ""
+	@echo "TEST 3.1.b: Problem example/contamination/s01 with independent dispersivities (YAML input format..."
+	rm -f example/contamination/s01_yaml.mads_output example/contamination/s01_yaml.results
+	./mads example/contamination/s01_yaml obs_int=2 lmeigen > /dev/null
+	@$(CMP) example/contamination/s01_yaml.mads_output example/contamination/s01_yaml.mads_output-$(OS)-correct
+	@$(CMP) example/contamination/s01_yaml.results example/contamination/s01_yaml.results-$(OS)-correct
+	@$(CMP) example/contamination/s01_yaml.results example/contamination/s01.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.2: Problem example/contamination/s01 with tied dispersivities ..."
 	rm -f example/contamination/s01-tied_dispersivities.results
@@ -385,7 +392,7 @@ verify-forward:
 	@echo ""
 
 clean-example:
-	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running
+	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running example/*/*-rerun.mads example/*/*-error.mads
 	rm -fR example/wells-short_w01parallel*
 
 astyle:

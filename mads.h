@@ -183,6 +183,7 @@ struct param_data // data structure for model parameters
 	int nFlgParam; // number of special (flagged) parameters
 	int nFixParam; // number of fixed parameters
 	int nExpParam; // number of parameters with computational expressions (i.e. tied parameters)
+	int nIgnParam; // number of ignored parameters
 	int *var_index; // parameter index array
 	char **var_id; // parameter identifier (name)
 	char **var_id_short; // short parameter identifier (name) for the case of internal models only
@@ -219,6 +220,7 @@ struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 	int nObs; // number of observations (internal problem: nObs = nCObs; external problem: nObs > nCObs (all observations) )
 	int nCObs; // total number of calibration targets observations with weight greater than zero
 	int nPred; // number of performance criterion prediction
+	int include_predictions;
 	// observations
 	char **obs_id; // observation identifier (name) 
 	double *obs_target; // observation value (target)

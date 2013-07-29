@@ -11,8 +11,8 @@ Contaminant flux [M/T]: 17.0457543900488 1 1 10 0.01 100
 Start Time [T]: 1.38444811170757e-13 1 0 1 0 43
 End Time [T]: 100 0 0 1 1 44
 Porosity [L3/L3]: 0.1 0 0 0.1 0 1
-Kd [-]: 1 0 1 1 1 10
-Lambda [1/T]: 0 0 1 1 0 1
+Retardation Factor [-]: 1 0 1 1 1 10
+Half-life decay [1/T]: 0 0 1 1 0 1
 Flow Angle [degrees]: 8.60188674888845 1 0 5 -30 30
 Pore x velocity [L/T]: 9.61754647448489 1 1 1.05355 0.01 200
 Pore y velocity [L/T]: 0 0 0 1 0 1

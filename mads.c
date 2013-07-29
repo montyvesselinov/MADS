@@ -831,6 +831,7 @@ int main( int argn, char *argv[] )
 			fprintf( out, "Model parameter values:\n" );
 			for( i = 0; i < pd.nParam; i++ )
 			{
+				if( pd.var_id[i][0] == 0 ) continue;
 				if( pd.var_opt[i] && pd.var_log[i] ) cd.var[i] = pow( 10, pd.var[i] );
 				else cd.var[i] = pd.var[i];
 				tprintf( "%s %g\n", pd.var_id[i], cd.var[i] );

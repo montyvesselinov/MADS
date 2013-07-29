@@ -4,5 +4,5 @@ Parameter #2 0.999991
 Parameter #3 0.999977
 Objective function: 2.38278e-09 Success: 1 (1)
 SUCCESS: Objective function is below the predefined cutoff value (2.38278e-09 < 0.001)!
-Number of function evaluations = 4036
+Number of function evaluations = 3019
 Seed = -2096575428
