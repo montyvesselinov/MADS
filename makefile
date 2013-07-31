@@ -20,12 +20,18 @@ CFLAGS = -Wall
 LDLIBS = -lgsl -lgslcblas -lm -llapack -lblas
 ifeq ($(OS),Linux)
 # Linux
-# LDLIBS += -lgfortran 
+LDLIBS += -lgfortran 
 $(info LINUX)
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
+endif
+ifeq ($(ND),well.lanl.gov)
+$(info Machine -- WELL)
+CFLAGS += -I/home/monty/local/include
+LDLIBS += -L/home/monty/local/lib
+YAML = true
 endif
 else
 ifeq ($(OS),Cygwin)

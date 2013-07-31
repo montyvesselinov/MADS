@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a02.mads
 Problem root name: a02
+
 Problem type: forward run (no calibration)
 
 Optimization method: opt=lm --- Levenberg-Marquardt optimization
@@ -29,8 +30,6 @@ ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
 Number of optimized parameters = 11
 Number of flagged parameters = 0
 Number of fixed parameters = 8
-
-Parameter ID's:
 Number of parameters with computational expressions (coupled or tied parameters) = 0
 Number of regularization terms = 0
 Number of calibration targets = 4
@@ -38,7 +37,7 @@ WARNING: Number of optimized model parameters is greater than number of observat
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130725-120711
+Execution date & time stamp: 20130729-123955
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -70,6 +69,6 @@ Objective function: 1.18936e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Thu Jul 25 12:07:11 2013
-Execution completed on Thu Jul 25 12:07:11 2013
-Execution date & time stamp: 20130725-120711
+Execution  started  on Mon Jul 29 12:39:55 2013
+Execution completed on Mon Jul 29 12:39:55 2013
+Execution date & time stamp: 20130729-123955

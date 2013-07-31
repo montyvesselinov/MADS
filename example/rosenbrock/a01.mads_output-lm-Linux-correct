@@ -5,7 +5,9 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a01.mads
 Problem root name: a01
+
 Test Function 3 Dimensionality 3 
+
 Problem type: calibration
 
 Calibration technique: sequential calibration using a set of random initial values (realizations = 1)
@@ -28,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20130725-120527
+Execution date & time stamp: 20130729-123725
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
 No flagged parameters; all optimizable parameters are randomized
@@ -126,11 +128,10 @@ Optimized model parameters:
 Parameter #1 1
 Parameter #2 0.999999
 Objective function: 2.57807e-12 Success: 1 (0)
-Simulation time = 1 seconds
+Simulation time = 0 seconds
 Functional evaluations = 44
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 44
-Execution  started  on Thu Jul 25 12:05:27 2013
-Execution completed on Thu Jul 25 12:05:28 2013
-Execution date & time stamp: 20130725-120527
+Execution  started  on Mon Jul 29 12:37:25 2013
+Execution completed on Mon Jul 29 12:37:25 2013
+Execution date & time stamp: 20130729-123725

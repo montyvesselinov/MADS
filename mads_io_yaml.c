@@ -47,7 +47,6 @@ struct opt_data *gop;
 // YAML includes
 #include <yaml.h>
 #include <glib.h>
-#include <glib-unix.h>
 
 #define C2P(c)          ((gpointer) ((long) (c)))
 #define P2C(p)          ((gchar) ((long) (p)))
@@ -116,6 +115,8 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	}
 	if( !set_optimized_params( op ) ) return( -1 );
 	if( !map_well_obs( op ) ) return( -1 );
+	tprintf( "Number of regularization terms = %d\n", gop->rd->nRegul );
+	tprintf( "Number of predictions = %d\n", gop->preds->nTObs );
 	return( 1 );
 }
 
@@ -288,7 +289,7 @@ void set_param_arrays( int num_param )
 	pd->var_range = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->param_expressions_index = ( int * ) malloc( num_param * sizeof( int ) );
 	pd->param_expressions = ( void ** ) malloc( num_param * sizeof( void * ) );
-	pd->nOptParam = pd->nFlgParam = 0;
+	pd->nOptParam = pd->nFlgParam = pd->nExpParam = 0;
 }
 
 int load_ymal_sources( GNode *node, gpointer data )
@@ -330,9 +331,12 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 {
 	struct calc_data *cd;
 	struct param_data *pd;
+	struct regul_data *rd;
 	GNode *node_key, *node_value, *node_par;
 	cd = gop->cd;
 	pd = gop->pd;
+	rd = gop->rd;
+	rd->nRegul = 0;
 	int i, index, k, num_param, internal, found, bad_data = 0;
 	if( num_keys <= 0 ) internal = 0;
 	else internal = 1;
@@ -477,7 +481,7 @@ int load_ymal_wells( GNode *node, gpointer data )
 	wd->obs_weight = ( double ** ) malloc( wd->nW * sizeof( double * ) );
 	wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) );
 	wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	// od->nObs = preds->nTObs = 0;
+	od->nObs = preds->nTObs = 0;
 	for( i = 0; i < wd->nW; i++ ) // Number of wells loop
 	{
 		node_well = g_node_nth_child( node, i );

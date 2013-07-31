@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: example/contamination/s01-ppsd.mads
 Problem root name: example/contamination/s01-ppsd
+
 Problem type: calibration
 
 Calibration technique: sequential calibration using partial parameter parameter discretization
@@ -32,15 +33,13 @@ ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
 Number of optimized parameters = 9
 Number of flagged parameters = 2
 Number of fixed parameters = 8
-
-Parameter ID's:
 Number of parameters with computational expressions (coupled or tied parameters) = 0
 Number of regularization terms = 0
 Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130725-120540
+Execution date & time stamp: 20130729-123756
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -94,11 +93,11 @@ Total number of evaluations = 129
 Total number of jacobians = 9
 None of the 9 sequential calibration runs produced predictions within calibration ranges!
 Results are saved in example/contamination/s01-ppsd.ppsd.results
-Simulation time = 8 seconds
+Simulation time = 11 seconds
 Functional evaluations = 129
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
-Functional evaluations per second = 16
-Execution  started  on Thu Jul 25 12:05:40 2013
-Execution completed on Thu Jul 25 12:05:48 2013
-Execution date & time stamp: 20130725-120540
+Functional evaluations per second = 11
+Execution  started  on Mon Jul 29 12:37:56 2013
+Execution completed on Mon Jul 29 12:38:07 2013
+Execution date & time stamp: 20130729-123756

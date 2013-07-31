@@ -830,7 +830,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( cd->debug ) tprintf( "\n" );
 	set_optimized_params( op );
 	// ------------------------------------------------------------ Set parameters with computational expressions (coupled or tied parameters) ----------------------------------------------------------------
-	tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", pd->nExpParam );
 	short_names_printed = 0;
 #ifndef MATHEVAL
 	tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
@@ -1848,6 +1847,7 @@ int set_optimized_params( struct opt_data *op )
 					tprintf( "%-26s :%-6s: %g\n", pd->var_id[i], pd->var_id_short[i],  pd->var[i] );
 		}
 	}
+	tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", pd->nExpParam );
 	if( bad_data ) return( -1 );
 	return( 1 );
 }
