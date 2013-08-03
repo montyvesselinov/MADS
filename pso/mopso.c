@@ -329,8 +329,8 @@ int *irand_seed;
 
 int mopso( struct opt_data *op )
 {
-	FILE *fRun; // To save the run
-	FILE *fArchive; // To save the Pareto front
+	FILE *fRun = NULL; // To save the run
+	FILE *fArchive = NULL; // To save the Pareto front
 	struct position bestBest;
 	struct problem pb;
 	struct swarm S;
@@ -426,6 +426,7 @@ int mopso( struct opt_data *op )
 			fitness_print( S.best.f );
 			if( debug_level ) position_print( S.best );
 			if( op->cd->pdebug ) position_save( fRun, S.best, r ); // Save the result
+			errorMean[0] = 0;
 			for( n = 0; n < pb.fNb; n++ )
 			{
 				errorMean[n] += S.best.f.f[n];

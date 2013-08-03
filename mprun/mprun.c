@@ -53,7 +53,7 @@ int mprun( int nJob, void *data )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	struct sigaction act;
-	int i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
+	int i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
 	char *exec_name, **kidhost, **kiddir, **rerundir, dir[255], buf[255], *atime;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
@@ -320,7 +320,7 @@ int mprun( int nJob, void *data )
 static void handler( int sig )
 {
 	pid_t pid;
-	int status, i, child, child1;
+	int status, i, child, child1 = 0;
 	while( ( pid = waitpid( ( pid_t ) - 1, &status, WNOHANG ) ) > 0 )
 	{
 		for( i = 0; i < nHosts; )

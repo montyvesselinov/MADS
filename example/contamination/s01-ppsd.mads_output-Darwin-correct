@@ -30,8 +30,6 @@ Transverse dispersivities are neither tied or scaled!
 
 Number of model parameters: 19
 ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
-
-Parameter ID's:
 Number of optimized parameters = 9
 Number of flagged parameters = 2
 Number of fixed parameters = 8
@@ -41,7 +39,7 @@ Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130728-171002
+Execution date & time stamp: 20130803-100546
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -100,6 +98,6 @@ Functional evaluations = 129
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
 Functional evaluations per second = 32
-Execution  started  on Sun Jul 28 17:10:02 2013
-Execution completed on Sun Jul 28 17:10:06 2013
-Execution date & time stamp: 20130728-171002
+Execution  started  on Sat Aug  3 10:05:46 2013
+Execution completed on Sat Aug  3 10:05:50 2013
+Execution date & time stamp: 20130803-100546

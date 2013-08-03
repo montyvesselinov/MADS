@@ -30,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20130728-170956
+Execution date & time stamp: 20130803-100540
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
 No flagged parameters; all optimizable parameters are randomized
@@ -132,6 +132,6 @@ Simulation time = 0 seconds
 Functional evaluations = 44
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sun Jul 28 17:09:56 2013
-Execution completed on Sun Jul 28 17:09:56 2013
-Execution date & time stamp: 20130728-170956
+Execution  started  on Sat Aug  3 10:05:40 2013
+Execution completed on Sat Aug  3 10:05:40 2013
+Execution date & time stamp: 20130803-100540

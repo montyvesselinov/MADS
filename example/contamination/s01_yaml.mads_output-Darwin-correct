@@ -41,10 +41,13 @@ WARNING: The number of provided parameters (10) is different than the number of 
 Number of optimized parameters = 11
 Number of flagged parameters = 0
 Number of fixed parameters = 8
+Number of parameters with computational expressions (coupled or tied parameters) = 0
 Number of calibration targets = 20
+Number of regularization terms = 0
+Number of predictions = 0
 
 
-Execution date & time stamp: 20130729-085307
+Execution date & time stamp: 20130803-100541
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -451,6 +454,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Mon Jul 29 08:53:07 2013
-Execution completed on Mon Jul 29 08:53:07 2013
-Execution date & time stamp: 20130729-085307
+Execution  started  on Sat Aug  3 10:05:41 2013
+Execution completed on Sat Aug  3 10:05:41 2013
+Execution date & time stamp: 20130803-100541

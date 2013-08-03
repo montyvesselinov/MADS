@@ -394,12 +394,12 @@ Function1( float x, float y )
 double test_problems( int D, int function, double *x, int nObs, double *o )
 {
 	int d, i, j, k;
-	double f, p, xd, x1, x2;
+	double f = 0, p, xd, x1, x2;
 	double sum1, sum2;
 	double t0, tt, t1, E, pi;
 	static int a1[2][25] = { { -32, -16,   0,  16,  32, -32, -16,   0,  16,  32, -32, -16,   0, 16, 32, -32, -16,   0, 16, 32, -32, -16,   0, 16, 32 },
 		{ -32, -32, -32, -32, -32, -16, -16, -16, -16, -16,  16,  16,  16, 16, 16,  32,  32,  32, 32, 32,   0,   0,   0,  0,  0 }
-	}; // For Shekel’s Foxholes problem 2D (standard and alternative)
+	}; // For Shekel's Foxholes problem 2D (standard and alternative)
 	static double a2[30][10] =
 	{
 		{9.681, 0.667, 4.783, 9.095, 3.517, 9.325, 6.544, 0.211, 5.122, 2.020},
@@ -432,11 +432,11 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 		{4.263, 1.074, 7.286, 5.599, 8.291, 5.200, 9.214, 8.272, 4.398, 4.506},
 		{9.496, 4.830, 3.150, 8.270, 5.079, 1.231, 5.731, 9.494, 1.883, 9.732},
 		{4.138, 2.562, 2.532, 9.661, 5.611, 5.500, 6.886, 2.341, 9.699, 6.500}
-	}; // For Shekel’s Foxholes 5D and 10D problem
+	}; // For Shekel's Foxholes 5D and 10D problem
 	static double c[30] = {0.806, 0.517, 0.1, 0.908, 0.965, 0.669, 0.524, 0.902,
 						   0.531, 0.876, 0.462, 0.491, 0.463, 0.714, 0.352, 0.869, 0.813, 0.811, 0.828,
 						   0.964, 0.789, 0.360, 0.369, 0.992, 0.332, 0.817, 0.632, 0.883, 0.608, 0.326
-						  }; // For Shekel’s Foxholes 5D and 10D problem
+						  }; // For Shekel's Foxholes 5D and 10D problem
 	int const M = 60; // For polynomial fitting problem
 	double py, y, dx;
 	E = exp( 1 );
@@ -444,7 +444,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 	switch( function )
 	{
 		case 1: // Parabola (Sphere)
-			f = 0;
 			p = 0; // Shift
 			if( nObs == D )
 				for( d = 0; d < D; d++ )
@@ -463,7 +462,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 2: // Griewank
-			f = 0;
 			p = 1;
 			if( nObs == D )
 			{
@@ -489,7 +487,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 3: // Rosenbrock
-			f = 0;
 			t0 = x[0];
 			if( nObs == D )
 			{
@@ -519,7 +516,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 4: // De Jong's f4
-			f = 0;
 			p = 0; // Shift
 			for( d = 0; d < D; d++ )
 			{
@@ -528,12 +524,10 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 5: // Step
-			f = 0;
 			for( d = 0; d < D; d++ )
 				f += o[d] = x[d];
 			break;
 		case 6: // Clerc's f1, Alpine function, min 0
-			f = 0;
 			for( d = 0; d < D; d++ )
 			{
 				xd = x[d];
@@ -542,7 +536,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			break;
 		case 7: // Rastrigin Minimum value 0. Solution (0,0 ...0)
 			k = 10;
-			f = 0;
 			for( d = 0; d < D; d++ )
 			{
 				xd = x[d];
@@ -550,7 +543,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 8: // Krishna Kumar
-			f = 0;
 			for( i = 0, d = 0; d < D - 1; d++ )
 			{
 				o[i++] = x1 = sin( x[d] + x[d + 1] );
@@ -584,7 +576,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 10: // Shekel's Foxholes 2D
-			f = 0;
 			for( j = 0; j < 30; j++ )
 			{
 				sum1 = 0;
@@ -594,7 +585,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 11: // Shekel's Foxholes 5D
-			f = 0;
 			for( j = 0; j < 30; j++ )
 			{
 				sum1 = 0;
@@ -604,7 +594,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 12: // Shekel's Foxholes 10D
-			f = 0;
 			for( j = 0; j < 30; j++ )
 			{
 				sum1 = 0;
@@ -614,7 +603,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 20: // Shekel's Foxholes 2D (alternative)
-			f = 0;
 			for( j = 0; j < 25; j++ )
 			{
 				sum1 = 0;
@@ -625,7 +613,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			f = ( double ) 1.0 / ( 0.002 + f );
 			break;
 		case 21: // Polynomial fitting problem on [-100 100]
-			f = 0;
 			y = -1;
 			dx = ( double ) 2.0 / M;
 			for( i = 0; i <= M; i++ ) // M = 60
@@ -658,13 +645,11 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			f = -cos( x1 ) * cos( x2 ) / exp( ( x1 - pi ) * ( x1 - pi ) + ( x2 - pi ) * ( x2 - pi ) );
 			break;
 		case 31: // Transtrum rosenbrock
-			f = 0;
 			o[0] = x[0] * x[0];
 			o[1] = ( double ) 100000000.0 * ( x[1] - x[0] * x[0] * x[0] * x[0] * x[0] ) * ( x[1] - x[0] * x[0] * x[0] * x[0] * x[0] );
 			f = o[0] + o[1];
 			break;
 		case 32: // Griewank
-			f = 0;
 			p = 0;
 			t0 = log( ( double ) 3 );
 			for( d = 0; d < D; d++ )
@@ -674,7 +659,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			}
 			break;
 		case 33: // Rosenbrock (with more observations)
-			f = 0;
 			t0 = x[0];
 			for( i = 1, d = 1; d < D; d++ )
 			{
@@ -696,20 +680,17 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			f = o[0] + o[1] + o[2] + o[3];
 			break;
 		case 35: // Booth
-			f = 0;
 			o[0] = ( double )( x[0] + 2 * x[1] - 7.0 ) * ( x[0] + 2 * x[1] - 7.0 );
 			o[1] = ( double )( 2 * x[0] + x[1] - 5.0 ) * ( 2 * x[0] + x[1] - 5.0 );
 			f = o[0] + o[1];
 			break;
 		case 36: // Beale
-			f = 0;
 			o[0] = ( double )( 1.5 - x[0] + x[0] * x[1] ) * ( 1.5 - x[0] + x[0] * x[1] );
 			o[1] = ( double )( 2.5 - x[0] + x[0] * x[1] * x[1] ) * ( 2.5 - x[0] + x[0] * x[1] * x[1] );
 			o[2] = ( double )( 2.625 - x[0] + x[0] * x[1] * x[1] * x[1] ) * ( 2.625 - x[0] + x[0] * x[1] * x[1] * x[1] );
 			f = o[0] + o[1] + o[2];
 			break;
 		case 37: // Parsopoulos
-			f = 0;
 			o[0] = cos( x[0] ) * cos( x[0] );
 			o[1] = sin( x[1] ) * sin( x[1] );
 			f = o[0] + o[1];
@@ -718,10 +699,8 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			dx = ( double ) M_PI * 2 / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )
 				o[d] = x[0] * cos( x[1] * d * dx ) + x[1] * sin( x[0] * d * dx );
-			f = 0;
 			break;
 		case 41: // Sin/Cos
-			f = 0;
 			dx = ( double ) M_PI * 2 / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )
 				o[d] = x[0] * cos( x[1] * d * dx ) + x[2] * sin( x[3] * d * dx );
@@ -730,7 +709,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			dx = ( double ) M_PI * 2  / ( nObs - 1 );
 			for( d = 0; d < nObs; d++ )
 				o[d] = x[0] * cos( d * dx ) + x[1] * sin( d * dx );
-			f = 0;
 			break;
 		case 43: // Exponential Data Fitting I
 			for( d = 0; d < nObs; d++ )
@@ -738,7 +716,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				dx = ( double ) d / 10;
 				o[d] = x[0] + x[1] * exp( -dx * x[3] ) + x[2] * exp( -dx * x[4] );
 			}
-			f = 0;
 			break;
 		case 44: // Exponential Data Fitting II
 			for( d = 0; d < nObs; d++ )
@@ -749,7 +726,6 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 					   + x[2] * exp( -( dx - x[9] ) * ( dx - x[9] ) * x[6] )
 					   + x[3] * exp( -( dx - x[10] ) * ( dx - x[10] ) * x[7] );
 			}
-			f = 0;
 			break;
 	}
 	if( function < 40 )
@@ -760,5 +736,5 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			else o[d] = sqrt( o[d] );
 		}
 	}
-	return f;
+	return( f );
 }

@@ -185,6 +185,7 @@ int main( int argn, char *argv[] )
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
 	FILE *in, *out, *out2;
+	out2 = NULL;
 	time_t time_start, time_end, time_elapsed;
 	pid_t pid;
 	struct tm *ptr_ts;
@@ -948,7 +949,7 @@ int main( int argn, char *argv[] )
 					else wd.obs_target[i][j] = c; // Save computed values as calibration targets
 					if( cd.problem_type == FORWARD ) fprintf( out2, "%s(%g) %g\n", wd.id[i], wd.obs_time[i][j], c ); // Forward run
 				}
-		if( cd.problem_type == FORWARD && od.nTObs > 0 ) fclose( out2 );
+		if( cd.problem_type == FORWARD && cd.resultscase >= 0 && ( od.nTObs > 0 || wd.nW > 0 ) ) fclose( out2 );
 		cd.neval++;
 		if( compare )
 		{
@@ -1017,7 +1018,8 @@ int main( int argn, char *argv[] )
 	tprintf( "Execution date & time stamp: %s\n", op.datetime_stamp );
 	sprintf( buf, "rm -f %s.running", op.root ); system( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
-	free( op.cd->solution_id ); free( op.cd->solution_type );
+	if( !op.yaml ) free( op.cd->solution_id ); // op.cd->solution_id needed only for text MADS files; not used in YAML files
+	free( op.cd->solution_type );
 	fclose( mads_output );
 	exit( 0 ); // DONE
 }
@@ -1062,7 +1064,7 @@ int optimize_lm( struct opt_data *op )
 	double phi, phi_min;
 	double *opt_params, *opt_params_best, *res, *x_c;
 	int   nsig, maxfn, maxiter, maxiter_levmar, iopt, infer, ier, debug, standalone;
-	int   i, j, k, debug_level, count, count_set, npar;
+	int   i, j, k, debug_level = 0, count, count_set, nParam;
 	double opt_parm[4], *jacobian, *jacTjac, *covar, *work, eps, delta, *var_lhs;
 	double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
 	char buf[80];
@@ -1073,6 +1075,7 @@ int optimize_lm( struct opt_data *op )
 	}
 	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->lmstandalone;
+	nParam = op->pd->nOptParam;
 	if( debug == 0 && standalone && op->cd->calib_type != PPSD ) op->cd->lmstandalone = 2;
 	if( op->cd->squads ) standalone = op->cd->lmstandalone = 0;
 	if( op->od->nTObs == 0 ) { tprintf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
@@ -1103,19 +1106,18 @@ int optimize_lm( struct opt_data *op )
 	if( !op->cd->squads ) Transform( opt_params, op, opt_params ); // No need to transform if part of SQUADS runs
 	//	for( i = 0; i < op->pd->nOptParam; i++ )
 	//		tprintf( "lmi %g\n", opt_params[i] );
+	var_lhs = NULL;
 	if( op->cd->paranoid )
 	{
 		tprintf( "Multi-Start Levenberg-Marquardt (MSLM) Optimization ... " );
-		npar = op->pd->nOptParam;
-		if( op->cd->nretries <= 0 ) op->cd->nretries = ( int )( ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * npar / 10 ) );
-		if( debug ) tprintf( "\nRandom sampling for MSLM optimization (variables %d; realizations %d) using ", npar, op->cd->nretries );
-		if( ( var_lhs = ( double * ) malloc( npar * op->cd->nretries * sizeof( double ) ) ) == NULL )
-		{ tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( op->cd->nretries <= 0 ) op->cd->nretries = ( int )( ( double )( op->cd->maxeval - op->cd->neval ) / ( maxiter * nParam / 10 ) );
+		if( debug ) tprintf( "\nRandom sampling for MSLM optimization (variables %d; realizations %d) using ", nParam, op->cd->nretries );
+		if( ( var_lhs = ( double * ) malloc( nParam * op->cd->nretries * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		if( op->cd->seed < 0 ) { op->cd->seed *= -1; if( debug ) tprintf( "Imported seed: %d\n", op->cd->seed ); }
 		else if( op->cd->seed == 0 ) { if( debug ) tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
 		else if( debug ) tprintf( "Current seed: %d\n", op->cd->seed );
 		if( op->cd->paran_method[0] != 0 ) { strcpy( buf, op->cd->smp_method ); strcpy( op->cd->smp_method, op->cd->paran_method ); }
-		sampling( npar, op->cd->nretries, &op->cd->seed, var_lhs, op, debug );
+		sampling( nParam, op->cd->nretries, &op->cd->seed, var_lhs, op, debug );
 		if( op->cd->paran_method[0] != 0 ) strcpy( op->cd->smp_method, buf );
 		if( debug ) tprintf( "done.\n" );
 		op->cd->retry_ind = count = count_set = 0;
@@ -1168,7 +1170,7 @@ int optimize_lm( struct opt_data *op )
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					k = op->pd->var_index[i];
-					opt_params[i] = var_lhs[i + count_set * npar] * op->pd->var_range[k] + op->pd->var_min[k];
+					opt_params[i] = var_lhs[i + count_set * nParam] * op->pd->var_range[k] + op->pd->var_min[k];
 					if( debug > 1 )
 					{
 						if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
@@ -1247,6 +1249,7 @@ int optimize_lm( struct opt_data *op )
 			opts[3] = op->cd->phi_cutoff;
 			if( op->cd->sintrans == 0 ) opts[4] = op->cd->lindx; // Forward difference; Central difference if negative; DO NOT USE CENTRAL DIFFERENCE
 			else opts[4] = op->cd->sindx;
+			ier = 0;
 			while( op->cd->maxeval > op->cd->neval )
 			{
 				// Levmar has no termination criteria based on the number of functional evaluations or number of jacobian evaluations
@@ -1362,11 +1365,13 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	double *opt_params, *x_u, *x_d, *stddev, *jacobian;
 	double aopt, copt, eopt, dopt, aic, bic, cic, kic, ln_det_v, ln_det_weight, sml, tt;
 	int   debug, compute_center, compute_jacobian, compute_covar;
-	int   i, j, k, ier, debug_level, status, dof;
+	int   i, j, k, error_stddev, debug_level = 0, status, dof;
 	double eps;
 	char filename[200], buf[20];
 	static double student_dist[34] = {12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042, 2.021, 2.000, 1.980, 1.960 };
 	tprintf( "Eigen analysis ...\n" );
+	copt = dopt = eopt = 0;
+	jacobian = NULL;
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
 	gsl_matrix *eigenvec = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *eigenval = gsl_vector_alloc( op->pd->nOptParam );
@@ -1481,9 +1486,9 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	if( compute_covar ) // Standalone eigen analysis
 	{
 		// gsl_matrix_set_zero( gsl_covar );
-		ier = gsl_multifit_covar( gsl_jacobian, 0.0, gsl_covar );
-		if( ier != GSL_SUCCESS ) { tprintf( "Problem computing covariance matrix!\n" ); ier = 1; }
-		else ier = 0;
+		error_stddev = gsl_multifit_covar( gsl_jacobian, 0.0, gsl_covar );
+		if( error_stddev != GSL_SUCCESS ) { tprintf( "Problem computing covariance matrix!\n" ); error_stddev = 1; }
+		else error_stddev = 0;
 	}
 	if( debug )
 	{
@@ -1515,13 +1520,13 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	aopt = 0;
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		aopt += gsl_matrix_get( gsl_covar, i, i );
-	ier = 0;
+	error_stddev = 0;
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		stddev[i] = sqrt( gsl_matrix_get( gsl_covar, i, i ) ); // compute standard deviations before the covariance matrix is destroyed by eigen functions
-		if( stddev[i] < DBL_EPSILON ) ier = 1;
+		if( stddev[i] < DBL_EPSILON ) error_stddev = 1;
 	}
-	if( ier == 0 )
+	if( error_stddev == 0 )
 	{
 		if( debug )
 		{
@@ -1623,7 +1628,8 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		aic = sml + ( double ) 2 * op->pd->nOptParam;
 		bic = sml + ( double ) op->pd->nOptParam * log( op->od->nCObs );
 		cic = sml + ( double ) 2 * op->pd->nOptParam * log( log( op->od->nCObs ) );
-		kic = sml + ( double ) op->pd->nOptParam * log( op->od->nCObs * 0.159154943 ) - log( dopt );
+		if( error_stddev == 0 )
+			kic = sml + ( double ) op->pd->nOptParam * log( op->od->nCObs * 0.159154943 ) - log( dopt );
 	}
 	if( op->cd->problem_type == EIGEN || debug )
 	{
@@ -1632,12 +1638,15 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		tprintf( "Number of degrees of freedom   : %d\n", dof );
 		tprintf( "Objective function             : %g\n", phi );
 		if( dof > 0 ) tprintf( "Posterior measurement variance : %g\n", gf );
-		tprintf( "\nOptimality metrics based on covariance matrix of observation errors:\n" );
-		tprintf( "A-optimality (matrix trace)               : %g\n", aopt );
-		tprintf( "C-optimality (matrix conditioning number) : %g\n", copt );
-		tprintf( "E-optimality (matrix maximum eigenvalue)  : %g\n", eopt );
-		tprintf( "D-optimality (matrix determinant)         : %g\n", dopt );
-		tprintf( "\nDeterminant of covariance matrix of observation errors : %-15g ( ln(det S) = %g )\n", dopt, log( dopt ) );
+		if( error_stddev == 0 )
+		{
+			tprintf( "\nOptimality metrics based on covariance matrix of observation errors:\n" );
+			tprintf( "A-optimality (matrix trace)               : %g\n", aopt );
+			tprintf( "C-optimality (matrix conditioning number) : %g\n", copt );
+			tprintf( "E-optimality (matrix maximum eigenvalue)  : %g\n", eopt );
+			tprintf( "D-optimality (matrix determinant)         : %g\n", dopt );
+			tprintf( "\nDeterminant of covariance matrix of observation errors : %-15g ( ln(det S) = %g )\n", dopt, log( dopt ) );
+		}
 		if( dof > 0 )
 		{
 			tprintf( "Determinant of observation weight matrix               : %-15g ( ln(det W) = %g )\n", exp( ln_det_weight ) , ln_det_weight );
@@ -1647,7 +1656,8 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			tprintf( "AIC (Akaike information criterion)  : %g\n", aic );
 			tprintf( "BIC                                 : %g\n", bic );
 			tprintf( "CIC                                 : %g\n", cic );
-			tprintf( "KIC (Kashyap Information Criterion) : %g\n", kic );
+			if( error_stddev == 0 )
+				tprintf( "KIC (Kashyap Information Criterion) : %g\n", kic );
 		}
 	}
 	if( dof <= 0 ) tt = 1;
@@ -1756,7 +1766,7 @@ int check( struct opt_data *op )
 // Initial guesses -- random
 int igrnd( struct opt_data *op )
 {
-	int i, k, m, q1, q2, npar, status, phi_global, success_global, count, debug_level, solution_found, no_memory = 0, neval_total, njac_total;
+	int i, k, m, q1, q2, npar, status, phi_global, success_global, count, debug_level = 0, solution_found, no_memory = 0, neval_total, njac_total;
 	int *eval_success, *eval_total;
 	double c, phi_min, *orig_params, *opt_params,
 		   *opt_params_min, *opt_params_max, *opt_params_avg,
@@ -1765,6 +1775,7 @@ int igrnd( struct opt_data *op )
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	FILE *out, *out2;
+	opt_params_min = opt_params_max = opt_params_avg = sel_params_min = sel_params_max = sel_params_avg = NULL;
 	char ESC = 27; // Escape
 	strcpy( op->label, "igrnd" );
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
@@ -1956,7 +1967,7 @@ int igrnd( struct opt_data *op )
 				if( c < opt_params_min[i] ) opt_params_min[i] = c;
 				if( c > opt_params_max[i] ) opt_params_max[i] = c;
 				opt_params_avg[i] += c;
-				if( ( op->cd->check_success && op->success ) || op->phi < op->cd->phi_cutoff )
+				if( ( ( op->cd->phi_cutoff > DBL_EPSILON || op->cd->check_success ) && op->success ) || op->phi < op->cd->phi_cutoff )
 				{
 					if( c < sel_params_min[i] ) sel_params_min[i] = c;
 					if( c > sel_params_max[i] ) sel_params_max[i] = c;
@@ -2081,7 +2092,7 @@ int igrnd( struct opt_data *op )
 // Initial guesses -- distributed to the parameter space
 int igpd( struct opt_data *op )
 {
-	int i, j, k, status, phi_global, success_global, count, debug_level, no_memory = 0, neval_total, njac_total;
+	int i, j, k, status, phi_global, success_global, count, debug_level = 0, no_memory = 0, neval_total, njac_total;
 	double phi_min, *orig_params, *opt_params;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
@@ -2245,12 +2256,13 @@ int igpd( struct opt_data *op )
 // Partial parameter space discretizations
 int ppsd( struct opt_data *op )
 {
-	int i, j, k, status, phi_global, success_global, count, debug_level, no_memory = 0, neval_total, njac_total;
+	int i, j, k, status, phi_global, success_global, count, debug_level = 0, no_memory = 0, neval_total, njac_total;
 	double phi_min, *orig_params;
 	int *orig_opt;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	FILE *out;
+	orig_opt = NULL;
 	strcpy( op->label, "ppsd" );
 	op->cd->lmstandalone = 1;
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
@@ -2432,7 +2444,7 @@ int ppsd( struct opt_data *op )
 
 int montecarlo( struct opt_data *op )
 {
-	int i, j, k, npar, phi_global, success_global, success_all, count, debug_level, bad_data = 0;
+	int i, j, k, npar, phi_global, success_global, success_all, count, debug_level = 0, bad_data = 0;
 	double phi_min, *opt_params, *var_lhs, v;
 	char filename[255], buf[255];
 	FILE *out;

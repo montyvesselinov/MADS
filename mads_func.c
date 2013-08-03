@@ -532,9 +532,10 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 {
 	int i, j, k, p1, p2, l, s, success, success_all = 1;
-	double c, t, w, min, max, c1, c2, err, phi = 0.0, dx, dy, dz, x1, y1, z1, dist;
+	double c, t, w, min, max, c1, c2, err, phi, dx, dy, dz, x1, y1, z1, dist;
 	struct opt_data *p = ( struct opt_data * )data;
 	char filename[255];
+	dx = dy = dz = phi = 0.0;
 	p->cd->neval++;
 	if( p->cd->odebug && p->f_ofe == NULL )
 	{
@@ -952,6 +953,7 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 	double c, dx, dy, dz, x1, y1, z1, dist;
 	struct calc_data *cd = ( struct calc_data * )data;
 	struct anal_data ad;
+	dx = dy = dz = 0.0;
 	c = cd->c_background;
 	num_params = cd->num_source_params + cd->num_aquifer_params;
 	if( ( ad.var = ( double * ) malloc( ( num_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }

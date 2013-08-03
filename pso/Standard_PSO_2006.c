@@ -475,7 +475,7 @@ double perf( int s, int function )
 	// Evaluate the fitness value for the particle of rank s
 	int d;
 	int i, j, k;
-	double f, p, xd, x1, x2;
+	double f = 0, p, xd, x1, x2;
 	double sum1, sum2;
 	double t0, tt, t1;
 	struct position xs;
@@ -497,7 +497,6 @@ double perf( int s, int function )
 	switch( function )
 	{
 		case 0: // Parabola (Sphere)
-			f = 0;
 			p = 0; // Shift
 			for( d = 0; d < D; d++ )
 			{
@@ -506,7 +505,6 @@ double perf( int s, int function )
 			}
 			break;
 		case 1: // De Jong's f4
-			f = 0;
 			p = 0; // Shift
 			for( d = 0; d < D; d++ )
 			{
@@ -515,7 +513,6 @@ double perf( int s, int function )
 			}
 			break;
 		case 2: // Griewank
-			f = 0;
 			p = 1;
 			for( d = 0; d < D; d++ )
 			{
@@ -526,7 +523,6 @@ double perf( int s, int function )
 			f = f / 4000 - p + 1;
 			break;
 		case 3: // Rosenbrock
-			f = 0;
 			t0 = xs.x[0];
 			for( d = 1; d < D; d++ )
 			{
@@ -539,11 +535,9 @@ double perf( int s, int function )
 			}
 			break;
 		case 4: // Step
-			f = 0;
 			for( d = 0; d < D; d++ ) f = f + ( int )xs.x[d];
 			break;
 		case 6: //Foxholes 2D
-			f = 0;
 			for( j = 0; j < 25; j++ )
 			{
 				sum1 = 0;
@@ -557,7 +551,6 @@ double perf( int s, int function )
 			break;
 		case 7: // Polynomial fitting problem
 			// on [-100 100]^9
-			f = 0;
 			dx = 2 / dx;
 			for( i = 0; i <= M; i++ )
 			{
@@ -579,7 +572,6 @@ double perf( int s, int function )
 			if( py < 0 ) f += py * py;
 			break;
 		case 8: // Clerc's f1, Alpine function, min 0
-			f = 0;
 			for( d = 0; d < D; d++ )
 			{
 				xd = xs.x[d];
@@ -588,7 +580,6 @@ double perf( int s, int function )
 			break;
 		case 9: // Rastrigin. Minimum value 0. Solution (0,0 ...0)
 			k = 10;
-			f = 0;
 			for( d = 0; d < D; d++ )
 			{
 				xd = xs.x[d];
@@ -623,7 +614,6 @@ double perf( int s, int function )
 			}
 			break;
 		case 17: // KrishnaKumar
-			f = 0;
 			for( d = 0; d < D - 1; d++ )
 				f += sin( xs.x[d] + xs.x[d + 1] ) + sin( 2 * xs.x[d] * xs.x[d + 1] / 3 );
 			break;

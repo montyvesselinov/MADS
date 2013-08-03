@@ -1516,7 +1516,7 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	tprintf( "\n" );
 	max_time = ( double * ) malloc( op->wd->nW * sizeof( double ) );
 	max_conc = ( double * ) malloc( op->wd->nW * sizeof( double ) );
-	max_source_conc = 0;
+	max_source_x = max_source_y = max_source_conc = 0;
 	max_source_time = op->pd->var[TIME_INIT];
 	fprintf( outfile, "variables = \"Time [a]\"" );
 	for( i = 0; i < op->wd->nW; i++ )
@@ -1604,7 +1604,7 @@ void compute_btc( char *filename, struct opt_data *op )
 	tprintf( "\n" );
 	for( i = 0; i < op->wd->nW; i++ )
 	{
-		max_conc = max_time = 0;
+		c = time = max_conc = max_time = 0;
 		for( k = 0; k < gd->nt; k++ )
 		{
 			time = gd->min_t + gd->dt * k;
@@ -1702,9 +1702,10 @@ int count_cols( char *filename, int row )
 	int ncol = 0, i, n = 0;
 	FILE *fl;
 	char buf[1000], entry[16], *ln;
+	if( row < 1 ) { printf( "\nInput Error: Row number %d < 1\n", row ); return( 0 ); }
 	fl = fopen( filename, "r" );
-	if( fl == NULL ) { printf( "\nError opening %s\n", filename ); exit( 0 ); }
-	for( i = 1; i < row; i++ ) ln = fgets( buf, sizeof buf, fl );
+	if( fl == NULL ) { printf( "\nError opening %s\n", filename ); return( 0 ); }
+	for( i = 0; i < row; i++ ) ln = fgets( buf, sizeof buf, fl );
 	while( sscanf( ln, "%10s%n", entry, &n ) == 1 )
 	{
 		ncol++;

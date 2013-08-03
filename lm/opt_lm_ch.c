@@ -27,6 +27,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define MIN(X,Y) ( ((X) < (Y)) ? (X) : (Y) )
 #define MAX(X,Y) ( ((X) > (Y)) ? (X) : (Y) )
@@ -46,6 +47,8 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 			 relcon, delta2, temp;
 //	double   f0sqs4;
 	double  *work, *grad, *delx, *scall, *xnew, *xbad, *fplus, *fminus;
+	f0 = f0sq = onesf0 = up = 0;
+	ijac = icount = 0;
 	sig = 6.3;
 	ax = 0.1;
 	ier = 0;
@@ -237,6 +240,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 						work[k - 1] += scall[i] * al;
 						delx[i] = grad[i];
 					}
+					break;
 					/*
 					 * 								Cholesky decomposition
 					 */
@@ -334,6 +338,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 						label = 30;
 						continue;
 					}
+					break;
 				case 190:
 					icount++;
 					//				al*=f0; /* slow */
@@ -346,6 +351,7 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 					}
 					//				else { al/=f0sq; printf("enough bad attempts (%d) or lambda is too large; (%d)\n",icount,ijac); ier = 39; break; }
 					else { al /= f0sq; label = 55; printf( "enough bad attempts (%d) or lambda is too large; (%d)\n", icount, ijac ); continue; }
+					break;
 			}
 			if( ier > 0 || label < 140 ) break;
 		}

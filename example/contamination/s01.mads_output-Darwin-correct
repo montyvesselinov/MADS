@@ -39,7 +39,7 @@ Number of calibration targets = 20
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130728-170956
+Execution date & time stamp: 20130803-100541
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -446,6 +446,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sun Jul 28 17:09:56 2013
-Execution completed on Sun Jul 28 17:09:56 2013
-Execution date & time stamp: 20130728-170956
+Execution  started  on Sat Aug  3 10:05:41 2013
+Execution completed on Sat Aug  3 10:05:41 2013
+Execution date & time stamp: 20130803-100541

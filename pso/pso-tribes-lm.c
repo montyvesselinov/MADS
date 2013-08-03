@@ -155,13 +155,13 @@ int *irand_seed;
 
 int pso_tribes( struct opt_data *op )
 {
-	FILE *fRun; // To save the run
-	FILE *fArchive; // To save the Pareto front
+	FILE *fRun = NULL; // To save the run
+	FILE *fArchive = NULL; // To save the Pareto front
 	struct problem pb;
 	struct swarm S = {0};
 	struct position bestBest;
 	double successRate[MAXPHI], errorMean[MAXPHI];
-	int debug, i, n, r, eval_total;
+	int debug = 0, i, n, r, eval_total;
 	char filename[255];
 	pb.nPhi = 1;
 	gop = op;

@@ -27,6 +27,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <gsl/gsl_math.h>
 #include "../mads.h"
 
@@ -149,6 +150,9 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 //	double rel_dx, phi_diff, factor_pow8;
 	char filename[80];
 	/* ERROR CHECKS FIRST EXECUTABLE STATEMENT */
+	lambda = limit_central_difference = factor = factor_squared = factor_recipical = 0;
+	phi_range_min = upper_bound = HUGE_VAL;
+	phi_range_max = 0;
 	debug = func_data->cd->ldebug;
 	phi_cutoff = func_data->cd->phi_cutoff;
 	if( nObs <= 0 || nObs > nJacobian || nParam <= 0 || iopt < 0 || iopt > 2 || max_eval < 1 )
@@ -229,6 +233,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 	iter = iter_best = 0;
 	lambda_up_count = 0; //
 	*infer = ier = 0;
+	ofe_close = 0;
 	if( func_data->cd->odebug )
 	{
 		if( func_data->f_ofe == NULL )
@@ -239,7 +244,6 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 			else func_data->f_ofe = fopen( filename, "w" );
 			ofe_close = 1;
 		}
-		else ofe_close = 0;
 	}
 	if( func_data->cd->check_success ) func_data->success = 0;
 	while( !ier )                                 /* BEGIN OF THE MAIN LOOP */
@@ -649,7 +653,7 @@ int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double 
 	}
 	*phi = func_data->phi = phi_best;
 	for( j = 0; j < nParam; j++ ) x[j] = x_best[j];
-	if( func_data->cd->odebug == 1 && ofe_close == 1 ) { fclose( func_data->f_ofe ); func_data->f_ofe = NULL; }
+	if( ofe_close ) { fclose( func_data->f_ofe ); func_data->f_ofe = NULL; }
 	free( vphi ); free( hessian ); free( grad ); free( x_update ); free( scale ); free( x_new ); free( x_cur_best ); free( x_best ); free( x_bad ); free( f_xpdx ); free( f_xmdx );
 	return( ier );
 }

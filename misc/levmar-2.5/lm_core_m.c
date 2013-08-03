@@ -92,7 +92,7 @@ int LEVMAR_DER2(
 		 */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac, changejac, kmax, maxnfev;
+	int worksz, freework = 0, issolved, issolved1 = 0, success, odebug, change, computejac, changejac, kmax, maxnfev;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -208,6 +208,7 @@ int LEVMAR_DER2(
 	p_old = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_old2 = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); }
+	else gsl_jacobian = NULL;
 	/* compute e=x - f(p) and its L2 norm */
 	maxnfev = op->cd->maxeval - op->cd->neval;
 	for( i = 0; i < m; ++i )
@@ -398,6 +399,7 @@ int LEVMAR_DER2(
 			max = 0; min = HUGE_VAL;
 			skipped = 0;
 			first = 1;
+			imax = imin = omax = omin = 0;
 			for( l = j = 0; j < op->od->nTObs; j++ )
 			{
 				if( op->od->obs_weight[j] > DBL_EPSILON )
@@ -507,13 +509,13 @@ int LEVMAR_DER2(
 			}
 			if( op->cd->lm_eigen )
 			{
-				op->cd->lm_eigen--;
 				for( l = j = 0; j < op->od->nTObs; j++ )
 					for( i = 0; i < op->pd->nOptParam; i++ )
 						gsl_matrix_set( gsl_jacobian, j, i, jac[l++] ); // LEVMAR is using different jacobian order
 				DeTransform( p, op, jac_min );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					op->pd->var[op->pd->var_index[i]] = jac_min[i];
+				op->cd->lm_eigen--;
 				op->phi = p_eL2;
 				eigen( op, hx, gsl_jacobian, NULL );
 				op->cd->lm_eigen++;
@@ -746,6 +748,7 @@ int LEVMAR_DER2(
 				DeTransform( pDp, op, jac_min );
 				DeTransform( p_old, op, jac_max );
 				max_change = 0; min_change = HUGE_VAL;
+				ipar_max = ipar_min = 0;
 				for( i = 0; i < m; i++ )
 				{
 					j = op->pd->var_index[i];
@@ -795,6 +798,7 @@ int LEVMAR_DER2(
 			if( phi2c > op->cd->lm_nlamof )
 			{
 				tmp = HUGE_VAL;
+				j = 0;
 				for( i = 0; i < phi2c; i++ )
 				{
 					if( phi2[i] < tmp )
@@ -958,6 +962,7 @@ int LEVMAR_DER2(
 		DeTransform( pDp, op, jac_min );
 		DeTransform( p_old, op, jac_max );
 		max_change = 0; min_change = HUGE_VAL;
+		ipar_max = ipar_min = 0;
 		for( i = 0 ; i < m; ++i )
 		{
 			j = op->pd->var_index[i];
@@ -974,14 +979,15 @@ int LEVMAR_DER2(
 	if( k >= kmax && stop == 0 ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 		jacTjac[i * m + i] = diag_jacTjac[i];
+	if( info || op->cd->ldebug )
+		for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
+			if( tmp < jacTjac[i * m + i] ) tmp = jacTjac[i * m + i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
 		info[1] = p_eL2;
 		info[2] = jacTe_inf;
 		info[3] = Dp_L2;
-		for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
-			if( tmp < jacTjac[i * m + i] ) tmp = jacTjac[i * m + i];
 		info[4] = mu / tmp;
 		info[5] = ( LM_REAL )k;
 		info[6] = ( LM_REAL )stop;
@@ -1065,7 +1071,7 @@ int LEVMAR_DER(
 		 */
 {
 	register int i, j, k, l;
-	int worksz, freework = 0, issolved, issolved1, success, odebug, change, computejac, changejac, kmax, maxnfev;
+	int worksz, freework = 0, issolved, issolved1 = 0, success, odebug, change, computejac, changejac, kmax, maxnfev;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
@@ -1181,6 +1187,7 @@ int LEVMAR_DER(
 	p_old = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_old2 = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); }
+	else gsl_jacobian = NULL;
 	/* compute e=x - f(p) and its L2 norm */
 	maxnfev = op->cd->maxeval - op->cd->neval;
 	for( i = 0; i < m; ++i )
@@ -1371,6 +1378,7 @@ int LEVMAR_DER(
 			max = 0; min = HUGE_VAL;
 			skipped = 0;
 			first = 1;
+			imax = imin = omax = omin = 0;
 			for( l = j = 0; j < op->od->nTObs; j++ )
 			{
 				if( op->od->obs_weight[j] > DBL_EPSILON )
@@ -1480,13 +1488,13 @@ int LEVMAR_DER(
 			}
 			if( op->cd->lm_eigen )
 			{
-				op->cd->lm_eigen--;
 				for( l = j = 0; j < op->od->nTObs; j++ )
 					for( i = 0; i < op->pd->nOptParam; i++ )
 						gsl_matrix_set( gsl_jacobian, j, i, jac[l++] ); // LEVMAR is using different jacobian order
 				DeTransform( p, op, jac_min );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					op->pd->var[op->pd->var_index[i]] = jac_min[i];
+				op->cd->lm_eigen--;
 				op->phi = p_eL2;
 				eigen( op, hx, gsl_jacobian, NULL );
 				op->cd->lm_eigen++;
@@ -1719,6 +1727,7 @@ int LEVMAR_DER(
 				DeTransform( pDp, op, jac_min );
 				DeTransform( p_old, op, jac_max );
 				max_change = 0; min_change = HUGE_VAL;
+				ipar_max = ipar_min = 0;
 				for( i = 0; i < m; i++ )
 				{
 					j = op->pd->var_index[i];
@@ -1768,6 +1777,7 @@ int LEVMAR_DER(
 			if( phi2c > op->cd->lm_nlamof )
 			{
 				tmp = HUGE_VAL;
+				j = 0;
 				for( i = 0; i < phi2c; i++ )
 				{
 					if( phi2[i] < tmp )
@@ -1931,6 +1941,7 @@ int LEVMAR_DER(
 		DeTransform( pDp, op, jac_min );
 		DeTransform( p_old, op, jac_max );
 		max_change = 0; min_change = HUGE_VAL;
+		ipar_max = ipar_min = 0;
 		for( i = 0 ; i < m; ++i )
 		{
 			j = op->pd->var_index[i];
@@ -1947,14 +1958,15 @@ int LEVMAR_DER(
 	if( k >= kmax && stop == 0 ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 		jacTjac[i * m + i] = diag_jacTjac[i];
+	if( info || op->cd->ldebug )
+		for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
+			if( tmp < jacTjac[i * m + i] ) tmp = jacTjac[i * m + i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
 		info[1] = p_eL2;
 		info[2] = jacTe_inf;
 		info[3] = Dp_L2;
-		for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
-			if( tmp < jacTjac[i * m + i] ) tmp = jacTjac[i * m + i];
 		info[4] = mu / tmp;
 		info[5] = ( LM_REAL )k;
 		info[6] = ( LM_REAL )stop;
@@ -2429,14 +2441,15 @@ int LEVMAR_DIF(
 	if( k >= kmax && stop == 0 ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 		jacTjac[i * m + i] = diag_jacTjac[i];
+	if( info || op->cd->ldebug )
+		for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
+			if( tmp < jacTjac[i * m + i] ) tmp = jacTjac[i * m + i];
 	if( info )
 	{
 		info[0] = init_p_eL2;
 		info[1] = p_eL2;
 		info[2] = jacTe_inf;
 		info[3] = Dp_L2;
-		for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
-			if( tmp < jacTjac[i * m + i] ) tmp = jacTjac[i * m + i];
 		info[4] = mu / tmp;
 		info[5] = ( LM_REAL )k;
 		info[6] = ( LM_REAL )stop;

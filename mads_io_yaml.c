@@ -260,7 +260,7 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 			keywords = qd->param_id;
 		}
 		load_ymal_params( node, data, num_keys, keywords, keyindex );
-		if( num_keys ) free( keyindex );
+		if( num_keys && keyindex != NULL ) free( keyindex );
 		found = 1;
 	}
 	if( !strcasecmp( ( char * ) node->data, "Grid" ) ) { tprintf( " ... process grid ... " ); load_ymal_grid( node, data ); found = 1; }
@@ -322,7 +322,7 @@ int load_ymal_sources( GNode *node, gpointer data )
 		node_par = g_node_nth_child( node, 0 );
 		load_ymal_params( node_par, data, cd->num_source_params, sd->param_id, keyindex );
 	}
-	free( keyindex );
+	if( keyindex != NULL ) free( keyindex );
 	if( bad_data ) return( 1 );
 	else return( 0 );
 }
@@ -433,7 +433,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 					if( cd->plogtrans ) { pd->var_log[index] = 0; pd->var_range[index] = pd->var_max[index] - pd->var_min[index]; continue; }
 					else bad_data = 1;
 				}
-				double d;
+				double d = 0;
 				if( pd->var_dx[index] < 2 ) d = ( pd->var_max[index] - pd->var_min[index] ) / pd->var_dx[index];
 				if( pd->var[index] < DBL_EPSILON ) pd->var[index] = DBL_EPSILON;
 				if( pd->var_min[index] < DBL_EPSILON ) pd->var_min[index] = DBL_EPSILON;

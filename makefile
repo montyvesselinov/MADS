@@ -16,7 +16,7 @@ ND = $(shell uname -n)
 $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
-CFLAGS = -Wall 
+CFLAGS = -Wall -O1 -Winit-self
 LDLIBS = -lgsl -lgslcblas -lm -llapack -lblas
 ifeq ($(OS),Linux)
 # Linux
