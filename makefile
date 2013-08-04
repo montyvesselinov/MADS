@@ -196,8 +196,6 @@ verify-multistart1:
 	@$(CMP) example/rosenbrock/p01squads.mads_output example/rosenbrock/p01squads.mads_output-multistart-squads-$(OS)-correct
 	@$(CMP) example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-$(OS)-correct
 	@echo ""
-	@echo "WARNING: Currently TEST 2.2 fails on MAC OS X only! Ignore this problem! This does not impacts MADS/Squads performance!"
-	@echo ""
 	@echo "**************************************************************************************"
 	@echo "TEST 2: DONE"
 	@echo ""

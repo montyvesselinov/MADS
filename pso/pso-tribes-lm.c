@@ -1087,17 +1087,27 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 				sort_vec[0] = ( *pb ).min[k]; // List of known coordinates
 				sort_vec[1] = ( *pb ).max[k]; // List of known coordinates
 				count = 2;
+				// tprintf( "swarm size %d:", ( *S ).size);
 				for( it = 0; it < ( *S ).size; it++ )
+				{
+					// tprintf( " %d:", ( *S ).trib[it].size );
 					for( ip = 0; ip < ( *S ).trib[it].size; ip++ )
 					{
 						sort_vec[count++] = ( *S ).trib[it].part[ip].x.x[k]; // List of known coordinates
 						sort_vec[count++] = ( *S ).trib[it].part[ip].xBest.x[k]; // List of known coordinates
 					}
-				if( count > 1 ) qsort( sort_vec, count, sizeof( double ), compare_double ); // Sort the list of known coordinates
+				}
+				// tprintf( "\n" );
+				if( count > 2 ) qsort( sort_vec, count, sizeof( double ), compare_double ); // Sort the list of known coordinates
+				// tprintf( "sort vec %d:", ( *S ).size);
+				// for( i = 0; i < count; i++ )
+				// tprintf( " %g", sort_vec[i] );
 				rank = 1;
 				for( i = 2; i < count; i++ ) // Find the biggest empty interval
-					if( sort_vec[i] - sort_vec[i - 1] > sort_vec[rank] - sort_vec[rank - 1] ) rank = i;
+					if( ( sort_vec[i] - sort_vec[i - 1] ) > ( sort_vec[rank] - sort_vec[rank - 1] ) ) rank = i;
+				// tprintf( " rank %d\n", rank );
 				( *P ).x.x[k] = random_double( sort_vec[rank - 1], sort_vec[rank] ); // Select a random position "centered" on the interval
+				// tprintf( " rnd %g %g %g\n", ( *P ).x.x[k], sort_vec[rank - 1], sort_vec[rank] );
 			}
 			break;
 		case 4: // Centered in the model domain EXPERIMENT NOT USED AT THE MOMENT
@@ -1110,7 +1120,10 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 			break;
 		case 5: // User supplied initial values
 			for( k = 0; k < ( *pb ).D; k ++ )
+			{
 				( *P ).x.x[k] = ( *pb ).ival[k];
+				// tprintf( "user %g\n", ( *P ).x.x[k] );
+			}
 			break;
 		case 6: // Centered to all the shamans in the swarm (applied by LM speedup to reset bad shamans)
 			for( k = 0; k < ( *pb ).D; k++ )
@@ -1732,7 +1745,11 @@ void swarm_init( struct problem *pb, int compare_type, struct swarm *S )
 	nPart = 1; // Initial number of particles in each tribe
 	( *pb ).init = 1;
 	for( i = 0; i < nTribe; i++ )
+	{
+		( *S ).trib[i].size = 0;
 		tribe_init( pb, nPart, compare_type, S, &( *S ).trib[i] );
+		( *S ).trib[i].size = 1;
+	}
 	copy_position( &( *S ).trib[0].part[( *S ).trib[0].best].xBest, &( *S ).best ); // The best position of the swarm
 	( *S ).tr_best = 0;
 	if( ( *S ).size > 1 )
@@ -2121,14 +2138,16 @@ void tribe_print( struct tribe *T )
 
 void tribe_init( struct problem *pb, int nPart, int compare_type, struct swarm( *S ), struct tribe *T ) // S is not needed here; it is needed by particle_init
 {
-	int i, init_option;
+	int i, tribe_size, init_option;
 	( *T ).status = 0;
-	( *T ).size = ( int ) minXY( ( double ) nPart, ( double ) MAXPART );
-	for( i = 0; i < ( *T ).size; i++ )
+	( *T ).size = 0;
+	tribe_size = ( int ) minXY( ( double ) nPart, ( double ) MAXPART );
+	for( i = 0; i < tribe_size; i++ )
 	{
 		if( ( *pb ).init == 1 ) { ( *pb ).init = 0; init_option = 5; } // User provided initial values
 		else init_option = 3; // Biggest empty hyper-parallelepiped
 		particle_init( pb, init_option, &( *T ).part[i].x, &( *T ).part[i].x, S, &( *T ).part[i] ); // Arguments 3 & 4 are dummy
+		( *T ).size++;
 	}
 	( *T ).best = tribe_shaman( T, compare_type );
 	for( i = 0; i < ( *pb ).nPhi; i++ )
