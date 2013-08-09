@@ -100,6 +100,7 @@ void mads_info();
 // IO
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
+int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
@@ -181,7 +182,7 @@ int main( int argn, char *argv[] )
 	struct anal_data ad;
 	struct source_data sd;
 	struct aquifer_data qd;
-	char filename[255], filename2[255], root[255], extension[255], buf[255], *dot, *cwd;
+	char filename[255], filename2[255], root[255], extension[255], buf[1000], *dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
 	FILE *in, *out, *out2;
@@ -191,6 +192,9 @@ int main( int argn, char *argv[] )
 	struct tm *ptr_ts;
 	time_start = time( NULL );
 	op.datetime_stamp = datestamp(); // create execution date stamp
+	buf[0] = 0;
+	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
+	cd.debug = parse_cmd_debug( buf );
 	op.pd = &pd; // create opt_data structures ...
 	op.rd = &rd;
 	op.od = &od;
@@ -315,11 +319,6 @@ int main( int argn, char *argv[] )
 	{
 		if( op.yaml ) // YAML format
 		{
-			// TODO parse command line after parsing the Problem and Solution YAML classes; the lines below should be removed
-			buf[0] = 0;
-			for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-			cd.solution_type = ( int * ) malloc( sizeof( int ) );
-			if( parse_cmd( buf, &cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 #ifdef YAML
 			ier = load_yaml_problem( filename, argn, argv, &op );
 #else
@@ -327,7 +326,7 @@ int main( int argn, char *argv[] )
 			exit( 0 );
 #endif
 		}
-		else			ier = load_problem( filename, argn, argv, &op ); // MADS plain text format
+		else ier = load_problem( filename, argn, argv, &op ); // MADS plain text format
 		if( ier <= 0 )
 		{
 			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
@@ -430,7 +429,14 @@ int main( int argn, char *argv[] )
 	 */
 	if( cd.solution_type[0] == EXTERNAL ) // Check the files for external execution
 	{
-		tprintf( "Checking the template files for errors ...\n" );
+		if( ed.ntpl <= 0 ) { tprintf( "ERROR: No template file(s)!\n" ); bad_data = 1; }
+		else tprintf( "Checking the template files for errors ...\n" );
+		if( bad_data )
+		{
+			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+			system( buf );
+			exit( 0 );
+		}
 		bad_data = 0;
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
@@ -447,7 +453,14 @@ int main( int argn, char *argv[] )
 				tprintf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_id[i], ( int ) cd.var[i] );
 		}
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
-		tprintf( "Checking the instruction files for errors ...\n" );
+		if( ed.nins <= 0 ) { tprintf( "ERROR: No instruction file(s)!\n" ); bad_data = 1; }
+		else tprintf( "Checking the instruction files for errors ...\n" );
+		if( bad_data )
+		{
+			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+			system( buf );
+			exit( 0 );
+		}
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
 			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.

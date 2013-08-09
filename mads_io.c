@@ -46,6 +46,7 @@
 
 /* Functions here */
 int set_param_id( struct opt_data *op );
+int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
@@ -89,6 +90,17 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
 	strcpy( op->qd->param_id[10], "ts_dsp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_rct" );
 	return( 1 );
+}
+
+int parse_cmd_debug( char *buf )
+{
+	int debug;
+	char *sep = " \t\n", *word;
+	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
+	{
+		if( !strncasecmp( word, "debug", 5 ) ) { if( sscanf( word, "debug=%d", &debug ) == 0 || debug == 0 ) debug = 1; } // Global debug
+	}
+	return( debug );
 }
 
 int parse_cmd( char *buf, struct calc_data *cd )

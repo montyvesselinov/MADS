@@ -31,8 +31,6 @@
 #define _GNU_SOURCE
 #endif
 
-struct opt_data *gop;
-
 #include "mads.h"
 
 #include <stdio.h>
@@ -63,6 +61,11 @@ int load_ymal_grid( GNode *node, gpointer data );
 int load_ymal_sources( GNode *node, gpointer data );
 int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords, int *keyindex );
 int load_ymal_time( GNode *node, gpointer data );
+int load_ymal_problem( GNode *node, gpointer data );
+int load_ymal_solution( GNode *node, gpointer data );
+static gboolean g_node_find_func( GNode *node, gpointer data );
+gpointer g_node_find_key( GNode *gnode_data, char **key );
+void set_param_arrays( int num_param, struct opt_data *op );
 
 /* Functions in mads_io */
 int parse_cmd( char *buf, struct calc_data *cd );
@@ -77,10 +80,20 @@ char **char_matrix( int maxCols, int maxRows );
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 {
 	FILE *infile;
-	gop = op;
-	op->gd->min_t = op->gd->time = 0;
+	struct calc_data *cd;
+	struct obs_data *od;
+	struct aquifer_data *qd;
 	GNode *gnode_data = g_node_new( filename );
 	yaml_parser_t parser;
+	char buf[1000];
+	char **keywords;
+	int *keyindex;
+	gpointer key_pointer;
+	int i, k, num_keys;
+	qd = op->qd;
+	cd = op->cd;
+	od = op->od;
+	op->gd->min_t = op->gd->time = 0;
 	op->od->include_predictions = 1;
 	if( op->cd->problem_type == INFOGAP ) op->od->include_predictions = 0;
 	if( fabs( op->cd->obsstep ) > DBL_EPSILON ) op->od->include_predictions = 1;
@@ -90,34 +103,132 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 		tprintf( "ERROR: Input file is needed!\n\n" );
 		return( -1 );
 	}
-	else
+	yaml_parser_initialize( &parser );
+	yaml_parser_set_input_file( &parser, infile );
+	yaml_parse_layer( &parser, gnode_data ); // Recursive parsing into GNODE data
+	yaml_parser_delete( &parser ); // Destroy YAML parser
+	fclose( infile );
+	if( cd->debug > 5 )
 	{
-		yaml_parser_initialize( &parser );
-		yaml_parser_set_input_file( &parser, infile );
-		yaml_parse_layer( &parser, gnode_data ); // Recursive parsing into GNODE data
-		yaml_parser_delete( &parser ); // Destroy YAML parser
-		fclose( infile );
-		if( op->cd->debug > 5 )
-		{
-			tprintf( "YAML/GNODE Complete Tree:\n" );
-			g_node_traverse( gnode_data, G_PRE_ORDER, G_TRAVERSE_ALL, -1, gnode_tree_dump, NULL );
-			g_node_traverse( gnode_data, G_PRE_ORDER, G_TRAVERSE_NON_LEAVES, -1, gnode_tree_dump, NULL );
-			tprintf( "Tree Depth %d\n", g_node_depth( gnode_data ) );
-			tprintf( "Tree Max Height %d\n", g_node_max_height( gnode_data ) );
-			tprintf( "Tree Number of Data Sets %d\n", g_node_n_nodes( gnode_data, G_TRAVERSE_NON_LEAVES ) );
-		}
-		tprintf( "Number of YAML classes %d\n", g_node_n_children( gnode_data ) );
-		tprintf( "YAML Classes:\n" );
-		g_node_children_foreach( gnode_data, G_TRAVERSE_ALL, ( GNodeForeachFunc )gnode_tree_dump_classes, NULL );
-		tprintf( "Process YAML Classes ...\n" );
-		g_node_children_foreach( gnode_data, G_TRAVERSE_ALL, ( GNodeForeachFunc )gnode_tree_parse_classes, NULL );
-		g_node_destroy( gnode_data ); // Destroy GNODE data
+		tprintf( "YAML/GNODE Complete Tree:\n" );
+		g_node_traverse( gnode_data, G_PRE_ORDER, G_TRAVERSE_ALL, -1, gnode_tree_dump, NULL );
+		g_node_traverse( gnode_data, G_PRE_ORDER, G_TRAVERSE_NON_LEAVES, -1, gnode_tree_dump, NULL );
+		tprintf( "Tree Depth %d\n", g_node_depth( gnode_data ) );
+		tprintf( "Tree Max Height %d\n", g_node_max_height( gnode_data ) );
+		tprintf( "Tree Number of Data Sets %d\n", g_node_n_nodes( gnode_data, G_TRAVERSE_NON_LEAVES ) );
 	}
+	tprintf( "Number of YAML classes %d\n", g_node_n_children( gnode_data ) );
+	tprintf( "YAML Classes:\n" );
+	g_node_children_foreach( gnode_data, G_TRAVERSE_ALL, ( GNodeForeachFunc )gnode_tree_dump_classes, NULL );
+	tprintf( "Process YAML Classes ...\n" );
+	// Problem
+	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Problem" );
+	buf[0] = 0;
+	if( key_pointer != NULL )
+	{
+		tprintf( "Process Problem ... " );
+		GNode *node_key, *node_value;
+		if( cd->debug > 2 )tprintf( "Number of components: %i ... Components:", g_node_n_children( key_pointer ) );
+		for( i = 0; i < g_node_n_children( key_pointer ); i++ )
+		{
+			node_key = g_node_nth_child( key_pointer, i );
+			if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
+			strcat( buf, " " ); strcat( buf, ( char * ) node_key->data );
+			if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
+			{
+				if( cd->debug > 1 ) tprintf( " = %s", ( char * ) node_key->data, ( char * ) node_value->data );
+				strcat( buf, "=" ); strcat( buf, ( char * ) node_value->data );
+			}
+		}
+		tprintf( "\n" );
+	}
+	else tprintf( "WARNING: Problem class not found!\n" );
+	// Parse commands
+	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
+	cd->solution_type = ( int * ) malloc( sizeof( int ) );
+	if( parse_cmd( buf, cd ) == -1 ) return( -1 );
+	od->include_predictions = 1;
+	if( cd->problem_type == INFOGAP ) od->include_predictions = 0;
+	if( fabs( cd->obsstep ) > DBL_EPSILON ) od->include_predictions = 1;
+	// Solution
+	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Solution" );
+	if( key_pointer != NULL ) { tprintf( "Process Solution ... " ); load_ymal_solution( ( GNode * ) key_pointer, ( void * ) op ); }
+	else tprintf( "WARNING: Solution class not found!\n" );
+	// Sources
+	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Sources" );
+	if( key_pointer != NULL )
+	{
+		tprintf( "Process Sources ... " );
+		load_ymal_sources( key_pointer, ( void * ) op );
+		if( cd->num_sources > 1 ) tprintf( "\nModels:" );
+		else tprintf( "Model: " );
+		for( i = 0; i < cd->num_sources; i++ )
+		{
+			if( cd->num_sources > 1 ) tprintf( " (%d) ", i + 1 );
+			switch( cd->solution_type[i] )
+			{
+				case EXTERNAL: { tprintf( "external" ); break; }
+				case POINT: { tprintf( "internal point contaminant source" ); break; }
+				case PLANE: { tprintf( "internal rectangular contaminant source" ); break; }
+				case GAUSSIAN2D: { tprintf( "internal planar (2d) gaussian contaminant source" ); break; }
+				case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); break; }
+				case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); break; }
+				case BOX: { tprintf( "internal box contaminant source" ); break; }
+				case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); break; }
+				default: tprintf( "WARNING! UNDEFINED model type!" ); break;
+			}
+		}
+		if( cd->c_background ) tprintf( " | background concentration = %g", cd->c_background );
+		tprintf( "\n" );
+	}
+	else tprintf( "WARNING: Sources class not found!\n" );
+	// Parameters
+	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Parameters" );
+	if( key_pointer != NULL )
+	{
+		tprintf( "Process Parameters ... " );
+		if( cd->num_sources > 0 || cd->solution_type[0] != EXTERNAL || cd->solution_type[0] != TEST )
+		{
+			num_keys = cd->num_aquifer_params;
+			keyindex = ( int * ) malloc( cd->num_aquifer_params * sizeof( int ) );
+			k = cd->num_sources * cd->num_source_params;
+			for( i = 0; i < cd->num_aquifer_params; i++ ) keyindex[i] = k + i;
+			keywords = qd->param_id;
+		}
+		load_ymal_params( key_pointer, op, num_keys, keywords, keyindex );
+		if( num_keys && keyindex != NULL ) free( keyindex );
+	}
+	else tprintf( "WARNING: Wells class not found!\n" );
+	// Wells
+	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Wells" );
+	if( key_pointer != NULL ) { tprintf( "Process Wells ... " ); load_ymal_wells( ( GNode * ) key_pointer, ( void * ) op ); }
+	else tprintf( "WARNING: Wells class not found!\n" );
+	// Grid
+	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Grid" );
+	// if( key_pointer != NULL ) { tprintf( "Process Grid ... " ); load_ymal_grid( (GNode *) key_pointer, (void *) op ); }
+	// else tprintf( "WARNING: Grid class not found!\n" );
+	// Time
+	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Time" );
+	// if( key_pointer != NULL ) { tprintf( "Process Time ... " ); load_ymal_time( (GNode *) key_pointer, (void *) op ); }
+	// else tprintf( "WARNING: Time class not found!\n" );
+	// tprintf( "Process More YAML Classes ...\n" );
+	// g_node_children_foreach( gnode_data, G_TRAVERSE_ALL, ( GNodeForeachFunc )gnode_tree_parse_classes, (void *) op );
+	g_node_destroy( gnode_data ); // Destroy GNODE data
 	if( !set_optimized_params( op ) ) return( -1 );
 	if( !map_well_obs( op ) ) return( -1 );
-	tprintf( "Number of regularization terms = %d\n", gop->rd->nRegul );
-	tprintf( "Number of predictions = %d\n", gop->preds->nTObs );
+	tprintf( "Number of regularization terms = %d\n", op->rd->nRegul );
+	tprintf( "Number of predictions = %d\n", op->preds->nTObs );
 	return( 1 );
+}
+
+static gboolean g_node_find_func( GNode *node, gpointer data )
+{
+	register gpointer *d = data;
+	// tprintf( "Search %s %s\n", ( char * ) node->data, (gchar *)d[0] );
+	if( !node->data || strcmp( ( gchar * )d[0], ( gchar * )node->data ) ) return FALSE;
+	// tprintf( "Found %s ", ( char * ) node->data );
+	d[1] = node;
+	return TRUE;
 }
 
 void yaml_parse_layer( yaml_parser_t *parser, GNode *data )
@@ -151,81 +262,41 @@ void yaml_parse_layer( yaml_parser_t *parser, GNode *data )
 	}
 }
 
-/*
-void yaml_parse_layer(yaml_parser_t *parser, GNode *data)
-{
-	GNode *last_leaf = data;
-	GNode *last_leaf2 = data;
-	yaml_event_t event;
-	int storage = VAR; // mapping cannot start with VAL definition without VAR key
-	int event_type_last = YAML_STREAM_START_EVENT, mapping = 0;
-	char buf[50];
-	while (1)
-	{
-		yaml_parser_parse(parser, &event);
-		// Parse value either as a new leaf in the mapping or as a leaf value (one of them, in case it's a sequence)
-		if (event.type == YAML_SCALAR_EVENT) {
-			if (storage) g_node_append_data(last_leaf, g_strdup((gchar*) event.data.scalar.value)); // if sequence or val
-			else last_leaf = g_node_append(data, g_node_new(g_strdup((gchar*) event.data.scalar.value))); // if var
-			storage ^= VAL; // Flip VAR/VAL switch for the next event
-			event_type_last = event.type;
-		}
-		// Sequence - all the following scalars will be appended to the last_leaf
-		else if (event.type == YAML_SEQUENCE_START_EVENT) { mapping = 0; event_type_last = event.type; storage = SEQ; }
-		else if (event.type == YAML_SEQUENCE_END_EVENT) { event_type_last = event.type; storage = VAR; }
-		// depth += 1
-		else if (event.type == YAML_MAPPING_START_EVENT) {
-			if( event_type_last == YAML_SEQUENCE_START_EVENT || event_type_last == YAML_MAPPING_END_EVENT )
-			{
-				sprintf( buf, "Map %i", mapping );
-				last_leaf2 = g_node_append(last_leaf, g_node_new(g_strdup( (gchar*) buf ) ));
-				mapping++;
-			}
-			yaml_parse_layer(parser, last_leaf2);
-			event_type_last = YAML_MAPPING_END_EVENT;
-			storage ^= VAL; // Flip VAR/VAL, without touching SEQ
-			storage = VAR; // Var should be expected ...
-		}
-		// depth -= 1
-		else if ( event.type == YAML_MAPPING_END_EVENT || event.type == YAML_STREAM_END_EVENT ) { yaml_event_delete(&event); break; } // Quit; yaml_event_delete(&event) is needed
-		yaml_event_delete(&event);
-	}
-}
- */
-
 gboolean gnode_tree_dump( GNode *node, gpointer data )
 {
 	int i = g_node_depth( node );
-	while( --i ) printf( "    " );
-	printf( "%s\n", ( char * ) node->data );
+	while( --i ) tprintf( "    " );
+	tprintf( "%s\n", ( char * ) node->data );
 	return( 0 );
 }
 
 void gnode_tree_dump_classes( GNode *node, gpointer data )
 {
 	int i = g_node_depth( node );
-	while( --i ) printf( " " );
-	printf( "%s -> %i components\n", ( char * ) node->data, g_node_n_children( node ) );
+	while( --i ) tprintf( " " );
+	tprintf( "%s -> %i components\n", ( char * ) node->data, g_node_n_children( node ) );
 }
 
 void gnode_tree_parse_classes( GNode *node, gpointer data )
 {
+	struct opt_data *op = ( struct opt_data * )data;
 	struct calc_data *cd;
 	struct aquifer_data *qd;
 	int found = 0;
 	int k, num_keys = 0, c, i = g_node_depth( node );
 	char **keywords;
 	int *keyindex;
-	cd = gop->cd;
-	qd = gop->qd;
-	printf( "Processing Class:" );
-	while( --i ) printf( " " );
-	printf( "%s ", ( char * ) node->data );
-	if( !strcasecmp( ( char * ) node->data, "Wells" ) ) { tprintf( " ... process wells ... " ); load_ymal_wells( node, data ); found = 1; }
+	cd = op->cd;
+	qd = op->qd;
+	tprintf( "Processing Class:" );
+	while( --i ) tprintf( " " );
+	tprintf( "%s ", ( char * ) node->data );
+	if( !strcasecmp( ( char * ) node->data, "Problem" ) ) { tprintf( " ... process solution ... " ); load_ymal_problem( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Solution" ) ) { tprintf( " ... process solution ... " ); load_ymal_solution( node, op ); found = 1; }
 	if( !strcasecmp( ( char * ) node->data, "Sources" ) )
 	{
 		tprintf( " ... process sources ... " );
-		load_ymal_sources( node, data );
+		load_ymal_sources( node, op );
 		if( cd->num_sources > 1 ) tprintf( "\nModels:" );
 		else tprintf( "Model: " );
 		for( c = 0; c < cd->num_sources; c++ )
@@ -240,7 +311,7 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 				case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); break; }
 				case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); break; }
 				case BOX: { tprintf( "internal box contaminant source" ); break; }
-				case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( gop ); break; }
+				case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); break; }
 				default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 			}
 		}
@@ -259,22 +330,23 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 			for( i = 0; i < cd->num_aquifer_params; i++ ) keyindex[i] = k + i;
 			keywords = qd->param_id;
 		}
-		load_ymal_params( node, data, num_keys, keywords, keyindex );
+		load_ymal_params( node, op, num_keys, keywords, keyindex );
 		if( num_keys && keyindex != NULL ) free( keyindex );
 		found = 1;
 	}
-	if( !strcasecmp( ( char * ) node->data, "Grid" ) ) { tprintf( " ... process grid ... " ); load_ymal_grid( node, data ); found = 1; }
-	if( !strcasecmp( ( char * ) node->data, "Time" ) ) { tprintf( " ... process breakthrough time data ... " ); load_ymal_time( node, data ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Wells" ) ) { tprintf( " ... process wells ... " ); load_ymal_wells( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Grid" ) ) { tprintf( " ... process grid ... " ); load_ymal_grid( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Time" ) ) { tprintf( " ... process breakthrough time data ... " ); load_ymal_time( node, op ); found = 1; }
 	if( found == 0 ) tprintf( " WARNING: this data set will be not processed!\n" );
 }
 
-void set_param_arrays( int num_param )
+void set_param_arrays( int num_param, struct opt_data *op )
 {
 	struct calc_data *cd;
 	struct param_data *pd;
 	int i;
-	pd = gop->pd;
-	cd = gop->cd;
+	pd = op->pd;
+	cd = op->cd;
 	pd->var_id = char_matrix( num_param, 50 );
 	pd->var_id_short = char_matrix( num_param, 10 );
 	for( i = 0; i < num_param; i++ )
@@ -294,20 +366,21 @@ void set_param_arrays( int num_param )
 
 int load_ymal_sources( GNode *node, gpointer data )
 {
+	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct source_data *sd;
 	GNode *node_par;
-	cd = gop->cd;
-	pd = gop->pd;
-	sd = gop->sd;
+	cd = op->cd;
+	pd = op->pd;
+	sd = op->sd;
 	int i, k, bad_data = 0, *keyindex;
 	if( cd->debug > 1 ) tprintf( "\nClass %s\n", ( char * ) node->data );
 	cd->num_sources = g_node_n_children( node );
 	tprintf( "Number of sources: %i\n", cd->num_sources );
-	set_param_id( gop ); // set analytical parameter id's
+	set_param_id( op ); // set analytical parameter id's
 	pd->nParam = cd->num_sources * cd->num_source_params + cd->num_aquifer_params;
-	set_param_arrays( pd->nParam );
+	set_param_arrays( pd->nParam, op );
 	cd->solution_type = ( int * ) malloc( cd->num_sources * sizeof( int ) );
 	keyindex = ( int * ) malloc( cd->num_source_params * sizeof( int ) );
 	for( i = 0; i < cd->num_sources; i++ )
@@ -320,7 +393,7 @@ int load_ymal_sources( GNode *node, gpointer data )
 		if( !strncasecmp( ( char * ) node_par->data, "box", 3 ) ) cd->solution_type[i] = BOX;
 		for( k = 0; k < cd->num_source_params; k++ ) keyindex[k] = i * cd->num_source_params + k;
 		node_par = g_node_nth_child( node, 0 );
-		load_ymal_params( node_par, data, cd->num_source_params, sd->param_id, keyindex );
+		load_ymal_params( node_par, op, cd->num_source_params, sd->param_id, keyindex );
 	}
 	if( keyindex != NULL ) free( keyindex );
 	if( bad_data ) return( 1 );
@@ -329,13 +402,14 @@ int load_ymal_sources( GNode *node, gpointer data )
 
 int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords, int *keyindex )
 {
+	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct regul_data *rd;
 	GNode *node_key, *node_value, *node_par;
-	cd = gop->cd;
-	pd = gop->pd;
-	rd = gop->rd;
+	cd = op->cd;
+	pd = op->pd;
+	rd = op->rd;
 	rd->nRegul = 0;
 	int i, index, k, num_param, internal, found, bad_data = 0;
 	if( num_keys <= 0 ) internal = 0;
@@ -346,13 +420,16 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 	if( !internal )
 	{
 		pd->nParam = num_param;
-		set_param_arrays( pd->nParam );
+		set_param_arrays( pd->nParam, op );
 	}
 	else
 	{
 		if( num_param != num_keys )
 			tprintf( "WARNING: The number of provided parameters (%d) is different than the number of expected parameters (%d)\n", num_param, num_keys );
 	}
+	pd->var[TSCALE_DISP] = 2;
+	pd->var[TSCALE_ADV] = 0;
+	pd->var[TSCALE_REACT] = 0;
 	for( i = 0; i < num_param; i++ )
 	{
 		node_par = g_node_nth_child( node, i );
@@ -453,14 +530,15 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 
 int load_ymal_wells( GNode *node, gpointer data )
 {
+	struct opt_data *op = ( struct opt_data * ) data;
 	struct well_data *wd;
 	struct calc_data *cd;
 	struct obs_data *od, *preds;
 	GNode *node_key, *node_value, *node_well, *node_key2, *node_value2, *node_obs;
-	wd = gop->wd;
-	cd = gop->cd;
-	od = gop->od;
-	preds = gop->preds;
+	wd = op->wd;
+	cd = op->cd;
+	od = op->od;
+	preds = op->preds;
 	int i, j, k, m, bad_data = 0;
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
 	wd->nW = g_node_n_children( node );
@@ -558,7 +636,7 @@ int load_ymal_wells( GNode *node, gpointer data )
 			tprintf( "WARNING: Well %s has no observations!\n", wd->id[i] );
 		for( j = 0; j < wd->nWellObs[i]; j++ )
 			if( wd->obs_time[i][j] < DBL_EPSILON )
-				tprintf( "WARNING: Observation #%d time for well %s is too small (%g); potential error in the input file %s!\n", j + 1, wd->id[i], wd->obs_time[i][j], gop->filename );
+				tprintf( "WARNING: Observation #%d time for well %s is too small (%g); potential error in the input file %s!\n", j + 1, wd->id[i], wd->obs_time[i][j], op->filename );
 		for( j = i + 1; j < wd->nW; j++ )
 			if( strcmp( wd->id[i], wd->id[j] ) == 0 )
 				tprintf( "WARNING: Well names #%i (%s) and #%i (%s) are identical!\n", i + 1, wd->id[i], j + 1, wd->id[j] );
@@ -576,11 +654,12 @@ int load_ymal_wells( GNode *node, gpointer data )
 
 int load_ymal_grid( GNode *node, gpointer data )
 {
+	struct opt_data *op = ( struct opt_data * ) data;
 	struct grid_data *gd;
 	struct calc_data *cd;
 	GNode *node_key, *node_value;
-	gd = gop->gd;
-	cd = gop->cd;
+	gd = op->gd;
+	cd = op->cd;
 	int i;
 	tprintf( "Number of grid components: %i\n", g_node_n_children( node ) );
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
@@ -619,11 +698,12 @@ int load_ymal_grid( GNode *node, gpointer data )
 
 int load_ymal_time( GNode *node, gpointer data )
 {
+	struct opt_data *op = ( struct opt_data * ) data;
 	struct grid_data *gd;
 	struct calc_data *cd;
 	GNode *node_key, *node_value;
-	gd = gop->gd;
-	cd = gop->cd;
+	gd = op->gd;
+	cd = op->cd;
 	int i;
 	tprintf( "Number of time components: %i\n", g_node_n_children( node ) );
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
@@ -638,5 +718,62 @@ int load_ymal_time( GNode *node, gpointer data )
 	}
 	if( cd->debug ) tprintf( "Breakthrough-curve time window: start %g end %g step %g\n", gd->min_t, gd->max_t, gd->dt );
 	return( 1 );
+}
+
+int load_ymal_problem( GNode *node, gpointer data )
+{
+	struct opt_data *op = ( struct opt_data * ) data;
+	struct calc_data *cd;
+	GNode *node_key, *node_value;
+	cd = op->cd;
+	int i;
+	tprintf( "Number of problem components: %i\nComponents: ", g_node_n_children( node ) );
+	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
+	for( i = 0; i < g_node_n_children( node ); i++ )
+	{
+		node_key = g_node_nth_child( node, i );
+		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
+		if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
+		{
+			if( cd->debug > 1 ) tprintf( "=%s", ( char * ) node_key->data, ( char * ) node_value->data );
+		}
+		tprintf( "\n" );
+	}
+	return( 1 );
+}
+
+int load_ymal_solution( GNode *node, gpointer data )
+{
+	struct opt_data *op = ( struct opt_data * ) data;
+	struct calc_data *cd;
+	GNode *node_key, *node_value;
+	cd = op->cd;
+	int i;
+	tprintf( "Number of solution components: %i\n\nComponents:", g_node_n_children( node ) );
+	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
+	for( i = 0; i < g_node_n_children( node ); i++ )
+	{
+		node_key = g_node_nth_child( node, i );
+		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
+		cd->solution_type[0] = EXTERNAL;
+		if( !strncasecmp( ( char * ) node_key->data, "internal", 8 ) ) cd->solution_type[0] = POINT;
+		if( !strncasecmp( ( char * ) node_key->data, "external", 8 ) ) cd->solution_type[0] = EXTERNAL;
+		if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
+		{
+			if( cd->debug > 1 ) tprintf( "=%s", ( char * ) node_key->data, ( char * ) node_value->data );
+		}
+		if( cd->debug > 1 ) tprintf( " [%d]", cd->solution_type[0] );
+		tprintf( "\n" );
+	}
+	return( 1 );
+}
+
+gpointer g_node_find_key( GNode *gnode_data, char **key )
+{
+	gpointer search_pointer[2];
+	search_pointer[0] = ( char ** ) key;
+	search_pointer[1] = NULL;
+	g_node_traverse( gnode_data, G_LEVEL_ORDER, G_TRAVERSE_MASK, -1, g_node_find_func, search_pointer );
+	return( search_pointer[1] );
 }
 
