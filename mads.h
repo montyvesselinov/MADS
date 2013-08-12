@@ -185,8 +185,8 @@ struct param_data // data structure for model parameters
 	int nExpParam; // number of parameters with computational expressions (i.e. tied parameters)
 	int nIgnParam; // number of ignored parameters
 	int *var_index; // parameter index array
-	char **var_id; // parameter identifier (name)
-	char **var_id_short; // short parameter identifier (name) for the case of internal models only
+	char **var_name; // parameter identifier (name)
+	char **var_id; // short parameter identifier (name) for the case of internal models only
 	double *var; // parameter value (initial/final)
 	int *var_opt; // parameter flag
 	int *var_log; // flag for log transformation
@@ -198,20 +198,23 @@ struct param_data // data structure for model parameters
 	double *var_best; // parameter value (current best)
 	double *var_truth; // true parameter value
 	int *param_expressions_index; // index array for parameters with computational expressions (i.e. tied parameters)
-	void **param_expressions; // math expressions for "tied" parameters
+	void **param_expression; // math expressions for "tied" parameters
 	gsl_vector *var_current_gsl; // current model parameters as GSL vector
 };
 
-struct regul_data // data structure for model parameters
+struct regul_data // data structure for regularization terms
 {
 	int nRegul; // number of regularization terms
-	void **regul_expressions; // math expressions for the regularization terms
+	void **regul_expression; // math expressions for the regularization terms
 	char **regul_id; // regularization identifier (name)
 	double *regul_target; // regularization value (target)
 	double *regul_weight; // regularization weight
 	int *regul_log; // flag for log transformation
 	double *regul_min; // regularization min
 	double *regul_max; // regularization max
+	int regul_nMap; // number of mapped parameters and observations
+	char **regul_map_id; // mapping of parameter and observation id's
+	double *regul_map_val; // mapping of parameter and observation values
 };
 
 struct obs_data // data structure for observation data (EXTERNAL PROBLEM)

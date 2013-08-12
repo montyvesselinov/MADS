@@ -33,5 +33,5 @@ W-13#2    (   50):        0.26 -   9.3233e-05 =     0.259907 (    0.259907) succ
 W-14a     (   50):           0 -  5.47334e-05 = -5.47334e-05 (-5.47334e-05) success 1 range            0 -            5
 W-14b     (   50):          30 -      26.4127 =      3.58728 (     3.58728) success 1 range            0 -           50
 W-14c     (   50):          10 -       275.02 =      -265.02 (          -0) success 0 range            0 -           20
-Objective function: 1.021e+07 Success: 0 (0)
+Objective function: 1.04125e+07 Success: 0 (0)
 Number of function evaluations = 17

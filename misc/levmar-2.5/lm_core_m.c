@@ -266,7 +266,7 @@ int LEVMAR_DER2(
 		for( i = 0; i < m; i++ )
 		{
 			j = op->pd->var_index[i];
-			tprintf( "%-20s:", op->pd->var_id[j] );
+			tprintf( "%-20s:", op->pd->var_name[j] );
 			if( op->pd->var_log[j] ) tprintf( " %g", pow( 10, jac_min[i] ) );
 			else tprintf( " %g", jac_min[i] );
 			tprintf( "\n" );
@@ -359,7 +359,7 @@ int LEVMAR_DER2(
 				char *s;
 				tprintf( "Parameters:" ); for( i = 0; i < op->pd->nOptParam; i++ )
 				{
-					s = op->pd->var_id[op->pd->var_index[i]];
+					s = op->pd->var_name[op->pd->var_index[i]];
 					if( strlen( s ) < 7 ) tprintf( " %s", s );
 					else tprintf( " p%d", i );
 				}
@@ -457,7 +457,7 @@ int LEVMAR_DER2(
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				if( jac_max[i] > DBL_EPSILON ) ok++;
-				else { if( op->cd->ldebug ) tprintf( "WARNING: Model parameter \'%s\' is not impacting model predictions!\n", op->pd->var_id[op->pd->var_index[i]] ); }
+				else { if( op->cd->ldebug ) tprintf( "WARNING: Model parameter \'%s\' is not impacting model predictions!\n", op->pd->var_name[op->pd->var_index[i]] ); }
 			}
 			if( ok == 0 )
 			{
@@ -468,8 +468,8 @@ int LEVMAR_DER2(
 			// Jacobian matrix analyses: print absolute sensitivity ranges
 			if( op->cd->ldebug > 1 )
 			{
-				tprintf( "Highest absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imax + 1, op->pd->var_id[op->pd->var_index[imax]], omax + 1, op->od->obs_id[omax], max );
-				tprintf( "Lowest  absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imin + 1, op->pd->var_id[op->pd->var_index[imin]], omin + 1, op->od->obs_id[omin], min );
+				tprintf( "Highest absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imax + 1, op->pd->var_name[op->pd->var_index[imax]], omax + 1, op->od->obs_id[omax], max );
+				tprintf( "Lowest  absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imin + 1, op->pd->var_name[op->pd->var_index[imin]], omin + 1, op->od->obs_id[omin], min );
 				if( op->cd->ldebug > 2 )
 				{
 					char *s;
@@ -477,7 +477,7 @@ int LEVMAR_DER2(
 					tprintf( "\nModel parameters          :" );
 					for( i = 0; i < op->pd->nOptParam; i++ )
 					{
-						s = op->pd->var_id[op->pd->var_index[i]];
+						s = op->pd->var_name[op->pd->var_index[i]];
 						if( strlen( s ) < 7 ) tprintf( " %s", s );
 						else tprintf( " p%d", i );
 					}
@@ -609,8 +609,8 @@ int LEVMAR_DER2(
 					tprintf( "Parameters did not change between last two jacobian iterations.\n" );
 				else
 				{
-					tprintf( "Parameter with maximum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-					tprintf( "Parameter with minimum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+					tprintf( "Parameter with maximum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+					tprintf( "Parameter with minimum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 				}
 				for( i = 0 ; i < m; ++i ) /* update p's estimate */
 					p_old2[i] = p[i];
@@ -632,8 +632,8 @@ int LEVMAR_DER2(
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
 			{
 				if( diag_jacTjac[i] > tmp ) tmp = diag_jacTjac[i]; /* find max diagonal element */
-				if( diag_jacTjac[i] < DBL_EPSILON && op->cd->ldebug && op->cd->paranoid ) tprintf( "WARNING: Parameter %s is NOT impacting model predictions (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
-				else if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) tprintf( "WARNING: Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
+				if( diag_jacTjac[i] < DBL_EPSILON && op->cd->ldebug && op->cd->paranoid ) tprintf( "WARNING: Parameter %s is NOT impacting model predictions (JTJ diagonal %g)\n", op->pd->var_name[op->pd->var_index[i]], diag_jacTjac[i] );
+				else if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) tprintf( "WARNING: Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_name[op->pd->var_index[i]], diag_jacTjac[i] );
 			}
 			if( tmp > 1e4 ) tmp = 1e4;
 			mu = tau * tmp;
@@ -763,7 +763,7 @@ int LEVMAR_DER2(
 					for( i = 0; i < m; i++ )
 					{
 						j = op->pd->var_index[i];
-						tprintf( "%-30s:", op->pd->var_id[j] );
+						tprintf( "%-30s:", op->pd->var_name[j] );
 						if( op->cd->ldebug > 3 )
 						{
 							if( op->pd->var_log[j] ) tprintf( " %12g", pow( 10, jac_max[i] ) );
@@ -788,8 +788,8 @@ int LEVMAR_DER2(
 					tprintf( "Parameters did not change between last two liner solves (lambda searches).\n" );
 				else
 				{
-					tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-					tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+					tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+					tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 				}
 				for( i = 0 ; i < m; i++ ) /* update p's estimate */
 					p_old[i] = pDp[i];
@@ -971,8 +971,8 @@ int LEVMAR_DER2(
 			if( max_change < p_diff ) { max_change = p_diff; ipar_max = i; }
 			if( min_change > p_diff ) { min_change = p_diff; ipar_min = i; }
 		}
-		tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-		tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+		tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+		tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 		for( i = 0 ; i < m; ++i ) /* update p's estimate */
 			p_old[i] = pDp[i];
 	}
@@ -1245,7 +1245,7 @@ int LEVMAR_DER(
 		for( i = 0; i < m; i++ )
 		{
 			j = op->pd->var_index[i];
-			tprintf( "%-20s:", op->pd->var_id[j] );
+			tprintf( "%-20s:", op->pd->var_name[j] );
 			if( op->pd->var_log[j] ) tprintf( " %g", pow( 10, jac_min[i] ) );
 			else tprintf( " %g", jac_min[i] );
 			tprintf( "\n" );
@@ -1338,7 +1338,7 @@ int LEVMAR_DER(
 				char *s;
 				tprintf( "Parameters:" ); for( i = 0; i < op->pd->nOptParam; i++ )
 				{
-					s = op->pd->var_id[op->pd->var_index[i]];
+					s = op->pd->var_name[op->pd->var_index[i]];
 					if( strlen( s ) < 7 ) tprintf( " %s", s );
 					else tprintf( " p%d", i );
 				}
@@ -1436,7 +1436,7 @@ int LEVMAR_DER(
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				if( jac_max[i] > DBL_EPSILON ) ok++;
-				else { if( op->cd->ldebug ) tprintf( "WARNING: Model parameter \'%s\' is not impacting model predictions!\n", op->pd->var_id[op->pd->var_index[i]] ); }
+				else { if( op->cd->ldebug ) tprintf( "WARNING: Model parameter \'%s\' is not impacting model predictions!\n", op->pd->var_name[op->pd->var_index[i]] ); }
 			}
 			if( ok == 0 )
 			{
@@ -1447,8 +1447,8 @@ int LEVMAR_DER(
 			// Jacobian matrix analyses: print absolute sensitivity ranges
 			if( op->cd->ldebug > 1 )
 			{
-				tprintf( "Highest absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imax + 1, op->pd->var_id[op->pd->var_index[imax]], omax + 1, op->od->obs_id[omax], max );
-				tprintf( "Lowest  absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imin + 1, op->pd->var_id[op->pd->var_index[imin]], omin + 1, op->od->obs_id[omin], min );
+				tprintf( "Highest absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imax + 1, op->pd->var_name[op->pd->var_index[imax]], omax + 1, op->od->obs_id[omax], max );
+				tprintf( "Lowest  absolute sensitivity (parameter #%d \'%s\' vs observation #%d \'%s\'): %g\n", imin + 1, op->pd->var_name[op->pd->var_index[imin]], omin + 1, op->od->obs_id[omin], min );
 				if( op->cd->ldebug > 2 )
 				{
 					char *s;
@@ -1456,7 +1456,7 @@ int LEVMAR_DER(
 					tprintf( "\nModel parameters          :" );
 					for( i = 0; i < op->pd->nOptParam; i++ )
 					{
-						s = op->pd->var_id[op->pd->var_index[i]];
+						s = op->pd->var_name[op->pd->var_index[i]];
 						if( strlen( s ) < 7 ) tprintf( " %s", s );
 						else tprintf( " p%d", i );
 					}
@@ -1588,8 +1588,8 @@ int LEVMAR_DER(
 					tprintf( "Parameters did not change between last two jacobian iterations.\n" );
 				else
 				{
-					tprintf( "Parameter with maximum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-					tprintf( "Parameter with minimum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+					tprintf( "Parameter with maximum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+					tprintf( "Parameter with minimum estimate change between jacobian iterations: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 				}
 				for( i = 0 ; i < m; ++i ) /* update p's estimate */
 					p_old2[i] = p[i];
@@ -1611,8 +1611,8 @@ int LEVMAR_DER(
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
 			{
 				if( diag_jacTjac[i] > tmp ) tmp = diag_jacTjac[i]; /* find max diagonal element */
-				if( diag_jacTjac[i] < DBL_EPSILON && op->cd->ldebug && op->cd->paranoid ) tprintf( "WARNING: Parameter %s is NOT impacting model predictions (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
-				else if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) tprintf( "WARNING: Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_id[op->pd->var_index[i]], diag_jacTjac[i] );
+				if( diag_jacTjac[i] < DBL_EPSILON && op->cd->ldebug && op->cd->paranoid ) tprintf( "WARNING: Parameter %s is NOT impacting model predictions (JTJ diagonal %g)\n", op->pd->var_name[op->pd->var_index[i]], diag_jacTjac[i] );
+				else if( op->cd->ldebug > 2 && diag_jacTjac[i] < 1 ) tprintf( "WARNING: Parameter %s is not very sensitive (JTJ diagonal %g)\n", op->pd->var_name[op->pd->var_index[i]], diag_jacTjac[i] );
 			}
 			if( tmp > 1e4 ) tmp = 1e4;
 			mu = tau * tmp;
@@ -1742,7 +1742,7 @@ int LEVMAR_DER(
 					for( i = 0; i < m; i++ )
 					{
 						j = op->pd->var_index[i];
-						tprintf( "%-30s:", op->pd->var_id[j] );
+						tprintf( "%-30s:", op->pd->var_name[j] );
 						if( op->cd->ldebug > 3 )
 						{
 							if( op->pd->var_log[j] ) tprintf( " %12g", pow( 10, jac_max[i] ) );
@@ -1767,8 +1767,8 @@ int LEVMAR_DER(
 					tprintf( "Parameters did not change between last two liner solves (lambda searches).\n" );
 				else
 				{
-					tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-					tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+					tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+					tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 				}
 				for( i = 0 ; i < m; i++ ) /* update p's estimate */
 					p_old[i] = pDp[i];
@@ -1950,8 +1950,8 @@ int LEVMAR_DER(
 			if( max_change < p_diff ) { max_change = p_diff; ipar_max = i; }
 			if( min_change > p_diff ) { min_change = p_diff; ipar_min = i; }
 		}
-		tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-		tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_id[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
+		tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+		tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 		for( i = 0 ; i < m; ++i ) /* update p's estimate */
 			p_old[i] = pDp[i];
 	}

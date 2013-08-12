@@ -40,6 +40,7 @@ FILE *Fwrite( char *filename );
 FILE *Fappend( char *filename );
 char *Fdatetime( char *filename, int debug );
 time_t Fdatetime_t( char *filename, int debug );
+void removeChars( char *str, char *garbage );
 /* Functions elsewhere */
 void tprintf( char const *fmt, ... );
 
@@ -121,4 +122,18 @@ time_t Fdatetime_t( char *filename, int debug )
 		return( b.st_mtime );
 	}
 	else { if( debug ) printf( "File %s: cannot display the time\n", filename ); return( 0 ); }
+}
+
+void removeChars( char *str, char *garbage )
+{
+	char *src, *dst, *ch;
+	for( ch = garbage; *ch != '\0'; ch++ )
+	{
+		for( src = dst = str; *src != '\0'; src++ )
+		{
+			*dst = *src;
+			if( *dst != *ch ) dst++;
+		}
+		*dst = '\0';
+	}
 }

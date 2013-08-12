@@ -70,7 +70,8 @@ int set_test_problems( struct opt_data *op )
 	}
 	pd->nParam = pd->nOptParam = cd->test_func_npar;
 	pd->nFlgParam = 0;
-	pd->var_id = char_matrix( pd->nParam, 50 );
+	pd->var_name = char_matrix( pd->nParam, 50 );
+	pd->var_id = char_matrix( pd->nParam, 10 );
 	pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_opt = ( int * ) malloc( pd->nParam * sizeof( int ) );
@@ -85,7 +86,8 @@ int set_test_problems( struct opt_data *op )
 	pd->var_best = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
 	for( d = 0; d < pd->nParam; d++ )
 	{
-		sprintf( pd->var_id[d], "Parameter #%d", d + 1 );
+		sprintf( pd->var_name[d], "Parameter #%d", d + 1 );
+		sprintf( pd->var_id[d], "p%d", d + 1 );
 		pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0;
 		pd->var_max[d] = cd->pardomain; pd->var_min[d] = -pd->var_max[d]; pd->var_log[d] = 0; pd->var_opt[d] = 1;
 		pd->var_dx[d] = cd->pardx;

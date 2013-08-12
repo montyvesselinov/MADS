@@ -285,7 +285,7 @@ int main( int argn, char *argv[] )
 	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
 	if( Ftest( buf ) == 0 ) // If file already exists quit ...
 	{
-		tprintf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n\n", op.root, buf );
+		tprintf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
 		// tprintf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
 		// tprintf( "Delete %s to execute (sorry for the inconvenience)!\n", buf );
 		// exit( 0 );
@@ -440,17 +440,17 @@ int main( int argn, char *argv[] )
 		bad_data = 0;
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
-			if( check_par_tpl( pd.nParam, pd.var_id, cd.var, ed.fn_tpl[i], cd.tpldebug ) == -1 )
+			if( check_par_tpl( pd.nParam, pd.var_name, cd.var, ed.fn_tpl[i], cd.tpldebug ) == -1 )
 				bad_data = 1;
 		for( i = 0; i < pd.nParam; i++ )
 		{
 			if( cd.var[i] < 0 )
 			{
-				tprintf( "ERROR: Model parameter \'%s\' is not represented in the template file(s)!\n", pd.var_id[i] );
+				tprintf( "ERROR: Model parameter \'%s\' is not represented in the template file(s)!\n", pd.var_name[i] );
 				bad_data = 1;
 			}
 			else if( cd.var[i] > 1.5 )
-				tprintf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_id[i], ( int ) cd.var[i] );
+				tprintf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_name[i], ( int ) cd.var[i] );
 		}
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
 		if( ed.nins <= 0 ) { tprintf( "ERROR: No instruction file(s)!\n" ); bad_data = 1; }
@@ -723,7 +723,7 @@ int main( int argn, char *argv[] )
 						k++;
 						if( pd.var_log[i] ) pd.var[i] = log10( pd.var[i] );
 						cd.var[i] = pd.var[i];
-						if( cd.debug ) tprintf( "%s %g\n", pd.var_id[i], pd.var[i] );
+						if( cd.debug ) tprintf( "%s %g\n", pd.var_name[i], pd.var[i] );
 					}
 					if( cd.debug ) tprintf( "Number of initialized fixed parameters in previous PPSD simulation = %d\n", k );
 					if( pd.nFlgParam != k )
@@ -784,7 +784,7 @@ int main( int argn, char *argv[] )
 						k++;
 						if( pd.var_log[i] ) pd.var[i] = log10( pd.var[i] );
 						cd.var[i] = pd.var[i];
-						if( cd.debug ) tprintf( "%s %g\n", pd.var_id[i], pd.var[i] );
+						if( cd.debug ) tprintf( "%s %g\n", pd.var_name[i], pd.var[i] );
 						i++;
 					}
 				}
@@ -845,11 +845,11 @@ int main( int argn, char *argv[] )
 			fprintf( out, "Model parameter values:\n" );
 			for( i = 0; i < pd.nParam; i++ )
 			{
-				if( pd.var_id[i][0] == 0 ) continue;
+				if( pd.var_name[i][0] == 0 ) continue;
 				if( pd.var_opt[i] && pd.var_log[i] ) cd.var[i] = pow( 10, pd.var[i] );
 				else cd.var[i] = pd.var[i];
-				tprintf( "%s %g\n", pd.var_id[i], cd.var[i] );
-				fprintf( out, "%s %g\n", pd.var_id[i], cd.var[i] );
+				tprintf( "%s %g\n", pd.var_name[i], cd.var[i] );
+				fprintf( out, "%s %g\n", pd.var_name[i], cd.var[i] );
 			}
 			fflush( out );
 			if( od.nTObs > 0 || wd.nW > 0 )
@@ -1156,8 +1156,8 @@ int optimize_lm( struct opt_data *op )
 						opt_params[i] = op->pd->var[k];
 						if( debug > 1 )
 						{
-							if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
-							else tprintf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
+							if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_name[k], pow( 10, opt_params[i] ) );
+							else tprintf( "%s %.15g\n", op->pd->var_name[k], opt_params[i] );
 						}
 					}
 				}
@@ -1170,8 +1170,8 @@ int optimize_lm( struct opt_data *op )
 						opt_params[i] = op->pd->var[k];
 						if( debug > 1 )
 						{
-							if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
-							else tprintf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
+							if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_name[k], pow( 10, opt_params[i] ) );
+							else tprintf( "%s %.15g\n", op->pd->var_name[k], opt_params[i] );
 						}
 					}
 				}
@@ -1186,8 +1186,8 @@ int optimize_lm( struct opt_data *op )
 					opt_params[i] = var_lhs[i + count_set * nParam] * op->pd->var_range[k] + op->pd->var_min[k];
 					if( debug > 1 )
 					{
-						if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_id[k], pow( 10, opt_params[i] ) );
-						else tprintf( "%s %.15g\n", op->pd->var_id[k], opt_params[i] );
+						if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_name[k], pow( 10, opt_params[i] ) );
+						else tprintf( "%s %.15g\n", op->pd->var_name[k], opt_params[i] );
 					}
 				}
 				count_set++;
@@ -1454,7 +1454,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		tprintf( "\n" );
 		for( k = i = 0; i < op->pd->nOptParam; i++ )
 		{
-			tprintf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+			tprintf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = 0; j < op->od->nTObs; j++ )
 			{
 				eps = gsl_matrix_get( gsl_jacobian, j, i );
@@ -1485,7 +1485,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	out = Fwrite( filename );
 	fprintf( out, "%-25s :", "Parameters" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
-		fprintf( out, " \"%s\"", op->pd->var_id[op->pd->var_index[i]] );
+		fprintf( out, " \"%s\"", op->pd->var_name[op->pd->var_index[i]] );
 	fprintf( out, "\n" );
 	for( j = 0; j < op->od->nTObs; j++ )
 	{
@@ -1509,7 +1509,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		else tprintf( "\nCovariance matrix (provided externally)\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			tprintf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+			tprintf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = 0; j < op->pd->nOptParam; j++ )
 				tprintf( " %7.0e", gsl_matrix_get( gsl_covar, i, j ) );
 			tprintf( "\n" );
@@ -1522,7 +1522,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	out = Fwrite( filename );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
-		fprintf( out, "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+		fprintf( out, "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
 		for( j = 0; j < op->pd->nOptParam; j++ )
 			fprintf( out, " %g", gsl_matrix_get( gsl_covar, i, j ) );
 		fprintf( out, "\n" );
@@ -1546,7 +1546,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			tprintf( "\nCorrelation matrix\n" );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
-				tprintf( "%-25s : ", op->pd->var_id[op->pd->var_index[i]] );
+				tprintf( "%-25s : ", op->pd->var_name[op->pd->var_index[i]] );
 				for( j = 0; j < op->pd->nOptParam; j++ )
 					tprintf( " %6.3f", gsl_matrix_get( gsl_covar, i, j ) / ( stddev[i] * stddev[j] ) );
 				tprintf( "\n" );
@@ -1559,7 +1559,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		out = Fwrite( filename );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			fprintf( out, "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+			fprintf( out, "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = 0; j < op->pd->nOptParam; j++ )
 				fprintf( out, " %g", gsl_matrix_get( gsl_covar, i, j ) / ( stddev[i] * stddev[j] ) );
 			fprintf( out, "\n" );
@@ -1574,7 +1574,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			gsl_eigen_symmv_sort( eigenval, eigenvec, GSL_EIGEN_SORT_ABS_ASC );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
-				tprintf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+				tprintf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
 				for( j = 0; j < op->pd->nOptParam; j++ )
 					tprintf( " %6.3f", gsl_matrix_get( eigenvec, i, j ) );
 				tprintf( "\n" );
@@ -1587,7 +1587,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			gsl_eigen_symmv_sort( eigenval, eigenvec, GSL_EIGEN_SORT_VAL_ASC );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
-				tprintf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+				tprintf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
 				for( j = 0; j < op->pd->nOptParam; j++ )
 					tprintf( " %6.3f", gsl_matrix_get( eigenvec, i, j ) );
 				tprintf( "\n" );
@@ -1605,7 +1605,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		out = Fwrite( filename );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			fprintf( out, "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+			fprintf( out, "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = op->pd->nOptParam - 1; j >= 0; j-- )
 				fprintf( out, " %g", gsl_matrix_get( eigenvec, i, j ) );
 			fprintf( out, "\n" );
@@ -1708,12 +1708,12 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		{
 			if( dof > 0 )
 			{
-				tprintf( "%-40s : %12g stddev %12g (%12g - %12g)", op->pd->var_id[k], opt_params[i], stddev[i], x_d[i], x_u[i] );
+				tprintf( "%-40s : %12g stddev %12g (%12g - %12g)", op->pd->var_name[k], opt_params[i], stddev[i], x_d[i], x_u[i] );
 				if( status ) tprintf( " Uncertainty ranges constrained by prior bounds\n" );
 				else tprintf( "\n" );
 			}
 			else
-				tprintf( "%-40s : %12g -- Uncertainty ranges cannot be estimated\n", op->pd->var_id[k], opt_params[i] );
+				tprintf( "%-40s : %12g -- Uncertainty ranges cannot be estimated\n", op->pd->var_name[k], opt_params[i] );
 		}
 	}
 	DeTransform( x_u, op, x_u );
@@ -1724,7 +1724,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
 			k = op->pd->var_index[i];
-			tprintf( "%-40s : ", op->pd->var_id[k] );
+			tprintf( "%-40s : ", op->pd->var_name[k] );
 			if( dof > 0 )
 			{
 				if( op->pd->var_log[k] == 0 ) tprintf( "%12g stddev %12g (%12g - %12g)", op->pd->var[k], stddev[i], x_d[i], x_u[i] );
@@ -1758,7 +1758,7 @@ int check( struct opt_data *op )
 	struct opt_data *p = ( struct opt_data * )op;
 	int i, bad_data = 0;
 	for( i = 0; i < p->ed->ntpl; i++ )
-		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug + 1 ) == -1 )
+		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug + 1 ) == -1 )
 			bad_data = 1;
 	for( i = 0; i < p->od->nTObs; i++ ) p->od->obs_current[i] = p->od->res[i] = 0;
 	for( i = 0; i < p->ed->nins; i++ )
@@ -1901,12 +1901,12 @@ int igrnd( struct opt_data *op )
 				op->pd->var[i] = var_lhs[k + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
 				if( op->pd->var_log[i] )
 				{
-					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_id[i], pow( 10, op->pd->var[i] ) );
+					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_name[i], pow( 10, op->pd->var[i] ) );
 					fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
 				}
 				else
 				{
-					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_id[i], op->pd->var[i] );
+					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_name[i], op->pd->var[i] );
 					fprintf( out, " %.15g", op->pd->var[i] );
 				}
 				k++;
@@ -2060,8 +2060,8 @@ int igrnd( struct opt_data *op )
 		fprintf( out2, "Statistics of all the model parameter estimates:\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ ) // Posterior parameter statistics for all simulations
 		{
-			tprintf( "%-35s : average %12g min %12g max %12g\n", op->pd->var_id[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
-			fprintf( out2, "%-35s : average %12g min %12g max %12g\n", op->pd->var_id[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
+			tprintf( "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
+			fprintf( out2, "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
 		}
 		if( success_global > 0 || phi_global > 0 )
 		{
@@ -2070,8 +2070,8 @@ int igrnd( struct opt_data *op )
 			k = success_global + phi_global;
 			for( i = 0; i < op->pd->nOptParam; i++ ) // Posterior parameter statistics for all simulations
 			{
-				tprintf( "%-35s : average %12g min %12g max %12g\n", op->pd->var_id[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
-				fprintf( out2, "%-35s : average %12g min %12g max %12g\n", op->pd->var_id[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
+				tprintf( "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
+				fprintf( out2, "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
 			}
 		}
 	}
@@ -2163,7 +2163,7 @@ int igpd( struct opt_data *op )
 				op->pd->var[i] = orig_params[i];
 				if( op->pd->var_opt[i] == 2 ) // Print flagged parameters
 				{
-					tprintf( "%s %g\n", op->pd->var_id[i], orig_params[i] );
+					tprintf( "%s %g\n", op->pd->var_name[i], orig_params[i] );
 					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, orig_params[i] ) );
 					else fprintf( out, " %.15g", orig_params[i] );
 				}
@@ -2333,7 +2333,7 @@ int ppsd( struct opt_data *op )
 				op->cd->var[i] = op->pd->var[i] = orig_params[i]; // these are the true original parameters
 				if( op->pd->var_opt[i] == 2 ) // Print only flagged parameters
 				{
-					tprintf( "%s %g\n", op->pd->var_id[i], op->cd->var[i] );
+					tprintf( "%s %g\n", op->pd->var_name[i], op->cd->var[i] );
 					fprintf( out, "%g ", op->cd->var[i] );
 				}
 			}
@@ -2350,7 +2350,7 @@ int ppsd( struct opt_data *op )
 						for( i = 0; i < op->pd->nParam; i++ )
 							if( orig_opt[i] == 2 )
 							{
-								tprintf( "%s %g\n", op->pd->var_id[i], op->cd->var[i] );
+								tprintf( "%s %g\n", op->pd->var_name[i], op->cd->var[i] );
 								fprintf( out, "%g ", op->cd->var[i] );
 								if( orig_params[i] < op->pd->var_max[i] )
 								{
@@ -2536,8 +2536,8 @@ int montecarlo( struct opt_data *op )
 			{
 				tprintf( "\nRandom parameter values:\n" );
 				for( i = 0; i < op->pd->nOptParam; i++ )
-					if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_id[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
-					else tprintf( "%s %g\n", op->pd->var_id[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );
+					if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
+					else tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );
 			}
 			for( i = 0; i < op->pd->nParam; i++ )
 				if( op->pd->var_opt[i] >= 1 )
@@ -2635,8 +2635,8 @@ int montecarlo( struct opt_data *op )
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					j = op->pd->var_index[i];
-					if( op->pd->var_log[j] == 0 ) tprintf( "%s %g\n", op->pd->var_id[j], op->pd->var[j] );
-					else tprintf( "%s %g\n", op->pd->var_id[j], pow( 10, op->pd->var[j] ) );
+					if( op->pd->var_log[j] == 0 ) tprintf( "%s %g\n", op->pd->var_name[j], op->pd->var[j] );
+					else tprintf( "%s %g\n", op->pd->var_name[j], pow( 10, op->pd->var[j] ) );
 				}
 			}
 			if( op->cd->mdebug > 1 ) { tprintf( "\nPredicted calibration targets:\n" ); print_results( op, 1 ); }
@@ -2740,17 +2740,16 @@ void print_results( struct opt_data *op, int verbosity )
 		k = op->pd->var_index[i];
 		if( op->pd->var_log[k] == 0 ) op->cd->var[k] = op->pd->var[k];
 		else op->cd->var[k] = pow( 10, op->pd->var[k] );
-		tprintf( "%s %g\n", op->pd->var_id[k], op->cd->var[k] );
+		tprintf( "%s %g\n", op->pd->var_name[k], op->cd->var[k] );
 	}
 	if( verbosity > 0 && op->pd->nExpParam > 0 ) tprintf( "Tied model parameters:\n" );
 #ifdef MATHEVAL
 	for( i = 0; i < op->pd->nExpParam; i++ )
 	{
 		k = op->pd->param_expressions_index[i];
-		tprintf( "%s = ", op->pd->var_id[k] );
-		tprintf( "%s", evaluator_get_string( op->pd->param_expressions[i] ) );
-		if( op->cd->solution_type[0] == EXTERNAL ) op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id, op->cd->var );
-		else op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id_short, op->cd->var );
+		tprintf( "%s = ", op->pd->var_name[k] );
+		tprintf( "%s", evaluator_get_string( op->pd->param_expression[i] ) );
+		op->pd->var[k] = evaluator_evaluate( op->pd->param_expression[i], op->pd->nParam, op->pd->var_id, op->cd->var );
 		tprintf( " = %g\n", op->pd->var[k] );
 	}
 #else
@@ -2936,17 +2935,16 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		k = op->pd->var_index[i];
 		if( op->pd->var_log[k] == 0 ) op->cd->var[k] = op->pd->var[k];
 		else op->cd->var[k] = pow( 10, op->pd->var[k] );
-		fprintf( out, "%s %g\n", op->pd->var_id[k], op->cd->var[k] );
+		fprintf( out, "%s %g\n", op->pd->var_name[k], op->cd->var[k] );
 	}
 	if( op->pd->nExpParam > 0 ) fprintf( out, "Tied model parameters:\n" );
 #ifdef MATHEVAL
 	for( i = 0; i < op->pd->nExpParam; i++ )
 	{
 		k = op->pd->param_expressions_index[i];
-		fprintf( out, "%s = ", op->pd->var_id[k] );
-		fprintf( out, "%s", evaluator_get_string( op->pd->param_expressions[i] ) );
-		if( op->cd->solution_type[0] == EXTERNAL ) op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id, op->cd->var );
-		else op->pd->var[k] = evaluator_evaluate( op->pd->param_expressions[i], op->pd->nParam, op->pd->var_id_short, op->cd->var );
+		fprintf( out, "%s = ", op->pd->var_name[k] );
+		fprintf( out, "%s", evaluator_get_string( op->pd->param_expression[i] ) );
+		op->pd->var[k] = evaluator_evaluate( op->pd->param_expression[i], op->pd->nParam, op->pd->var_id, op->cd->var );
 		fprintf( out, " = %g\n", op->pd->var[k] );
 	}
 #else

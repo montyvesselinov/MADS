@@ -98,7 +98,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 	f.p = op->pd->nOptParam;
 	f.params = op;
 	if( strstr( op->cd->opt_method, "uns" ) == NULL ) { printf( "Levenberg-Marquardt scalled GSL version (diagonal elements are not modified)\n" ); solver_type = gsl_multifit_fdfsolver_lmsder; } // LM method Scalled version
-	else { printf( "Levenberg–Marquardt unscalled GSL version (diagonal elements set to 1)\n" ); solver_type = gsl_multifit_fdfsolver_lmder; } // LM method Unscalled version
+	else { printf( "Levenberg-Marquardt unscalled GSL version (diagonal elements set to 1)\n" ); solver_type = gsl_multifit_fdfsolver_lmder; } // LM method Unscalled version
 	solver = gsl_multifit_fdfsolver_alloc( solver_type, op->od->nTObs, op->pd->nOptParam );
 	gsl_multifit_fdfsolver_set( solver, &f, opt_params );
 	chi = gsl_blas_dnrm2( solver->f );
@@ -121,7 +121,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 			gsl_multifit_covar( solver->J, 0.0, covar );
 			DeTransform( solver->x->data, op, x_c );
 			for( i = 0; i < op->pd->nOptParam; i++ )
-				printf( "%-40s : %g -> %g = %g +/- %g\n", op->pd->var_id[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]], x_c[i], FIT( i ), stddev_scale * STDDEV( i ) );
+				printf( "%-40s : %g -> %g = %g +/- %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]], x_c[i], FIT( i ), stddev_scale * STDDEV( i ) );
 			for( k = 0, i = 0; i < op->wd->nW; i++ )
 				for( j = 0; j < op->wd->nWellObs[i]; j++ )
 					if( op->wd->obs_weight[i][j] > 0 )
@@ -140,7 +140,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 			printf( "\n" );
 			for( k = i = 0; i < op->pd->nOptParam; i++ )
 			{
-				printf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+				printf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
 				for( j = 0; j < op->od->nTObs; j++, k++ )
 				{
 					eps = gsl_matrix_get( solver->J, j, i );
@@ -233,7 +233,7 @@ int func_gsl_deriv_dx( const gsl_vector *x, void *data, gsl_matrix *J ) /* Numer
 	for( j = 0; j < p->pd->nOptParam; j++ )
 	{
 		gsl_vector_memcpy( p->pd->var_current_gsl, x );
-//		printf( "Param %s\n", p->pd->var_id[p->pd->var_index[j]] );
+//		printf( "Param %s\n", p->pd->par_id[p->pd->var_index[j]] );
 		p->cd->pderiv = j;
 		x_old = gsl_vector_get( x, j );
 		if( p->cd->sintrans == 0 ) dx = p->pd->var_dx[j];
@@ -243,8 +243,8 @@ int func_gsl_deriv_dx( const gsl_vector *x, void *data, gsl_matrix *J ) /* Numer
 			p->cd->oderiv = i;
 			gsl_deriv_forward( &F, x_old, dx, &result, &abserr ); // Avoid using central when SIN transformation is applied
 			gsl_matrix_set( J, i, j, result ); // first obs, second param
-//			printf("grad param %s obs %d val %g %g grad %g err %g\n", p->pd->var_id[p->pd->var_index[j]], i, x_old, dx, result, abserr );
-//			printf("grad param %s obs %d grad %g err %g\n", p->pd->var_id[p->pd->var_index[j]], i, result, abserr );
+//			printf("grad param %s obs %d val %g %g grad %g err %g\n", p->pd->par_id[p->pd->var_index[j]], i, x_old, dx, result, abserr );
+//			printf("grad param %s obs %d grad %g err %g\n", p->pd->par_id[p->pd->var_index[j]], i, result, abserr );
 		}
 	}
 	p->cd->pderiv = p->cd->oderiv = -1;

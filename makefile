@@ -242,6 +242,7 @@ verify-contaminant:
 	@echo "TEST 3.6: Problem example/contamination/s02 with regularization terms for optimized model parameters ..."
 	rm -f example/contamination/s02regul.results
 	./mads example/contamination/s02regul obs_int=2 > /dev/null
+	@$(CMP) example/contamination/s02regul.mads_output example/contamination/s02regul.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s02regul.results example/contamination/s02regul.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"

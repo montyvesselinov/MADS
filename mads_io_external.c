@@ -88,7 +88,7 @@ int load_pst( char *filename, struct opt_data *op )
 	fgets( buf, 1000, in );
 	sscanf( buf, "%d %d", &ed->ntpl, &ed->nins );
 	tprintf( "Number of template files = %d\nNumber of instruction files = %d\n", ed->ntpl, ed->nins );
-	pd->var_id = char_matrix( pd->nParam, 50 );
+	pd->var_name = char_matrix( pd->nParam, 50 );
 	pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_current = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_best = ( double * ) malloc( pd->nParam * sizeof( double ) );
@@ -109,8 +109,8 @@ int load_pst( char *filename, struct opt_data *op )
 	pd->nOptParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
 	{
-		fscanf( in, "%s %s %*s %lf %lf %lf %*s %*f %*f %*f\n", pd->var_id[i], code, &pd->var[i], &pd->var_min[i], &pd->var_max[i] );
-		tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
+		fscanf( in, "%s %s %*s %lf %lf %lf %*s %*f %*f %*f\n", pd->var_name[i], code, &pd->var[i], &pd->var_min[i], &pd->var_max[i] );
+		tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_name[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
 		if( strcmp( code, "fixed" ) == 0 ) pd->var_opt[i] = 0; else { pd->nOptParam++; pd->var_opt[i] = 1; }
 		if( strcmp( code, "log" ) == 0 ) pd->var_log[i] = 1; else pd->var_log[i] = 0;
 		if( pd->var_log[i] == 1 )
@@ -128,14 +128,14 @@ int load_pst( char *filename, struct opt_data *op )
 		if( pd->var_opt[i] == 1 )
 		{
 			if( pd->var_log[i] == 1 ) d = log10( pd->var[i] ); else d = pd->var[i];
-			tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_id[i], d, pd->var_min[i], pd->var_max[i] );
+			tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_name[i], d, pd->var_min[i], pd->var_max[i] );
 			pd->var_index[k++] = i;
 		}
 	for( i = 0; i < pd->nParam; i++ )
 		for( j = i + 1; j < pd->nParam; j++ )
-			if( strcmp( pd->var_id[i], pd->var_id[j] ) == 0 )
+			if( strcmp( pd->var_name[i], pd->var_name[j] ) == 0 )
 			{
-				tprintf( "ERROR: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] );
+				tprintf( "ERROR: Parameter names #%i (%s) and #%i (%s) are identical!\n", i + 1, pd->var_name[i], j + 1, pd->var_name[j] );
 				bad_data = 1;
 			}
 	if( bad_data ) return( 0 );

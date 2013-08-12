@@ -201,7 +201,7 @@ int infogap( struct opt_data *op )
 		fprintf( outfl, " %-12s", op->preds->obs_id[k] );
 		fprintf( outfl, " OFmax OF" );
 		for( i = 0; i < npar; i++ )
-			fprintf( outfl, " (%-12s)", op->pd->var_id[i] );
+			fprintf( outfl, " (%-12s)", op->pd->var_name[i] );
 		fprintf( outfl, "\n" );
 		maxof = gsl_matrix_get( ig_mat, gsl_permutation_get( p, 0 ), *nPreds );
 		for( i = 0; i < nrow; i++ )

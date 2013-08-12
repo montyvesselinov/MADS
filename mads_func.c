@@ -93,7 +93,7 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
 		if( p->cd->fdebug >= 3 )
-			tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
+			tprintf( "%s %.12g\n", p->pd->var_name[k], p->cd->var[k] );
 	}
 	if( p->pd->nExpParam > 0 )
 	{
@@ -102,8 +102,8 @@ int func_extrn( double *x, void *data, double *f )
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
-			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
-			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
+			p->cd->var[k] = evaluator_evaluate( p->pd->param_expression[i], p->pd->nParam, p->pd->var_name, p->cd->var );
+			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_name[k], evaluator_get_string( p->pd->param_expression[i] ), p->cd->var[k] );
 		}
 #else
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
@@ -118,7 +118,7 @@ int func_extrn( double *x, void *data, double *f )
 			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
-					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
+					tprintf( "%s %.12g\n", p->pd->var_name[i], p->cd->var[i] );
 		}
 	}
 	if( p->cd->fdebug >= 4 )
@@ -135,7 +135,7 @@ int func_extrn( double *x, void *data, double *f )
 		}
 	}
 	for( i = 0; i < p->ed->ntpl; i++ )
-		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug ) == -1 )
+		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug ) == -1 )
 			exit( -1 );
 	strcpy( buf, "rm -f " );
 	for( i = 0; i < p->ed->nins; i++ )
@@ -170,7 +170,7 @@ int func_extrn( double *x, void *data, double *f )
 	if( bad_data ) exit( -1 );
 #ifdef MATHEVAL
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
-		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id, p->cd->var );
+		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expression[i - p->od->nObs], p->rd->regul_nMap, p->rd->regul_map_id, p->rd->regul_map_val );
 #else
 	if( p->od->nObs < p->od->nTObs )
 	{
@@ -260,7 +260,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
 		if( p->cd->fdebug >= 3 )
-			tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
+			tprintf( "%s %.12g\n", p->pd->var_name[k], p->cd->var[k] );
 	}
 	if( p->pd->nExpParam > 0 )
 	{
@@ -269,8 +269,8 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
-			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id, p->cd->var );
-			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
+			p->cd->var[k] = evaluator_evaluate( p->pd->param_expression[i], p->pd->nParam, p->pd->var_name, p->cd->var );
+			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_name[k], evaluator_get_string( p->pd->param_expression[i] ), p->cd->var[k] );
 		}
 #else
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
@@ -285,7 +285,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
-					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
+					tprintf( "%s %.12g\n", p->pd->var_name[i], p->cd->var[i] );
 		}
 	}
 	if( p->cd->fdebug >= 4 )
@@ -316,7 +316,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
-		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
+		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
 			exit( -1 );
 	}
 	// Update model input files in zip restart files
@@ -452,7 +452,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
 #ifdef MATHEVAL
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
-		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expressions[i - p->od->nObs], p->pd->nParam, p->pd->var_id, p->cd->var );
+		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expression[i - p->od->nObs], p->rd->regul_nMap, p->rd->regul_map_id, p->rd->regul_map_val );
 #else
 	if( p->od->nObs < p->od->nTObs )
 	{
@@ -551,7 +551,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
-		if( p->cd->fdebug >= 3 ) tprintf( "%s %.12g\n", p->pd->var_id[k], p->cd->var[k] );
+		if( p->cd->fdebug >= 3 ) tprintf( "%s %.12g\n", p->pd->var_name[k], p->cd->var[k] );
 	}
 	if( p->pd->nExpParam > 0 )
 	{
@@ -560,8 +560,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
-			p->cd->var[k] = evaluator_evaluate( p->pd->param_expressions[i], p->pd->nParam, p->pd->var_id_short, p->cd->var );
-			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_id[k], evaluator_get_string( p->pd->param_expressions[i] ), p->cd->var[k] );
+			p->cd->var[k] = evaluator_evaluate( p->pd->param_expression[i], p->pd->nParam, p->pd->var_id, p->cd->var );
+			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_name[k], evaluator_get_string( p->pd->param_expression[i] ), p->cd->var[k] );
 		}
 #else
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
@@ -576,7 +576,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
-					tprintf( "%s %.12g\n", p->pd->var_id[i], p->cd->var[i] );
+					tprintf( "%s %.12g\n", p->pd->var_name[i], p->cd->var[i] );
 		}
 	}
 	if( p->cd->fdebug >= 4 )
@@ -670,7 +670,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			{
 				// regularization term
 #ifdef MATHEVAL
-				c = evaluator_evaluate( p->rd->regul_expressions[k - p->od->nObs], p->pd->nParam, p->pd->var_id_short, p->cd->var );
+				c = evaluator_evaluate( p->rd->regul_expression[k - p->od->nObs], p->rd->regul_nMap, p->rd->regul_map_id, p->rd->regul_map_val );
 #else
 				tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
 				exit( 0 );

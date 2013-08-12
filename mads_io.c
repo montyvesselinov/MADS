@@ -64,6 +64,7 @@ char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 char *str_replace( char *orig, char *rep, char *with ); // replace all string occurrences
 int set_optimized_params( struct opt_data *op );
+int map_obs( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
 
 /* Functions elsewhere */
@@ -74,6 +75,7 @@ int set_test_problems( struct opt_data *op );
 void *malloc_check( const char *what, size_t n );
 int Ftest( char *filename );
 FILE *Fread( char *filename );
+void removeChars( char *str, char *garbage );
 
 int set_param_id( struct opt_data *op )
 {
@@ -304,19 +306,19 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	tprintf( "\nProblem type: " );
 	switch( cd->problem_type )
 	{
-		case CHECK: tprintf( "check model setup and input/output files (no model execution)" ); break;
-		case CREATE: tprintf( "create a calibration input file based on a forward run (no calibration)" ); break;
-		case FORWARD: tprintf( "forward run (no calibration)" ); break;
-		case CALIBRATE: tprintf( "calibration" ); break;
-		case LOCALSENS: tprintf( "sensitivity analysis" ); break;
-		case EIGEN: tprintf( "eigen analysis" ); break;
-		case MONTECARLO: tprintf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
-		case GLOBALSENS: tprintf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
-		case ABAGUS: tprintf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
-		case GLUE: tprintf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
-		case INFOGAP: tprintf( "Info-gap decision analysis" ); break;
-		case POSTPUA: tprintf( "predictive uncertainty analysis of sampling results" ); break;
-		default: tprintf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
+	case CHECK: tprintf( "check model setup and input/output files (no model execution)" ); break;
+	case CREATE: tprintf( "create a calibration input file based on a forward run (no calibration)" ); break;
+	case FORWARD: tprintf( "forward run (no calibration)" ); break;
+	case CALIBRATE: tprintf( "calibration" ); break;
+	case LOCALSENS: tprintf( "sensitivity analysis" ); break;
+	case EIGEN: tprintf( "eigen analysis" ); break;
+	case MONTECARLO: tprintf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
+	case GLOBALSENS: tprintf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
+	case ABAGUS: tprintf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
+	case GLUE: tprintf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
+	case INFOGAP: tprintf( "Info-gap decision analysis" ); break;
+	case POSTPUA: tprintf( "predictive uncertainty analysis of sampling results" ); break;
+	default: tprintf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
 	tprintf( "\n" );
 	if( cd->resultsfile[0] != 0 )
@@ -342,11 +344,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		tprintf( "\nCalibration technique: " );
 		switch( cd->calib_type )
 		{
-			case IGRND: tprintf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
-			case IGPD: tprintf( "sequential calibration using a set discretized initial values" ); break;
-			case PPSD: tprintf( "sequential calibration using partial parameter parameter discretization" ); break;
-			case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
-			default: tprintf( "WARNING: unknown calibration type!\nASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
+		case IGRND: tprintf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
+		case IGPD: tprintf( "sequential calibration using a set discretized initial values" ); break;
+		case PPSD: tprintf( "sequential calibration using partial parameter parameter discretization" ); break;
+		case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
+		default: tprintf( "WARNING: unknown calibration type!\nASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
 		}
 		tprintf( "\n" );
 		if( cd->lm_eigen > 0 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
@@ -399,12 +401,12 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	{
 		switch( cd->objfunc_type )
 		{
-			case SSR: tprintf( "sum of squared residuals" ); break;
-			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
-			case SSDA: tprintf( "sum of squared discrepancies and residuals" ); break;
-			case SSD0: tprintf( "sum of squared discrepancies" ); break;
-			case SSDX: tprintf( "sum of squared discrepancies increased to get within the bounds" ); break;
-			default: tprintf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
+		case SSR: tprintf( "sum of squared residuals" ); break;
+		case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
+		case SSDA: tprintf( "sum of squared discrepancies and residuals" ); break;
+		case SSD0: tprintf( "sum of squared discrepancies" ); break;
+		case SSDX: tprintf( "sum of squared discrepancies increased to get within the bounds" ); break;
+		default: tprintf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
 		}
 	}
 	tprintf( "\n" );
@@ -568,15 +570,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( cd->num_sources > 1 ) tprintf( " (%d) ", c + 1 );
 		switch( cd->solution_type[c] )
 		{
-			case EXTERNAL: { tprintf( "external" ); strcat( cd->solution_id, "external" ); break; }
-			case POINT: { tprintf( "internal point contaminant source" ); strcat( cd->solution_id, "point" ); break; }
-			case PLANE: { tprintf( "internal rectangular contaminant source" ); strcat( cd->solution_id, "rect" ); break; }
-			case GAUSSIAN2D: { tprintf( "internal planar (2d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_2d" ); break; }
-			case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_3d" ); break; }
-			case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( cd->solution_id, "rect_vert" ); break; }
-			case BOX: { tprintf( "internal box contaminant source" ); strcat( cd->solution_id, "box" ); break; }
-			case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); sprintf( cd->solution_id, "test=%d", cd->test_func ); break; }
-			default: tprintf( "WARNING! UNDEFINED model type!" ); break;
+		case EXTERNAL: { tprintf( "external" ); strcat( cd->solution_id, "external" ); break; }
+		case POINT: { tprintf( "internal point contaminant source" ); strcat( cd->solution_id, "point" ); break; }
+		case PLANE: { tprintf( "internal rectangular contaminant source" ); strcat( cd->solution_id, "rect" ); break; }
+		case GAUSSIAN2D: { tprintf( "internal planar (2d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_2d" ); break; }
+		case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_3d" ); break; }
+		case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( cd->solution_id, "rect_vert" ); break; }
+		case BOX: { tprintf( "internal box contaminant source" ); strcat( cd->solution_id, "box" ); break; }
+		case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); sprintf( cd->solution_id, "test=%d", cd->test_func ); break; }
+		default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 		}
 		if( cd->num_sources > 1 ) { strcat( cd->solution_id, " " ); tprintf( ";" ); }
 	}
@@ -592,6 +594,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		else if( cd->disp_tied ) tprintf( "Transverse dispersivities are tied!\n" );
 		else tprintf( "Transverse dispersivities are neither tied or scaled!\n" );
 	}
+	rd->nRegul = 0;
 	// ------------------------------------------------------------ Reading parameters ----------------------------------------------------------------
 	if( skip == 0 ) fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &pd->nParam );
 	tprintf( "\nNumber of model parameters: %d\n", pd->nParam );
@@ -606,7 +609,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			// return( -1 );
 		}
 	}
-	pd->var_id = char_matrix( pd->nParam, 50 );
+	pd->var_name = char_matrix( pd->nParam, 50 );
 	pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_opt = ( int * ) malloc( pd->nParam * sizeof( int ) );
@@ -616,19 +619,19 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	pd->var_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->param_expressions_index = ( int * ) malloc( pd->nParam * sizeof( int ) );
-	pd->param_expressions = ( void ** ) malloc( pd->nParam * sizeof( void * ) );
+	pd->param_expression = ( void ** ) malloc( pd->nParam * sizeof( void * ) );
 	pd->nOptParam = pd->nFlgParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
 	{
 		pd->var[i] = 0;
-		fscanf( infile, "%[^:=]s", pd->var_id[i] );
+		fscanf( infile, "%[^:=]s", pd->var_name[i] );
 		fscanf( infile, "%c", &charecter );
 		if( charecter == ':' ) // regular parameter
 		{
-			if( cd->debug ) tprintf( "%-26s: ", pd->var_id[i] );
+			if( cd->debug ) tprintf( "%-26s: ", pd->var_name[i] );
 			if( fscanf( infile, "%lf %d %d %lf %lf %lf\n", &pd->var[i], &pd->var_opt[i], &pd->var_log[i], &pd->var_dx[i], &pd->var_min[i], &pd->var_max[i] ) != 6 )
 			{
-				tprintf( "ERROR: Specific parameter values expected for parameter \"%s\":\n", pd->var_id[i] );
+				tprintf( "ERROR: Specific parameter values expected for parameter \"%s\":\n", pd->var_name[i] );
 				tprintf( "       initial value (float), optimization flag (int), log-transformation flag (int), dx (float), min (float), max (float)\n" );
 				bad_data = 1;
 				return( -1 );
@@ -646,13 +649,13 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				if( pd->var_max[i] < pd->var[i] || pd->var_min[i] > pd->var[i] )
 				{
 					tprintf( "ERROR: Parameter initial value is outside the specified min/max range! " );
-					tprintf( "Parameter %s: %g min %g max %g\n", pd->var_id[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
+					tprintf( "Parameter %s: %g min %g max %g\n", pd->var_name[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
 					bad_data = 1;
 				}
 				if( pd->var_max[i] < pd->var_min[i] )
 				{
 					tprintf( "ERROR: Parameter min/max range is not correctly specified! " );
-					tprintf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
+					tprintf( "Parameter %s: min %g max %g\n", pd->var_name[i], pd->var_min[i], pd->var_max[i] );
 					bad_data = 1;
 				}
 				if( cd->plogtrans == 1 ) pd->var_log[i] = 1;
@@ -662,7 +665,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					if( pd->var_min[i] < 0 || pd->var[i] < 0 )
 					{
 						tprintf( "ERROR: Parameter cannot be log transformed (negative values)!\n" );
-						tprintf( "Parameter %s: min %g max %g\n", pd->var_id[i], pd->var_min[i], pd->var_max[i] );
+						tprintf( "Parameter %s: min %g max %g\n", pd->var_name[i], pd->var_min[i], pd->var_max[i] );
 						if( cd->plogtrans ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; continue; }
 						else bad_data = 1;
 					}
@@ -681,16 +684,16 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 		else if( charecter == '=' )
 		{
-			if( cd->debug ) tprintf( "%-26s=", pd->var_id[i] );
+			if( cd->debug ) tprintf( "%-26s=", pd->var_name[i] );
 			pd->var_opt[i] = pd->var_log[i] = 0;
 			fscanf( infile, "%[^\n]s", buf );
 			fscanf( infile, "\n" );
 			if( cd->debug ) tprintf( " %s", buf );
-			pd->param_expressions_index[pd->nExpParam] = i;
 #ifdef MATHEVAL
-			pd->param_expressions[pd->nExpParam] = evaluator_create( buf );
-			assert( pd->param_expressions[pd->nExpParam] );
-			evaluator_get_variables( pd->param_expressions[pd->nExpParam], &expvar_names, &expvar_count );
+			pd->param_expressions_index[pd->nExpParam] = i;
+			pd->param_expression[pd->nExpParam] = evaluator_create( buf );
+			assert( pd->param_expression[pd->nExpParam] );
+			evaluator_get_variables( pd->param_expression[pd->nExpParam], &expvar_names, &expvar_count );
 #else
 			expvar_count = 0;
 #endif
@@ -709,7 +712,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			else
 			{
 #ifdef MATHEVAL
-				pd->var[i] = cd->var[i] = evaluator_evaluate_x( pd->param_expressions[pd->nExpParam], 0 );
+				pd->var[i] = cd->var[i] = evaluator_evaluate_x( pd->param_expression[pd->nExpParam], 0 );
 				if( cd->debug ) tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[i] );
 #else
 				tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
@@ -772,7 +775,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				sscanf( word, "%lf", &pd->var[i] );
 				k++;
 				if( pd->var_log[i] ) pd->var[i] = log10( pd->var[i] );
-				tprintf( "%s %g\n", pd->var_id[i], pd->var[i] );
+				tprintf( "%s %g\n", pd->var_name[i], pd->var[i] );
 				i++;
 			}
 		}
@@ -803,55 +806,57 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	 */
 	if( cd->solution_type[0] == EXTERNAL ) // check for consistent parameter names
 	{
+		pd->var_id = ( char ** ) malloc( pd->nParam * sizeof( char * ) );
 		for( i = 0; i < pd->nParam; i++ )
 		{
-			if( strchr( pd->var_id[i], ' ' ) || strchr( pd->var_id[i], '\t' ) ) { tprintf( "ERROR: \'%s\' - invalid parameter name (contains empty space)\n", pd->var_id[i] ); bad_data = 1; }
-			l1 = strlen( pd->var_id[i] );
-			if( l1 == 0 ) { tprintf( "ERROR: \'%s\' empty parameter name\n", pd->var_id[i] ); bad_data = 1; }
+			pd->var_id[i] = pd->var_name[i];
+			if( strchr( pd->var_name[i], ' ' ) || strchr( pd->var_name[i], '\t' ) ) { tprintf( "ERROR: \'%s\' - invalid parameter name (contains empty space)\n", pd->var_name[i] ); bad_data = 1; }
+			l1 = strlen( pd->var_name[i] );
+			if( l1 == 0 ) { tprintf( "ERROR: \'%s\' empty parameter name\n", pd->var_name[i] ); bad_data = 1; }
 			for( j = i + 1; j < pd->nParam; j++ )
 			{
-				l2 = strlen( pd->var_id[j] );
-				if( l1 == l2 && strcmp( pd->var_id[i], pd->var_id[j] ) == 0 ) { tprintf( "ERROR: %d (\'%s\') and %d (\'%s\') parameter names are the same\n", i + 1, pd->var_id[i], j + 1, pd->var_id[j] ); bad_data = 1; }
+				l2 = strlen( pd->var_name[j] );
+				if( l1 == l2 && strcmp( pd->var_name[i], pd->var_name[j] ) == 0 ) { tprintf( "ERROR: %d (\'%s\') and %d (\'%s\') parameter names are the same\n", i + 1, pd->var_name[i], j + 1, pd->var_name[j] ); bad_data = 1; }
 			}
 		}
 	}
 	else // create short names for the internal model parameters
 	{
-		pd->var_id_short = char_matrix( pd->nParam, 10 );
+		pd->var_id = char_matrix( pd->nParam, 10 );
 		if( cd->num_sources == 1 )
 		{
 			for( i = 0; i < cd->num_source_params; i++ )
-				sprintf( pd->var_id_short[i], "%s", op->sd->param_id[i] );
+				sprintf( pd->var_id[i], "%s", op->sd->param_id[i] );
 		}
 		else
 		{
 			for( j = c = 0; c < cd->num_sources; c++ )
 				for( i = 0; i < cd->num_source_params; i++, j++ )
-					sprintf( pd->var_id_short[j], "%s_%d", op->sd->param_id[i], c + 1 );
+					sprintf( pd->var_id[j], "%s_%d", op->sd->param_id[i], c + 1 );
 		}
 		j = cd->num_sources * cd->num_source_params;
 		for( i = 0; j < pd->nParam; i++, j++ )
-			sprintf( pd->var_id_short[j], "%s", op->qd->param_id[i] );
+			sprintf( pd->var_id[j], "%s", op->qd->param_id[i] );
 		if( op->cd->debug )
 		{
 			tprintf( "\nParameter ID's:\n" );
 			for( i = 0; i < pd->nParam; i++ )
-				tprintf( "%d %s\n", i + 1, pd->var_id_short[i] );
+				tprintf( "%d %s\n", i + 1, pd->var_id[i] );
 		}
 	}
 	if( cd->debug ) tprintf( "\n" );
 	set_optimized_params( op );
 	// ------------------------------------------------------------ Set parameters with computational expressions (coupled or tied parameters) ----------------------------------------------------------------
 	short_names_printed = 0;
-#ifndef MATHEVAL
-	tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
-#endif
 	if( pd->nExpParam > 0 )
 	{
+#ifndef MATHEVAL
+		tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
 		for( i = 0; i < pd->nExpParam; i++ )
 		{
 #ifdef MATHEVAL
-			evaluator_get_variables( pd->param_expressions[i], &expvar_names, &expvar_count );
+			evaluator_get_variables( pd->param_expression[i], &expvar_names, &expvar_count );
 #else
 			expvar_count = 0;
 #endif
@@ -861,13 +866,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				status = 0;
 				for( k = 0; k < pd->nParam; k++ )
 				{
-					if( cd->solution_type[0] != EXTERNAL ) word = pd->var_id_short[k];
-					else word = pd->var_id[k];
+					word = pd->var_id[k];
 					l2 = strlen( word );
 					if( l1 == l2 && strcmp( expvar_names[j], word ) == 0 ) { status = 1; break; }
 				}
 #ifdef MATHEVAL
-				if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in expression \'%s\' for parameter \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( pd->param_expressions[i] ), pd->var_id[pd->param_expressions_index[i]] ); bad_data = 1; }
+				if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in expression \'%s\' for parameter \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( pd->param_expression[i] ), pd->var_name[pd->param_expressions_index[i]] ); bad_data = 1; }
 #endif
 			}
 		}
@@ -879,20 +883,19 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( cd->debug )
 			{
 				if( cd->solution_type[0] == EXTERNAL ) tprintf( "%-26s: %.12g\n", pd->var_id[i], cd->var[i] );
-				else tprintf( "%-26s: %-12s: %.12g\n", pd->var_id[i], pd->var_id_short[i], cd->var[i] );
+				else tprintf( "%-26s: %-12s: %.12g\n", pd->var_name[i], pd->var_id[i], cd->var[i] );
 			}
-			short_names_printed = 1;
 		}
 		if( cd->debug )
 		{
+			short_names_printed = 1; // short names printed in the loop above
 			for( i = 0; i < pd->nExpParam; i++ )
 			{
 				k = pd->param_expressions_index[i];
-				tprintf( "%-26s= ", pd->var_id[k] );
+				tprintf( "%-26s= ", pd->var_name[k] );
 #ifdef MATHEVAL
-				tprintf( "%s", evaluator_get_string( pd->param_expressions[i] ) );
-				if( cd->solution_type[0] == EXTERNAL ) pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id, cd->var );
-				else pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expressions[i], pd->nParam, pd->var_id_short, cd->var );
+				tprintf( "%s", evaluator_get_string( pd->param_expression[i] ) );
+				pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expression[i], pd->nParam, pd->var_id, cd->var );
 				tprintf( " = %g\n", pd->var[k] );
 #else
 				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
@@ -902,107 +905,14 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	if( pd->nParam == 0 || ( pd->nOptParam == 0 && pd->nFlgParam == 0 ) ) { tprintf( "\nERROR: Number of model parameters is zero!\n\n" ); bad_data = 1; }
 	if( bad_data ) return( 0 );
-	// ------------------------------------------------------------ Reading regularization terms ----------------------------------------------------------------
-	rd->nRegul = 0;
 	fscanf( infile, "%[^:]s", buf );
-	if( !strncasecmp( buf, "Number of regul", 15 ) )
-	{
-		if( cd->debug && short_names_printed == 0 )
-		{
-			tprintf( "\nParameter values for computation of the regularization terms:\n" );
-			for( i = 0; i < pd->nParam; i++ )
-			{
-				if( pd->var_opt[i] > 0 && pd->var_log[i] == 1 ) cd->var[i] = pow( 10, pd->var[i] );
-				else cd->var[i] = pd->var[i];
-				if( cd->debug )
-				{
-					if( cd->solution_type[0] == EXTERNAL ) tprintf( "%-26s: %.12g\n", pd->var_id[i], cd->var[i] );
-					else tprintf( "%-26s: %-12s: %.12g\n", pd->var_id[i], pd->var_id_short[i], cd->var[i] );
-				}
-			}
-		}
-		fscanf( infile, ": %i\n", &rd->nRegul );
-		if( cd->debug ) tprintf( "\n" );
-		tprintf( "Number of regularization terms = %d\n", rd->nRegul );
-		rd->regul_expressions = ( void ** ) malloc( rd->nRegul * sizeof( void * ) );
-		rd->regul_id = char_matrix( rd->nRegul, 10 );
-		rd->regul_target = ( double * ) malloc( rd->nRegul * sizeof( double ) );
-		rd->regul_weight = ( double * ) malloc( rd->nRegul * sizeof( double ) );
-		rd->regul_min = ( double * ) malloc( rd->nRegul * sizeof( double ) );
-		rd->regul_max = ( double * ) malloc( rd->nRegul * sizeof( double ) );
-		rd->regul_log = ( int * ) malloc( rd->nRegul * sizeof( int ) );
-#ifndef MATHEVAL
-		tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
-#endif
-		for( i = 0; i < rd->nRegul; i++ )
-		{
-			sprintf( rd->regul_id[i], "reg%d", i + 1 );
-			fscanf( infile, "%[^=]s", buf );
-			fscanf( infile, "= %lf %lf %i %lf %lf\n", &rd->regul_target[i], &rd->regul_weight[i], &rd->regul_log[i], &rd->regul_min[i], &rd->regul_max[i] );
-			if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], buf );
-			if( !( rd->regul_weight[i] > DBL_EPSILON ) ) tprintf( " WARNING Weight <= 0 " );
-#ifdef MATHEVAL
-			rd->regul_expressions[i] = evaluator_create( buf );
-			assert( rd->regul_expressions[i] );
-			evaluator_get_variables( rd->regul_expressions[i], &expvar_names, &expvar_count );
-#else
-			expvar_count = 0;
-#endif
-			if( expvar_count > 0 )
-			{
-				if( cd->debug )
-				{
-					tprintf( " -> variables:" );
-					for( j = 0; j < expvar_count; j++ )
-						tprintf( " %s", expvar_names[j] );
-					tprintf( "\n" );
-				}
-				for( j = 0; j < expvar_count; j++ )
-				{
-					l1 = strlen( expvar_names[j] );
-					status = 0;
-					for( k = 0; k < pd->nParam; k++ )
-					{
-						if( cd->solution_type[0] != EXTERNAL ) word = pd->var_id_short[k];
-						else word = pd->var_id[k];
-						l2 = strlen( word );
-						if( l1 == l2 && strcmp( expvar_names[j], word ) == 0 ) { status = 1; break; }
-					}
-#ifdef MATHEVAL
-					if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' defined in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expressions[i] ) ); bad_data = 1; }
-#endif
-				}
-			}
-#ifdef MATHEVAL
-			else { tprintf( "ERROR: no variables\n" ); bad_data = 1; }
-#endif
-		}
-		if( cd->debug )
-		{
-			for( i = 0; i < rd->nRegul; i++ )
-			{
-				tprintf( "%-12s= ", rd->regul_id[i] );
-#ifdef MATHEVAL
-				tprintf( "%s", evaluator_get_string( rd->regul_expressions[i] ) );
-				if( cd->solution_type[0] == EXTERNAL ) d = evaluator_evaluate( rd->regul_expressions[i], pd->nParam, pd->var_id, cd->var );
-				else d = evaluator_evaluate( rd->regul_expressions[i], pd->nParam, pd->var_id_short, cd->var );
-				tprintf( " = %g\n", d );
-#else
-				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
-#endif
-			}
-		}
-		fscanf( infile, "%[^:]s", buf );
-	}
-	else tprintf( "Number of regularization terms = %d\n", rd->nRegul );
-	if( bad_data ) return ( 0 );
+	// ------------------------------------------------------------ Reading Observations ----------------------------------------------------------------
 	// ------------------------------------------------------------ Reading external problem ----------------------------------------------------------------
 	if( cd->solution_type[0] == EXTERNAL )
 	{
 		fscanf( infile, ": %i\n", &od->nObs );
 		tprintf( "Number of total observations = %d\n", od->nObs );
-		od->nTObs = od->nObs + rd->nRegul;
-		if( rd->nRegul > 0 ) tprintf( "Number of total observations & regularizations = %d\n", od->nTObs );
+		od->nTObs = od->nObs;
 		od->obs_id = char_matrix( od->nTObs, 50 );
 		od->obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
@@ -1014,6 +924,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		od->res = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
 		od->nCObs = 0;
+		preds->nTObs = 0; // TODO INFOGAP and GLUE analysis for external problems
 		for( i = 0; i < od->nObs; i++ )
 		{
 			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0;
@@ -1037,20 +948,11 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			else if( cd->oweight == 0 ) od->obs_weight[i] = 0;
 			else if( cd->oweight == 2 ) { if( fabs( od->obs_target[i] ) > DBL_EPSILON ) od->obs_weight[i] = ( double ) 1.0 / od->obs_target[i]; else od->obs_weight[i] = HUGE_VAL; }
 			if( od->obs_weight[i] > DBL_EPSILON ) od->nCObs++;
+			if( od->obs_weight[i] < -DBL_EPSILON ) { preds->nTObs++; if( od->include_predictions ) od->nCObs++; } // Predictions have negative weights
+
 		}
 		tprintf( "Number of calibration targets = %d\n", od->nCObs );
 		if( bad_data ) return( 0 );
-		for( k = od->nObs, i = 0; i < rd->nRegul; i++ ) // add regularization targets
-		{
-			strcpy( od->obs_id[k], rd->regul_id[i] );
-			od->obs_target[k] = rd->regul_target[i];
-			od->obs_weight[k] = rd->regul_weight[i];
-			od->obs_min[k] = rd->regul_min[i];
-			od->obs_max[k] = rd->regul_max[i];
-			od->obs_log[k] = rd->regul_log[i];
-			if( cd->debug ) tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
-			k++;
-		}
 		if( cd->debug )
 		{
 			tprintf( "\n" );
@@ -1070,8 +972,255 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
 					bad_data = 1;
 				}
+	}
+	else
+	{
+		// ------------------------------------------------------------ Reading internal problem ----------------------------------------------------------------
+		fscanf( infile, ": %i\n", &wd->nW );
+		if( cd->debug ) tprintf( "Number of wells: %d\n", wd->nW );
+		wd->id = char_matrix( wd->nW, 40 );
+		wd->x = ( double * ) malloc( wd->nW * sizeof( double ) );
+		wd->y = ( double * ) malloc( wd->nW * sizeof( double ) );
+		wd->z1 = ( double * ) malloc( wd->nW * sizeof( double ) );
+		wd->z2 = ( double * ) malloc( wd->nW * sizeof( double ) );
+		wd->xa = ( double * ) malloc( wd->nW * sizeof( double ) );
+		wd->ya = ( double * ) malloc( wd->nW * sizeof( double ) );
+		wd->za1 = ( double * ) malloc( wd->nW * sizeof( double ) );
+		wd->za2 = ( double * ) malloc( wd->nW * sizeof( double ) );
+		wd->nWellObs = ( int * ) malloc( wd->nW * sizeof( int ) );
+		wd->obs_target = ( double ** ) malloc( wd->nW * sizeof( double * ) );
+		wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) );
+		wd->obs_time = ( double ** ) malloc( wd->nW * sizeof( double * ) );
+		wd->obs_weight = ( double ** ) malloc( wd->nW * sizeof( double * ) );
+		wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) );
+		wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) );
+		od->nObs = preds->nTObs = 0;
+		if( cd->debug ) tprintf( "\nObservation data:\n" );
+		for( i = 0; i < wd->nW; i++ )
+		{
+			status = fscanf( infile, "%s %lf %lf %lf %lf %i ", wd->id[i], &wd->x[i], &wd->y[i], &wd->z1[i], &wd->z2[i], &wd->nWellObs[i] );
+			if( status != 6 ) { tprintf( "ERROR: Well %s data provided in the input file %s is incomplete; input file error!\n", wd->id[i], filename ); bad_data = 1; }
+			if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
+			if( wd->nWellObs[i] <= 0 ) { if( cd->debug ) tprintf( "WARNING: no observations!\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
+			wd->obs_target[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
+			wd->obs_time[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
+			wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) );
+			wd->obs_weight[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
+			wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
+			wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
+			for( j = 0; j < wd->nWellObs[i]; j++ )
+			{
+				wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
+				status = fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &wd->obs_time[i][j], &wd->obs_target[i][j], &wd->obs_weight[i][j], &wd->obs_log[i][j], &wd->obs_min[i][j], &wd->obs_max[i][j] );
+				if( status != 6 )
+				{
+					tprintf( "ERROR:\tObservation data provided for well %s in the input file %s is incomplete; input file error!\n", wd->id[i], filename );
+					tprintf( "\tWell %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i\n", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
+					tprintf( "\tObservation #%d: time %5g concentration %5g weight %7g log %1d acceptable range: min %5g max %5g\n\n", j + 1, wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+					bad_data = 1;
+				}
+				if( cd->obsdomain > DBL_EPSILON && wd->obs_weight[i][j] > DBL_EPSILON ) { wd->obs_min[i][j] = wd->obs_target[i][j] - cd->obsdomain; wd->obs_max[i][j] = wd->obs_target[i][j] + cd->obsdomain; }
+				if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
+				if( cd->ologtrans == 1 ) wd->obs_log[i][j] = 1;
+				else if( cd->ologtrans == 0 ) wd->obs_log[i][j] = 0;
+				if( cd->oweight == 1 ) wd->obs_weight[i][j] = 1;
+				else if( cd->oweight == 0 ) wd->obs_weight[i][j] = 0;
+				else if( cd->oweight == 2 ) { if( fabs( wd->obs_target[i][j] ) > DBL_EPSILON ) wd->obs_weight[i][j] = ( double ) 1.0 / wd->obs_target[i][j]; else wd->obs_weight[i][j] = HUGE_VAL; }
+				if( cd->debug )
+					tprintf( "t %5g c %5g weight %7g log %1d acceptable range: min %5g max %5g\n", wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+				if( wd->obs_max[i][j] < wd->obs_target[i][j] || wd->obs_min[i][j] > wd->obs_target[i][j] )
+				{
+					tprintf( "ERROR: Observation target is outside the specified min/max range! " );
+					tprintf( "Observation %s(%g): %g min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+					bad_data = 1;
+				}
+				if( wd->obs_max[i][j] <= wd->obs_min[i][j] )
+				{
+					tprintf( "ERROR: Calibration range is not correctly specified! " );
+					tprintf( "Observation %s(%g): min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+					bad_data = 1;
+				}
+				if( wd->obs_weight[i][j] > DBL_EPSILON ) od->nObs++;
+				if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( od->include_predictions ) od->nObs++; } // Predictions have negative weights
+				if( j + 1 < wd->nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " ); }
+			}
+		}
+		od->nCObs = od->nObs;
+		map_well_obs( op );
+	}
+	// ------------------------------------------------------------ Reading regularization terms ----------------------------------------------------------------
+	fscanf( infile, "%[^:]s", buf );
+	if( !strncasecmp( buf, "Number of regul", 15 ) )
+	{
+		if( cd->debug && short_names_printed == 0 ) // if param names and values are not already printed (above for param expressions)
+		{
+			tprintf( "\nParameter values for computation of the regularization terms:\n" );
+			for( i = 0; i < pd->nParam; i++ )
+			{
+				if( pd->var_opt[i] > 0 && pd->var_log[i] == 1 ) cd->var[i] = pow( 10, pd->var[i] );
+				else cd->var[i] = pd->var[i];
+				if( cd->debug )
+				{
+					if( cd->solution_type[0] == EXTERNAL ) tprintf( "%-26s: %.12g\n", pd->var_name[i], cd->var[i] );
+					else tprintf( "%-26s: %-12s: %.12g\n", pd->var_name[i], pd->var_id[i], cd->var[i] );
+				}
+			}
+		}
+		fscanf( infile, ": %i\n", &rd->nRegul );
+		if( cd->debug ) tprintf( "\n" );
+		tprintf( "Number of regularization terms = %d\n", rd->nRegul );
+		rd->regul_expression = ( void ** ) malloc( rd->nRegul * sizeof( void * ) );
+		rd->regul_id = char_matrix( rd->nRegul, 10 );
+		rd->regul_target = ( double * ) malloc( rd->nRegul * sizeof( double ) );
+		rd->regul_weight = ( double * ) malloc( rd->nRegul * sizeof( double ) );
+		rd->regul_min = ( double * ) malloc( rd->nRegul * sizeof( double ) );
+		rd->regul_max = ( double * ) malloc( rd->nRegul * sizeof( double ) );
+		rd->regul_log = ( int * ) malloc( rd->nRegul * sizeof( int ) );
+#ifdef MATHEVAL
+		rd->regul_nMap = pd->nParam + od->nObs; // rd->nRegul is not needed
+		rd->regul_map_id = ( char ** ) malloc( ( rd->regul_nMap ) * sizeof( char * ) );
+		rd->regul_map_val =( double * ) malloc( ( rd->regul_nMap + rd->nRegul ) * sizeof( double ) ); // rd->nRegul added to accommodate cd->obs_current
+#endif
+#ifndef MATHEVAL
+		tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
+		for( i = 0; i < rd->nRegul; i++ )
+		{
+			sprintf( rd->regul_id[i], "reg%d", i + 1 );
+			fscanf( infile, "%[^=]s", buf );
+			fscanf( infile, "= %lf %lf %i %lf %lf\n", &rd->regul_target[i], &rd->regul_weight[i], &rd->regul_log[i], &rd->regul_min[i], &rd->regul_max[i] );
+			if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], buf );
+			if( !( rd->regul_weight[i] > DBL_EPSILON ) ) tprintf( " WARNING Weight <= 0 " );
+#ifdef MATHEVAL
+			rd->regul_expression[i] = evaluator_create( buf );
+			assert( rd->regul_expression[i] );
+			evaluator_get_variables( rd->regul_expression[i], &expvar_names, &expvar_count );
+#else
+			expvar_count = 0;
+#endif
+			if( expvar_count > 0 )
+			{
+				if( cd->debug )
+				{
+					tprintf( " -> variables:" );
+					for( j = 0; j < expvar_count; j++ )
+						tprintf( " %s", expvar_names[j] );
+					tprintf( "\n" );
+				}
+				for( j = 0; j < expvar_count; j++ )
+				{
+					l1 = strlen( expvar_names[j] );
+					status = 0;
+					for( k = 0; k < pd->nParam; k++ )
+						if( !strncasecmp( expvar_names[j], pd->var_id[k], l1 )  ) { status = 1; break; }
+					for( k = 0; k < od->nObs; k++ )
+						if( !strncasecmp( expvar_names[j], od->obs_id[k], l1 )  ) { status = 1; break; }
+#ifdef MATHEVAL
+					if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) ); bad_data = 1; }
+#endif
+				}
+			}
+#ifdef MATHEVAL
+			else { tprintf( "ERROR: no variables\n" ); bad_data = 1; }
+#endif
+		}
+#ifdef MATHEVAL
+		for( k = 0; k < pd->nParam; k++ ) { rd->regul_map_id[k] = pd->var_id[k]; rd->regul_map_val[k] = cd->var[k]; }
+		for( i = pd->nParam, k = 0; k < od->nObs; k++, i++ ) { rd->regul_map_id[i] = od->obs_id[k]; rd->regul_map_val[i] = od->obs_current[k] = od->obs_target[k]; }
+		free( cd->var );
+		free( od->obs_current );
+		cd->var = &rd->regul_map_val[0];
+		od->obs_current = &rd->regul_map_val[pd->nParam];
+#endif
+		if( cd->debug )
+		{
+#ifdef MATHEVAL
+			tprintf( "Regularization expressions evaluated (initial values applied for parameters).\n" );
+#endif
+			for( i = 0; i < rd->nRegul; i++ )
+			{
+				tprintf( "%-12s= ", rd->regul_id[i] );
+#ifdef MATHEVAL
+				tprintf( "%s", evaluator_get_string( rd->regul_expression[i] ) );
+				d = evaluator_evaluate( rd->regul_expression[i], rd->regul_nMap, rd->regul_map_id, rd->regul_map_val );
+				tprintf( " = %g\n", d );
+#else
+				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
+			}
+		}
+		fscanf( infile, "%[^:]s", buf );
+	}
+	else tprintf( "Number of regularization terms = %d\n", rd->nRegul );
+	if( bad_data ) return ( 0 );
+	// add regularization terms to observations
+	if( rd->nRegul > 0 )
+	{
+		tprintf( "Number of total observations & regularizations = %d\n", od->nTObs );
+		map_obs( op ); // add regularizations to the observations
+		if( cd->debug )
+			for( i = 0; i < rd->nRegul; i++ )
+				tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
+	}
+
+	// ------------------------------------------------------------ Set predictions ----------------------------------------------------------------
+	if( preds->nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
+	{
+		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", preds->nTObs );
+		else tprintf( "Number of predictions = %d\n", preds->nTObs );
+		preds->obs_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_target = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_current = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_best = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_well_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_time_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_id = char_matrix( preds->nTObs, 50 );
+		preds->obs_weight = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_min = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_max = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_log = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->res = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		for( c = k = i = 0; i < wd->nW; i++ )
+			for( j = 0; j < wd->nWellObs[i]; j++ )
+			{
+				if( fabs( wd->obs_weight[i][j] ) > DBL_EPSILON ) c++;
+				if( wd->obs_weight[i][j] < -DBL_EPSILON )
+				{
+					preds->obs_index[k] = c - 1;
+					preds->obs_target[k] = wd->obs_target[i][j];
+					preds->obs_weight[k] = 1.0;
+					preds->obs_min[k] = wd->obs_target[i][j];
+					preds->obs_max[k] = wd->obs_target[i][j];
+					preds->obs_log[k] = wd->obs_log[i][j];
+					preds->obs_well_index[k] = i;
+					preds->obs_time_index[k] = j;
+					sprintf( preds->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
+					if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
+					k++;
+				}
+			}
+	}
+	else
+	{
+		tprintf( "Number of predictions = %d\n", preds->nTObs );
+		if( cd->problem_type == INFOGAP ) // INFOGAP problem
+		{
+			tprintf( "\nERROR: Weight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for Info-gap analysis\n\n" );
+			bad_data = 1;
+		}
+		if( cd->problem_type == GLUE ) // GLUE problem
+		{
+			tprintf( "\nERROR: Weight of at least one observation must be set as a prediction\nby setting weight to -1 for GLUE analysis\n\n" );
+			bad_data = 1;
+		}
+	}
+	if( bad_data ) return( 0 );
+	// ------------------------------------------------------------ Reading external problem ----------------------------------------------------------------
+	if( cd->solution_type[0] == EXTERNAL )
+	{
+		// Executable Command Line
 		ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": " ); fgets( ed->cmdline, 80, infile );
+		fscanf( infile, ": " ); fgets( ed->cmdline, 80, infile );
 		ed->cmdline[strlen( ed->cmdline ) - 1] = 0;
 		tprintf( "Execution command: %s\n", ed->cmdline );
 		if( sscanf( ed->cmdline, "%i", &i ) == -1 )
@@ -1144,154 +1293,34 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		gd->min_t = gd->time = 0;
 		tprintf( "\n" );
 		if( bad_data ) return ( 0 );
-		else return( 1 ); // EXIT; Done with external problem
-		// TODO add performance criteria (predictions with weight = -1) for INFOGAP and GLUE analysis
 	}
 	// ------------------------------------------------------------ Reading internal problem ----------------------------------------------------------------
-	fscanf( infile, ": %i\n", &wd->nW );
-	wd->id = char_matrix( wd->nW, 40 );
-	wd->x = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->y = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->z1 = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->z2 = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->xa = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->ya = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->za1 = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->za2 = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->nWellObs = ( int * ) malloc( wd->nW * sizeof( int ) );
-	wd->obs_target = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) );
-	wd->obs_time = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	wd->obs_weight = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	od->nObs = preds->nTObs = 0;
-	if( cd->debug ) tprintf( "\nObservation data:\n" );
-	for( i = 0; i < wd->nW; i++ )
-	{
-		status = fscanf( infile, "%s %lf %lf %lf %lf %i ", wd->id[i], &wd->x[i], &wd->y[i], &wd->z1[i], &wd->z2[i], &wd->nWellObs[i] );
-		if( status != 6 ) { tprintf( "ERROR: Well %s data provided in the input file %s is incomplete; input file error!\n", wd->id[i], filename ); bad_data = 1; }
-		if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
-		if( wd->nWellObs[i] <= 0 ) { if( cd->debug ) tprintf( "WARNING: no observations!\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
-		wd->obs_target[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-		wd->obs_time[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-		wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) );
-		wd->obs_weight[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-		wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-		wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-		for( j = 0; j < wd->nWellObs[i]; j++ )
-		{
-			wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
-			status = fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &wd->obs_time[i][j], &wd->obs_target[i][j], &wd->obs_weight[i][j], &wd->obs_log[i][j], &wd->obs_min[i][j], &wd->obs_max[i][j] );
-			if( status != 6 )
-			{
-				tprintf( "ERROR:\tObservation data provided for well %s in the input file %s is incomplete; input file error!\n", wd->id[i], filename );
-				tprintf( "\tWell %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i\n", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
-				tprintf( "\tObservation #%d: time %5g concentration %5g weight %7g log %1d acceptable range: min %5g max %5g\n\n", j + 1, wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
-				bad_data = 1;
-			}
-			if( cd->obsdomain > DBL_EPSILON && wd->obs_weight[i][j] > DBL_EPSILON ) { wd->obs_min[i][j] = wd->obs_target[i][j] - cd->obsdomain; wd->obs_max[i][j] = wd->obs_target[i][j] + cd->obsdomain; }
-			if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
-			if( cd->ologtrans == 1 ) wd->obs_log[i][j] = 1;
-			else if( cd->ologtrans == 0 ) wd->obs_log[i][j] = 0;
-			if( cd->oweight == 1 ) wd->obs_weight[i][j] = 1;
-			else if( cd->oweight == 0 ) wd->obs_weight[i][j] = 0;
-			else if( cd->oweight == 2 ) { if( fabs( wd->obs_target[i][j] ) > DBL_EPSILON ) wd->obs_weight[i][j] = ( double ) 1.0 / wd->obs_target[i][j]; else wd->obs_weight[i][j] = HUGE_VAL; }
-			if( cd->debug )
-				tprintf( "t %5g c %5g weight %7g log %1d acceptable range: min %5g max %5g\n", wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
-			if( wd->obs_max[i][j] < wd->obs_target[i][j] || wd->obs_min[i][j] > wd->obs_target[i][j] )
-			{
-				tprintf( "ERROR: Observation target is outside the specified min/max range! " );
-				tprintf( "Observation %s(%g): %g min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
-				bad_data = 1;
-			}
-			if( wd->obs_max[i][j] <= wd->obs_min[i][j] )
-			{
-				tprintf( "ERROR: Calibration range is not correctly specified! " );
-				tprintf( "Observation %s(%g): min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
-				bad_data = 1;
-			}
-			if( wd->obs_weight[i][j] > DBL_EPSILON ) od->nObs++;
-			if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( od->include_predictions ) od->nObs++; } // Predictions have negative weights
-			if( j + 1 < wd->nWellObs[i] ) { fscanf( infile, "\t\t" ); if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " ); }
-		}
-	}
-	if( !map_well_obs( op ) ) return( 0 );
-	// ------------------------------------------------------------ Set predictions ----------------------------------------------------------------
-	if( preds->nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
-	{
-		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", preds->nTObs );
-		else tprintf( "Number of predictions = %d\n", preds->nTObs );
-		preds->obs_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_target = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_current = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_best = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_well_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_time_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_id = char_matrix( preds->nTObs, 50 );
-		preds->obs_weight = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_min = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_max = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_log = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->res = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		for( c = k = i = 0; i < wd->nW; i++ )
-			for( j = 0; j < wd->nWellObs[i]; j++ )
-			{
-				if( fabs( wd->obs_weight[i][j] ) > DBL_EPSILON ) c++;
-				if( wd->obs_weight[i][j] < -DBL_EPSILON )
-				{
-					preds->obs_index[k] = c - 1;
-					preds->obs_target[k] = wd->obs_target[i][j];
-					preds->obs_weight[k] = 1.0;
-					preds->obs_min[k] = wd->obs_target[i][j];
-					preds->obs_max[k] = wd->obs_target[i][j];
-					preds->obs_log[k] = wd->obs_log[i][j];
-					preds->obs_well_index[k] = i;
-					preds->obs_time_index[k] = j;
-					sprintf( preds->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
-					if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
-					k++;
-				}
-			}
-	}
 	else
 	{
-		tprintf( "Number of predictions = %d\n", preds->nTObs );
-		if( cd->problem_type == INFOGAP ) // INFOGAP problem
+		// ------------------------------------------------------------ Read grid and breakthrough computational data ----------------------------------------------------------------
+		fscanf( infile, ": %lf\n", &gd->time );
+		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &gd->nx, &gd->ny, &gd->nz );
+		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->min_x, &gd->min_y, &gd->min_z );
+		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->max_x, &gd->max_y, &gd->max_z );
+		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->min_t, &gd->max_t, &gd->dt );
+		fclose( infile );
+		if( cd->debug )
 		{
-			tprintf( "\nERROR: Weight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for Info-gap analysis\n\n" );
-			bad_data = 1;
+			tprintf( "\nGrid Time: %g\n", gd->time );
+			tprintf( "Grid lines: %i %i %i\n", gd->nx, gd->ny, gd->nz );
+			tprintf( "Grid Minimums: %g %g %g\n", gd->min_x, gd->min_y, gd->min_z );
+			tprintf( "Grid Maximums: %g %g %g\n", gd->max_x, gd->max_y, gd->max_z );
 		}
-		if( cd->problem_type == GLUE ) // GLUE problem
-		{
-			tprintf( "\nERROR: Weight of at least one observation must be set as a prediction\nby setting weight to -1 for GLUE analysis\n\n" );
-			bad_data = 1;
-		}
+		if( gd->nx == 1 ) gd->dx = 0;
+		else gd->dx = ( gd->max_x - gd->min_x ) / ( gd->nx - 1 );
+		if( gd->ny == 1 ) gd->dy = 0;
+		gd->dy = ( gd->max_y - gd->min_y ) / ( gd->ny - 1 );
+		// if(gd->nz == 1 ) gd->dz = gd->max_z - gd->min_z ); // In this way compute_grid computed for min_z
+		if( gd->nz == 1 ) gd->dz = 0;
+		else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
+		if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
+		gd->nt = 1 + ( int )( ( double )( gd->max_t - gd->min_t ) / gd->dt );
 	}
-	if( bad_data ) return( 0 );
-	// ------------------------------------------------------------ Read grid and breakthrough computational data ----------------------------------------------------------------
-	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf\n", &gd->time );
-	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &gd->nx, &gd->ny, &gd->nz );
-	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->min_x, &gd->min_y, &gd->min_z );
-	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->max_x, &gd->max_y, &gd->max_z );
-	fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->min_t, &gd->max_t, &gd->dt );
-	fclose( infile );
-	if( cd->debug )
-	{
-		tprintf( "\nGrid Time: %g\n", gd->time );
-		tprintf( "Grid lines: %i %i %i\n", gd->nx, gd->ny, gd->nz );
-		tprintf( "Grid Minimums: %g %g %g\n", gd->min_x, gd->min_y, gd->min_z );
-		tprintf( "Grid Maximums: %g %g %g\n", gd->max_x, gd->max_y, gd->max_z );
-	}
-	if( gd->nx == 1 ) gd->dx = 0;
-	else gd->dx = ( gd->max_x - gd->min_x ) / ( gd->nx - 1 );
-	if( gd->ny == 1 ) gd->dy = 0;
-	gd->dy = ( gd->max_y - gd->min_y ) / ( gd->ny - 1 );
-	// if(gd->nz == 1 ) gd->dz = gd->max_z - gd->min_z ); // In this way compute_grid computed for min_z
-	if( gd->nz == 1 ) gd->dz = 0;
-	else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
-	if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
-	gd->nt = 1 + ( int )( ( double )( gd->max_t - gd->min_t ) / gd->dt );
 	return( 1 );
 }
 
@@ -1334,15 +1363,15 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, "Problem type: " );
 	switch( cd->problem_type )
 	{
-		case CREATE: fprintf( outfile, "create" ); break;
-		case FORWARD: fprintf( outfile, "forward" ); break;
-		case CALIBRATE: fprintf( outfile, "calibration" ); break;
-		case LOCALSENS: fprintf( outfile, "lsens" ); break;
-		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
-		case EIGEN: fprintf( outfile, "eigen" ); break;
-		case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
-		case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
-		case POSTPUA: fprintf( outfile, " postpua" ); break;
+	case CREATE: fprintf( outfile, "create" ); break;
+	case FORWARD: fprintf( outfile, "forward" ); break;
+	case CALIBRATE: fprintf( outfile, "calibration" ); break;
+	case LOCALSENS: fprintf( outfile, "lsens" ); break;
+	case GLOBALSENS: fprintf( outfile, "gsens" ); break;
+	case EIGEN: fprintf( outfile, "eigen" ); break;
+	case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
+	case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
+	case POSTPUA: fprintf( outfile, " postpua" ); break;
 	}
 	if( cd->debug > 0 ) fprintf( outfile, " debug=%d", cd->debug );
 	if( cd->fdebug > 0 ) fprintf( outfile, " fdebug=%d", cd->fdebug );
@@ -1363,10 +1392,10 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, " " );
 	switch( cd->calib_type )
 	{
-		case SIMPLE: fprintf( outfile, "single" ); break;
-		case PPSD: fprintf( outfile, "ppsd" ); break;
-		case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
-		case IGPD: fprintf( outfile, "igpd" ); break;
+	case SIMPLE: fprintf( outfile, "single" ); break;
+	case PPSD: fprintf( outfile, "ppsd" ); break;
+	case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
+	case IGPD: fprintf( outfile, "igpd" ); break;
 	}
 	fprintf( outfile, " eval=%d", cd->maxeval );
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
@@ -1385,11 +1414,11 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, " " );
 	switch( cd->objfunc_type )
 	{
-		case SSR: fprintf( outfile, "ssr" ); break;
-		case SSDR: fprintf( outfile, "ssdr" ); break;
-		case SSD0: fprintf( outfile, "ssd0" ); break;
-		case SSDX: fprintf( outfile, "ssdx" ); break;
-		case SSDA: fprintf( outfile, "ssda" ); break;
+	case SSR: fprintf( outfile, "ssr" ); break;
+	case SSDR: fprintf( outfile, "ssdr" ); break;
+	case SSD0: fprintf( outfile, "ssd0" ); break;
+	case SSDX: fprintf( outfile, "ssdx" ); break;
+	case SSDA: fprintf( outfile, "ssda" ); break;
 	}
 	fprintf( outfile, "\n" );
 	fprintf( outfile, "Solution type: %s\n", cd->solution_id );
@@ -1398,23 +1427,23 @@ int save_problem( char *filename, struct opt_data *op )
 	{
 		if( pd->var_opt[i] == -1 ) // tied parameter
 #ifdef MATHEVAL
-			fprintf( outfile, "%s= %s\n", pd->var_id[i], evaluator_get_string( pd->param_expressions[j++] ) );
+			fprintf( outfile, "%s= %s\n", pd->var_name[i], evaluator_get_string( pd->param_expression[j++] ) );
 #else
-			fprintf( outfile, "%s= MathEval is not installed; expressions cannot be evaluated\n", pd->var_id[i] );
+		fprintf( outfile, "%s= MathEval is not installed; expressions cannot be evaluated\n", pd->var_name[i] );
 #endif
 		else if( pd->var_opt[i] >= 1 && pd->var_log[i] == 1 ) // optimized log transformed parameter
-			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_id[i], pow( 10, pd->var[i] ), pd->var_opt[i], pd->var_log[i], pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );
+			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pow( 10, pd->var[i] ), pd->var_opt[i], pd->var_log[i], pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );
 		else // fixed or not log-transformed parameter
-			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_id[i], pd->var[i], pd->var_opt[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pd->var[i], pd->var_opt[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 	}
 	if( rd->nRegul > 0 )
 	{
 		fprintf( outfile, "Number of regularization terms: %d\n", rd->nRegul );
 		for( i = 0; i < rd->nRegul; i++ )
 #ifdef MATHEVAL
-			fprintf( outfile, "%s = %g %g %i %g %g\n", evaluator_get_string( rd->regul_expressions[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+			fprintf( outfile, "%s = %g %g %i %g %g\n", evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
 #else
-			fprintf( outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+		fprintf( outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
 #endif
 	}
 	if( cd->solution_type[0] != EXTERNAL )
@@ -1646,7 +1675,7 @@ char **shellpath( void )
 	if( !path )
 		path = "/bin:/usr/bin:/usr/local/bin";
 	char **vector = // size is overkill
-		( char ** ) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
+			( char ** ) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
 	const char *p = path;
 	int next = 0;
 	while( p )
@@ -1833,7 +1862,7 @@ int set_optimized_params( struct opt_data *op )
 	for( k = i = 0; i < pd->nParam; i++ )
 		if( pd->var_opt[i] == 1 || ( pd->var_opt[i] > 1 && cd->calib_type != PPSD ) )
 		{
-			if( cd->debug ) tprintf( "%-26s :%-6s: init %9g step %8.3g min %9g max %9g\n", pd->var_id[i], pd->var_id_short[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+			if( cd->debug ) tprintf( "%-26s :%-6s: init %9g step %8.3g min %9g max %9g\n", pd->var_name[i], pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 			pd->var_index[k++] = i;
 		}
 	if( cd->debug ) tprintf( "\n" );
@@ -1842,11 +1871,11 @@ int set_optimized_params( struct opt_data *op )
 	{
 		for( i = 0; i < pd->nParam; i++ )
 			if( pd->var_opt[i] == 2 )
-				tprintf( "%-26s :%-6s: init %9g step %6g min %9g max %9g\n", pd->var_id[i], pd->var[i], pd->var_id_short[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+				tprintf( "%-26s :%-6s: init %9g step %6g min %9g max %9g\n", pd->var_name[i], pd->var[i], pd->var_id[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 	}
 	pd->nIgnParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
-		if( pd->var_id[i][0] == 0 ) pd->nIgnParam++;
+		if( pd->var_name[i][0] == 0 ) pd->nIgnParam++;
 	pd->nFixParam = pd->nParam - pd->nOptParam - pd->nFlgParam - pd->nExpParam - pd->nIgnParam;
 	if( pd->nFixParam == 0 && cd->debug ) tprintf( "\nNO fixed parameters\n" );
 	else
@@ -1856,12 +1885,72 @@ int set_optimized_params( struct opt_data *op )
 		if( cd->debug )
 		{
 			for( i = 0; i < pd->nParam; i++ )
-				if( pd->var_opt[i] == 0 && pd->var_id[i][0] != 0 )
-					tprintf( "%-26s :%-6s: %g\n", pd->var_id[i], pd->var_id_short[i],  pd->var[i] );
+				if( pd->var_opt[i] == 0 && pd->var_name[i][0] != 0 )
+					tprintf( "%-26s :%-6s: %g\n", pd->var_name[i], pd->var_id[i],  pd->var[i] );
 		}
 	}
 	tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", pd->nExpParam );
 	if( bad_data ) return( -1 );
+	return( 1 );
+}
+
+int map_obs( struct opt_data *op )
+{
+	struct obs_data od2;
+	struct obs_data *od;
+	struct regul_data *rd;
+	int i, k;
+	od = op->od;
+	rd = op->rd;
+	od->nTObs = od->nObs + rd->nRegul;
+	od2.obs_id = char_matrix( od->nTObs, 50 );
+	od2.obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.res = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
+	for( i = 0; i < od->nObs; i++ )
+	{
+		strcpy( od2.obs_id[i], od->obs_id[i] );
+		od2.obs_target[i] = od->obs_target[i];
+		od2.obs_weight[i] = od->obs_weight[i];
+		od2.obs_min[i] = od->obs_min[i];
+		od2.obs_max[i] = od->obs_max[i];
+		od2.obs_current[i] = od->obs_current[i];
+		od2.obs_best[i] = od->obs_best[i];
+		od2.res[i] = od->res[i];
+		od2.obs_log[i] = od->obs_log[i];
+	}
+	free_matrix( ( void ** ) od->obs_id, od->nObs );
+	free( od->obs_target );
+	free( od->obs_weight );
+	free( od->obs_min );
+	free( od->obs_max );
+	if( rd->nRegul == 0 ) free( od->obs_current ); // Already freed if there are regularization terms ...
+	free( od->obs_best );
+	free( od->res );
+	free( od->obs_log );
+	for( k = od->nObs, i = 0; i < rd->nRegul; i++, k++ ) // add regularization terms
+	{
+		strcpy( od2.obs_id[k], rd->regul_id[i] );
+		od2.obs_target[k] = rd->regul_target[i];
+		od2.obs_weight[k] = rd->regul_weight[i];
+		od2.obs_min[k] = rd->regul_min[i];
+		od2.obs_max[k] = rd->regul_max[i];
+		od2.obs_log[k] = rd->regul_log[i];
+	}
+	od->obs_id = od2.obs_id;
+	od->obs_target = od2.obs_target;
+	od->obs_weight = od2.obs_weight;
+	od->obs_min = od2.obs_min;
+	od->obs_max = od2.obs_max;
+	od->obs_current = od2.obs_current;
+	od->obs_best = od2.obs_best;
+	od->res = od2.res;
+	od->obs_log = od2.obs_log;
 	return( 1 );
 }
 
@@ -1948,11 +2037,12 @@ int map_well_obs( struct opt_data *op )
 				od->obs_log[k] = wd->obs_log[i][j];
 				od->obs_well_index[k] = i;
 				od->obs_time_index[k] = j;
-				sprintf( od->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
-				if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
+				sprintf( od->obs_id[k], "%s_%g", wd->id[i], wd->obs_time[i][j] );
+				removeChars( od->obs_id[k], "()-*/" );
+				if( cd->debug ) tprintf( "%s: %g weight %g\n", od->obs_id[k], od->obs_target[k], od->obs_weight[k] );
 				k++;
 			}
-	for( i = 0; i < rd->nRegul; i++ ) // add regularization targets
+	for( i = 0; i < rd->nRegul; i++, k++ ) // add regularization targets
 	{
 		strcpy( od->obs_id[k], rd->regul_id[i] );
 		od->obs_target[k] = rd->regul_target[i];
@@ -1963,7 +2053,6 @@ int map_well_obs( struct opt_data *op )
 		od->obs_well_index[k] = -1;
 		od->obs_time_index[k] = -1;
 		if( cd->debug ) tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
-		k++;
 	}
 	if( cd->debug ) tprintf( "\n" );
 	if( bad_data ) return( -1 );

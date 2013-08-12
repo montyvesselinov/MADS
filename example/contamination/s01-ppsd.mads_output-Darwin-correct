@@ -34,12 +34,12 @@ Number of optimized parameters = 9
 Number of flagged parameters = 2
 Number of fixed parameters = 8
 Number of parameters with computational expressions (coupled or tied parameters) = 0
-Number of regularization terms = 0
 Number of calibration targets = 20
+Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130803-100546
+Execution date & time stamp: 20130812-163941
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -98,6 +98,6 @@ Functional evaluations = 129
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
 Functional evaluations per second = 32
-Execution  started  on Sat Aug  3 10:05:46 2013
-Execution completed on Sat Aug  3 10:05:50 2013
-Execution date & time stamp: 20130803-100546
+Execution  started  on Mon Aug 12 16:39:41 2013
+Execution completed on Mon Aug 12 16:39:45 2013
+Execution date & time stamp: 20130812-163941

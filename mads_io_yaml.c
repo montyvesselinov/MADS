@@ -45,6 +45,9 @@
 // YAML includes
 #include <yaml.h>
 #include <glib.h>
+#ifdef MATHEVAL
+#include <matheval.h>
+#endif
 
 #define C2P(c)          ((gpointer) ((long) (c)))
 #define P2C(p)          ((gchar) ((long) (p)))
@@ -60,6 +63,7 @@ int load_ymal_wells( GNode *node, gpointer data );
 int load_ymal_grid( GNode *node, gpointer data );
 int load_ymal_sources( GNode *node, gpointer data );
 int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords, int *keyindex );
+int load_ymal_regularizations( GNode *node, gpointer data );
 int load_ymal_time( GNode *node, gpointer data );
 int load_ymal_problem( GNode *node, gpointer data );
 int load_ymal_solution( GNode *node, gpointer data );
@@ -70,6 +74,7 @@ void set_param_arrays( int num_param, struct opt_data *op );
 /* Functions in mads_io */
 int parse_cmd( char *buf, struct calc_data *cd );
 int set_optimized_params( struct opt_data *op );
+int map_obs( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
 
 /* Functions elsewhere */
@@ -136,7 +141,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 			strcat( buf, " " ); strcat( buf, ( char * ) node_key->data );
 			if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
 			{
-				if( cd->debug > 1 ) tprintf( " = %s", ( char * ) node_key->data, ( char * ) node_value->data );
+				if( cd->debug > 1 ) tprintf( " = %s", ( char * ) node_value->data );
 				strcat( buf, "=" ); strcat( buf, ( char * ) node_value->data );
 			}
 		}
@@ -203,6 +208,10 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Wells" );
 	if( key_pointer != NULL ) { tprintf( "Process Wells ... " ); load_ymal_wells( ( GNode * ) key_pointer, ( void * ) op ); }
 	else tprintf( "WARNING: Wells class not found!\n" );
+	// Regularization
+	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Regularizations" );
+	if( key_pointer != NULL ) { tprintf( "Process Regularizations ... " ); load_ymal_regularizations( ( GNode * ) key_pointer, ( void * ) op ); }
+	else tprintf( "WARNING: Regularization class not found!\n" );
 	// Grid
 	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Grid" );
 	// if( key_pointer != NULL ) { tprintf( "Process Grid ... " ); load_ymal_grid( (GNode *) key_pointer, (void *) op ); }
@@ -215,20 +224,11 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	// g_node_children_foreach( gnode_data, G_TRAVERSE_ALL, ( GNodeForeachFunc )gnode_tree_parse_classes, (void *) op );
 	g_node_destroy( gnode_data ); // Destroy GNODE data
 	if( !set_optimized_params( op ) ) return( -1 );
-	if( !map_well_obs( op ) ) return( -1 );
+	if( op->rd->nRegul > 0 && cd->solution_type[0] == EXTERNAL ) map_obs( op ); // add regularizations to the observations
+	if( cd->solution_type[0] != EXTERNAL && !map_well_obs( op ) ) return( -1 );
 	tprintf( "Number of regularization terms = %d\n", op->rd->nRegul );
 	tprintf( "Number of predictions = %d\n", op->preds->nTObs );
 	return( 1 );
-}
-
-static gboolean g_node_find_func( GNode *node, gpointer data )
-{
-	register gpointer *d = data;
-	// tprintf( "Search %s %s\n", ( char * ) node->data, (gchar *)d[0] );
-	if( !node->data || strcmp( ( gchar * )d[0], ( gchar * )node->data ) ) return FALSE;
-	// tprintf( "Found %s ", ( char * ) node->data );
-	d[1] = node;
-	return TRUE;
 }
 
 void yaml_parse_layer( yaml_parser_t *parser, GNode *data )
@@ -347,10 +347,10 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	int i;
 	pd = op->pd;
 	cd = op->cd;
-	pd->var_id = char_matrix( num_param, 50 );
-	pd->var_id_short = char_matrix( num_param, 10 );
+	pd->var_name = char_matrix( num_param, 50 );
+	pd->var_id = char_matrix( num_param, 10 );
 	for( i = 0; i < num_param; i++ )
-		pd->var_id[i][0] = pd->var_id_short[i][0] = 0;
+		pd->var_name[i][0] = pd->var_id[i][0] = 0;
 	pd->var = ( double * ) malloc( num_param * sizeof( double ) );
 	cd->var = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->var_opt = ( int * ) malloc( num_param * sizeof( int ) );
@@ -360,7 +360,7 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	pd->var_max = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->var_range = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->param_expressions_index = ( int * ) malloc( num_param * sizeof( int ) );
-	pd->param_expressions = ( void ** ) malloc( num_param * sizeof( void * ) );
+	pd->param_expression = ( void ** ) malloc( num_param * sizeof( void * ) );
 	pd->nOptParam = pd->nFlgParam = pd->nExpParam = 0;
 }
 
@@ -406,6 +406,8 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct regul_data *rd;
+	char **expvar_names;
+	int expvar_count;
 	GNode *node_key, *node_value, *node_par;
 	cd = op->cd;
 	pd = op->pd;
@@ -442,7 +444,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 				if( !strcasecmp( ( char * ) node_par->data, keywords[k] ) )
 				{
 					index = keyindex[k];
-					strcpy( pd->var_id_short[index], ( char * ) node_par->data );
+					strcpy( pd->var_id[index], ( char * ) node_par->data );
 					if( cd->debug > 1 ) tprintf( " found -- indices %d -> %d\n", k, keyindex[k] );
 					found = 1;
 					break;
@@ -453,7 +455,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		{
 			if( cd->debug > 1 ) tprintf( "\n" );
 			index = i;
-			strcpy( pd->var_id_short[index], node_par->data );
+			strcpy( pd->var_id[index], node_par->data );
 		}
 		pd->var[index] = 0; pd->var_opt[index] = 1; pd->var_log[index] = 0;
 		for( k = 0; k < g_node_n_children( node_par ); k++ )  // Number of parameter arguments
@@ -461,7 +463,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			node_key = g_node_nth_child( node_par, k );
 			node_value = g_node_nth_child( node_key, 0 );
 			if( cd->debug > 2 ) tprintf( "Key %s = %s\n", ( char * ) node_key->data, ( char * ) node_value->data );
-			if( !strcasecmp( ( char * ) node_key->data, "longname" ) ) strcpy( pd->var_id[index], ( char * ) node_value->data );
+			if( !strcasecmp( ( char * ) node_key->data, "longname" ) ) strcpy( pd->var_name[index], ( char * ) node_value->data );
 			if( !strcasecmp( ( char * ) node_key->data, "log" ) ) if( !strcasecmp( ( char * ) node_value->data, "yes" ) || !strcasecmp( ( char * ) node_value->data, "1" ) ) pd->var_log[index] = 1;
 			if( !strcasecmp( ( char * ) node_key->data, "type" ) )
 			{
@@ -472,12 +474,50 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			if( !strcasecmp( ( char * ) node_key->data, "step" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_dx[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_min[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_max[index] );
+			if( !strcasecmp( ( char * ) node_key->data, "exp" ) )
+			{
+				pd->var_opt[i] = pd->var_log[i] = 0;
+#ifdef MATHEVAL
+				pd->param_expressions_index[pd->nExpParam] = index;
+				pd->param_expression[pd->nExpParam] = evaluator_create( ( char * ) node_value->data );
+				assert( pd->param_expression[pd->nExpParam] );
+				evaluator_get_variables( pd->param_expression[pd->nExpParam], &expvar_names, &expvar_count );
+#else
+				expvar_count = 0;
+#endif
+			}
 		}
 		cd->var[index] = pd->var[index];
 		if( cd->debug )
 		{
-			tprintf( "%-26s :%-6s: ", pd->var_id[index], pd->var_id_short[index] );
-			tprintf( "init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_min[index], pd->var_max[index] );
+			tprintf( "%-26s :%-6s: ", pd->var_name[index], pd->var_id[index] );
+			if( pd->var_opt[index] > -1 )
+				tprintf( "init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_min[index], pd->var_max[index] );
+			else
+			{
+				if( expvar_count > 0 )
+				{
+					if( cd->debug )
+					{
+						tprintf( " -> variables:" );
+						int j;
+						for( j = 0; j < expvar_count; j++ )
+							tprintf( " %s", expvar_names[j] );
+						tprintf( "\n" );
+					}
+					pd->var_opt[index] = -1;
+					pd->nExpParam++;
+				}
+				else
+				{
+#ifdef MATHEVAL
+					pd->var[index] = cd->var[index] = evaluator_evaluate_x( pd->param_expression[pd->nExpParam], 0 );
+					if( cd->debug ) tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[index] );
+#else
+					tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
+				}
+			}
 		}
 		if( pd->var_opt[index] == 1 ) pd->nOptParam++;
 		else if( pd->var_opt[index] == 2 )
@@ -490,13 +530,13 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			if( pd->var_max[index] < pd->var[index] || pd->var_min[index] > pd->var[index] )
 			{
 				tprintf( "ERROR: Parameter initial value is outside the specified min/max range! " );
-				tprintf( "Parameter %s: %g min %g max %g\n", pd->var_id[index], pd->var[index], pd->var_min[index], pd->var_max[index] );
+				tprintf( "Parameter %s: %g min %g max %g\n", pd->var_name[index], pd->var[index], pd->var_min[index], pd->var_max[index] );
 				bad_data = 1;
 			}
 			if( pd->var_max[index] < pd->var_min[index] )
 			{
 				tprintf( "ERROR: Parameter min/max range is not correctly specified! " );
-				tprintf( "Parameter %s: min %g max %g\n", pd->var_id[index], pd->var_min[index], pd->var_max[index] );
+				tprintf( "Parameter %s: min %g max %g\n", pd->var_name[index], pd->var_min[index], pd->var_max[index] );
 				bad_data = 1;
 			}
 			if( cd->plogtrans == 1 ) pd->var_log[index] = 1;
@@ -506,7 +546,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 				if( pd->var_min[index] < 0 || pd->var[index] < 0 )
 				{
 					tprintf( "ERROR: Parameter cannot be log transformed (negative values)!\n" );
-					tprintf( "Parameter %s: min %g max %g\n", pd->var_id[index], pd->var_min[index], pd->var_max[index] );
+					tprintf( "Parameter %s: min %g max %g\n", pd->var_name[index], pd->var_min[index], pd->var_max[index] );
 					if( cd->plogtrans ) { pd->var_log[index] = 0; pd->var_range[index] = pd->var_max[index] - pd->var_min[index]; continue; }
 					else bad_data = 1;
 				}
@@ -525,6 +565,125 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		}
 	}
 	if( bad_data ) return( 0 );
+	else return( 1 );
+}
+
+int load_ymal_regularizations( GNode *node, gpointer data )
+{
+	struct opt_data *op = ( struct opt_data * ) data;
+	struct calc_data *cd;
+	struct param_data *pd;
+	struct regul_data *rd;
+	struct obs_data *od;
+	GNode *node_key, *node_value, *node_regul;
+	char **expvar_names;
+	int expvar_count;
+	int i, k, bad_data;
+	cd = op->cd;
+	pd = op->pd;
+	rd = op->rd;
+	od = op->od;
+	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
+	rd->nRegul = g_node_n_children( node );
+	tprintf( "Number of regularization terms = %d\n", rd->nRegul );
+	rd->regul_expression = ( void ** ) malloc( rd->nRegul * sizeof( void * ) );
+	rd->regul_id = char_matrix( rd->nRegul, 10 );
+	rd->regul_target = ( double * ) malloc( rd->nRegul * sizeof( double ) );
+	rd->regul_weight = ( double * ) malloc( rd->nRegul * sizeof( double ) );
+	rd->regul_min = ( double * ) malloc( rd->nRegul * sizeof( double ) );
+	rd->regul_max = ( double * ) malloc( rd->nRegul * sizeof( double ) );
+	rd->regul_log = ( int * ) malloc( rd->nRegul * sizeof( int ) );
+#ifdef MATHEVAL
+	rd->regul_nMap = pd->nParam + od->nObs;
+	rd->regul_map_id = ( char ** ) malloc( ( rd->regul_nMap ) * sizeof( char * ) );
+	rd->regul_map_val = ( double * ) malloc( ( rd->regul_nMap + rd->nRegul ) * sizeof( double ) );
+#endif
+#ifndef MATHEVAL
+	tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
+	for( i = 0; i < rd->nRegul; i++ )
+	{
+		node_regul = g_node_nth_child( node, i );
+		strcpy( rd->regul_id[i], node_regul->data );
+		for( k = 0; k < g_node_n_children( node_regul ); k++ )  // Number of regulization components
+		{
+			node_key = g_node_nth_child( node_regul, k );
+			if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
+			if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
+			{
+				if( cd->debug > 1 ) tprintf( "=%s\n", ( char * ) node_value->data );
+			}
+			else { tprintf( " WARNING: No data\n" ); continue; }
+			if( !strcasecmp( ( char * ) node_key->data, "target" ) ) sscanf( ( char * ) node_value->data, "%lf", &rd->regul_target[i] );
+			if( !strcasecmp( ( char * ) node_key->data, "weight" ) ) sscanf( ( char * ) node_value->data, "%lf", &rd->regul_weight[i] );
+			if( !strcasecmp( ( char * ) node_key->data, "log" ) ) sscanf( ( char * ) node_value->data, "%i", &rd->regul_log[i] );
+			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) sscanf( ( char * ) node_value->data, "%lf", &rd->regul_min[i] );
+			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) sscanf( ( char * ) node_value->data, "%lf", &rd->regul_max[i] );
+			if( !strcasecmp( ( char * ) node_key->data, "equation" ) )
+			{
+#ifdef MATHEVAL
+				rd->regul_expression[i] = evaluator_create( ( char * ) node_value->data );
+				assert( rd->regul_expression[i] );
+				evaluator_get_variables( rd->regul_expression[i], &expvar_names, &expvar_count );
+#else
+				expvar_count = 0;
+#endif
+			}
+		}
+		if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], evaluator_get_string( rd->regul_expression[i] ) );
+		if( !( rd->regul_weight[i] > DBL_EPSILON ) ) tprintf( " WARNING Weight <= 0 " );
+		if( expvar_count > 0 )
+		{
+			int j, l1, l2, status;
+			if( cd->debug )
+			{
+				tprintf( " -> variables:" );
+				for( j = 0; j < expvar_count; j++ )
+					tprintf( " %s", expvar_names[j] );
+				tprintf( "\n" );
+			}
+			for( j = 0; j < expvar_count; j++ )
+			{
+				l1 = strlen( expvar_names[j] );
+				status = 0;
+				for( k = 0; k < pd->nParam; k++ )
+					if( !strncasecmp( expvar_names[j], pd->var_id[k], l1 )  ) { status = 1; break; }
+				for( k = 0; k < od->nObs; k++ )
+					if( !strncasecmp( expvar_names[j], od->obs_id[k], l1 )  ) { status = 1; break; }
+#ifdef MATHEVAL
+				if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) ); bad_data = 1; }
+#endif
+			}
+		}
+#ifdef MATHEVAL
+		else { tprintf( "ERROR: no variables\n" ); bad_data = 1; }
+#endif
+	}
+#ifdef MATHEVAL
+	for( k = 0; k < pd->nParam; k++ ) { rd->regul_map_id[k] = pd->var_id[k]; rd->regul_map_val[k] = cd->var[k]; }
+	for( i = pd->nParam, k = 0; k < od->nObs; k++, i++ ) { rd->regul_map_id[i] = od->obs_id[k]; rd->regul_map_val[i] = od->obs_target[k]; }
+	cd->var = &rd->regul_map_val[0];
+	od->obs_current = &rd->regul_map_val[pd->nParam];
+#endif
+	if( cd->debug )
+	{
+#ifdef MATHEVAL
+		tprintf( "Regularization expressions evaluated (initial values applied for parameters; target values applied for observations).\n" );
+#endif
+		float result;
+		for( i = 0; i < rd->nRegul; i++ )
+		{
+			tprintf( "%-12s= ", rd->regul_id[i] );
+#ifdef MATHEVAL
+			tprintf( "%s", evaluator_get_string( rd->regul_expression[i] ) );
+			result = evaluator_evaluate( rd->regul_expression[i], rd->regul_nMap, rd->regul_map_id, rd->regul_map_val );
+			tprintf( " = %g\n", result );
+#else
+			tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
+		}
+	}
+	if( bad_data ) return ( 0 );
 	else return( 1 );
 }
 
@@ -567,8 +726,12 @@ int load_ymal_wells( GNode *node, gpointer data )
 		for( k = 0; k < g_node_n_children( node_well ); k++ )  // Number of well parameters
 		{
 			node_key = g_node_nth_child( node_well, k );
-			node_value = g_node_nth_child( node_key, 0 );
-			if( cd->debug > 1 ) tprintf( "Key %s = %s\n", ( char * ) node_key->data, ( char * ) node_value->data );
+			if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
+			if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
+			{
+				if( cd->debug > 1 ) tprintf( "=%s\n", ( char * ) node_value->data );
+			}
+			else { tprintf( " WARNING: No data\n" ); continue; }
 			if( !strcasecmp( ( char * ) node_key->data, "x" ) ) sscanf( ( char * ) node_value->data, "%lf", &wd->x[i] );
 			if( !strcasecmp( ( char * ) node_key->data, "y" ) ) sscanf( ( char * ) node_value->data, "%lf", &wd->y[i] );
 			if( !strcasecmp( ( char * ) node_key->data, "z0" ) ) sscanf( ( char * ) node_value->data, "%lf", &wd->z1[i] );
@@ -592,8 +755,12 @@ int load_ymal_wells( GNode *node, gpointer data )
 						for( m = 0; m < g_node_n_children( node_obs ); m++ )  // Number of well parameters
 						{
 							node_key2 = g_node_nth_child( node_obs, m );
-							node_value2 = g_node_nth_child( node_key2, 0 );
-							if( cd->debug > 1 ) tprintf( "Key %s = %s\n", ( char * ) node_key2->data, ( char * ) node_value2->data );
+							if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key2->data );
+							if( ( node_value2 = g_node_nth_child( node_key2, 0 ) ) != NULL )
+							{
+								if( cd->debug > 1 ) tprintf( "=%s\n", ( char * ) node_value2->data );
+							}
+							else { tprintf( " WARNING: No data\n" ); continue; }
 							if( !strcasecmp( ( char * ) node_key2->data, "t" ) ) sscanf( ( char * ) node_value2->data, "%lf", &wd->obs_time[i][j] );
 							if( !strcasecmp( ( char * ) node_key2->data, "c" ) ) sscanf( ( char * ) node_value2->data, "%lf", &wd->obs_target[i][j] );
 							if( !strcasecmp( ( char * ) node_key2->data, "weight" ) ) sscanf( ( char * ) node_value2->data, "%lf", &wd->obs_weight[i][j] );
@@ -666,8 +833,12 @@ int load_ymal_grid( GNode *node, gpointer data )
 	for( i = 0; i < g_node_n_children( node ); i++ )
 	{
 		node_key = g_node_nth_child( node, i );
-		node_value = g_node_nth_child( node_key, 0 );
-		if( cd->debug > 1 ) tprintf( "Key %s = %s\n", ( char * ) node_key->data, ( char * ) node_value->data );
+		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
+		if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
+		{
+			if( cd->debug > 1 ) tprintf( "=%s\n", ( char * ) node_value->data );
+		}
+		else { tprintf( " WARNING: No data\n" ); continue; }
 		if( !strcasecmp( ( char * ) node_key->data, "time" ) ) sscanf( ( char * ) node_value->data, "%lf", &gd->time );
 		if( !strcasecmp( ( char * ) node_key->data, "xcount" ) ) sscanf( ( char * ) node_value->data, "%i", &gd->nx );
 		if( !strcasecmp( ( char * ) node_key->data, "ycount" ) ) sscanf( ( char * ) node_value->data, "%i", &gd->ny );
@@ -710,8 +881,12 @@ int load_ymal_time( GNode *node, gpointer data )
 	for( i = 0; i < g_node_n_children( node ); i++ )
 	{
 		node_key = g_node_nth_child( node, i );
-		node_value = g_node_nth_child( node_key, 0 );
-		if( cd->debug > 1 ) tprintf( "Key %s = %s\n", ( char * ) node_key->data, ( char * ) node_value->data );
+		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
+		if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
+		{
+			if( cd->debug > 1 ) tprintf( "=%s\n", ( char * ) node_value->data );
+		}
+		else { tprintf( " WARNING: No data\n" ); continue; }
 		if( !strcasecmp( ( char * ) node_key->data, "start" ) ) sscanf( ( char * ) node_value->data, "%lf", &gd->min_t );
 		if( !strcasecmp( ( char * ) node_key->data, "end" ) ) sscanf( ( char * ) node_value->data, "%lf", &gd->max_t );
 		if( !strcasecmp( ( char * ) node_key->data, "step" ) ) sscanf( ( char * ) node_value->data, "%lf", &gd->dt );
@@ -735,7 +910,7 @@ int load_ymal_problem( GNode *node, gpointer data )
 		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
 		if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
 		{
-			if( cd->debug > 1 ) tprintf( "=%s", ( char * ) node_key->data, ( char * ) node_value->data );
+			if( cd->debug > 1 ) tprintf( "=%s", ( char * ) node_value->data );
 		}
 		tprintf( "\n" );
 	}
@@ -760,7 +935,7 @@ int load_ymal_solution( GNode *node, gpointer data )
 		if( !strncasecmp( ( char * ) node_key->data, "external", 8 ) ) cd->solution_type[0] = EXTERNAL;
 		if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
 		{
-			if( cd->debug > 1 ) tprintf( "=%s", ( char * ) node_key->data, ( char * ) node_value->data );
+			if( cd->debug > 1 ) tprintf( "=%s", ( char * ) node_value->data );
 		}
 		if( cd->debug > 1 ) tprintf( " [%d]", cd->solution_type[0] );
 		tprintf( "\n" );
@@ -777,3 +952,12 @@ gpointer g_node_find_key( GNode *gnode_data, char **key )
 	return( search_pointer[1] );
 }
 
+static gboolean g_node_find_func( GNode *node, gpointer data )
+{
+	register gpointer *d = data;
+	// tprintf( "Search %s %s\n", ( char * ) node->data, (gchar *)d[0] );
+	if( !node->data || strcmp( ( gchar * )d[0], ( gchar * )node->data ) ) return FALSE;
+	// tprintf( "Found %s ", ( char * ) node->data );
+	d[1] = node;
+	return TRUE;
+}

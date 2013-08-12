@@ -20,9 +20,6 @@ Pore z velocity [L/T]: 0 0 0 1 0 1
 Dispersivity x [L]: 130 1 1 5 10 140
 Dispersivity y [L]: 15 1 1 5 1 30
 Dispersivity z [L]: 0.3 1 1 2.22192 0.1 1
-Number of regularization terms: 2
-t0 * ( 49 - t1 ) = 3000 1 0 2000 4000
-137 - ax = 0 1 0 -10 10
 Number of wells: 20
 W-1 1503 1954 5.57 12.55 1 49 0 1 0 0 25
 W-2 2113 1479 36.73 55.14 1 49 0 1 0 0 10
@@ -46,6 +43,10 @@ W-13#2 1485 1149 36 42 1 50 0.26 1 0 0 20
 W-14a 972 869 3 6 1 50 0 1 0 0 5
 W-14b 940 1160 3 6 1 50 30 1 0 0 50
 W-14c 900 1260 3 6 1 50 10 0 0 0 20
+Number of regularization terms: 3
+t0 * ( 49 - t1 ) = 3000 1 0 2000 4000
+137 - ax = 0 1 0 -10 10
+w4_49 - w14b_50 = 450 1 0 300 500 
 Grid Time: 0
 Grid lines: 25 29 1
 Grid Minimums: 499000 538300 0

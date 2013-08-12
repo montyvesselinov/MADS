@@ -93,6 +93,7 @@ Well W-14a  x      972 y      869 z0      3 z1      6 nObs  1 t    50 c     0 we
 Well W-14b  x      940 y     1160 z0      3 z1      6 nObs  1 t    50 c    30 weight       1 log 0 acceptable range: min     0 max    50
 Well W-14c  x      900 y     1260 z0      3 z1      6 nObs  1 t    50 c    10 weight       0 log 0 acceptable range: min     0 max    20
 
+WARNING: Regularization class not found!
 
 Number of optimized parameters = 11
 Source x coordinate [L]    :x     : init      1124 step       25 min       210 max      1460
@@ -121,32 +122,32 @@ Pore z velocity [L/T]      :vz    : 0
 Number of parameters with computational expressions (coupled or tied parameters) = 0
 
 Number of calibration targets = 20
-W-1(49): 0 weight 1
-W-2(49): 0 weight 1
-W-3(49): 0 weight 1
-W-4(44): 350 weight 1
-W-4(49): 432 weight 1
-W-5(49): 0 weight 1
-W-6(49): 0 weight 1
-W-7(49): 0 weight 1
-W-8(49): 0 weight 1
-W-9(49): 981 weight 1
-W-10#1(49): 1.1 weight 1
-W-10#2(49): 0.1 weight 1
-W-11#1(49): 22 weight 1
-W-11#2(49): 0.3 weight 1
-W-12#1(49): 15 weight 1
-W-12#2(49): 0.17 weight 1
-W-13#1(50): 72 weight 1
-W-13#2(50): 0.26 weight 1
-W-14a(50): 0 weight 1
-W-14b(50): 30 weight 1
+W1_49: 0 weight 1
+W2_49: 0 weight 1
+W3_49: 0 weight 1
+W4_44: 350 weight 1
+W4_49: 432 weight 1
+W5_49: 0 weight 1
+W6_49: 0 weight 1
+W7_49: 0 weight 1
+W8_49: 0 weight 1
+W9_49: 981 weight 1
+W10#1_49: 1.1 weight 1
+W10#2_49: 0.1 weight 1
+W11#1_49: 22 weight 1
+W11#2_49: 0.3 weight 1
+W12#1_49: 15 weight 1
+W12#2_49: 0.17 weight 1
+W13#1_50: 72 weight 1
+W13#2_50: 0.26 weight 1
+W14a_50: 0 weight 1
+W14b_50: 30 weight 1
 
 Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130808-223649
+Execution date & time stamp: 20130812-163936
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -162,7 +163,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  712.1  724.0    0.0    0.0    0.0    0.0 -9e+03  -12.9   -1.0  187.8    2.7   97.8    1.0  253.4    0.7   -0.0 -256.4
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  483.8    7.5    0.6  -19.6   -0.3   84.1    0.9 -589.8   -1.8   -0.0 -326.3
 Source x dimension [L]    :   -0.0    0.0    0.0  -16.5  -28.9    0.0    0.0    0.0    0.0  1e+03    1.7    0.1   21.1    0.3   10.6    0.1    0.3   -0.0    0.0   30.2
@@ -293,7 +294,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  723.9  733.5    0.0    0.0    0.0    0.0 -9e+03  -13.8   -1.1  184.5    2.8  100.4    1.1  241.1    0.7   -0.0 -215.0
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  441.7    7.3    0.6  -19.8   -0.3   82.9    0.9 -573.4   -1.9   -0.0 -266.6
 Source x dimension [L]    :   -0.0    0.0    0.0  -18.3  -31.1    0.0    0.0    0.0    0.0  1e+03    1.9    0.1   21.0    0.3   10.7    0.1    0.3   -0.0    0.0   24.8
@@ -425,7 +426,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  717.6  726.1    0.0    0.0    0.0    0.0 -9e+03  -13.3   -1.0  185.1    2.7  100.6    1.1  239.4    0.6   -0.0 -210.4
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  443.8    7.0    0.5  -19.9   -0.3   83.0    0.9 -572.9   -1.8   -0.0 -259.9
 Source x dimension [L]    :   -0.0    0.0    0.0  -19.3  -32.4    0.0    0.0    0.0    0.0  1e+03    1.8    0.1   21.3    0.3   10.8    0.1    0.2   -0.0    0.0   24.6
@@ -558,7 +559,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  708.6  717.5    0.0    0.0    0.0    0.0 -9e+03  -13.2   -1.0  185.6    2.6  100.9    1.0  239.0    0.6   -0.0 -210.2
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  426.3    7.0    0.5  -19.6   -0.3   83.7    0.9 -578.7   -1.7   -0.0 -261.8
 Source x dimension [L]    :   -0.0    0.0    0.0  -20.8  -34.2    0.0    0.0    0.0    0.0  1e+03    1.8    0.1   21.8    0.3   11.1    0.1    0.2   -0.0    0.0   25.1
@@ -690,7 +691,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  707.1  716.1    0.0    0.0    0.0    0.0 -9e+03  -13.2   -1.0  185.7    2.6  100.9    1.0  238.9    0.6   -0.0 -210.2
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  423.4    7.0    0.5  -19.6   -0.3   83.8    0.9 -579.7   -1.7   -0.0 -262.1
 Source x dimension [L]    :   -0.0    0.0    0.0  -21.0  -34.5    0.0    0.0    0.0    0.0  1e+03    1.8    0.1   21.9    0.3   11.2    0.1    0.2   -0.0    0.0   25.2
@@ -825,7 +826,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  704.2  713.4    0.0    0.0    0.0    0.0 -9e+03  -13.2   -1.0  185.8    2.6  100.9    1.0  238.8    0.6   -0.0 -209.9
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  425.9    7.0    0.5  -19.6   -0.3   83.9    0.9 -580.3   -1.7   -0.0 -262.1
 Source x dimension [L]    :   -0.0    0.0    0.0  -21.4  -35.0    0.0    0.0    0.0    0.0  1e+03    1.8    0.1   22.0    0.3   11.3    0.1    0.2   -0.0    0.0   25.3
@@ -960,7 +961,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  703.0  712.3    0.0    0.0    0.0    0.0 -9e+03  -13.2   -1.0  185.8    2.6  100.9    1.0  238.7    0.6   -0.0 -209.8
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  432.4    7.0    0.5  -19.7   -0.3   83.8    0.9 -579.7   -1.7   -0.0 -261.6
 Source x dimension [L]    :   -0.0    0.0    0.0  -21.5  -35.1    0.0    0.0    0.0    0.0  1e+03    1.8    0.1   22.1    0.3   11.3    0.1    0.2   -0.0    0.0   25.3
@@ -1095,7 +1096,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  702.1  711.5    0.0    0.0    0.0    0.0 -9e+03  -13.2   -1.0  185.8    2.6  100.9    1.0  238.7    0.6   -0.0 -209.6
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  437.6    6.9    0.5  -19.8   -0.3   83.8    0.9 -579.3   -1.7   -0.0 -261.2
 Source x dimension [L]    :   -0.0    0.0    0.0  -21.6  -35.2    0.0    0.0    0.0    0.0  1e+03    1.8    0.1   22.1    0.3   11.3    0.1    0.2   -0.0    0.0   25.3
@@ -1230,7 +1231,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  702.1  711.5    0.0    0.0    0.0    0.0 -9e+03  -13.2   -1.0  185.8    2.6  100.9    1.0  238.7    0.6   -0.0 -209.6
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  437.6    6.9    0.5  -19.8   -0.3   83.8    0.9 -579.3   -1.7   -0.0 -261.2
 Source x dimension [L]    :   -0.0    0.0    0.0  -21.5  -35.1    0.0    0.0    0.0    0.0  1e+03    1.8    0.1   22.1    0.3   11.3    0.1    0.2   -0.0    0.0   25.3
@@ -1392,6 +1393,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Aug  8 22:36:49 2013
-Execution completed on Thu Aug  8 22:36:49 2013
-Execution date & time stamp: 20130808-223649
+Execution  started  on Mon Aug 12 16:39:36 2013
+Execution completed on Mon Aug 12 16:39:36 2013
+Execution date & time stamp: 20130812-163936
