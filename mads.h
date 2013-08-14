@@ -329,12 +329,14 @@ struct source_data
 {
 	int num_param;
 	char **param_id;
+	char **param_name;
 };
 
 struct aquifer_data
 {
 	int num_param;
 	char **param_id;
+	char **param_name;
 };
 
 struct class_data

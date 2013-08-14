@@ -46,6 +46,7 @@
 
 /* Functions here */
 int set_param_id( struct opt_data *op );
+int set_param_names( struct opt_data *op );
 int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
@@ -91,6 +92,35 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->qd->param_id[3], "tetha" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
 	strcpy( op->qd->param_id[10], "ts_dsp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_rct" );
+	op->sd->param_name = char_matrix( op->cd->num_source_params, 50 );
+	op->qd->param_name = char_matrix( op->cd->num_aquifer_params, 50 );
+	strcpy( op->sd->param_name[0], "Source x coordinate [L]" ); strcpy( op->sd->param_name[1], "Source y coordinate [L]" ); strcpy( op->sd->param_name[2], "Source z coordinate [L]" );
+	strcpy( op->sd->param_name[3], "Source x dimension [L]" ); strcpy( op->sd->param_name[4], "Source z dimension [L]" ); strcpy( op->sd->param_name[5], "Source z dimension [L]" );
+	strcpy( op->sd->param_name[6], "Contaminant flux [M/T]" ); strcpy( op->sd->param_name[7], "Start Time [T]" ); strcpy( op->sd->param_name[8], "End Time [T]" );
+	strcpy( op->qd->param_name[0], "Porosity [L3/L3]" ); strcpy( op->qd->param_name[1], "Retardation Factor [-]" ); strcpy( op->qd->param_name[2], "Half-life decay [1/T]" );
+	strcpy( op->qd->param_name[3], "Flow Angle [degrees]" ); strcpy( op->qd->param_name[4], "Pore x velocity [L/T]" ); strcpy( op->qd->param_name[5], "Pore y velocity [L/T]" ); strcpy( op->qd->param_name[6], "Pore z velocity [L/T]" );
+	strcpy( op->qd->param_name[7], "Dispersivity x [L]" ); strcpy( op->qd->param_name[8], "Dispersivity y [L]" ); strcpy( op->qd->param_name[9], "Dispersivity z [L]" );
+	strcpy( op->qd->param_name[10], "Time Scale Dispersivity [-]" ); strcpy( op->qd->param_name[11], "Time Scale Advection [-]" ); strcpy( op->qd->param_name[12], "Time Scale Reaction [-]" );
+	return( 1 );
+}
+
+int set_param_names( struct opt_data *op )
+{
+	int i, j, k;
+	if( op->cd->num_sources == 1 )
+	{
+		for( j = 0; j < op->cd->num_source_params; j++ )
+			strcpy( op->pd->var_name[j], op->sd->param_name[j] );
+		k = op->cd->num_source_params;
+	}
+	else
+		for( k = 0, i = 0; i < op->cd->num_sources; i++ )
+		{
+			for( k = 0, j = 0; j < op->cd->num_source_params; j++, k++ )
+				sprintf( op->pd->var_name[k], "%s #%d", op->sd->param_name[j], i + 1 );
+		}
+	for( i = 0; i < op->cd->num_aquifer_params; i++, k++ )
+		strcpy( op->pd->var_name[k], op->qd->param_name[i] );
 	return( 1 );
 }
 
@@ -306,19 +336,19 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	tprintf( "\nProblem type: " );
 	switch( cd->problem_type )
 	{
-	case CHECK: tprintf( "check model setup and input/output files (no model execution)" ); break;
-	case CREATE: tprintf( "create a calibration input file based on a forward run (no calibration)" ); break;
-	case FORWARD: tprintf( "forward run (no calibration)" ); break;
-	case CALIBRATE: tprintf( "calibration" ); break;
-	case LOCALSENS: tprintf( "sensitivity analysis" ); break;
-	case EIGEN: tprintf( "eigen analysis" ); break;
-	case MONTECARLO: tprintf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
-	case GLOBALSENS: tprintf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
-	case ABAGUS: tprintf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
-	case GLUE: tprintf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
-	case INFOGAP: tprintf( "Info-gap decision analysis" ); break;
-	case POSTPUA: tprintf( "predictive uncertainty analysis of sampling results" ); break;
-	default: tprintf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
+		case CHECK: tprintf( "check model setup and input/output files (no model execution)" ); break;
+		case CREATE: tprintf( "create a calibration input file based on a forward run (no calibration)" ); break;
+		case FORWARD: tprintf( "forward run (no calibration)" ); break;
+		case CALIBRATE: tprintf( "calibration" ); break;
+		case LOCALSENS: tprintf( "sensitivity analysis" ); break;
+		case EIGEN: tprintf( "eigen analysis" ); break;
+		case MONTECARLO: tprintf( "monte-carlo analysis (realizations = %d)", cd->nreal ); break;
+		case GLOBALSENS: tprintf( "global sensitivity analysis (realizations = %d)", cd->nreal ); break;
+		case ABAGUS: tprintf( "abagus: agent-based global uncertainty and sensitivity analysis" ); break;
+		case GLUE: tprintf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
+		case INFOGAP: tprintf( "Info-gap decision analysis" ); break;
+		case POSTPUA: tprintf( "predictive uncertainty analysis of sampling results" ); break;
+		default: tprintf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
 	tprintf( "\n" );
 	if( cd->resultsfile[0] != 0 )
@@ -344,11 +374,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		tprintf( "\nCalibration technique: " );
 		switch( cd->calib_type )
 		{
-		case IGRND: tprintf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
-		case IGPD: tprintf( "sequential calibration using a set discretized initial values" ); break;
-		case PPSD: tprintf( "sequential calibration using partial parameter parameter discretization" ); break;
-		case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
-		default: tprintf( "WARNING: unknown calibration type!\nASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
+			case IGRND: tprintf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
+			case IGPD: tprintf( "sequential calibration using a set discretized initial values" ); break;
+			case PPSD: tprintf( "sequential calibration using partial parameter parameter discretization" ); break;
+			case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
+			default: tprintf( "WARNING: unknown calibration type!\nASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
 		}
 		tprintf( "\n" );
 		if( cd->lm_eigen > 0 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
@@ -401,12 +431,12 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	{
 		switch( cd->objfunc_type )
 		{
-		case SSR: tprintf( "sum of squared residuals" ); break;
-		case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
-		case SSDA: tprintf( "sum of squared discrepancies and residuals" ); break;
-		case SSD0: tprintf( "sum of squared discrepancies" ); break;
-		case SSDX: tprintf( "sum of squared discrepancies increased to get within the bounds" ); break;
-		default: tprintf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
+			case SSR: tprintf( "sum of squared residuals" ); break;
+			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
+			case SSDA: tprintf( "sum of squared discrepancies and residuals" ); break;
+			case SSD0: tprintf( "sum of squared discrepancies" ); break;
+			case SSDX: tprintf( "sum of squared discrepancies increased to get within the bounds" ); break;
+			default: tprintf( "unknown value; sum of squared residuals assumed" ); cd->objfunc_type = SSR; break;
 		}
 	}
 	tprintf( "\n" );
@@ -570,15 +600,15 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( cd->num_sources > 1 ) tprintf( " (%d) ", c + 1 );
 		switch( cd->solution_type[c] )
 		{
-		case EXTERNAL: { tprintf( "external" ); strcat( cd->solution_id, "external" ); break; }
-		case POINT: { tprintf( "internal point contaminant source" ); strcat( cd->solution_id, "point" ); break; }
-		case PLANE: { tprintf( "internal rectangular contaminant source" ); strcat( cd->solution_id, "rect" ); break; }
-		case GAUSSIAN2D: { tprintf( "internal planar (2d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_2d" ); break; }
-		case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_3d" ); break; }
-		case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( cd->solution_id, "rect_vert" ); break; }
-		case BOX: { tprintf( "internal box contaminant source" ); strcat( cd->solution_id, "box" ); break; }
-		case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); sprintf( cd->solution_id, "test=%d", cd->test_func ); break; }
-		default: tprintf( "WARNING! UNDEFINED model type!" ); break;
+			case EXTERNAL: { tprintf( "external" ); strcat( cd->solution_id, "external" ); break; }
+			case POINT: { tprintf( "internal point contaminant source" ); strcat( cd->solution_id, "point" ); break; }
+			case PLANE: { tprintf( "internal rectangular contaminant source" ); strcat( cd->solution_id, "rect" ); break; }
+			case GAUSSIAN2D: { tprintf( "internal planar (2d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_2d" ); break; }
+			case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_3d" ); break; }
+			case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( cd->solution_id, "rect_vert" ); break; }
+			case BOX: { tprintf( "internal box contaminant source" ); strcat( cd->solution_id, "box" ); break; }
+			case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); sprintf( cd->solution_id, "test=%d", cd->test_func ); break; }
+			default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 		}
 		if( cd->num_sources > 1 ) { strcat( cd->solution_id, " " ); tprintf( ";" ); }
 	}
@@ -620,6 +650,16 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->param_expressions_index = ( int * ) malloc( pd->nParam * sizeof( int ) );
 	pd->param_expression = ( void ** ) malloc( pd->nParam * sizeof( void * ) );
+	if( cd->solution_type[0] != TEST && cd->solution_type[0] != EXTERNAL )
+	{
+		k = cd->num_source_params * ( cd->num_sources - 1 );
+		pd->var[k + TSCALE_DISP] = 2; pd->var[k + TSCALE_ADV] = 0; pd->var[k + TSCALE_REACT] = 0;
+		pd->var_opt[k + TSCALE_DISP] = 0; pd->var_opt[k + TSCALE_ADV] = 0; pd->var_opt[k + TSCALE_REACT] = 0;
+		pd->var_log[k + TSCALE_DISP] = 0; pd->var_log[k + TSCALE_ADV] = 0; pd->var_log[k + TSCALE_REACT] = 0;
+		pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
+		pd->var_min[k + TSCALE_DISP] = 0; pd->var_min[k + TSCALE_ADV] = 0; pd->var_min[k + TSCALE_REACT] = 0;
+		pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
+	}
 	pd->nOptParam = pd->nFlgParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
 	{
@@ -949,7 +989,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			else if( cd->oweight == 2 ) { if( fabs( od->obs_target[i] ) > DBL_EPSILON ) od->obs_weight[i] = ( double ) 1.0 / od->obs_target[i]; else od->obs_weight[i] = HUGE_VAL; }
 			if( od->obs_weight[i] > DBL_EPSILON ) od->nCObs++;
 			if( od->obs_weight[i] < -DBL_EPSILON ) { preds->nTObs++; if( od->include_predictions ) od->nCObs++; } // Predictions have negative weights
-
 		}
 		tprintf( "Number of calibration targets = %d\n", od->nCObs );
 		if( bad_data ) return( 0 );
@@ -1079,7 +1118,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 #ifdef MATHEVAL
 		rd->regul_nMap = pd->nParam + od->nObs; // rd->nRegul is not needed
 		rd->regul_map_id = ( char ** ) malloc( ( rd->regul_nMap ) * sizeof( char * ) );
-		rd->regul_map_val =( double * ) malloc( ( rd->regul_nMap + rd->nRegul ) * sizeof( double ) ); // rd->nRegul added to accommodate cd->obs_current
+		rd->regul_map_val = ( double * ) malloc( ( rd->regul_nMap + rd->nRegul ) * sizeof( double ) ); // rd->nRegul added to accommodate cd->obs_current
 #endif
 #ifndef MATHEVAL
 		tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
@@ -1112,9 +1151,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					l1 = strlen( expvar_names[j] );
 					status = 0;
 					for( k = 0; k < pd->nParam; k++ )
-						if( !strncasecmp( expvar_names[j], pd->var_id[k], l1 )  ) { status = 1; break; }
+						if( !strncasecmp( expvar_names[j], pd->var_id[k], l1 ) ) { status = 1; break; }
 					for( k = 0; k < od->nObs; k++ )
-						if( !strncasecmp( expvar_names[j], od->obs_id[k], l1 )  ) { status = 1; break; }
+						if( !strncasecmp( expvar_names[j], od->obs_id[k], l1 ) ) { status = 1; break; }
 #ifdef MATHEVAL
 					if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) ); bad_data = 1; }
 #endif
@@ -1162,7 +1201,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			for( i = 0; i < rd->nRegul; i++ )
 				tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
 	}
-
 	// ------------------------------------------------------------ Set predictions ----------------------------------------------------------------
 	if( preds->nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
 	{
@@ -1363,15 +1401,15 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, "Problem type: " );
 	switch( cd->problem_type )
 	{
-	case CREATE: fprintf( outfile, "create" ); break;
-	case FORWARD: fprintf( outfile, "forward" ); break;
-	case CALIBRATE: fprintf( outfile, "calibration" ); break;
-	case LOCALSENS: fprintf( outfile, "lsens" ); break;
-	case GLOBALSENS: fprintf( outfile, "gsens" ); break;
-	case EIGEN: fprintf( outfile, "eigen" ); break;
-	case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
-	case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
-	case POSTPUA: fprintf( outfile, " postpua" ); break;
+		case CREATE: fprintf( outfile, "create" ); break;
+		case FORWARD: fprintf( outfile, "forward" ); break;
+		case CALIBRATE: fprintf( outfile, "calibration" ); break;
+		case LOCALSENS: fprintf( outfile, "lsens" ); break;
+		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
+		case EIGEN: fprintf( outfile, "eigen" ); break;
+		case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
+		case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
+		case POSTPUA: fprintf( outfile, " postpua" ); break;
 	}
 	if( cd->debug > 0 ) fprintf( outfile, " debug=%d", cd->debug );
 	if( cd->fdebug > 0 ) fprintf( outfile, " fdebug=%d", cd->fdebug );
@@ -1392,10 +1430,10 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, " " );
 	switch( cd->calib_type )
 	{
-	case SIMPLE: fprintf( outfile, "single" ); break;
-	case PPSD: fprintf( outfile, "ppsd" ); break;
-	case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
-	case IGPD: fprintf( outfile, "igpd" ); break;
+		case SIMPLE: fprintf( outfile, "single" ); break;
+		case PPSD: fprintf( outfile, "ppsd" ); break;
+		case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
+		case IGPD: fprintf( outfile, "igpd" ); break;
 	}
 	fprintf( outfile, " eval=%d", cd->maxeval );
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
@@ -1414,11 +1452,11 @@ int save_problem( char *filename, struct opt_data *op )
 	fprintf( outfile, " " );
 	switch( cd->objfunc_type )
 	{
-	case SSR: fprintf( outfile, "ssr" ); break;
-	case SSDR: fprintf( outfile, "ssdr" ); break;
-	case SSD0: fprintf( outfile, "ssd0" ); break;
-	case SSDX: fprintf( outfile, "ssdx" ); break;
-	case SSDA: fprintf( outfile, "ssda" ); break;
+		case SSR: fprintf( outfile, "ssr" ); break;
+		case SSDR: fprintf( outfile, "ssdr" ); break;
+		case SSD0: fprintf( outfile, "ssd0" ); break;
+		case SSDX: fprintf( outfile, "ssdx" ); break;
+		case SSDA: fprintf( outfile, "ssda" ); break;
 	}
 	fprintf( outfile, "\n" );
 	fprintf( outfile, "Solution type: %s\n", cd->solution_id );
@@ -1429,7 +1467,7 @@ int save_problem( char *filename, struct opt_data *op )
 #ifdef MATHEVAL
 			fprintf( outfile, "%s= %s\n", pd->var_name[i], evaluator_get_string( pd->param_expression[j++] ) );
 #else
-		fprintf( outfile, "%s= MathEval is not installed; expressions cannot be evaluated\n", pd->var_name[i] );
+			fprintf( outfile, "%s= MathEval is not installed; expressions cannot be evaluated\n", pd->var_name[i] );
 #endif
 		else if( pd->var_opt[i] >= 1 && pd->var_log[i] == 1 ) // optimized log transformed parameter
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pow( 10, pd->var[i] ), pd->var_opt[i], pd->var_log[i], pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );
@@ -1443,7 +1481,7 @@ int save_problem( char *filename, struct opt_data *op )
 #ifdef MATHEVAL
 			fprintf( outfile, "%s = %g %g %i %g %g\n", evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
 #else
-		fprintf( outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+			fprintf( outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
 #endif
 	}
 	if( cd->solution_type[0] != EXTERNAL )
@@ -1675,7 +1713,7 @@ char **shellpath( void )
 	if( !path )
 		path = "/bin:/usr/bin:/usr/local/bin";
 	char **vector = // size is overkill
-			( char ** ) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
+		( char ** ) malloc_check( "hold path elements", strlen( path ) * sizeof( *vector ) );
 	const char *p = path;
 	int next = 0;
 	while( p )

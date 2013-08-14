@@ -3,8 +3,20 @@ MADS: Model Analyses & Decision Support (v1.1) 2012
 Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
-Input file name: example/contamination/s02regul.mads
-Problem root name: example/contamination/s02regul
+Input file name: example/contamination/s02regul_yaml.mads
+Problem root name: example/contamination/s02regul_yaml
+Number of YAML classes 8
+YAML Classes:
+ Problem -> 3 components
+ Solution -> 1 components
+ Sources -> 1 components
+ Parameters -> 10 components
+ Wells -> 20 components
+ Regularizations -> 3 components
+ Grid -> 10 components
+ Time -> 3 components
+Process YAML Classes ...
+Process Problem ... 
 
 Problem type: calibration
 
@@ -31,102 +43,56 @@ Debug (verbosity) level for random sets: mdebug=0
 Debug (verbosity) level for template file: tpldebug=0
 Debug (verbosity) level for instruction file: insdebug=0
 
+Process Solution ... Number of solution components: 1
+
+Components:
+Process Sources ... Number of sources: 1
+Source #1 type: box ... Number of parameters: 9
+Source x coordinate [L]    :x     : init       224 opt 1 log 0 step      25 min       210 max      1460
+Source y coordinate [L]    :y     : init      1393 opt 1 log 0 step      25 min      1230 max      1930
+Source z coordinate [L]    :z     : init         0 opt 0 log 0 step       1 min         0 max       100
+Source x dimension [L]     :dx    : init       258 opt 1 log 0 step       1 min         1 max       500
+Source y dimension [L]     :dy    : init       273 opt 1 log 0 step       1 min         1 max       500
+Source z dimension [L]     :dz    : init         1 opt 0 log 0 step       1 min         1 max        10
+Contaminant flux [M/T]     :f     : init        60 opt 1 log 1 step      10 min      0.01 max       100
+Start Time [T]             :t0    : init         0 opt 1 log 0 step       1 min         0 max        43
+End Time [T]               :t1    : init       100 opt 0 log 0 step       1 min         1 max       100
 Model: internal box contaminant source
-Transverse dispersivities are neither tied or scaled!
+Process Parameters ... Number of parameters: 10
+WARNING: The number of provided parameters (10) is different than the number of expected parameters (13)
+Porosity [L3/L3]           :n     : init       0.1 opt 0 log 1 step     0.1 min         0 max         1
+Retardation Factor [-]     :rf    : init         1 opt 0 log 0 step       1 min         1 max        10
+Half-life decay [1/T]      :lambda: init         0 opt 0 log 0 step       1 min         0 max         1
+Flow Angle [degrees]       :tetha : init         3 opt 1 log 0 step       5 min       -30 max        30
+Pore x velocity [L/T]      :vx    : init         5 opt 1 log 1 step       1 min      0.01 max       200
+Pore y velocity [L/T]      :vy    : init         0 opt 0 log 0 step       1 min         0 max         1
+Pore z velocity [L/T]      :vz    : init         0 opt 0 log 0 step       1 min         0 max         1
+Dispersivity x [L]         :ax    : init       130 opt 1 log 1 step       5 min        10 max       140
+Dispersivity y [L]         :ay    : init        15 opt 1 log 1 step       1 min         1 max        30
+Dispersivity z [L]         :az    : init       0.3 opt 1 log 1 step     0.1 min       0.1 max         1
+Process Wells ... Number of wells: 20
+Well W-1    x     1503 y     1954 z0   5.57 z1  12.55 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
+Well W-2    x     2113 y     1479 z0  36.73 z1  55.14 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-3    x      418 y      950 z0      0 z1  15.04 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
+Well W-4    x     1377 y     1534 z0  13.15 z1  20.41 nObs  2 t    44 c   350 weight       1 log 0 acceptable range: min   300 max   700
+							      t    49 c   432 weight       1 log 0 acceptable range: min   300 max   700
+Well W-5    x     3268 y     1074 z0  26.73 z1  33.71 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-6    x     2112 y     2294 z0  69.01 z1  83.98 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-7    x     2086 y     2284 z0  11.15 z1  18.19 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-8    x     2770 y     2119 z0   4.86 z1  11.87 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-9    x      975 y     1450 z0   3.66 z1  10.09 nObs  1 t    49 c   981 weight       1 log 0 acceptable range: min   600 max  1200
+Well W-10#1 x      723 y     1599 z0   3.32 z1   9.63 nObs  1 t    49 c   1.1 weight       1 log 0 acceptable range: min     0 max     5
+Well W-10#2 x      723 y     1599 z0   23.2 z1  26.24 nObs  1 t    49 c   0.1 weight       1 log 0 acceptable range: min     0 max     5
+Well W-11#1 x     1850 y     1368 z0   4.94 z1   7.99 nObs  1 t    49 c    22 weight       1 log 0 acceptable range: min     3 max    25
+Well W-11#2 x     1850 y     1368 z0  32.46 z1  35.48 nObs  1 t    49 c   0.3 weight       1 log 0 acceptable range: min     0 max     5
+Well W-12#1 x     1761 y     1636 z0   3.59 z1   6.64 nObs  1 t    49 c    15 weight       1 log 0 acceptable range: min     3 max    25
+Well W-12#2 x     1761 y     1636 z0  32.51 z1  38.61 nObs  1 t    49 c  0.17 weight       1 log 0 acceptable range: min     0 max     5
+Well W-13#1 x     1485 y     1149 z0      3 z1      6 nObs  1 t    50 c    72 weight       1 log 0 acceptable range: min    40 max   100
+Well W-13#2 x     1485 y     1149 z0     36 z1     42 nObs  1 t    50 c  0.26 weight       1 log 0 acceptable range: min     0 max    20
+Well W-14a  x      972 y      869 z0      3 z1      6 nObs  1 t    50 c     0 weight       1 log 0 acceptable range: min     0 max     5
+Well W-14b  x      940 y     1160 z0      3 z1      6 nObs  1 t    50 c    30 weight       1 log 0 acceptable range: min     0 max    50
+Well W-14c  x      900 y     1260 z0      3 z1      6 nObs  1 t    50 c    10 weight       0 log 0 acceptable range: min     0 max    20
 
-Number of model parameters: 19
-ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
-Source x coordinate [L]   : init       224 opt 1 log 0 step      25 min       210 max      1460
-Source y coordinate [L]   : init      1393 opt 1 log 0 step      25 min      1230 max      1930
-Source z coordinate [L]   : init         0 opt 0 log 0 step       1 min         0 max       100
-Source x dimension [L]    : init       258 opt 1 log 0 step       1 min         1 max       500
-Source y dimension [L]    : init       273 opt 1 log 0 step       1 min         1 max       500
-Source z dimension [L]    : init         1 opt 0 log 0 step       1 min         1 max        10
-Contaminant flux [M/T]    : init        60 opt 1 log 1 step      10 min      0.01 max       100
-Start Time [T]            : init         0 opt 1 log 0 step       1 min         0 max        43
-End Time [T]              : init       100 opt 0 log 0 step       1 min         1 max        44
-Porosity [L3/L3]          : init       0.1 opt 0 log 0 step     0.1 min         0 max         1
-Retardation Factor [-]    : init         1 opt 0 log 1 step       1 min         1 max        10
-Half-life decay [1/T]     : init         0 opt 0 log 1 step       1 min         0 max         1
-Flow Angle [degrees]      : init         3 opt 1 log 0 step       5 min       -30 max        30
-Pore x velocity [L/T]     : init         5 opt 1 log 1 step 1.01074 min      0.01 max       200
-Pore y velocity [L/T]     : init         0 opt 0 log 0 step       1 min         0 max         1
-Pore z velocity [L/T]     : init         0 opt 0 log 0 step       1 min         0 max         1
-Dispersivity x [L]        : init       130 opt 1 log 1 step       5 min        10 max       140
-Dispersivity y [L]        : init        15 opt 1 log 1 step       1 min         1 max        30
-Dispersivity z [L]        : init       0.3 opt 1 log 1 step     0.1 min       0.1 max         1
-
-Parameter ID's:
-1 x
-2 y
-3 z
-4 dx
-5 dy
-6 dz
-7 f
-8 t0
-9 t1
-10 n
-11 rf
-12 lambda
-13 tetha
-14 vx
-15 vy
-16 vz
-17 ax
-18 ay
-19 az
-
-
-Number of optimized parameters = 11
-Source x coordinate [L]    :x     : init       224 step       25 min       210 max      1460
-Source y coordinate [L]    :y     : init      1393 step       25 min      1230 max      1930
-Source x dimension [L]     :dx    : init       258 step        1 min         1 max       500
-Source y dimension [L]     :dy    : init       273 step        1 min         1 max       500
-Contaminant flux [M/T]     :f     : init   1.77815 step        1 min        -2 max         2
-Start Time [T]             :t0    : init         0 step        1 min         0 max        43
-Flow Angle [degrees]       :tetha : init         3 step        5 min       -30 max        30
-Pore x velocity [L/T]      :vx    : init   0.69897 step   0.0217 min        -2 max   2.30103
-Dispersivity x [L]         :ax    : init   2.11394 step    0.699 min         1 max   2.14613
-Dispersivity y [L]         :ay    : init   1.17609 step   0.0509 min         0 max   1.47712
-Dispersivity z [L]         :az    : init -0.522879 step    0.111 min        -1 max         0
-
-Number of flagged parameters = 0
-
-Number of fixed parameters = 8
-Source z coordinate [L]    :z     : 0
-Source z dimension [L]     :dz    : 1
-End Time [T]               :t1    : 100
-Porosity [L3/L3]           :n     : 0.1
-Retardation Factor [-]     :rf    : 1
-Half-life decay [1/T]      :lambda: 0
-Pore y velocity [L/T]      :vy    : 0
-Pore z velocity [L/T]      :vz    : 0
-Number of parameters with computational expressions (coupled or tied parameters) = 0
-Number of wells: 20
-
-Observation data:
-Well W-1    x     1503 y     1954 z0   5.57 z1  12.55 nObs  1 Well W-1    x     1503 y     1954 z0   5.57 z1  12.55 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
-Well W-2    x     2113 y     1479 z0  36.73 z1  55.14 nObs  1 Well W-2    x     2113 y     1479 z0  36.73 z1  55.14 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-3    x      418 y      950 z0      0 z1  15.04 nObs  1 Well W-3    x      418 y      950 z0      0 z1  15.04 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
-Well W-4    x     1377 y     1534 z0  13.15 z1  20.41 nObs  2 Well W-4    x     1377 y     1534 z0  13.15 z1  20.41 nObs  2 t    44 c   350 weight       1 log 0 acceptable range: min   300 max   700
-							      Well W-4    x     1377 y     1534 z0  13.15 z1  20.41 nObs  2 t    49 c   432 weight       1 log 0 acceptable range: min   300 max   700
-Well W-5    x     3268 y     1074 z0  26.73 z1  33.71 nObs  1 Well W-5    x     3268 y     1074 z0  26.73 z1  33.71 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-6    x     2112 y     2294 z0  69.01 z1  83.98 nObs  1 Well W-6    x     2112 y     2294 z0  69.01 z1  83.98 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-7    x     2086 y     2284 z0  11.15 z1  18.19 nObs  1 Well W-7    x     2086 y     2284 z0  11.15 z1  18.19 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-8    x     2770 y     2119 z0   4.86 z1  11.87 nObs  1 Well W-8    x     2770 y     2119 z0   4.86 z1  11.87 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-9    x      975 y     1450 z0   3.66 z1  10.09 nObs  1 Well W-9    x      975 y     1450 z0   3.66 z1  10.09 nObs  1 t    49 c   981 weight       1 log 0 acceptable range: min   600 max  1200
-Well W-10#1 x      723 y     1599 z0   3.32 z1   9.63 nObs  1 Well W-10#1 x      723 y     1599 z0   3.32 z1   9.63 nObs  1 t    49 c   1.1 weight       1 log 0 acceptable range: min     0 max     5
-Well W-10#2 x      723 y     1599 z0   23.2 z1  26.24 nObs  1 Well W-10#2 x      723 y     1599 z0   23.2 z1  26.24 nObs  1 t    49 c   0.1 weight       1 log 0 acceptable range: min     0 max     5
-Well W-11#1 x     1850 y     1368 z0   4.94 z1   7.99 nObs  1 Well W-11#1 x     1850 y     1368 z0   4.94 z1   7.99 nObs  1 t    49 c    22 weight       1 log 0 acceptable range: min     3 max    25
-Well W-11#2 x     1850 y     1368 z0  32.46 z1  35.48 nObs  1 Well W-11#2 x     1850 y     1368 z0  32.46 z1  35.48 nObs  1 t    49 c   0.3 weight       1 log 0 acceptable range: min     0 max     5
-Well W-12#1 x     1761 y     1636 z0   3.59 z1   6.64 nObs  1 Well W-12#1 x     1761 y     1636 z0   3.59 z1   6.64 nObs  1 t    49 c    15 weight       1 log 0 acceptable range: min     3 max    25
-Well W-12#2 x     1761 y     1636 z0  32.51 z1  38.61 nObs  1 Well W-12#2 x     1761 y     1636 z0  32.51 z1  38.61 nObs  1 t    49 c  0.17 weight       1 log 0 acceptable range: min     0 max     5
-Well W-13#1 x     1485 y     1149 z0      3 z1      6 nObs  1 Well W-13#1 x     1485 y     1149 z0      3 z1      6 nObs  1 t    50 c    72 weight       1 log 0 acceptable range: min    40 max   100
-Well W-13#2 x     1485 y     1149 z0     36 z1     42 nObs  1 Well W-13#2 x     1485 y     1149 z0     36 z1     42 nObs  1 t    50 c  0.26 weight       1 log 0 acceptable range: min     0 max    20
-Well W-14a  x      972 y      869 z0      3 z1      6 nObs  1 Well W-14a  x      972 y      869 z0      3 z1      6 nObs  1 t    50 c     0 weight       1 log 0 acceptable range: min     0 max     5
-Well W-14b  x      940 y     1160 z0      3 z1      6 nObs  1 Well W-14b  x      940 y     1160 z0      3 z1      6 nObs  1 t    50 c    30 weight       1 log 0 acceptable range: min     0 max    50
-Well W-14c  x      900 y     1260 z0      3 z1      6 nObs  1 Well W-14c  x      900 y     1260 z0      3 z1      6 nObs  1 t    50 c    10 weight       0 log 0 acceptable range: min     0 max    20
 
 Number of calibration targets = 20
 W1_49: 0 weight 1
@@ -150,47 +116,56 @@ W13#2_50: 0.26 weight 1
 W14a_50: 0 weight 1
 W14b_50: 30 weight 1
 
-
-Parameter values for computation of the regularization terms:
-Source x coordinate [L]   : x           : 224
-Source y coordinate [L]   : y           : 1393
-Source z coordinate [L]   : z           : 0
-Source x dimension [L]    : dx          : 258
-Source y dimension [L]    : dy          : 273
-Source z dimension [L]    : dz          : 1
-Contaminant flux [M/T]    : f           : 60
-Start Time [T]            : t0          : 0
-End Time [T]              : t1          : 100
-Porosity [L3/L3]          : n           : 0.1
-Retardation Factor [-]    : rf          : 1
-Half-life decay [1/T]     : lambda      : 0
-Flow Angle [degrees]      : tetha       : 3
-Pore x velocity [L/T]     : vx          : 5
-Pore y velocity [L/T]     : vy          : 0
-Pore z velocity [L/T]     : vz          : 0
-Dispersivity x [L]        : ax          : 130
-Dispersivity y [L]        : ay          : 15
-Dispersivity z [L]        : az          : 0.3
-
-Number of regularization terms = 3
-reg1        : target 3000 weight 1 log 0 min 2000 max 4000 : equation f * ( 49 - t0 )  -> variables: t0 f
-reg2        : target 0 weight 1 log 0 min -10 max 10 : equation 137 - ax  -> variables: ax
-reg3        : target 450 weight 1 log 0 min 300 max 500 : equation W4_49 - W14b_50  -> variables: W14b_50 W4_49
-Regularization expressions evaluated (initial values applied for parameters).
+Process Regularizations ... Number of regularization terms = 3
+reg1        : target 3000 weight 1 log 0 min 2000 max 4000 : equation (f*(49-t0)) -> variables: t0 f
+reg2        : target 0 weight 1 log 0 min -10 max 10 : equation (137-ax) -> variables: ax
+reg3        : target 450 weight 1 log 0 min 300 max 500 : equation (W4_49-W14b_50) -> variables: W14b_50 W4_49
+Regularization expressions evaluated (initial values applied for parameters; target values applied for observations).
 reg1        = (f*(49-t0)) = 2940
 reg2        = (137-ax) = 7
 reg3        = (W4_49-W14b_50) = 402
-Number of total observations & regularizations = 20
-reg1: 3000 weight 1reg2: 0 weight 1reg3: 450 weight 1Number of predictions = 0
-
+Process Grid ... Number of grid components: 10
 Grid Time: 0
 Grid lines: 25 29 1
 Grid Minimums: 499000 538300 0
 Grid Maximums: 500200 539400 0.1
-Breakthrough-curve time window: 0 0 1
+Process Time ... Number of time components: 3
+Breakthrough-curve time window: start 0 end 0 step 1
+Process More YAML Classes ...
+
+Number of optimized parameters = 11
+Source x coordinate [L]    :x     : init       224 step       25 min       210 max      1460
+Source y coordinate [L]    :y     : init      1393 step       25 min      1230 max      1930
+Source x dimension [L]     :dx    : init       258 step        1 min         1 max       500
+Source y dimension [L]     :dy    : init       273 step        1 min         1 max       500
+Contaminant flux [M/T]     :f     : init   1.77815 step        1 min        -2 max         2
+Start Time [T]             :t0    : init         0 step        1 min         0 max        43
+Flow Angle [degrees]       :tetha : init         3 step        5 min       -30 max        30
+Pore x velocity [L/T]      :vx    : init   0.69897 step   0.0215 min        -2 max   2.30103
+Dispersivity x [L]         :ax    : init   2.11394 step    0.699 min         1 max   2.14613
+Dispersivity y [L]         :ay    : init   1.17609 step   0.0509 min         0 max   1.47712
+Dispersivity z [L]         :az    : init -0.522879 step    0.111 min        -1 max         0
+
+Number of flagged parameters = 0
+
+Number of fixed parameters = 11
+Source z coordinate [L]    :z     : 0
+Source z dimension [L]     :dz    : 1
+End Time [T]               :t1    : 100
+Porosity [L3/L3]           :n     : 0.1
+Retardation Factor [-]     :rf    : 1
+Half-life decay [1/T]      :lambda: 0
+Pore y velocity [L/T]      :vy    : 0
+Pore z velocity [L/T]      :vz    : 0
+Time Scale Dispersivity [-] :      : 2
+Time Scale Advection [-]   :      : 0
+Time Scale Reaction [-]    :      : 0
+Number of parameters with computational expressions (coupled or tied parameters) = 0
+Number of regularization terms = 3
+Number of predictions = 0
 
 
-Execution date & time stamp: 20130813-234608
+Execution date & time stamp: 20130813-234953
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -218,7 +193,7 @@ Pore x velocity [L/T]     :    0.0    0.0    3.6   10.9   32.2    0.0    0.0    
 Dispersivity x [L]        :    0.0    0.0   -0.0    0.6    1.8    0.0    0.0    0.0    0.0  237.7  141.2    7.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0   15.8    0.0  -56.7    0.0
 Dispersivity y [L]        :    0.0   -0.0    1.2   -0.0   -0.2    0.0    0.0    0.0    0.0  -62.6  308.8   25.0   -0.0   -0.0    0.0    0.0    0.0    0.0    0.0   63.8    0.0    0.0    0.0
 Dispersivity z [L]        :   -0.0    0.0   -0.0    0.1    0.3    0.0    0.0    0.0   -0.0  -93.1 -212.3  124.6   -0.0    0.0   -0.0    0.0   -0.0    0.0   -0.0  -12.5    0.0    0.0    0.0
-Jacobian matrix stored (example/contamination/s02regul.jacobian)
+Jacobian matrix stored (example/contamination/s02regul_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]   :   5e+03   2e+03   2e+05  -2e+03  -2e+02  -2e+10  -3e+03  -4e+03   2e-04   2e+04   2e+04
@@ -232,7 +207,7 @@ Pore x velocity [L/T]     :  -4e+03  -2e+03  -2e+05   2e+03   2e+02   2e+10   3e
 Dispersivity x [L]        :   2e-04   4e-06  -2e-04  -7e-06  -3e-07  -3e+01  -2e-06  -2e-05   3e-04   8e-05   9e-05
 Dispersivity y [L]        :   2e+04   1e+04   8e+05  -7e+03  -1e+03  -1e+11  -1e+04  -2e+04   8e-05   8e+04   9e+04
 Dispersivity z [L]        :   2e+04   1e+04   9e+05  -8e+03  -1e+03  -1e+11  -1e+04  -2e+04   9e-05   9e+04   1e+05
-Covariance matrix stored (example/contamination/s02regul.covariance)
+Covariance matrix stored (example/contamination/s02regul_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]   :   1.000  0.914  0.978 -0.812 -0.978 -0.978 -0.926 -0.980  0.000  0.970  0.980
@@ -246,7 +221,7 @@ Pore x velocity [L/T]     :  -0.980 -0.976 -1.000  0.910  1.000  1.000  0.982  1
 Dispersivity x [L]        :   0.000  0.000 -0.000 -0.000 -0.000 -0.000 -0.000 -0.000  1.000  0.000  0.000
 Dispersivity y [L]        :   0.970  0.985  0.999 -0.929 -0.999 -0.999 -0.990 -0.999  0.000  1.000  0.999
 Dispersivity z [L]        :   0.980  0.976  1.000 -0.910 -1.000 -1.000 -0.982 -1.000  0.000  0.999  1.000
-Correlation matrix stored (example/contamination/s02regul.correlation)
+Correlation matrix stored (example/contamination/s02regul_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]   :  0.010  0.074 -0.085 -0.264 -0.068 -0.332 -0.627  0.207  0.604  0.041  0.000
@@ -275,7 +250,7 @@ Dispersivity x [L]        :  0.007  0.051 -0.171 -0.181  0.967 -0.000 -0.000  0.
 Dispersivity y [L]        : -0.002 -0.012  0.498 -0.117  0.067  0.259 -0.655 -0.167 -0.456  0.037  0.000
 Dispersivity z [L]        : -0.002 -0.016  0.168  0.912  0.201 -0.174 -0.183  0.050  0.135  0.122  0.000
 Eigenvalues               :  3e-08  5e-08  3e-05  4e-05  3e-04  3e-01  2e+00  2e+01  6e+02  2e+03  1e+17
-Eigen vactors and eigen values stored (example/contamination/s02regul.eigen)
+Eigen vactors and eigen values stored (example/contamination/s02regul_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -352,7 +327,7 @@ Pore x velocity [L/T]     :    0.0    0.0    3.6   10.9   32.2    0.0    0.0    
 Dispersivity x [L]        :    0.0    0.0   -0.0    0.6    1.8    0.0    0.0    0.0    0.0  237.7  141.2    7.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0   15.8    0.0  -56.7    0.0
 Dispersivity y [L]        :    0.0   -0.0    1.2   -0.0   -0.2    0.0    0.0    0.0    0.0  -62.6  308.8   25.0   -0.0   -0.0    0.0    0.0    0.0    0.0    0.0   63.8    0.0    0.0    0.0
 Dispersivity z [L]        :   -0.0    0.0   -0.0    0.1    0.3    0.0    0.0    0.0   -0.0  -93.1 -212.3  124.6   -0.0    0.0   -0.0    0.0   -0.0    0.0   -0.0  -12.5    0.0    0.0    0.0
-Jacobian matrix stored (example/contamination/s02regul.jacobian)
+Jacobian matrix stored (example/contamination/s02regul_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]   :   5e+03   2e+03   2e+05  -2e+03  -2e+02  -2e+10  -3e+03  -4e+03   2e-04   2e+04   2e+04
@@ -366,7 +341,7 @@ Pore x velocity [L/T]     :  -4e+03  -2e+03  -2e+05   2e+03   2e+02   2e+10   3e
 Dispersivity x [L]        :   2e-04   4e-06  -2e-04  -7e-06  -3e-07  -3e+01  -2e-06  -2e-05   3e-04   8e-05   9e-05
 Dispersivity y [L]        :   2e+04   1e+04   8e+05  -7e+03  -1e+03  -1e+11  -1e+04  -2e+04   8e-05   8e+04   9e+04
 Dispersivity z [L]        :   2e+04   1e+04   9e+05  -8e+03  -1e+03  -1e+11  -1e+04  -2e+04   9e-05   9e+04   1e+05
-Covariance matrix stored (example/contamination/s02regul.covariance)
+Covariance matrix stored (example/contamination/s02regul_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]   :   1.000  0.914  0.978 -0.812 -0.978 -0.978 -0.926 -0.980  0.000  0.970  0.980
@@ -380,7 +355,7 @@ Pore x velocity [L/T]     :  -0.980 -0.976 -1.000  0.910  1.000  1.000  0.982  1
 Dispersivity x [L]        :   0.000  0.000 -0.000 -0.000 -0.000 -0.000 -0.000 -0.000  1.000  0.000  0.000
 Dispersivity y [L]        :   0.970  0.985  0.999 -0.929 -0.999 -0.999 -0.990 -0.999  0.000  1.000  0.999
 Dispersivity z [L]        :   0.980  0.976  1.000 -0.910 -1.000 -1.000 -0.982 -1.000  0.000  0.999  1.000
-Correlation matrix stored (example/contamination/s02regul.correlation)
+Correlation matrix stored (example/contamination/s02regul_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]   :  0.010  0.074 -0.085 -0.264 -0.068 -0.332 -0.627  0.207  0.604  0.041  0.000
@@ -409,7 +384,7 @@ Dispersivity x [L]        :  0.007  0.051 -0.171 -0.181  0.967 -0.000 -0.000  0.
 Dispersivity y [L]        : -0.002 -0.012  0.498 -0.117  0.067  0.259 -0.655 -0.167 -0.456  0.037  0.000
 Dispersivity z [L]        : -0.002 -0.016  0.168  0.912  0.201 -0.174 -0.183  0.050  0.135  0.122  0.000
 Eigenvalues               :  3e-08  5e-08  3e-05  4e-05  3e-04  3e-01  2e+00  2e+01  6e+02  2e+03  1e+17
-Eigen vactors and eigen values stored (example/contamination/s02regul.eigen)
+Eigen vactors and eigen values stored (example/contamination/s02regul_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -483,7 +458,7 @@ Pore x velocity [L/T]     :    0.0    0.0    1.0  366.7  705.7    0.0    0.0    
 Dispersivity x [L]        :    0.0    0.0   -0.0    7.5   13.5    0.0    0.0    0.0    0.0  190.6   -2.8   -0.5    1.1    0.0    0.4    0.0    0.1    0.0   -0.0    1.2    0.0  -28.6    0.0
 Dispersivity y [L]        :    0.0   -0.0    0.4    7.4   13.9    0.0    0.0    0.0    0.0 -328.1  260.3   37.8    0.2    0.0    0.9    0.0    2.1    0.0    0.0  264.1    0.0    0.0    0.0
 Dispersivity z [L]        :   -0.0    0.0   -0.0    4.9    8.7    0.0    0.0    0.0   -0.0 -476.0  -17.2   11.3   -0.3    0.1   -0.2    0.0   -0.1    0.0   -0.0  -25.9    0.0    0.0    0.0
-Jacobian matrix stored (example/contamination/s02regul.jacobian)
+Jacobian matrix stored (example/contamination/s02regul_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]   :   1e-01   4e-02  -2e+00   2e+00  -2e-02  -2e+06  -2e-02   7e-03   3e-04  -9e-01   7e-03
@@ -497,7 +472,7 @@ Pore x velocity [L/T]     :   7e-03   1e-02  -7e-01   5e-01  -6e-03  -9e+05  -9e
 Dispersivity x [L]        :   3e-04   2e-05  -1e-03   1e-04  -3e-06  -4e+02   2e-06  -3e-05   1e-03   4e-06   1e-04
 Dispersivity y [L]        :  -9e-01  -7e-01   4e+01  -3e+01   3e-01   4e+07   5e-01  -2e-01   4e-06   1e+01   7e-01
 Dispersivity z [L]        :   7e-03  -4e-02   3e+00  -1e+00   3e-02   5e+06   3e-02  -2e-02   1e-04   7e-01   1e-01
-Covariance matrix stored (example/contamination/s02regul.covariance)
+Covariance matrix stored (example/contamination/s02regul_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]   :   1.000  0.470 -0.568  0.711 -0.408 -0.408 -0.352  0.283  0.022 -0.683  0.059
@@ -511,7 +486,7 @@ Pore x velocity [L/T]     :   0.283  0.896 -0.904  0.840 -0.751 -0.751 -0.894  1
 Dispersivity x [L]        :   0.022  0.002 -0.004  0.001 -0.001 -0.001  0.000 -0.010  1.000  0.000  0.009
 Dispersivity y [L]        :  -0.683 -0.942  0.932 -0.998  0.749  0.749  0.891 -0.867  0.000  1.000  0.531
 Dispersivity z [L]        :   0.059 -0.514  0.759 -0.479  0.840  0.840  0.518 -0.788  0.009  0.531  1.000
-Correlation matrix stored (example/contamination/s02regul.correlation)
+Correlation matrix stored (example/contamination/s02regul_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]   :  0.004 -0.089 -0.204 -0.476 -0.003  0.176  0.131  0.819  0.064 -0.028  0.000
@@ -540,7 +515,7 @@ Dispersivity x [L]        : -0.002  0.001 -0.013 -0.045  0.027 -0.998 -0.020  0.
 Dispersivity y [L]        :  0.065  0.001 -0.065  0.815  0.194 -0.035  0.270  0.267 -0.186  0.330 -0.000
 Dispersivity z [L]        :  0.018 -0.001  0.035  0.040  0.439  0.028 -0.784  0.427  0.084 -0.006 -0.000
 Eigenvalues               : -4e-02  3e-08  2e-07  6e-06  1e-04  1e-03  4e-03  9e-02  2e+00  5e+01  3e+14
-Eigen vactors and eigen values stored (example/contamination/s02regul.eigen)
+Eigen vactors and eigen values stored (example/contamination/s02regul_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -621,7 +596,7 @@ Pore x velocity [L/T]     :    0.0    0.2   30.1  741.4  1e+03    0.0    0.0    
 Dispersivity x [L]        :    0.0    0.0   -0.0   12.0   19.5    0.0    0.0    0.0    0.0   95.4   -0.6   -0.3    0.2    0.0    1.5    0.2    0.0    0.0   -0.0    0.4    0.0  -20.2    0.0
 Dispersivity y [L]        :    0.0    0.0   14.2   -4.7  -11.4    0.0    0.0    0.0    0.0 -218.0  101.5   38.3    0.7    0.1    0.3    0.0    0.8    0.1    0.0  328.9    0.0    0.0    0.0
 Dispersivity z [L]        :   -0.0    0.0   -0.6   -0.3   -3.0    0.0    0.0   -0.0   -0.0 -477.6   -7.2    3.5   -0.1    0.1   -1.0    0.5   -0.0    0.0   -0.0  -44.6    0.0    0.0    0.0
-Jacobian matrix stored (example/contamination/s02regul.jacobian)
+Jacobian matrix stored (example/contamination/s02regul_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]   :   6e-01  -1e-02  -1e+01   2e+00  -1e-01  -2e+07  -2e-02   1e-01  -6e-04  -1e+00  -5e-01
@@ -635,7 +610,7 @@ Pore x velocity [L/T]     :   1e-01   2e-02  -2e+00   3e-01  -2e-02  -3e+06  -6e
 Dispersivity x [L]        :  -6e-04   4e-04  -5e-04  -4e-04   2e-05   2e+03  -4e-06  -5e-05   2e-03   3e-04   2e-04
 Dispersivity y [L]        :  -1e+00   1e+00   3e+01  -8e+00   3e-01   5e+07  -2e-01  -2e-01   3e-04   4e+00   8e-01
 Dispersivity z [L]        :  -5e-01  -2e-01   9e+00  -9e-01   1e-01   1e+07   4e-02  -8e-02   2e-04   8e-01   4e-01
-Covariance matrix stored (example/contamination/s02regul.covariance)
+Covariance matrix stored (example/contamination/s02regul_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]   :   1.000 -0.015 -0.911  0.563 -0.915 -0.915 -0.182  0.943 -0.015 -0.749 -0.962
@@ -649,7 +624,7 @@ Pore x velocity [L/T]     :   0.943  0.110 -0.976  0.512 -0.970 -0.970 -0.272  1
 Dispersivity x [L]        :  -0.015  0.007 -0.001 -0.002  0.002  0.002 -0.000 -0.007  1.000  0.003  0.006
 Dispersivity y [L]        :  -0.749  0.559  0.848 -0.961  0.860  0.860 -0.437 -0.730  0.003  1.000  0.593
 Dispersivity z [L]        :  -0.962 -0.205  0.889 -0.359  0.884  0.884  0.396 -0.959  0.006  0.593  1.000
-Correlation matrix stored (example/contamination/s02regul.correlation)
+Correlation matrix stored (example/contamination/s02regul_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]   : -0.004  0.060 -0.067  0.520  0.019 -0.175 -0.210  0.799  0.083  0.020 -0.000
@@ -678,7 +653,7 @@ Dispersivity x [L]        : -0.023  0.000 -0.008 -0.051  0.026 -0.998 -0.003 -0.
 Dispersivity y [L]        :  0.258  0.005 -0.086  0.761  0.423 -0.034  0.227 -0.102  0.061  0.317  0.000
 Dispersivity z [L]        : -0.448 -0.003  0.042 -0.226  0.650  0.041 -0.074 -0.558 -0.038 -0.064  0.000
 Eigenvalues               : -4e-03  3e-08  1e-07  2e-05  1e-04  2e-03  7e-02  1e-01  7e-01  1e+01  7e+14
-Eigen vactors and eigen values stored (example/contamination/s02regul.eigen)
+Eigen vactors and eigen values stored (example/contamination/s02regul_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -756,7 +731,7 @@ Pore x velocity [L/T]     :    0.0   30.7   30.1  826.2  1e+03   -0.0    0.0    
 Dispersivity x [L]        :   -0.0   12.3    0.1   26.2   23.6    0.0    0.0   -0.0    0.0 -114.6   -0.5   -1.1   19.2   12.9   11.9    7.8    0.1    0.1   -0.0  -13.3   -0.0  -20.2    0.0
 Dispersivity y [L]        :    0.0 -127.8   12.3 -180.6  -99.9    0.0   -0.0    0.0   -0.0  2e+03  105.5   46.8 -148.0 -104.9 -114.5  -83.3    2.0    0.1    0.0  484.8    0.0   -0.4    0.0
 Dispersivity z [L]        :   -0.0   81.9    0.8   53.4  -31.7    0.0    0.0   -0.0    0.0 -2e+03    0.6   -1.2  174.7  116.3   54.6   43.1    2.1    1.5   -0.0 -122.9   -0.0    0.4    0.0
-Jacobian matrix stored (example/contamination/s02regul.jacobian)
+Jacobian matrix stored (example/contamination/s02regul_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]   :   9e-01   5e-01  -2e+01   1e+00  -2e-01  -3e+07  -1e-01   2e-01  -7e-04  -1e+00  -8e-01
@@ -770,7 +745,7 @@ Pore x velocity [L/T]     :   2e-01   1e-01  -3e+00   2e-01  -4e-02  -5e+06  -2e
 Dispersivity x [L]        :  -7e-04   2e-03   4e-03  -5e-03   7e-05   1e+04  -3e-04  -5e-05   2e-03   2e-03   8e-05
 Dispersivity y [L]        :  -1e+00  -1e-01   3e+01  -4e+00   3e-01   5e+07   6e-02  -2e-01   2e-03   3e+00   1e+00
 Dispersivity z [L]        :  -8e-01  -6e-01   2e+01  -7e-01   2e-01   2e+07   1e-01  -1e-01   8e-05   1e+00   7e-01
-Covariance matrix stored (example/contamination/s02regul.covariance)
+Covariance matrix stored (example/contamination/s02regul_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]   :   1.000  0.541 -0.942  0.447 -0.943 -0.943 -0.696  0.962 -0.014 -0.787 -0.981
@@ -784,7 +759,7 @@ Pore x velocity [L/T]     :   0.962  0.646 -0.988  0.395 -0.982 -0.982 -0.761  1
 Dispersivity x [L]        :  -0.014  0.042  0.004 -0.038  0.007  0.007 -0.029 -0.006  1.000  0.028  0.002
 Dispersivity y [L]        :  -0.787 -0.065  0.847 -0.888  0.868  0.868  0.199 -0.773  0.028  1.000  0.696
 Dispersivity z [L]        :  -0.981 -0.660  0.945 -0.302  0.939  0.939  0.797 -0.979  0.002  0.696  1.000
-Correlation matrix stored (example/contamination/s02regul.correlation)
+Correlation matrix stored (example/contamination/s02regul_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]   : -0.003 -0.091 -0.143  0.504  0.179 -0.021 -0.789  0.161  0.188  0.025  0.000
@@ -813,7 +788,7 @@ Dispersivity x [L]        : -0.000  0.001 -0.056  0.012  0.060  0.997  0.005  0.
 Dispersivity y [L]        :  0.007  0.166  0.654  0.538 -0.331  0.050  0.143 -0.128  0.123  0.302 -0.000
 Dispersivity z [L]        : -0.004 -0.099 -0.313  0.620  0.450 -0.055  0.523 -0.033 -0.148 -0.073 -0.000
 Eigenvalues               :  3e-08  2e-07  1e-06  5e-05  1e-03  2e-03  1e-01  2e-01  4e-01  8e+00  9e+14
-Eigen vactors and eigen values stored (example/contamination/s02regul.eigen)
+Eigen vactors and eigen values stored (example/contamination/s02regul_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -911,6 +886,6 @@ Functional evaluations = 64
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 64
-Execution  started  on Tue Aug 13 23:46:08 2013
-Execution completed on Tue Aug 13 23:46:09 2013
-Execution date & time stamp: 20130813-234608
+Execution  started  on Tue Aug 13 23:49:53 2013
+Execution completed on Tue Aug 13 23:49:54 2013
+Execution date & time stamp: 20130813-234953

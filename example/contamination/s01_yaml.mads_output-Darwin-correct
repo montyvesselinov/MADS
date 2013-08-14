@@ -93,33 +93,6 @@ Well W-14a  x      972 y      869 z0      3 z1      6 nObs  1 t    50 c     0 we
 Well W-14b  x      940 y     1160 z0      3 z1      6 nObs  1 t    50 c    30 weight       1 log 0 acceptable range: min     0 max    50
 Well W-14c  x      900 y     1260 z0      3 z1      6 nObs  1 t    50 c    10 weight       0 log 0 acceptable range: min     0 max    20
 
-WARNING: Regularization class not found!
-
-Number of optimized parameters = 11
-Source x coordinate [L]    :x     : init      1124 step       25 min       210 max      1460
-Source y coordinate [L]    :y     : init      1393 step       25 min      1230 max      1930
-Source x dimension [L]     :dx    : init       258 step        1 min         1 max       500
-Source y dimension [L]     :dy    : init       273 step        1 min         1 max       500
-Contaminant flux [M/T]     :f     : init   1.20412 step        1 min        -2 max         2
-Start Time [T]             :t0    : init         0 step        1 min         0 max        43
-Flow Angle [degrees]       :tetha : init         3 step        5 min       -30 max        30
-Pore x velocity [L/T]      :vx    : init   0.69897 step   0.0215 min        -2 max   2.30103
-Dispersivity x [L]         :ax    : init    1.8451 step    0.699 min         1 max   2.14613
-Dispersivity y [L]         :ay    : init   1.17609 step    0.699 min         0 max   1.47712
-Dispersivity z [L]         :az    : init -0.522879 step    0.111 min        -1 max         0
-
-Number of flagged parameters = 0
-
-Number of fixed parameters = 8
-Source z coordinate [L]    :z     : 0
-Source z dimension [L]     :dz    : 1
-End Time [T]               :t1    : 100
-Porosity [L3/L3]           :n     : 0.1
-Retardation Factor [-]     :rf    : 1
-Half-life decay [1/T]      :lambda: 0
-Pore y velocity [L/T]      :vy    : 0
-Pore z velocity [L/T]      :vz    : 0
-Number of parameters with computational expressions (coupled or tied parameters) = 0
 
 Number of calibration targets = 20
 W1_49: 0 weight 1
@@ -143,11 +116,49 @@ W13#2_50: 0.26 weight 1
 W14a_50: 0 weight 1
 W14b_50: 30 weight 1
 
+WARNING: Regularization class not found!
+Process Grid ... Number of grid components: 10
+Grid Time: 0
+Grid lines: 25 29 1
+Grid Minimums: 499000 538300 0
+Grid Maximums: 500200 539400 0.1
+Process Time ... Number of time components: 3
+Breakthrough-curve time window: start 0 end 0 step 1
+Process More YAML Classes ...
+
+Number of optimized parameters = 11
+Source x coordinate [L]    :x     : init      1124 step       25 min       210 max      1460
+Source y coordinate [L]    :y     : init      1393 step       25 min      1230 max      1930
+Source x dimension [L]     :dx    : init       258 step        1 min         1 max       500
+Source y dimension [L]     :dy    : init       273 step        1 min         1 max       500
+Contaminant flux [M/T]     :f     : init   1.20412 step        1 min        -2 max         2
+Start Time [T]             :t0    : init         0 step        1 min         0 max        43
+Flow Angle [degrees]       :tetha : init         3 step        5 min       -30 max        30
+Pore x velocity [L/T]      :vx    : init   0.69897 step   0.0215 min        -2 max   2.30103
+Dispersivity x [L]         :ax    : init    1.8451 step    0.699 min         1 max   2.14613
+Dispersivity y [L]         :ay    : init   1.17609 step    0.699 min         0 max   1.47712
+Dispersivity z [L]         :az    : init -0.522879 step    0.111 min        -1 max         0
+Time Scale Dispersivity [-] :      : init         2 step        0 min         0 max         0
+Time Scale Advection [-]   :      : init         0 step        0 min         0 max         0
+
+Number of flagged parameters = 0
+
+Number of fixed parameters = 11
+Source z coordinate [L]    :z     : 0
+Source z dimension [L]     :dz    : 1
+End Time [T]               :t1    : 100
+Porosity [L3/L3]           :n     : 0.1
+Retardation Factor [-]     :rf    : 1
+Half-life decay [1/T]      :lambda: 0
+Pore y velocity [L/T]      :vy    : 0
+Pore z velocity [L/T]      :vz    : 0
+Time Scale Reaction [-]    :      : 0
+Number of parameters with computational expressions (coupled or tied parameters) = 0
 Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130812-163936
+Execution date & time stamp: 20130813-235203
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -1389,10 +1400,11 @@ Objective function: 0.00106082 Success: 1 (1)
 
 Model predictions for not calibration targets:
 W-14c     (   50):          10 -      165.171 =     -155.171 success 0 range            0 -           20
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Mon Aug 12 16:39:36 2013
-Execution completed on Mon Aug 12 16:39:36 2013
-Execution date & time stamp: 20130812-163936
+Functional evaluations per second = 111
+Execution  started  on Tue Aug 13 23:52:03 2013
+Execution completed on Tue Aug 13 23:52:04 2013
+Execution date & time stamp: 20130813-235203
