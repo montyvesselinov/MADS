@@ -212,7 +212,7 @@ verify-contaminant:
 	@$(CMP) example/contamination/s01.mads_output example/contamination/s01.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01.results example/contamination/s01.results-$(OS)-correct
 	@echo ""
-	@echo "TEST 3.1.b: Problem example/contamination/s01 with independent dispersivities (YAML input format..."
+	@echo "TEST 3.1.b: Problem example/contamination/s01 with independent dispersivities (YAML input format) ..."
 	rm -f example/contamination/s01_yaml.mads_output example/contamination/s01_yaml.results
 	./mads example/contamination/s01_yaml obs_int=2 lmeigen > /dev/null
 	@$(CMP) example/contamination/s01_yaml.mads_output example/contamination/s01_yaml.mads_output-$(OS)-correct
@@ -234,23 +234,23 @@ verify-contaminant:
 	./mads example/contamination/s01-scaled+tied_dispersivities obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-$(OS)-correct
 	@echo ""
-	@echo "TEST 3.5: Problem example/contamination/s02 with coupled (tied) parameters based on mathematical expressions  ..."
-	rm -f example/contamination/s02tied.results
-	./mads example/contamination/s02tied obs_int=2 > /dev/null
-	@$(CMP) example/contamination/s02tied.results example/contamination/s02tied.results-$(OS)-correct
+	@echo "TEST 3.5: Problem example/contamination/s01 with coupled (tied) parameters based on mathematical expressions  ..."
+	rm -f example/contamination/s01-tied.results
+	./mads example/contamination/s01-tied obs_int=2 > /dev/null
+	@$(CMP) example/contamination/s01-tied.results example/contamination/s01-tied.results-$(OS)-correct
 	@echo ""
-	@echo "TEST 3.6: Problem example/contamination/s02 with regularization terms for optimized model parameters ..."
-	rm -f example/contamination/s02regul.results
-	./mads example/contamination/s02regul obs_int=2 > /dev/null
-	@$(CMP) example/contamination/s02regul.mads_output example/contamination/s02regul.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s02regul.results example/contamination/s02regul.results-$(OS)-correct
+	@echo "TEST 3.6: Problem example/contamination/s01 with regularization terms for optimized model parameters ..."
+	rm -f example/contamination/s01-regul.results
+	./mads example/contamination/s01-regul obs_int=2 > /dev/null
+	@$(CMP) example/contamination/s01-regul.mads_output example/contamination/s01-regul.mads_output-$(OS)-correct
+	@$(CMP) example/contamination/s01-regul.results example/contamination/s01-regul.results-$(OS)-correct
 	@echo ""
-	@echo "TEST 3.7: Problem example/contamination/s02_yaml with regularization terms for optimized model parameters ..."
-	rm -f example/contamination/s02regul_yaml.results
-	./mads example/contamination/s02regul_yaml obs_int=2 > /dev/null
-	@$(CMP) example/contamination/s02regul_yaml.mads_output example/contamination/s02regul_yaml.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s02regul_yaml.results example/contamination/s02regul.results-$(OS)-correct
-	@$(CMP) example/contamination/s02regul_yaml.results example/contamination/s02regul_yaml.results-$(OS)-correct
+	@echo "TEST 3.7: Problem example/contamination/s01_yaml with regularization terms for optimized model parameters ..."
+	rm -f example/contamination/s01-regul_yaml.results
+	./mads example/contamination/s01-regul_yaml obs_int=2 > /dev/null
+	@$(CMP) example/contamination/s01-regul_yaml.mads_output example/contamination/s01-regul_yaml.mads_output-$(OS)-correct
+	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul.results-$(OS)-correct
+	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul_yaml.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
 	@echo ""
@@ -337,10 +337,15 @@ verify-external:
 	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01tied > /dev/null
 	@$(CMP) example/wells-short/w01tied.results example/wells-short/w01tied.results-$(OS)-correct
 	@echo ""
-	@echo "TEST 7.2: Problem example/wells-short/w01 with regularization terms for optimized model parameters ..."
+	@echo "TEST 7.2: Problem example/wells-short/w01 with regularization terms for optimized model parameters (MADS text input format) ..."
 	rm -f example/wells-short/w01regul.results
 	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01regul > /dev/null
 	@$(CMP) example/wells-short/w01regul.results example/wells-short/w01regul.results-$(OS)-correct
+	@echo ""
+	@echo "TEST 7.3: Problem example/wells-short/w01 with regularization terms for optimized model parameters (YAML input format) ..."
+	rm -f example/wells-short/w01regul.results
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01regul_yaml > /dev/null
+	@$(CMP) example/wells-short/w01regul_yaml.results example/wells-short/w01regul_yaml.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 7: DONE"
 	@echo ""

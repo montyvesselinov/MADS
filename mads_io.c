@@ -1170,6 +1170,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		free( od->obs_current );
 		cd->var = &rd->regul_map_val[0];
 		od->obs_current = &rd->regul_map_val[pd->nParam];
+		// for( k = 0; k < rd->regul_nMap; k++ ) { tprintf( "%s %g\n", rd->regul_map_id[k], rd->regul_map_val[k] ); }
 #endif
 		if( cd->debug )
 		{
@@ -1935,18 +1936,21 @@ int set_optimized_params( struct opt_data *op )
 int map_obs( struct opt_data *op )
 {
 	struct obs_data od2;
+	struct param_data *pd;
 	struct obs_data *od;
 	struct regul_data *rd;
 	int i, k;
 	od = op->od;
 	rd = op->rd;
+	pd = op->pd;
+	if( rd->nRegul < 1 ) return( 1 );
 	od->nTObs = od->nObs + rd->nRegul;
 	od2.obs_id = char_matrix( od->nTObs, 50 );
 	od2.obs_target = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
-	od2.obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	// od2.obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.res = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
@@ -1957,7 +1961,7 @@ int map_obs( struct opt_data *op )
 		od2.obs_weight[i] = od->obs_weight[i];
 		od2.obs_min[i] = od->obs_min[i];
 		od2.obs_max[i] = od->obs_max[i];
-		od2.obs_current[i] = od->obs_current[i];
+		// od2.obs_current[i] = od->obs_current[i];
 		od2.obs_best[i] = od->obs_best[i];
 		od2.res[i] = od->res[i];
 		od2.obs_log[i] = od->obs_log[i];
@@ -1967,7 +1971,7 @@ int map_obs( struct opt_data *op )
 	free( od->obs_weight );
 	free( od->obs_min );
 	free( od->obs_max );
-	if( rd->nRegul == 0 ) free( od->obs_current ); // Already freed if there are regularization terms ...
+	// if( rd->nRegul == 0 ) free( od->obs_current ); // Already freed if there are regularization terms ...
 	free( od->obs_best );
 	free( od->res );
 	free( od->obs_log );
@@ -1985,10 +1989,12 @@ int map_obs( struct opt_data *op )
 	od->obs_weight = od2.obs_weight;
 	od->obs_min = od2.obs_min;
 	od->obs_max = od2.obs_max;
-	od->obs_current = od2.obs_current;
+	// od->obs_current = od2.obs_current;
 	od->obs_best = od2.obs_best;
 	od->res = od2.res;
 	od->obs_log = od2.obs_log;
+	for( i = pd->nParam, k = 0; k < od->nObs; k++, i++ ) rd->regul_map_id[i] = od->obs_id[k];
+	// for( k = 0; k < rd->regul_nMap; k++ ) tprintf( "%s %g\n", rd->regul_map_id[k], rd->regul_map_val[k] );
 	return( 1 );
 }
 

@@ -1,7 +1,7 @@
 Problem type: eval=50 debug=1
 Solution type: box
 Number of parameters: 19
-Source x coordinate [L]: 224 1 0 25 210 1460
+Source x coordinate [L]: 1124 1 0 25 210 1460
 Source y coordinate [L]: 1393 1 0 25 1230 1930
 Source z coordinate [L]: 0 0 0 1 0 100
 Source x dimension [L]: 258 1 0 1 1 500
@@ -44,7 +44,7 @@ W-14a 972 869 3 6 1 50 0 1 0 0 5
 W-14b 940 1160 3 6 1 50 30 1 0 0 50
 W-14c 900 1260 3 6 1 50 10 0 0 0 20
 Number of regularization terms: 3
-f * ( 49 - t0 ) = 3000 1 0 2000 4000
+f * ( 49 - t0 ) = 4000 1 0 2000 5000
 137 - ax = 0 1 0 -10 10
 W4_49 - W14b_50 = 450 1 0 300 500 
 Grid Time: 0

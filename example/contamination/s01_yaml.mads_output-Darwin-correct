@@ -45,7 +45,6 @@ Debug (verbosity) level for instruction file: insdebug=0
 
 Process Solution ... Number of solution components: 1
 
-Components:
 Process Sources ... Number of sources: 1
 Source #1 type: box ... Number of parameters: 9
 Source x coordinate [L]    :x     : init      1124 opt 1 log 0 step      25 min       210 max      1460
@@ -124,7 +123,6 @@ Grid Minimums: 499000 538300 0
 Grid Maximums: 500200 539400 0.1
 Process Time ... Number of time components: 3
 Breakthrough-curve time window: start 0 end 0 step 1
-Process More YAML Classes ...
 
 Number of optimized parameters = 11
 Source x coordinate [L]    :x     : init      1124 step       25 min       210 max      1460
@@ -138,8 +136,6 @@ Pore x velocity [L/T]      :vx    : init   0.69897 step   0.0215 min        -2 m
 Dispersivity x [L]         :ax    : init    1.8451 step    0.699 min         1 max   2.14613
 Dispersivity y [L]         :ay    : init   1.17609 step    0.699 min         0 max   1.47712
 Dispersivity z [L]         :az    : init -0.522879 step    0.111 min        -1 max         0
-Time Scale Dispersivity [-] :      : init         2 step        0 min         0 max         0
-Time Scale Advection [-]   :      : init         0 step        0 min         0 max         0
 
 Number of flagged parameters = 0
 
@@ -152,13 +148,15 @@ Retardation Factor [-]     :rf    : 1
 Half-life decay [1/T]      :lambda: 0
 Pore y velocity [L/T]      :vy    : 0
 Pore z velocity [L/T]      :vz    : 0
+Time Scale Dispersivity [-] :      : 2
+Time Scale Advection [-]   :      : 0
 Time Scale Reaction [-]    :      : 0
 Number of parameters with computational expressions (coupled or tied parameters) = 0
 Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130813-235203
+Execution date & time stamp: 20130814-151944
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -1400,11 +1398,10 @@ Objective function: 0.00106082 Success: 1 (1)
 
 Model predictions for not calibration targets:
 W-14c     (   50):          10 -      165.171 =     -155.171 success 0 range            0 -           20
-Simulation time = 1 seconds
+Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 111
-Execution  started  on Tue Aug 13 23:52:03 2013
-Execution completed on Tue Aug 13 23:52:04 2013
-Execution date & time stamp: 20130813-235203
+Execution  started  on Wed Aug 14 15:19:44 2013
+Execution completed on Wed Aug 14 15:19:44 2013
+Execution date & time stamp: 20130814-151944

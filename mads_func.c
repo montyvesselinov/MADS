@@ -169,6 +169,7 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	if( bad_data ) exit( -1 );
 #ifdef MATHEVAL
+	// for( k = 0; k < p->rd->regul_nMap; k++ ) { tprintf( "%s %g\n", p->rd->regul_map_id[k], p->rd->regul_map_val[k] ); }
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
 		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expression[i - p->od->nObs], p->rd->regul_nMap, p->rd->regul_map_id, p->rd->regul_map_val );
 #else

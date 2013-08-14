@@ -2,7 +2,7 @@ Problem: { opt: lm, debug: 1, eval: 50 }
 Solution: internal
 Sources: 
 - box: {
-  x:  { longname: "Source x coordinate [L]", init:  224, type:  opt, log:  no, step: 25, min:  210,    max: 1460 },
+  x:  { longname: "Source x coordinate [L]", init: 1124, type:  opt, log:  no, step: 25, min:  210,    max: 1460 },
   y:  { longname: "Source y coordinate [L]", init: 1393, type:  opt, log:  no, step: 25, min: 1230,    max: 1930 },
   z:  { longname: "Source z coordinate [L]", init:    0, type: null, log:  no, step:  1, min:    0,    max:  100 },
   dx: { longname: "Source x dimension [L]",  init:  258, type:  opt, log:  no, step:  1, min:    1,    max:  500 },
@@ -45,7 +45,7 @@ Wells:
 - W-14b:  { x:  940, y: 1160, z0: 3    , z1:  6   , obs: [ 1: { t: 50, c:  30   , weight: 1, log: no, min:   0, max:   50 } ] }
 - W-14c:  { x:  900, y: 1260, z0: 3    , z1:  6   , obs: [ 1: { t: 50, c:  10   , weight: 0, log: no, min:   0, max:   20 } ] }
 Regularizations:
-- reg1: { equation: "f * ( 49 - t0 )",  target: 3000, weight: 1, log: no, min: 2000, max: 4000 }
+- reg1: { equation: "f * ( 49 - t0 )",  target: 4000, weight: 1, log: no, min: 2000, max: 5000 }
 - reg2: { equation: "137 - ax",         target:    0, weight: 1, log: no, min:  -10, max:   10 }
 - reg3: { equation: "W4_49 - W14b_50",  target:  450, weight: 1, log: no, min:  300, max:  500 } 
 Grid: {
