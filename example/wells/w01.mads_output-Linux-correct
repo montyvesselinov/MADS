@@ -32,9 +32,10 @@ Number of optimized parameters = 2
 Number of flagged parameters = 0
 Number of fixed parameters = 0
 Number of parameters with computational expressions (coupled or tied parameters) = 0
-Number of regularization terms = 0
 Number of total observations = 4951
 Number of calibration targets = 1441
+Number of regularization terms = 0
+Number of predictions = 0
 Execution command: wells w01 >& /dev/null
 External files:
 - to provide current model parameters:
@@ -49,7 +50,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20130729-123823
+Execution date & time stamp: 20130814-195604
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -354,11 +355,11 @@ o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range 
 o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
 o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
 o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
-Simulation time = 18 seconds
+Simulation time = 6 seconds
 Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 2
-Execution  started  on Mon Jul 29 12:38:23 2013
-Execution completed on Mon Jul 29 12:38:41 2013
-Execution date & time stamp: 20130729-123823
+Functional evaluations per second = 7
+Execution  started  on Wed Aug 14 19:56:04 2013
+Execution completed on Wed Aug 14 19:56:10 2013
+Execution date & time stamp: 20130814-195604

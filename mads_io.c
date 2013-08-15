@@ -1166,7 +1166,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 #ifdef MATHEVAL
 		for( k = 0; k < pd->nParam; k++ ) { rd->regul_map_id[k] = pd->var_id[k]; rd->regul_map_val[k] = cd->var[k]; }
 		for( i = pd->nParam, k = 0; k < od->nObs; k++, i++ ) { rd->regul_map_id[i] = od->obs_id[k]; rd->regul_map_val[i] = od->obs_current[k] = od->obs_target[k]; }
-		free( cd->var );
+		// free( cd->var ); // TODO Linux fails to free cd->var; needs debugging
 		free( od->obs_current );
 		cd->var = &rd->regul_map_val[0];
 		od->obs_current = &rd->regul_map_val[pd->nParam];

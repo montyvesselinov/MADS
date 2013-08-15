@@ -1,0 +1,298 @@
+MADS: Model Analyses & Decision Support (v1.1) 2012
+---------------------------------------------------
+Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: w01regul.mads
+Problem root name: w01regul
+
+Problem type: calibration
+
+Calibration technique: single calibration using initial guesses provided in the input file
+
+Optimization method: opt=lm_levmar --- Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 5000
+2: Objective function cutoff value: NOT implemented (ADD keyword cutoff=[value] to implement)
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: sum of squared residuals
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Model: external
+
+Number of model parameters: 2
+Number of optimized parameters = 2
+Number of flagged parameters = 0
+Number of fixed parameters = 0
+Number of parameters with computational expressions (coupled or tied parameters) = 0
+Number of total observations = 11
+Number of calibration targets = 11
+Number of regularization terms = 3
+Number of total observations & regularizations = 11
+Number of predictions = 0
+Execution command: wells w01 >& /dev/null
+External files:
+- to provide current model parameters:
+w01.tpl -> w01.wells
+- to read current model predictions:
+w01.inst <- w01.s_point
+
+
+Checking the template files for errors ...
+Template files are ok.
+
+Checking the instruction files for errors ...
+Instruction files are ok.
+
+Execution date & time stamp: 20130814-195209
+
+SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
+Number of Levenberg-Marquardt iterations = 50
+Levenberg-Marquardt Optimization ... 
+LM using SVD decomposition
+LM without LM acceleration
+LM with indirect computation of lambda changes
+Initial evaluation: OF 827.185
+Jacobian #1: Linear solves 0 Evaluations 3 OF 827.185 lambda 0.001
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01regul.jacobian)
+Covariance matrix stored (w01regul.covariance)
+Correlation matrix stored (w01regul.correlation)
+Eigen vactors and eigen values stored (w01regul.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 91.9094 < 200)
+Optimized model parameters:
+k                                        :            1 stddev      1.98042 (          -5 -            5) Uncertainty ranges constrained by prior bounds
+S                                        :            1 stddev      1.98039 (          -5 -            5) Uncertainty ranges constrained by prior bounds
+Computed initial lambda 0.0234345
+OF 8.63404 lambda 0.0234345
+New Jacobian requested because: > OF estimate declined substantially (8.63404 << 827.185)
+
+Jacobian #2: Linear solves 1 Evaluations 6 OF 8.63404 lambda 0.00781152
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01regul.jacobian)
+Covariance matrix stored (w01regul.covariance)
+Correlation matrix stored (w01regul.correlation)
+Eigen vactors and eigen values stored (w01regul.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 0.959337 < 200)
+Optimized model parameters:
+k                                        :     -2.03456 stddev     0.023023 (    -2.26955 -     -1.79405)
+S                                        :     -3.77577 stddev    0.0604381 (    -4.18724 -     -3.29383)
+Parameter with maximum estimate change between jacobian iterations: S                              (4.77577)
+Parameter with minimum estimate change between jacobian iterations: k                              (3.03456)
+OF 42.139 lambda 0.00781152
+OF 42.1359 lambda 0.015623
+OF 42.1171 lambda 0.0624921
+OF 41.941 lambda 0.499937
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #3: Linear solves 5 Evaluations 12 OF 8.63404 lambda 7.99899
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01regul.jacobian)
+Covariance matrix stored (w01regul.covariance)
+Correlation matrix stored (w01regul.correlation)
+Eigen vactors and eigen values stored (w01regul.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 0.959337 < 200)
+Optimized model parameters:
+k                                        :     -2.03456 stddev     0.023023 (    -2.26955 -     -1.79405)
+S                                        :     -3.77577 stddev    0.0604381 (    -4.18724 -     -3.29383)
+Parameters did not change between last two jacobian iterations.
+OF 39.0879 lambda 7.99899
+OF 36.3563 lambda 15.998
+OF 24.8251 lambda 63.9919
+OF 7.24032 lambda 511.936
+OF 3.88114 lambda 517.245
+New Jacobian requested because: > OF estimate declined substantially (3.88114 << 8.63404)
+
+Jacobian #4: Linear solves 10 Evaluations 19 OF 3.88114 lambda 326.73
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01regul.jacobian)
+Covariance matrix stored (w01regul.covariance)
+Correlation matrix stored (w01regul.correlation)
+Eigen vactors and eigen values stored (w01regul.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 0.431237 < 200)
+Optimized model parameters:
+k                                        :     -1.96134 stddev     0.016315 (     -2.1297 -     -1.79031)
+S                                        :     -4.04756 stddev    0.0579683 (    -4.39663 -     -3.62899)
+Parameter with maximum estimate change between jacobian iterations: S                              (0.271791)
+Parameter with minimum estimate change between jacobian iterations: k                              (-0.0732253)
+OF 3.65585 lambda 326.73
+OF 2.86638 lambda 374.853
+OF 2.6566 lambda 359.179
+OF 2.4003 lambda 359.541
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #5: Linear solves 14 Evaluations 25 OF 2.4003 lambda 327.288
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01regul.jacobian)
+Covariance matrix stored (w01regul.covariance)
+Correlation matrix stored (w01regul.correlation)
+Eigen vactors and eigen values stored (w01regul.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 0.2667 < 200)
+Optimized model parameters:
+k                                        :      -1.9031 stddev    0.0137329 (    -2.04579 -     -1.75858)
+S                                        :     -4.25998 stddev    0.0622615 (    -4.58526 -     -3.85035)
+Parameter with maximum estimate change between jacobian iterations: S                              (0.212425)
+Parameter with minimum estimate change between jacobian iterations: k                              (-0.0582356)
+OF 2.31965 lambda 327.288
+OF 2.28435 lambda 327.189
+OF 2.20066 lambda 375.16
+OF 2.17446 lambda 324.46
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #6: Linear solves 18 Evaluations 31 OF 2.17446 lambda 325.708
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01regul.jacobian)
+Covariance matrix stored (w01regul.covariance)
+Correlation matrix stored (w01regul.correlation)
+Eigen vactors and eigen values stored (w01regul.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 0.241607 < 200)
+Optimized model parameters:
+k                                        :     -1.88311 stddev    0.0134004 (    -2.02262 -     -1.74187)
+S                                        :     -4.33403 stddev    0.0664118 (    -4.65836 -     -3.91209)
+Parameter with maximum estimate change between jacobian iterations: S                              (0.0740521)
+Parameter with minimum estimate change between jacobian iterations: k                              (-0.0199883)
+OF 2.14924 lambda 325.708
+OF 2.15403 lambda 315.317
+OF 2.12795 lambda 630.634
+OF 2.1266 lambda 210.211
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #7: Linear solves 22 Evaluations 37 OF 2.1266 lambda 236.817
+Jacobian matrix analysis ...
+WARNING: 1 observation has zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (w01regul.jacobian)
+Covariance matrix stored (w01regul.covariance)
+Correlation matrix stored (w01regul.correlation)
+Eigen vactors and eigen values stored (w01regul.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 0.236289 < 200)
+Optimized model parameters:
+k                                        :     -1.87328 stddev    0.0134441 (    -2.01337 -     -1.73146)
+S                                        :     -4.35578 stddev    0.0685738 (    -4.68277 -      -3.9242)
+Parameter with maximum estimate change between jacobian iterations: S                              (0.0217499)
+Parameter with minimum estimate change between jacobian iterations: k                              (-0.00983087)
+OF 2.1128 lambda 236.817
+OF 2.10618 lambda 78.9391
+OF 2.10031 lambda 62.8996
+OF 2.09808 lambda 61.9873
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+
+CONVERGED: 5 Jacobian OF estimates are very close to the best current OF (2.09808)
+LM optimization is completed. Reason: small OF changes
+Eigen analysis ...
+Analyzed state provided externally.
+
+Jacobian matrix (provided externally)
+Observations              : o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 o11 reg1 reg2 reg3
+k                         :    0.0  -35.9  -43.9  -48.5  -51.9  -54.5  -56.6  -58.4  -59.9  -61.3  -62.5    4.7    0.0  -25.4
+S                         :    0.0   -5.4   -4.4   -3.7   -3.3   -2.9   -2.6   -2.4   -2.2   -2.0   -1.8    0.0    2.4    3.4
+Jacobian matrix stored (w01regul.jacobian)
+
+Covariance matrix
+k                         :   8e-05  -1e-03
+S                         :  -1e-03   2e-02
+Covariance matrix stored (w01regul.covariance)
+
+Correlation matrix
+k                         :   1.000 -0.762
+S                         :  -0.762  1.000
+Correlation matrix stored (w01regul.correlation)
+
+Eigenvectors (sorted by absolute values of eigenvalues)
+k                         :  0.999 -0.049
+S                         :  0.049  0.999
+Eigenvalues               :  3e-05  2e-02
+
+Eigenvectors (sorted by eigenvalues)
+k                         :  0.999 -0.049
+S                         :  0.049  0.999
+Eigenvalues               :  3e-05  2e-02
+Eigen vactors and eigen values stored (w01regul.eigen)
+
+Number of parameters           : 2
+Number of observations         : 11
+Number of degrees of freedom   : 9
+Objective function             : 2.09808
+Posterior measurement variance : 0.23312
+
+Optimality metrics based on covariance matrix of observation errors:
+A-optimality (matrix trace)               : 0.0194936
+C-optimality (matrix conditioning number) : 580.3
+E-optimality (matrix maximum eigenvalue)  : 0.0194601
+D-optimality (matrix determinant)         : 6.52583e-07
+
+Determinant of covariance matrix of observation errors : 6.52583e-07     ( ln(det S) = -14.2423 )
+Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
+Determinant of covariance matrix of measurement errors : 0.054345        ( ln(det V) = -2.9124 )
+
+Log likelihood function             : -13.1521
+Maximum likelihood                  : 26.3042
+AIC (Akaike information criterion)  : 30.3042
+BIC                                 : 31.1
+CIC                                 : 29.8026
+KIC (Kashyap Information Criterion) : 41.6666
+
+Obtained fit is relatively good (chi^2/dof = 0.23312 < 200)
+Optimized model parameters:
+Transformed space (applied during optimization):
+k                                        :    -0.382189 stddev   0.00432394 (    -0.39197 -    -0.372409)
+S                                        :     -1.07505 stddev     0.067273 (    -1.22722 -    -0.922875)
+Untransformed space:
+k                                        :     -1.86476 stddev   0.00432394 (    -1.91005 -      -1.8193)
+S                                        :     -4.39806 stddev     0.067273 (    -4.70778 -      -3.9867)
+
+Optimized model parameters:
+k -1.86476
+S -4.39806
+
+Model calibration targets:
+o1                  :           0 -            0 =            0 (           0) success 1 range            0 -         0.05
+o2                  :        5.98 -      6.25143 =     -0.27143 (    -0.27143) success 0 range         5.93 -         6.03
+o3                  :        8.02 -      7.38732 =      0.63268 (     0.63268) success 0 range         7.97 -         8.07
+o4                  :        8.67 -      8.05445 =      0.61555 (     0.61555) success 0 range         8.62 -         8.72
+o5                  :        8.97 -      8.52854 =      0.44146 (     0.44146) success 0 range         8.92 -         9.02
+o6                  :        9.14 -      8.89658 =      0.24342 (     0.24342) success 0 range         9.09 -         9.19
+o7                  :        9.25 -      9.19746 =      0.05254 (     0.05254) success 0 range          9.2 -          9.3
+o8                  :        9.31 -      9.45194 =     -0.14194 (    -0.14194) success 0 range         9.26 -         9.36
+o9                  :        9.38 -      9.67244 =     -0.29244 (    -0.29244) success 0 range         9.33 -         9.43
+o10                 :        9.41 -      9.86697 =     -0.45697 (    -0.45697) success 0 range         9.36 -         9.46
+o11                 :        9.45 -       10.041 =       -0.591 (      -0.591) success 0 range          9.4 -          9.5
+Model regularization terms:
+reg1                :           0 -     0.135236 =    -0.135236 (   -0.135236) success 1 range           -1 -            1
+reg2                :           0 -    -0.398061 =     0.398061 (    0.398061) success 1 range           -1 -            1
+reg3                :           4 -      3.61554 =      0.38446 (     0.38446) success 1 range            0 -           10
+Objective function: 2.09808 Success: 0 (0)
+Simulation time = 1 seconds
+Functional evaluations = 42
+Jacobian evaluations = 7
+Levenberg-Marquardt optimizations = 1
+Functional evaluations per second = 42
+Execution  started  on Wed Aug 14 19:52:09 2013
+Execution completed on Wed Aug 14 19:52:10 2013
+Execution date & time stamp: 20130814-195209
