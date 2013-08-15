@@ -982,7 +982,7 @@ int main( int argn, char *argv[] )
 		}
 		else    tprintf( "No calibration targets!\n" );
 		if( cd.problem_type != CREATE ) fclose( out );
-	}
+	} 
 	if( predict && cd.problem_type == FORWARD ) save_final_results( "", &op, &gd );
 	if( predict ) // Write phi in a separate file
 	{
@@ -1031,7 +1031,7 @@ int main( int argn, char *argv[] )
 	tprintf( "Execution date & time stamp: %s\n", op.datetime_stamp );
 	sprintf( buf, "rm -f %s.running", op.root ); system( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
-	if( !op.yaml ) free( op.cd->solution_id ); // op.cd->solution_id needed only for text MADS files; not used in YAML files
+	free( op.cd->solution_id );
 	free( op.cd->solution_type );
 	fclose( mads_output );
 	exit( 0 ); // DONE
@@ -1383,7 +1383,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	char filename[200], buf[20];
 	static double student_dist[34] = {12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042, 2.021, 2.000, 1.980, 1.960 };
 	tprintf( "Eigen analysis ...\n" );
-	copt = dopt = eopt = 0;
+ 	gf = sml = aic = bic = cic = kic = copt = dopt = eopt = ln_det_v = ln_det_weight = 0;
 	jacobian = NULL;
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
 	gsl_matrix *eigenvec = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );

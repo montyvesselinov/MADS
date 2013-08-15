@@ -163,6 +163,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	// Parse commands
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
 	cd->solution_type = ( int * ) malloc( sizeof( int ) );
+	cd->solution_id = ( char * ) malloc( 150 * sizeof( char ) );
 	if( parse_cmd( buf, cd ) == -1 ) return( -1 );
 	od->include_predictions = 1;
 	if( cd->problem_type == INFOGAP ) od->include_predictions = 0;

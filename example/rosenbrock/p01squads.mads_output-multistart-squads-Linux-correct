@@ -30,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20130729-123727
+Execution date & time stamp: 20130814-180338
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -38,43 +38,43 @@ Imported seed: 2096575428
 Random sampling (variables 3; realizations 10) using 
 Improved Distributed LHS method (number of realizations < 500) ... done.
 
-Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 621 Jacobians: 100 Objective function: 2.38374e-09 Success: 1
-Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 442 Jacobians: 66 Objective function: 1.3481e-06 Success: 1
-Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 102 Jacobians: 14 Objective function: 4.17175e-09 Success: 1
-Random set #4: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 556 Jacobians: 93 Objective function: 4.05052e-06 Success: 1
-Random set #5: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 97 Jacobians: 12 Objective function: 4.01896e-07 Success: 1
-Random set #6: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 60 Jacobians: 6 Objective function: 3.59342e-06 Success: 1
-Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 162 Jacobians: 23 Objective function: 2.63179e-07 Success: 1
-Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 51 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
-Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 199 Jacobians: 26 Objective function: 8.37532e-05 Success: 1
-Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 309 Jacobians: 45 Objective function: 1.7099e-06 Success: 1
-Total number of evaluations = 2599
-Total number of jacobians = 389
-Minimum objective function: 2.38374e-09
+Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 691 Jacobians: 105 Objective function: 3.02276e-06 Success: 1
+Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 524 Jacobians: 81 Objective function: 6.56508e-05 Success: 1
+Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 1004 Jacobians: 140 Objective function: 2.90084 Success: 0
+Random set #4: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 219 Jacobians: 31 Objective function: 4.67193e-05 Success: 1
+Random set #5: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 116 Jacobians: 16 Objective function: 2.43249e-05 Success: 1
+Random set #6: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 306 Jacobians: 47 Objective function: 1.28821e-07 Success: 1
+Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 449 Jacobians: 69 Objective function: 6.32435e-08 Success: 1
+Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 52 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
+Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 261 Jacobians: 38 Objective function: 9.9808e-10 Success: 1
+Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 150 Jacobians: 21 Objective function: 8.11842e-07 Success: 1
+Total number of evaluations = 3772
+Total number of jacobians = 552
+Minimum objective function: 9.9808e-10
 Repeat the run producing the best results ...
-Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 10 (out of 10; success ratio 1)
-Statistics of total number of evaluations      : 51 - 97 [1m162[0m 442 - 621 : 10
+Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 9 (out of 10; success ratio 0.9)
+Statistics of total number of evaluations      : 52 - 150 [1m261[0m 524 - 1004 : 10
 Statistics of all the model parameter estimates:
-Parameter #1                        : average      0.99989 min     0.999102 max      1.00009
-Parameter #2                        : average     0.999748 min     0.998201 max      1.00001
-Parameter #3                        : average     0.999349 min     0.996397 max     0.999994
+Parameter #1                        : average      0.84382 min    -0.558759 max     0.999995
+Parameter #2                        : average     0.931723 min      0.32423 max     0.999988
+Parameter #3                        : average     0.909212 min     0.105328 max     0.999957
 Statistics of all the successful model parameter estimates:
-Parameter #1                        : average      0.99989 min     0.999102 max      1.00009
-Parameter #2                        : average     0.999748 min     0.998201 max      1.00001
-Parameter #3                        : average     0.999349 min     0.996397 max     0.999994
+Parameter #1                        : average     0.999662 min     0.998142 max     0.999995
+Parameter #2                        : average     0.999222 min     0.996065 max     0.999988
+Parameter #3                        : average     0.998532 min     0.992212 max     0.999957
 Results are saved in p01squads.igrnd.results and p01squads.igrnd-opt=squads_eval=1000_real=10
 
 Final results:
 Optimized model parameters:
-Parameter #1 0.999995
-Parameter #2 0.999991
-Parameter #3 0.999977
-Objective function: 2.38374e-09 Success: 1 (1)
-SUCCESS: Objective function is below the predefined cutoff value (2.38374e-09 < 0.001)!
+Parameter #1 0.99999
+Parameter #2 0.999979
+Parameter #3 0.999957
+Objective function: 9.9808e-10 Success: 1 (1)
+SUCCESS: Objective function is below the predefined cutoff value (9.9808e-10 < 0.001)!
 Simulation time = 0 seconds
-Functional evaluations = 2600
-Jacobian evaluations = 389
-Levenberg-Marquardt optimizations = 53
-Execution  started  on Mon Jul 29 12:37:27 2013
-Execution completed on Mon Jul 29 12:37:27 2013
-Execution date & time stamp: 20130729-123727
+Functional evaluations = 3773
+Jacobian evaluations = 552
+Levenberg-Marquardt optimizations = 78
+Execution  started  on Wed Aug 14 18:03:38 2013
+Execution completed on Wed Aug 14 18:03:38 2013
+Execution date & time stamp: 20130814-180338

@@ -34,12 +34,12 @@ Number of optimized parameters = 11
 Number of flagged parameters = 0
 Number of fixed parameters = 8
 Number of parameters with computational expressions (coupled or tied parameters) = 0
-Number of regularization terms = 0
 Number of calibration targets = 20
+Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130729-123727
+Execution date & time stamp: 20130814-180338
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -283,7 +283,7 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : W-1(49) W-2(49) W-3(49) W-4(44) W-4(49) W-5(49) W-6(49) W-7(49) W-8(49) W-9(49) W-10#1(49) W-10#2(49) W-11#1(49) W-11#2(49) W-12#1(49) W-12#2(49) W-13#1(50) W-13#2(50) W-14a(50) W-14b(50)
+Observations              : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
 Source x coordinate [L]   :    0.0    0.0   -0.0  702.1  711.5    0.0    0.0    0.0    0.0 -9e+03  -13.2   -1.0  185.8    2.6  100.9    1.0  238.7    0.6   -0.0 -209.6
 Source y coordinate [L]   :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  437.6    6.9    0.5  -19.8   -0.3   83.8    0.9 -579.3   -1.7   -0.0 -261.2
 Source x dimension [L]    :   -0.0    0.0    0.0  -21.5  -35.1    0.0    0.0    0.0    0.0  1e+03    1.8    0.1   22.1    0.3   11.3    0.1    0.2   -0.0    0.0   25.3
@@ -447,6 +447,6 @@ Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 111
-Execution  started  on Mon Jul 29 12:37:27 2013
-Execution completed on Mon Jul 29 12:37:28 2013
-Execution date & time stamp: 20130729-123727
+Execution  started  on Wed Aug 14 18:03:38 2013
+Execution completed on Wed Aug 14 18:03:39 2013
+Execution date & time stamp: 20130814-180338
