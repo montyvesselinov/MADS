@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v1.1) 2012
+MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
 Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -39,7 +39,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130814-195550
+Execution date & time stamp: 20130815-093427
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -98,6 +98,6 @@ Functional evaluations = 129
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
 Functional evaluations per second = 18
-Execution  started  on Wed Aug 14 19:55:50 2013
-Execution completed on Wed Aug 14 19:55:57 2013
-Execution date & time stamp: 20130814-195550
+Execution  started  on Thu Aug 15 09:34:27 2013
+Execution completed on Thu Aug 15 09:34:34 2013
+Execution date & time stamp: 20130815-093427

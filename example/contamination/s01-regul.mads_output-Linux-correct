@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v1.1) 2012
+MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
 Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -190,7 +190,7 @@ Grid Maximums: 500200 539400 0.1
 Breakthrough-curve time window: 0 0 1
 
 
-Execution date & time stamp: 20130814-195540
+Execution date & time stamp: 20130815-093417
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -905,6 +905,6 @@ Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 14
-Execution  started  on Wed Aug 14 19:55:40 2013
-Execution completed on Wed Aug 14 19:55:44 2013
-Execution date & time stamp: 20130814-195540
+Execution  started  on Thu Aug 15 09:34:17 2013
+Execution completed on Thu Aug 15 09:34:21 2013
+Execution date & time stamp: 20130815-093417

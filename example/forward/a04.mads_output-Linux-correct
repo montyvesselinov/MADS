@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v1.1) 2012
+MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
 Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -37,7 +37,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130814-194844
+Execution date & time stamp: 20130815-093538
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -69,6 +69,6 @@ Objective function: 1.18936e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Wed Aug 14 19:48:44 2013
-Execution completed on Wed Aug 14 19:48:44 2013
-Execution date & time stamp: 20130814-194844
+Execution  started  on Thu Aug 15 09:35:38 2013
+Execution completed on Thu Aug 15 09:35:38 2013
+Execution date & time stamp: 20130815-093538
