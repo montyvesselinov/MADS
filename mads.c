@@ -1,4 +1,4 @@
-// MADS: Model Analyses & Decision Support (v1.1) 2012
+// MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
 // Dylan Harp, dharp@lanl.gov
@@ -216,7 +216,7 @@ int main( int argn, char *argv[] )
 	op.phi = HUGE_VAL;
 	op.success = op.global_success = 0;
 	op.f_ofe = NULL;
-	printf( "MADS: Model Analyses & Decision Support (v1.1) 2012\n" );
+	printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
 	printf( "---------------------------------------------------\n" );
 	if( argn < 2 )
 	{
@@ -277,7 +277,7 @@ int main( int argn, char *argv[] )
 		system( buf );
 	}
 	mads_output = Fwrite( filename2 );
-	fprintf( mads_output, "MADS: Model Analyses & Decision Support (v1.1) 2012\n" );
+	fprintf( mads_output, "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
 	fprintf( mads_output, "---------------------------------------------------\n" );
 	fprintf( mads_output, "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
 	fprintf( mads_output, "Input file name: %s\n", filename );
