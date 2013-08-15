@@ -53,6 +53,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t,
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 double test_problems( int D, int function, double *x, int nObs, double *o );
 double point_source( double x, double y, double z, double t, void *params );
+double point_source_triangle_time( double x, double y, double z, double t, void *params );
 double gaussian_source_2d( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
 double gaussian_source_2d( double x, double y, double z, double t, void *params );
@@ -719,6 +720,9 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 							case POINT:
 								c1 += point_source( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
 								break;
+							case POINT_TRIANGLE_TIME:
+								c1 += point_source_triangle_time( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
 							case PLANE:
 								c1 += rectangle_source( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
 								break;
@@ -744,6 +748,10 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 							case POINT:
 								c1 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 								c2 += point_source( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								break;
+							case POINT_TRIANGLE_TIME:
+								c1 += point_source_triangle_time( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								c2 += point_source_triangle_time( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 								break;
 							case PLANE:
 								c1 += rectangle_source( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
@@ -1008,6 +1016,9 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 		{
 			case POINT:
 				c += point_source( x, y, z, t, ( void * ) &ad );
+				break;
+			case POINT_TRIANGLE_TIME:
+				c += point_source_triangle_time( x, y, z, t, ( void * ) &ad  );
 				break;
 			case PLANE:
 				c += rectangle_source( x, y, z, t, ( void * ) &ad );

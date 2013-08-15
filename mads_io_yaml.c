@@ -194,6 +194,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 					case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); break; }
 					case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); break; }
 					case BOX: { tprintf( "internal box contaminant source" ); break; }
+					case POINT_TRIANGLE_TIME: { tprintf( "internal point contaminant source with triangle shape in time" ); break; }
 					case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); break; }
 					default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 				}
@@ -368,6 +369,7 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 				case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); break; }
 				case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); break; }
 				case BOX: { tprintf( "internal box contaminant source" ); break; }
+				case POINT_TRIANGLE_TIME: { tprintf( "internal point contaminant source with triangle shape in time" ); break; }
 				case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); break; }
 				default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 			}
@@ -449,6 +451,7 @@ int load_ymal_sources( GNode *node, gpointer data )
 		if( !strncasecmp( ( char * ) node_par->data, "gau", 3 ) ) { if( strcasestr( ( char * ) node_par->data, "2" ) ) cd->solution_type[i] = GAUSSIAN2D; else cd->solution_type[i] = GAUSSIAN3D; }
 		if( !strncasecmp( ( char * ) node_par->data, "rec", 3 ) ) { if( strcasestr( ( char * ) node_par->data, "ver" ) ) cd->solution_type[i] = PLANE3D; else cd->solution_type[i] = PLANE; }
 		if( !strncasecmp( ( char * ) node_par->data, "box", 3 ) ) cd->solution_type[i] = BOX;
+		if( !strncasecmp( ( char * ) node_par->data, "point_tri", 9 ) ) cd->solution_type[i] = POINT_TRIANGLE_TIME;
 		for( k = 0; k < cd->num_source_params; k++ ) keyindex[k] = i * cd->num_source_params + k;
 		node_par = g_node_nth_child( node, 0 );
 		load_ymal_params( node_par, op, cd->num_source_params, sd->param_id, keyindex );

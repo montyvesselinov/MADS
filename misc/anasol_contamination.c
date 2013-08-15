@@ -38,6 +38,8 @@
 
 double point_source( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
+double point_source_triangle_time( double x, double y, double z, double t, void *params );
+double int_point_source_triangle_time( double tau, void *params );
 double rectangle_source_vz( double x, double y, double z, double t, void *params );
 double box_source( double x, double y, double z, double t, void *params );
 double gaussian_source_2d( double x, double y, double z, double t, void *params );
@@ -48,6 +50,7 @@ double int_rectangle_source_vz( double tau, void *params );
 double int_box_source( double tau, void *params );
 double int_gaussian_source_2d( double tau, void *params );
 double int_gaussian_source_3d( double tau, void *params );
+
 
 
 double point_source( double x, double y, double z, double t, void *params )
@@ -115,6 +118,73 @@ double int_point_source( double tau, void *params )
 //	printf("tau %g %g %g %g\n",tau,ez,e1,ze);
 	return( e1 * ez * ts );
 }
+
+double point_source_triangle_time( double x, double y, double z, double t, void *params )
+{
+	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
+	gsl_function F;
+	int status;
+	struct anal_data *p = ( struct anal_data * )params;
+	double result, error, time;
+	if( t <= p->var[TIME_INIT] ) return( 0 );
+	p->xe = x;
+	p->ye = y;
+	p->ze = z;
+	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
+		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
+	time = t - p->var[TIME_INIT];
+	F.function = &int_point_source_triangle_time;
+	F.params = p;
+	gsl_set_error_handler_off();
+	if( t < p->var[TIME_END] )
+		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+	else
+		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+	if( status != 0 ) result = 0;
+//	printf ("result			 = % .18f\n", result);
+//	printf ("estimated error = % .18f\n", error);
+//	printf ("intervals =  %d\n", w->size);
+	gsl_integration_workspace_free( w );
+	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
+}
+
+double int_point_source_triangle_time( double tau, void *params )
+{
+	struct anal_data *p = ( struct anal_data * )params;
+	double lambda = ( p->var[LAMBDA] );
+	double vx = ( p->var[VX] );
+	double ax = ( p->var[AX] );
+	double ay = ( p->var[AY] );
+	double az = ( p->var[AZ] );
+	double source_z = ( p->var[SOURCE_Z] );
+	double rx, ry, rz, e1, ez, tau_d, tv, ts, tx, tz1, tz2;
+	double d, alpha, beta, xe, ye, ze, x0, y0;
+	x0 = ( p->xe - p->var[SOURCE_X] );
+	y0 = ( p->ye - p->var[SOURCE_Y] );
+	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
+	alpha = cos( d );
+	beta = sin( d );
+	xe = x0 * alpha - y0 * beta;
+	ye = x0 * beta  + y0 * alpha;
+	ze = ( p->ze - source_z );
+	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
+	else { tau_d = tau; ts = pow( tau, -1.5 ); }
+	tv = ( double ) 4 * tau_d * vx;
+	rx = tv * ax;
+	ry = tv * ay;
+	rz = tv * az;
+	tx = xe - tau * vx;
+	e1 = exp( -tau * lambda - tx * tx / rx - ye * ye / ry );
+	//tz1 = ze - source_z;
+	//tz2 = ze + source_z;
+	tz1 = ze;
+	tz2 = ze + 2. * source_z;
+	ez = exp( -tz1 * tz1 / rz ) + exp( -tz2 * tz2 / rz );
+//	printf("tau %g %g %g %g\n",tau,ez,e1,ze);
+	return( e1 * ez * ts );
+}
+
 
 double box_source( double x, double y, double z, double t, void *params )
 {

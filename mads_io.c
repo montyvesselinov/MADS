@@ -308,6 +308,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "gau", 3 ) ) { w = 1; if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
 		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) ) cd->solution_type[0] = PLANE3D; else cd->solution_type[0] = PLANE; }
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; cd->solution_type[0] = BOX; }
+		if( !strncasecmp( word, "point_tri", 9 ) ) { w = 1; cd->solution_type[0] = POINT_TRIANGLE_TIME; }
 		if( !strncasecmp( word, "obs_int=", 8 ) ) { w = 1; sscanf( word, "obs_int=%d", &cd->obs_int ); if( cd->obs_int > 2 || cd->obs_int < 1 ) cd->obs_int = 1; }
 		if( !strncasecmp( word, "paran", 5 ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( strcasestr( word, "_ms" ) ) { w = 1; cd->paranoid = 1; } // legacy
@@ -578,6 +579,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( !strncasecmp( word, "gau", 3 ) ) { if( strcasestr( word, "2" ) ) cd->solution_type[c] = GAUSSIAN2D; else cd->solution_type[c] = GAUSSIAN3D; }
 		if( !strncasecmp( word, "rec", 3 ) ) { if( strcasestr( word, "ver" ) ) cd->solution_type[c] = PLANE3D; else cd->solution_type[c] = PLANE; }
 		if( !strncasecmp( word, "box", 3 ) ) cd->solution_type[c] = BOX;
+		if( !strncasecmp( word, "point_tri", 9 ) ) cd->solution_type[c] = POINT_TRIANGLE_TIME;
 		if( !strncasecmp( word, "test", 4 ) || cd->test_func >= 0 ) { cd->solution_type[c] = TEST; od->nTObs = 0; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
 	}
 	if( cd->num_sources == 0 && cd->test_func >= 0 ) { cd->num_sources = 1; cd->solution_type[0] = TEST; od->nTObs = 0; if( cd->num_sources > 1 ) { tprintf( "ERROR: Multiple solutions can be only internal; no test functions!\n" ); bad_data = 1; } }
@@ -607,6 +609,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			case GAUSSIAN3D: { tprintf( "internal spatial (3d) gaussian contaminant source" ); strcat( cd->solution_id, "gaussian_3d" ); break; }
 			case PLANE3D: { tprintf( "internal rectangular contaminant source with vertical flow component" ); strcat( cd->solution_id, "rect_vert" ); break; }
 			case BOX: { tprintf( "internal box contaminant source" ); strcat( cd->solution_id, "box" ); break; }
+			case POINT_TRIANGLE_TIME: { tprintf( "internal point contaminant source with triangle shape in time" ); strcat( cd->solution_id, "point_tri" ); break; }
 			case TEST: { tprintf( "internal test optimization problem #%d: ", cd->test_func ); set_test_problems( op ); sprintf( cd->solution_id, "test=%d", cd->test_func ); break; }
 			default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 		}
