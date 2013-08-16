@@ -30,7 +30,7 @@ endif
 ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
-LDLIBS += -L/home/monty/local/lib
+LDLIBS += -L/home/monty/local/lib -lgslcblas -lm -llapack -lblas
 YAML = true
 endif
 else
@@ -417,8 +417,8 @@ astyle:
 	rm -f $(SOURCESTYLE:%c=%c.orig)
 
 tar:
-	rm -f mads.tgz
-	tar -cvzf mads.tgz `hg st -c -m | awk '{print $$2}'` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'` .hg
+	rm -f mads.git.tgz
+	tar -cvzf mads.git.tgz `git ls-files` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'` .git
 
 tarf:
-	tar -cvzf mads.tgz `hg st -c -m | awk '{print $$2}'` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'`
+	tar -cvzf mads.tgz `git ls-files` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'`
