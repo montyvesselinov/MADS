@@ -17,7 +17,7 @@ $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
 CFLAGS = -Wall -O1 -Winit-self
-LDLIBS = -lgsl -lgslcblas -lm -llapack -lblas
+LDLIBS = -lgsl -llapack 
 ifeq ($(OS),Linux)
 # Linux
 LDLIBS += -lgfortran 

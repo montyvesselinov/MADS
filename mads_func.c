@@ -1018,7 +1018,7 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 				c += point_source( x, y, z, t, ( void * ) &ad );
 				break;
 			case POINT_TRIANGLE_TIME:
-				c += point_source_triangle_time( x, y, z, t, ( void * ) &ad  );
+				c += point_source_triangle_time( x, y, z, t, ( void * ) &ad );
 				break;
 			case PLANE:
 				c += rectangle_source( x, y, z, t, ( void * ) &ad );

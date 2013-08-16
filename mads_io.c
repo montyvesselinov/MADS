@@ -207,7 +207,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->lm_nlamof = 3;
 	cd->squads = 0;
 	cd->test_func_npar = cd->test_func_nobs = 0;
-	cd->obs_int = 1;
+	cd->obs_int = 2;
 	quiet = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -309,7 +309,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) ) cd->solution_type[0] = PLANE3D; else cd->solution_type[0] = PLANE; }
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; cd->solution_type[0] = BOX; }
 		if( !strncasecmp( word, "point_tri", 9 ) ) { w = 1; cd->solution_type[0] = POINT_TRIANGLE_TIME; }
-		if( !strncasecmp( word, "obs_int=", 8 ) ) { w = 1; sscanf( word, "obs_int=%d", &cd->obs_int ); if( cd->obs_int > 2 || cd->obs_int < 1 ) cd->obs_int = 1; }
+		if( !strncasecmp( word, "obs_int=", 8 ) ) { w = 1; sscanf( word, "obs_int=%d", &cd->obs_int ); if( cd->obs_int > 2 || cd->obs_int < 1 ) cd->obs_int = 2; }
 		if( !strncasecmp( word, "paran", 5 ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( strcasestr( word, "_ms" ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( w == 0 ) { tprintf( "\nERROR: Unknown keyword \'%s\'!\n", word ); return( -1 ); }

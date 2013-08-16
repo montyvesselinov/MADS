@@ -33,8 +33,8 @@
 #include "../mads.h"
 
 #define NUMITER 10000
-#define EPSREL 1e-7
-#define EPSABS 0
+#define EPSREL 1.E-7
+#define EPSABS 1.E-9
 
 double point_source( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
@@ -50,8 +50,8 @@ double int_rectangle_source_vz( double tau, void *params );
 double int_box_source( double tau, void *params );
 double int_gaussian_source_2d( double tau, void *params );
 double int_gaussian_source_3d( double tau, void *params );
-
-
+// void handler(const char * reason, const char * file, int line, int gsl_errno);
+// void handler(const char * reason, const char * file, int line, int gsl_errno) { }
 
 double point_source( double x, double y, double z, double t, void *params )
 {
@@ -70,6 +70,7 @@ double point_source( double x, double y, double z, double t, void *params )
 	F.function = &int_point_source;
 	F.params = p;
 	gsl_set_error_handler_off();
+	// gsl_set_error_handler(&handler);
 	if( t < p->var[TIME_END] )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
@@ -77,7 +78,7 @@ double point_source( double x, double y, double z, double t, void *params )
 	if( status != 0 ) result = 0;
 //	printf ("result			 = % .18f\n", result);
 //	printf ("estimated error = % .18f\n", error);
-//	printf ("intervals =  %d\n", w->size);
+//	printf ("intervals =  %d\n", (int) w->size);
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
 	return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
@@ -136,6 +137,7 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 	F.function = &int_point_source_triangle_time;
 	F.params = p;
 	gsl_set_error_handler_off();
+	// gsl_set_error_handler(&handler);
 	if( t < p->var[TIME_END] )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
@@ -143,7 +145,7 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 	if( status != 0 ) result = 0;
 //	printf ("result			 = % .18f\n", result);
 //	printf ("estimated error = % .18f\n", error);
-//	printf ("intervals =  %d\n", w->size);
+//	printf ("intervals =  %d\n", (int) w->size);
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
 	return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
@@ -202,6 +204,7 @@ double box_source( double x, double y, double z, double t, void *params )
 	F.function = &int_box_source;
 	F.params = p;
 	gsl_set_error_handler_off();
+	// gsl_set_error_handler(&handler);
 	if( t < p->var[TIME_END] )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
@@ -272,6 +275,7 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	F.function = &int_rectangle_source;
 	F.params = p;
 	gsl_set_error_handler_off();
+	// gsl_set_error_handler(&handler);
 	if( t < p->var[TIME_END] )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
@@ -331,6 +335,7 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 	F.function = &int_rectangle_source_vz;
 	F.params = p;
 	gsl_set_error_handler_off();
+	// gsl_set_error_handler(&handler);
 	if( t < p->var[TIME_END] )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
@@ -394,6 +399,7 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 	F.function = &int_gaussian_source_2d;
 	F.params = p;
 	gsl_set_error_handler_off();
+	// gsl_set_error_handler(&handler);
 	if( t < p->var[TIME_END] )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
@@ -454,6 +460,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	F.function = &int_gaussian_source_2d;
 	F.params = p;
 	gsl_set_error_handler_off();
+	// gsl_set_error_handler(&handler);
 	if( t < p->var[TIME_END] )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else

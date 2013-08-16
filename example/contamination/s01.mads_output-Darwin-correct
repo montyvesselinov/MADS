@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v1.1) 2012
+MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
 Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -39,7 +39,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130812-163936
+Execution date & time stamp: 20130815-185812
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -59,17 +59,17 @@ Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 7.08329 < 200)
 Optimized model parameters:
-Source x coordinate [L]                  :         1124 stddev      52.4249 (         210 -         1460) Uncertainty ranges constrained by prior bounds
-Source y coordinate [L]                  :         1393 stddev      5.79894 (        1230 -         1930) Uncertainty ranges constrained by prior bounds
-Source x dimension [L]                   :          258 stddev       449.36 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Source y dimension [L]                   :          273 stddev      60.4221 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Contaminant flux [M/T]                   :           16 stddev      8.79851 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
-Start Time [T]                           :            0 stddev  1.64574e+09 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :            3 stddev      9.13283 (         -30 -           30) Uncertainty ranges constrained by prior bounds
-Pore x velocity [L/T]                    :            5 stddev      21.6776 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
-Dispersivity x [L]                       :           70 stddev      29.3917 (          10 -          140) Uncertainty ranges constrained by prior bounds
-Dispersivity y [L]                       :           15 stddev      88.6773 (           1 -           30) Uncertainty ranges constrained by prior bounds
-Dispersivity z [L]                       :          0.3 stddev      127.361 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Source x coordinate [L]                  :         1124 stddev      127.582 (         210 -         1460) Uncertainty ranges constrained by prior bounds
+Source y coordinate [L]                  :         1393 stddev      7.86367 (        1230 -         1930) Uncertainty ranges constrained by prior bounds
+Source x dimension [L]                   :          258 stddev      810.498 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Source y dimension [L]                   :          273 stddev      114.238 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T]                   :           16 stddev      3.60419 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T]                           :            0 stddev  2.48742e+09 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :            3 stddev      9.62421 (         -30 -           30) Uncertainty ranges constrained by prior bounds
+Pore x velocity [L/T]                    :            5 stddev      64.9541 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
+Dispersivity x [L]                       :           70 stddev       120.95 (          10 -          140) Uncertainty ranges constrained by prior bounds
+Dispersivity y [L]                       :           15 stddev      380.507 (           1 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]                       :          0.3 stddev      332.218 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
 Computed initial lambda 10
 OF 0.869269 lambda 10
 New Jacobian requested because: > OF estimate declined substantially (0.869269 << 63.7496)
@@ -85,17 +85,17 @@ Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.0965854 < 200)
 Optimized model parameters:
-Source x coordinate [L]                  :      1119.49 stddev      1.47234 (         210 -         1460) Uncertainty ranges constrained by prior bounds
-Source y coordinate [L]                  :         1398 stddev    0.0973028 (     1337.12 -      1467.67)
-Source x dimension [L]                   :      261.292 stddev      5.45079 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Source y dimension [L]                   :      268.734 stddev      4.81058 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Contaminant flux [M/T]                   :      15.4736 stddev      1.13151 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
-Start Time [T]                           :            0 stddev  2.04223e+08 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :      2.39652 stddev     0.468274 (    -24.9027 -       27.249)
-Pore x velocity [L/T]                    :      5.19632 stddev      1.03605 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
-Dispersivity x [L]                       :      66.1008 stddev      2.97049 (          10 -          140) Uncertainty ranges constrained by prior bounds
-Dispersivity y [L]                       :      15.4336 stddev      8.09333 (           1 -           30) Uncertainty ranges constrained by prior bounds
-Dispersivity z [L]                       :     0.290911 stddev      4.00161 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Source x coordinate [L]                  :      1119.49 stddev      2.28391 (         210 -         1460) Uncertainty ranges constrained by prior bounds
+Source y coordinate [L]                  :         1398 stddev     0.361174 (     1237.47 -       1673.4)
+Source x dimension [L]                   :      261.292 stddev      22.7618 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Source y dimension [L]                   :      268.734 stddev      8.34653 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T]                   :      15.4736 stddev     0.344487 (    0.520623 -      94.6585)
+Start Time [T]                           :            0 stddev  2.13256e+08 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :      2.39652 stddev     0.896612 (         -30 -           30) Uncertainty ranges constrained by prior bounds
+Pore x velocity [L/T]                    :      5.19632 stddev     0.872941 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
+Dispersivity x [L]                       :      66.1008 stddev      3.80037 (          10 -          140) Uncertainty ranges constrained by prior bounds
+Dispersivity y [L]                       :      15.4336 stddev      9.08552 (           1 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]                       :     0.290911 stddev      5.50588 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
 Parameter with maximum estimate change between jacobian iterations: Source y coordinate [L]        (-5.00372)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.0122956 lambda 3.33333
@@ -112,24 +112,24 @@ Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.00136618 < 200)
 Optimized model parameters:
-Source x coordinate [L]                  :      1119.86 stddev     0.586366 (     364.168 -         1460) Uncertainty ranges constrained by prior bounds
-Source y coordinate [L]                  :       1398.2 stddev    0.0788161 (     1348.04 -      1454.12)
-Source x dimension [L]                   :      264.613 stddev      6.02788 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Source y dimension [L]                   :      267.793 stddev      1.35086 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Contaminant flux [M/T]                   :       15.457 stddev      0.15875 (     3.53308 -      47.6875)
-Start Time [T]                           :            0 stddev  2.45423e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :      2.37855 stddev     0.180077 (    -9.66354 -      14.0314)
-Pore x velocity [L/T]                    :      5.21061 stddev      0.19336 (    0.609316 -       34.858)
-Dispersivity x [L]                       :      65.2371 stddev     0.658063 (     11.8832 -          140) Uncertainty ranges constrained by prior bounds
-Dispersivity y [L]                       :      15.4195 stddev      1.02427 (           1 -           30) Uncertainty ranges constrained by prior bounds
-Dispersivity z [L]                       :     0.288968 stddev      1.30331 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Source x coordinate [L]                  :      1119.86 stddev     0.195528 (     854.348 -      1330.55)
+Source y coordinate [L]                  :       1398.2 stddev    0.0538309 (     1363.22 -      1435.87)
+Source x dimension [L]                   :      264.613 stddev     0.913278 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Source y dimension [L]                   :      267.793 stddev      1.45161 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T]                   :       15.457 stddev    0.0710809 (     8.24789 -      26.9919)
+Start Time [T]                           :            0 stddev  1.51841e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :      2.37855 stddev     0.202828 (    -11.1117 -      15.3768)
+Pore x velocity [L/T]                    :      5.21061 stddev     0.179809 (    0.707882 -      31.0032)
+Dispersivity x [L]                       :      65.2371 stddev     0.616591 (     12.6959 -          140) Uncertainty ranges constrained by prior bounds
+Dispersivity y [L]                       :      15.4195 stddev      1.89143 (           1 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]                       :     0.288968 stddev     0.544021 (    0.104002 -     0.905376)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-3.32055)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
-OF 0.00888811 lambda 1.11111
-OF 0.00438247 lambda 1.16786
-New Jacobian requested because: > OF estimate declined substantially (0.00438247 << 0.0122956)
+OF 0.00888812 lambda 1.11111
+OF 0.00438246 lambda 1.16786
+New Jacobian requested because: > OF estimate declined substantially (0.00438246 << 0.0122956)
 
-Jacobian #4: Linear solves 4 Evaluations 49 OF 0.00438247 lambda 1.16208
+Jacobian #4: Linear solves 4 Evaluations 49 OF 0.00438246 lambda 1.16208
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
@@ -138,23 +138,23 @@ Covariance matrix stored (example/contamination/s01.covariance)
 Correlation matrix stored (example/contamination/s01.correlation)
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
-Obtained fit is relatively good (chi^2/dof = 0.000486941 < 200)
+Obtained fit is relatively good (chi^2/dof = 0.00048694 < 200)
 Optimized model parameters:
-Source x coordinate [L]                  :      1121.94 stddev     0.143646 (     929.674 -      1284.18)
-Source y coordinate [L]                  :      1398.28 stddev    0.0150398 (     1388.21 -      1408.56)
-Source x dimension [L]                   :      271.003 stddev     0.780515 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Source y dimension [L]                   :      269.373 stddev     0.361077 (     82.0733 -      444.767)
-Contaminant flux [M/T]                   :      15.5057 stddev    0.0240023 (     12.6336 -      18.8777)
-Start Time [T]                           :            0 stddev  4.94543e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :      2.36722 stddev    0.0374856 (   -0.174087 -      4.89152)
-Pore x velocity [L/T]                    :      5.15931 stddev    0.0768464 (     2.21367 -      11.5646)
-Dispersivity x [L]                       :      65.1306 stddev     0.231306 (      33.245 -      110.011)
-Dispersivity y [L]                       :      15.3273 stddev     0.656233 (     1.55351 -           30) Uncertainty ranges constrained by prior bounds
-Dispersivity z [L]                       :     0.288087 stddev     0.379976 (    0.124755 -     0.709729)
+Source x coordinate [L]                  :      1121.94 stddev     0.336151 (     660.247 -      1425.58)
+Source y coordinate [L]                  :      1398.28 stddev    0.0334385 (      1376.2 -      1421.41)
+Source x dimension [L]                   :      271.003 stddev      2.50872 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Source y dimension [L]                   :      269.373 stddev      0.38758 (     71.3472 -      453.798)
+Contaminant flux [M/T]                   :      15.5057 stddev    0.0342654 (     11.5473 -      20.4812)
+Start Time [T]                           :            0 stddev  1.23251e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :      2.36722 stddev    0.0520049 (    -1.15908 -       5.8608)
+Pore x velocity [L/T]                    :      5.15931 stddev     0.141483 (     1.07403 -      21.7313)
+Dispersivity x [L]                       :      65.1306 stddev     0.237106 (     32.6772 -      111.103)
+Dispersivity y [L]                       :      15.3273 stddev     0.780766 (     1.18853 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]                       :     0.288087 stddev      0.81411 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-6.39001)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00114406 lambda 1.16208
-New Jacobian requested because: > OF estimate declined substantially (0.00114406 << 0.00438247)
+New Jacobian requested because: > OF estimate declined substantially (0.00114406 << 0.00438246)
 
 Jacobian #5: Linear solves 5 Evaluations 61 OF 0.00114406 lambda 0.387359
 Jacobian matrix analysis ...
@@ -167,26 +167,26 @@ Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000127118 < 200)
 Optimized model parameters:
-Source x coordinate [L]                  :      1122.35 stddev     0.122811 (     959.121 -      1263.54)
-Source y coordinate [L]                  :      1398.31 stddev   0.00958366 (     1391.87 -      1404.84)
-Source x dimension [L]                   :      272.138 stddev     0.909886 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Source y dimension [L]                   :      269.639 stddev     0.202975 (     157.413 -      377.901)
-Contaminant flux [M/T]                   :      15.5159 stddev    0.0129792 (     13.9025 -      17.2756)
-Start Time [T]                           :            0 stddev  5.20521e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :      2.36372 stddev    0.0231526 (    0.794943 -      3.92602)
-Pore x velocity [L/T]                    :      5.14865 stddev     0.054252 (      2.8402 -      9.15372)
-Dispersivity x [L]                       :       65.134 stddev     0.116547 (     46.7707 -      87.2985)
-Dispersivity y [L]                       :      15.3167 stddev      0.33615 (     4.53689 -      29.3471)
-Dispersivity z [L]                       :     0.288001 stddev     0.308076 (    0.140932 -     0.614767)
+Source x coordinate [L]                  :      1122.35 stddev     0.100227 (     990.239 -      1239.75)
+Source y coordinate [L]                  :      1398.31 stddev    0.0129123 (     1389.65 -      1407.12)
+Source x dimension [L]                   :      272.138 stddev     0.688889 (     2.23071 -          500) Uncertainty ranges constrained by prior bounds
+Source y dimension [L]                   :      269.639 stddev     0.194004 (     162.129 -      373.523)
+Contaminant flux [M/T]                   :      15.5159 stddev    0.0143142 (     13.7446 -      17.4651)
+Start Time [T]                           :            0 stddev  3.15945e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :      2.36372 stddev    0.0251796 (     0.65743 -      4.06234)
+Pore x velocity [L/T]                    :      5.14865 stddev    0.0489281 (     3.01277 -      8.66072)
+Dispersivity x [L]                       :       65.134 stddev     0.117881 (     46.5875 -       87.565)
+Dispersivity y [L]                       :      15.3167 stddev      0.33397 (     4.57487 -      29.3071)
+Dispersivity z [L]                       :     0.288001 stddev     0.253078 (    0.157004 -     0.544283)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-1.13541)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00110848 lambda 0.387359
 OF 0.00108674 lambda 0.384368
 OF 0.00107841 lambda 0.3225
-OF 0.00108768 lambda 0.140343
+OF 0.00108768 lambda 0.140341
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
-Jacobian #6: Linear solves 9 Evaluations 76 OF 0.00107841 lambda 0.280687
+Jacobian #6: Linear solves 9 Evaluations 76 OF 0.00107841 lambda 0.280683
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
@@ -197,26 +197,26 @@ Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000119823 < 200)
 Optimized model parameters:
-Source x coordinate [L]                  :      1123.11 stddev     0.228318 (     811.654 -      1359.41)
-Source y coordinate [L]                  :      1398.34 stddev    0.0380408 (      1373.3 -      1424.72)
-Source x dimension [L]                   :      273.748 stddev      2.19632 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Source y dimension [L]                   :      269.446 stddev     0.559531 (     18.9045 -      493.479)
-Contaminant flux [M/T]                   :      15.5347 stddev    0.0493671 (     10.1126 -      23.0624)
-Start Time [T]                           :  2.38698e-15 stddev  1.18476e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :       2.3655 stddev    0.0876095 (    -3.56875 -      8.20716)
-Pore x velocity [L/T]                    :       5.1277 stddev    0.0795422 (      2.1345 -      11.8165)
-Dispersivity x [L]                       :      65.2359 stddev     0.152199 (     42.1604 -      94.5662)
-Dispersivity y [L]                       :      15.3753 stddev     0.352076 (     4.28979 -       29.622)
-Dispersivity z [L]                       :     0.288419 stddev     0.544799 (    0.103897 -      0.90542)
+Source x coordinate [L]                  :      1123.11 stddev     0.234437 (     803.013 -      1364.07)
+Source y coordinate [L]                  :      1398.34 stddev    0.0233423 (      1382.8 -      1414.38)
+Source x dimension [L]                   :      273.748 stddev      1.96353 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Source y dimension [L]                   :      269.446 stddev     0.303626 (     107.407 -      422.894)
+Contaminant flux [M/T]                   :      15.5347 stddev    0.0491213 (      10.135 -      23.0192)
+Start Time [T]                           :            0 stddev   5.9345e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :       2.3655 stddev     0.042846 (   -0.539536 -      5.24834)
+Pore x velocity [L/T]                    :       5.1277 stddev     0.102804 (     1.64564 -      14.9072)
+Dispersivity x [L]                       :      65.2359 stddev     0.118982 (     46.5158 -      87.9005)
+Dispersivity y [L]                       :      15.3753 stddev     0.348411 (     4.35009 -      29.5694)
+Dispersivity z [L]                       :     0.288419 stddev     0.563057 (     0.10274 -     0.922253)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-1.60983)
-Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (-2.38698e-15)
-OF 0.0010751 lambda 0.280687
-OF 0.00110255 lambda 0.0987933
-OF 0.00107221 lambda 0.197587
-OF 0.00107279 lambda 0.186003
+Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
+OF 0.0010751 lambda 0.280683
+OF 0.00110255 lambda 0.0987979
+OF 0.00107221 lambda 0.197596
+OF 0.00107279 lambda 0.186004
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
-Jacobian #7: Linear solves 13 Evaluations 91 OF 0.00107221 lambda 0.372006
+Jacobian #7: Linear solves 13 Evaluations 91 OF 0.00107221 lambda 0.372007
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
@@ -227,26 +227,26 @@ Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000119135 < 200)
 Optimized model parameters:
-Source x coordinate [L]                  :      1123.47 stddev     0.183723 (     875.076 -      1322.76)
-Source y coordinate [L]                  :      1398.34 stddev    0.0211438 (     1384.24 -      1412.85)
-Source x dimension [L]                   :      274.161 stddev      1.31215 (           1 -          500) Uncertainty ranges constrained by prior bounds
-Source y dimension [L]                   :      268.887 stddev      0.18795 (     164.624 -      369.877)
-Contaminant flux [M/T]                   :      15.5437 stddev    0.0134156 (     13.8761 -      17.3677)
-Start Time [T]                           :  2.38698e-15 stddev  7.97288e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :      2.37193 stddev    0.0226097 (    0.840006 -      3.89765)
-Pore x velocity [L/T]                    :      5.11701 stddev    0.0782666 (     2.16044 -      11.6421)
-Dispersivity x [L]                       :      65.3478 stddev     0.135382 (     44.4004 -      91.3151)
-Dispersivity y [L]                       :      15.4559 stddev     0.435809 (     3.15814 -           30) Uncertainty ranges constrained by prior bounds
-Dispersivity z [L]                       :      0.28902 stddev     0.466016 (    0.111505 -     0.820549)
-Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.558953)
+Source x coordinate [L]                  :      1123.47 stddev     0.551215 (     401.218 -         1460) Uncertainty ranges constrained by prior bounds
+Source y coordinate [L]                  :      1398.34 stddev     0.115387 (     1327.29 -      1481.69)
+Source x dimension [L]                   :      274.161 stddev      5.99477 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Source y dimension [L]                   :      268.887 stddev      1.73873 (           1 -          500) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T]                   :      15.5437 stddev     0.215893 (     1.98905 -      63.9583)
+Start Time [T]                           :            0 stddev  2.11127e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :      2.37193 stddev     0.285049 (    -16.0785 -        19.87)
+Pore x velocity [L/T]                    :      5.11701 stddev     0.192613 (    0.603096 -      34.1425)
+Dispersivity x [L]                       :      65.3478 stddev     0.495047 (     16.2617 -       139.98)
+Dispersivity y [L]                       :      15.4559 stddev     0.846601 (     1.08549 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]                       :      0.28902 stddev      1.22043 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.558941)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
-OF 0.00106897 lambda 0.372006
+OF 0.00106897 lambda 0.372007
 OF 0.0010766 lambda 0.124002
-OF 0.00106627 lambda 0.248004
+OF 0.00106627 lambda 0.248005
 OF 0.00106791 lambda 0.166284
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
-Jacobian #8: Linear solves 17 Evaluations 106 OF 0.00106627 lambda 0.332568
+Jacobian #8: Linear solves 17 Evaluations 106 OF 0.00106627 lambda 0.332567
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
@@ -257,20 +257,20 @@ Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.000118475 < 200)
 Optimized model parameters:
-Source x coordinate [L]                  :      1123.75 stddev     0.094839 (     999.125 -      1235.13)
-Source y coordinate [L]                  :      1398.34 stddev   0.00373805 (     1395.82 -      1400.88)
-Source x dimension [L]                   :      274.461 stddev     0.481631 (     41.4658 -      481.721)
-Source y dimension [L]                   :      268.448 stddev       0.2048 (     155.353 -       377.76)
-Contaminant flux [M/T]                   :      15.5504 stddev    0.0227196 (     12.8133 -      18.7359)
-Start Time [T]                           :  2.38698e-15 stddev  5.16503e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :      2.37697 stddev    0.0186583 (     1.11306 -      3.63665)
-Pore x velocity [L/T]                    :      5.10891 stddev    0.0436919 (     3.16721 -      8.13834)
-Dispersivity x [L]                       :      65.4347 stddev     0.132567 (     44.8366 -      90.8486)
-Dispersivity y [L]                       :      15.5189 stddev     0.407403 (     3.52327 -           30) Uncertainty ranges constrained by prior bounds
-Dispersivity z [L]                       :     0.289489 stddev     0.247271 (    0.159571 -     0.539517)
-Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.439086)
+Source x coordinate [L]                  :      1123.75 stddev    0.0568529 (     1050.27 -      1192.45)
+Source y coordinate [L]                  :      1398.34 stddev   0.00469484 (     1395.17 -      1401.53)
+Source x dimension [L]                   :      274.461 stddev      0.40492 (     68.1229 -      462.065)
+Source y dimension [L]                   :      268.448 stddev     0.238571 (     138.028 -      393.767)
+Contaminant flux [M/T]                   :      15.5504 stddev     0.013382 (     13.8862 -      17.3703)
+Start Time [T]                           :            0 stddev  3.48409e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :      2.37697 stddev    0.0255466 (     0.64582 -      4.10019)
+Pore x velocity [L/T]                    :      5.10891 stddev    0.0340396 (     3.52303 -       7.3525)
+Dispersivity x [L]                       :      65.4347 stddev     0.137038 (     44.2475 -      91.7463)
+Dispersivity y [L]                       :      15.5188 stddev     0.334015 (     4.64989 -      29.3856)
+Dispersivity z [L]                       :     0.289489 stddev     0.153313 (    0.197004 -      0.42989)
+Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.439085)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
-OF 0.00106364 lambda 0.332568
+OF 0.00106364 lambda 0.332567
 OF 0.00107789 lambda 0.110856
 OF 0.00106082 lambda 0.221712
 OF 0.00106157 lambda 0.178963
@@ -298,60 +298,60 @@ Dispersivity z [L]        :   -0.0    0.0   -0.0  312.4  348.7    0.0    0.0    
 Jacobian matrix stored (example/contamination/s01.jacobian)
 
 Covariance matrix
-Source x coordinate [L]   :   8e+01   3e+00   4e+02  -1e+02   2e+01   3e+09   1e+01  -3e+01   1e+02   3e+02   2e+02
-Source y coordinate [L]   :   3e+00   1e-01   1e+01  -3e+00   6e-01   2e+08   2e-01  -9e-01   2e+00   8e+00   6e+00
-Source x dimension [L]    :   4e+02   1e+01   2e+03  -6e+02   9e+01   2e+10   5e+01  -1e+02   4e+02   1e+03   9e+02
-Source y dimension [L]    :  -1e+02  -3e+00  -6e+02   4e+02  -3e+01  -4e+09  -3e+01   7e+01  -2e+02  -7e+02  -4e+02
-Contaminant flux [M/T]    :   2e+01   6e-01   9e+01  -3e+01   4e+00   8e+08   3e+00  -8e+00   2e+01   7e+01   5e+01
-Start Time [T]            :   3e+09   2e+08   2e+10  -4e+09   8e+08   2e+17   3e+08  -1e+09   3e+09   1e+10   9e+09
-Flow Angle [degrees]      :   1e+01   2e-01   5e+01  -3e+01   3e+00   3e+08   3e+00  -7e+00   2e+01   6e+01   3e+01
-Pore x velocity [L/T]     :  -3e+01  -9e-01  -1e+02   7e+01  -8e+00  -1e+09  -7e+00   2e+01  -5e+01  -2e+02  -9e+01
-Dispersivity x [L]        :   1e+02   2e+00   4e+02  -2e+02   2e+01   3e+09   2e+01  -5e+01   1e+02   5e+02   3e+02
-Dispersivity y [L]        :   3e+02   8e+00   1e+03  -7e+02   7e+01   1e+10   6e+01  -2e+02   5e+02   1e+03   8e+02
-Dispersivity z [L]        :   2e+02   6e+00   9e+02  -4e+02   5e+01   9e+09   3e+01  -9e+01   3e+02   8e+02   5e+02
+Source x coordinate [L]   :   3e+01   1e+00   1e+02  -4e+01   4e+00   8e+08   3e+00  -1e+01   3e+01   1e+02   7e+01
+Source y coordinate [L]   :   1e+00   2e-01   2e+01   6e+00  -2e-01   1e+08  -7e-01   1e-01  -3e+00  -5e+00   2e+00
+Source x dimension [L]    :   1e+02   2e+01   1e+03   3e+02  -7e+00   1e+10  -4e+01  -3e+01  -1e+02  -9e+01   3e+02
+Source y dimension [L]    :  -4e+01   6e+00   3e+02   5e+02  -3e+01   5e+09  -5e+01   6e+01  -3e+02  -6e+02  -2e+02
+Contaminant flux [M/T]    :   4e+00  -2e-01  -7e+00  -3e+01   2e+00  -2e+08   3e+00  -4e+00   2e+01   4e+01   1e+01
+Start Time [T]            :   8e+08   1e+08   1e+10   5e+09  -2e+08   1e+17  -6e+08   9e+07  -2e+09  -4e+09   2e+09
+Flow Angle [degrees]      :   3e+00  -7e-01  -4e+01  -5e+01   3e+00  -6e+08   6e+00  -5e+00   3e+01   7e+01   1e+01
+Pore x velocity [L/T]     :  -1e+01   1e-01  -3e+01   6e+01  -4e+00   9e+07  -5e+00   1e+01  -3e+01  -9e+01  -4e+01
+Dispersivity x [L]        :   3e+01  -3e+00  -1e+02  -3e+02   2e+01  -2e+09   3e+01  -3e+01   2e+02   4e+02   1e+02
+Dispersivity y [L]        :   1e+02  -5e+00  -9e+01  -6e+02   4e+01  -4e+09   7e+01  -9e+01   4e+02   9e+02   3e+02
+Dispersivity z [L]        :   7e+01   2e+00   3e+02  -2e+02   1e+01   2e+09   1e+01  -4e+01   1e+02   3e+02   2e+02
 Covariance matrix stored (example/contamination/s01.covariance)
 
 Correlation matrix
-Source x coordinate [L]   :   1.000  0.843  0.955 -0.871  1.000  0.845  0.823 -0.947  0.895  0.956  0.998
-Source y coordinate [L]   :   0.843  1.000  0.961 -0.474  0.849  0.994  0.392 -0.630  0.519  0.650  0.807
-Source x dimension [L]    :   0.955  0.961  1.000 -0.688  0.959  0.965  0.620 -0.811  0.723  0.827  0.935
-Source y dimension [L]    :  -0.871 -0.474 -0.688  1.000 -0.866 -0.475 -0.996  0.982 -0.999 -0.977 -0.900
-Contaminant flux [M/T]    :   1.000  0.849  0.959 -0.866  1.000  0.851  0.817 -0.944  0.890  0.953  0.997
-Start Time [T]            :   0.845  0.994  0.965 -0.475  0.851  1.000  0.394 -0.630  0.518  0.652  0.810
-Flow Angle [degrees]      :   0.823  0.392  0.620 -0.996  0.817  0.394  1.000 -0.961  0.990  0.954  0.858
-Pore x velocity [L/T]     :  -0.947 -0.630 -0.811  0.982 -0.944 -0.630 -0.961  1.000 -0.990 -0.999 -0.965
-Dispersivity x [L]        :   0.895  0.519  0.723 -0.999  0.890  0.518  0.990 -0.990  1.000  0.986  0.921
-Dispersivity y [L]        :   0.956  0.650  0.827 -0.977  0.953  0.652  0.954 -0.999  0.986  1.000  0.973
-Dispersivity z [L]        :   0.998  0.807  0.935 -0.900  0.997  0.810  0.858 -0.965  0.921  0.973  1.000
+Source x coordinate [L]   :   1.000  0.458  0.709 -0.375  0.589  0.455  0.257 -0.845  0.482  0.649  0.991
+Source y coordinate [L]   :   0.458  1.000  0.949  0.650 -0.445  0.996 -0.739  0.086 -0.555 -0.376  0.335
+Source x dimension [L]    :   0.709  0.949  1.000  0.388 -0.152  0.951 -0.499 -0.222 -0.276 -0.076  0.609
+Source y dimension [L]    :  -0.375  0.650  0.388  1.000 -0.969  0.654 -0.992  0.812 -0.993 -0.948 -0.495
+Contaminant flux [M/T]    :   0.589 -0.445 -0.152 -0.969  1.000 -0.451  0.932 -0.930  0.992  0.996  0.690
+Start Time [T]            :   0.455  0.996  0.951  0.654 -0.451  1.000 -0.742  0.091 -0.560 -0.381  0.334
+Flow Angle [degrees]      :   0.257 -0.739 -0.499 -0.992  0.932 -0.742  1.000 -0.734  0.970  0.902  0.384
+Pore x velocity [L/T]     :  -0.845  0.086 -0.222  0.812 -0.930  0.091 -0.734  1.000 -0.876 -0.955 -0.908
+Dispersivity x [L]        :   0.482 -0.555 -0.276 -0.993  0.992 -0.560  0.970 -0.876  1.000  0.979  0.594
+Dispersivity y [L]        :   0.649 -0.376 -0.076 -0.948  0.996 -0.381  0.902 -0.955  0.979  1.000  0.745
+Dispersivity z [L]        :   0.991  0.335  0.609 -0.495  0.690  0.334  0.384 -0.908  0.594  0.745  1.000
 Correlation matrix stored (example/contamination/s01.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
-Source x coordinate [L]   :  0.872 -0.086 -0.336 -0.011 -0.258  0.125  0.067  0.139  0.000  0.119  0.000
-Source y coordinate [L]   : -0.000 -0.000  0.000  0.000  0.000  0.000  0.000  0.001 -1.000  0.000  0.000
-Source x dimension [L]    : -0.106  0.047  0.160  0.040 -0.007 -0.026 -0.154  0.921  0.001  0.294  0.000
-Source y dimension [L]    :  0.064  0.099 -0.266 -0.282  0.564 -0.130  0.494  0.279  0.000 -0.423 -0.000
-Contaminant flux [M/T]    : -0.299  0.646 -0.586  0.002 -0.337  0.180  0.033  0.034  0.000  0.028  0.000
-Start Time [T]            :  0.000 -0.000 -0.000 -0.000 -0.000  0.000  0.000 -0.000  0.000 -0.000  1.000
-Flow Angle [degrees]      : -0.015 -0.018  0.063 -0.943 -0.120  0.085 -0.287 -0.030 -0.000  0.040  0.000
-Pore x velocity [L/T]     :  0.359  0.744  0.514  0.023  0.143 -0.082 -0.115 -0.081 -0.000 -0.080 -0.000
-Dispersivity x [L]        : -0.077  0.023  0.360 -0.150 -0.364  0.098  0.793 -0.018  0.000  0.266  0.000
-Dispersivity y [L]        :  0.011  0.075 -0.140 -0.033  0.574  0.285  0.037 -0.190 -0.000  0.725  0.000
-Dispersivity z [L]        :  0.016  0.058 -0.174 -0.078 -0.066 -0.911  0.030 -0.097 -0.000  0.340  0.000
-Eigenvalues               :  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00 -3e+01  2e+03  2e+17
+Source x coordinate [L]   :  0.872  0.087 -0.336 -0.011 -0.259  0.122 -0.000  0.065  0.139  0.119  0.000
+Source y coordinate [L]   :  0.000  0.000  0.001  0.008  0.068  0.030  0.980  0.185  0.019  0.000  0.000
+Source x dimension [L]    : -0.106 -0.047  0.160  0.041 -0.005 -0.026  0.011 -0.154  0.921  0.294  0.000
+Source y dimension [L]    :  0.064 -0.099 -0.266 -0.284  0.556 -0.129 -0.128  0.485  0.279 -0.423  0.000
+Contaminant flux [M/T]    : -0.299 -0.646 -0.586  0.002 -0.339  0.177  0.012  0.032  0.034  0.028 -0.000
+Start Time [T]            : -0.000  0.000  0.000 -0.000 -0.000  0.000 -0.000  0.000 -0.000  0.000  1.000
+Flow Angle [degrees]      : -0.015  0.018  0.064 -0.942 -0.118  0.086  0.067 -0.283 -0.030  0.040 -0.000
+Pore x velocity [L/T]     :  0.359 -0.744  0.514  0.023  0.146 -0.080  0.015 -0.112 -0.081 -0.080  0.000
+Dispersivity x [L]        : -0.077 -0.023  0.360 -0.150 -0.375  0.090 -0.123  0.779 -0.018  0.266 -0.000
+Dispersivity y [L]        :  0.011 -0.075 -0.140 -0.035  0.570  0.288 -0.051  0.037 -0.190  0.725 -0.000
+Dispersivity z [L]        :  0.016 -0.058 -0.174 -0.078 -0.058 -0.911  0.030  0.029 -0.097  0.340  0.000
+Eigenvalues               :  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03 -1e-03  3e-02  1e+00  2e+03  1e+17
 
 Eigenvectors (sorted by eigenvalues)
-Source x coordinate [L]   :  0.000  0.872 -0.086 -0.336 -0.011 -0.258  0.125  0.067  0.139  0.119  0.000
-Source y coordinate [L]   : -1.000 -0.000 -0.000  0.000  0.000  0.000  0.000  0.000  0.001  0.000  0.000
-Source x dimension [L]    :  0.001 -0.106  0.047  0.160  0.040 -0.007 -0.026 -0.154  0.921  0.294  0.000
-Source y dimension [L]    :  0.000  0.064  0.099 -0.266 -0.282  0.564 -0.130  0.494  0.279 -0.423 -0.000
-Contaminant flux [M/T]    :  0.000 -0.299  0.646 -0.586  0.002 -0.337  0.180  0.033  0.034  0.028  0.000
-Start Time [T]            :  0.000  0.000 -0.000 -0.000 -0.000 -0.000  0.000  0.000 -0.000 -0.000  1.000
-Flow Angle [degrees]      : -0.000 -0.015 -0.018  0.063 -0.943 -0.120  0.085 -0.287 -0.030  0.040  0.000
-Pore x velocity [L/T]     : -0.000  0.359  0.744  0.514  0.023  0.143 -0.082 -0.115 -0.081 -0.080 -0.000
-Dispersivity x [L]        :  0.000 -0.077  0.023  0.360 -0.150 -0.364  0.098  0.793 -0.018  0.266  0.000
-Dispersivity y [L]        : -0.000  0.011  0.075 -0.140 -0.033  0.574  0.285  0.037 -0.190  0.725  0.000
-Dispersivity z [L]        : -0.000  0.016  0.058 -0.174 -0.078 -0.066 -0.911  0.030 -0.097  0.340  0.000
-Eigenvalues               : -3e+01  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  2e+03  2e+17
+Source x coordinate [L]   : -0.000  0.872  0.087 -0.336 -0.011 -0.259  0.122  0.065  0.139  0.119  0.000
+Source y coordinate [L]   :  0.980  0.000  0.000  0.001  0.008  0.068  0.030  0.185  0.019  0.000  0.000
+Source x dimension [L]    :  0.011 -0.106 -0.047  0.160  0.041 -0.005 -0.026 -0.154  0.921  0.294  0.000
+Source y dimension [L]    : -0.128  0.064 -0.099 -0.266 -0.284  0.556 -0.129  0.485  0.279 -0.423  0.000
+Contaminant flux [M/T]    :  0.012 -0.299 -0.646 -0.586  0.002 -0.339  0.177  0.032  0.034  0.028 -0.000
+Start Time [T]            : -0.000 -0.000  0.000  0.000 -0.000 -0.000  0.000  0.000 -0.000  0.000  1.000
+Flow Angle [degrees]      :  0.067 -0.015  0.018  0.064 -0.942 -0.118  0.086 -0.283 -0.030  0.040 -0.000
+Pore x velocity [L/T]     :  0.015  0.359 -0.744  0.514  0.023  0.146 -0.080 -0.112 -0.081 -0.080  0.000
+Dispersivity x [L]        : -0.123 -0.077 -0.023  0.360 -0.150 -0.375  0.090  0.779 -0.018  0.266 -0.000
+Dispersivity y [L]        : -0.051  0.011 -0.075 -0.140 -0.035  0.570  0.288  0.037 -0.190  0.725 -0.000
+Dispersivity z [L]        :  0.030  0.016 -0.058 -0.174 -0.078 -0.058 -0.911  0.029 -0.097  0.340  0.000
+Eigenvalues               : -1e-03  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  2e+03  1e+17
 Eigen vactors and eigen values stored (example/contamination/s01.eigen)
 
 Number of parameters           : 11
@@ -361,48 +361,48 @@ Objective function             : 0.00106082
 Posterior measurement variance : 0.000117869
 
 Optimality metrics based on covariance matrix of observation errors:
-A-optimality (matrix trace)               : 2.24407e+17
-C-optimality (matrix conditioning number) : 7.01272e+15
-E-optimality (matrix maximum eigenvalue)  : 2.24407e+17
-D-optimality (matrix determinant)         : 1.38501e-10
+A-optimality (matrix trace)               : 1.0211e+17
+C-optimality (matrix conditioning number) : 7.16622e+19
+E-optimality (matrix maximum eigenvalue)  : 1.0211e+17
+D-optimality (matrix determinant)         : 2.99998e-15
 
-Determinant of covariance matrix of observation errors : 1.38501e-10     ( ln(det S) = -22.7001 )
+Determinant of covariance matrix of observation errors : 2.99998e-15     ( ln(det S) = -33.4402 )
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
-Determinant of covariance matrix of measurement errors : 6.10077e-44     ( ln(det V) = -99.5053 )
+Determinant of covariance matrix of measurement errors : 6.10078e-44     ( ln(det V) = -99.5053 )
 
 Log likelihood function             : 26.8739
 Maximum likelihood                  : -53.7478
 AIC (Akaike information criterion)  : -31.7478
 BIC                                 : -20.7947
 CIC                                 : -29.6096
-KIC (Kashyap Information Criterion) : -18.3112
+KIC (Kashyap Information Criterion) : -7.57121
 
 Obtained fit is relatively good (chi^2/dof = 0.000117869 < 200)
 Optimized model parameters:
 Transformed space (applied during optimization):
-Source x coordinate [L]                  :     0.480791 stddev    0.0945988 (    0.266808 -     0.694773)
-Source y coordinate [L]                  :    -0.545715 stddev   0.00370973 (   -0.554107 -    -0.537324)
-Source x dimension [L]                   :    0.0975374 stddev     0.479539 (    -0.98718 -      1.18226)
-Source y dimension [L]                   :    0.0700367 stddev     0.204569 (   -0.392697 -     0.532771)
-Contaminant flux [M/T]                   :     0.638479 stddev    0.0226614 (    0.587219 -      0.68974)
-Start Time [T]                           :      -1.5708 stddev  5.14301e+06 (     -1.5708 -       1.5708) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :     0.079502 stddev    0.0185738 (    0.037488 -     0.121516)
-Pore x velocity [L/T]                    :     0.262018 stddev    0.0436508 (     0.16328 -     0.360756)
-Dispersivity x [L]                       :     0.438638 stddev     0.132386 (    0.139182 -     0.738094)
-Dispersivity y [L]                       :      0.66246 stddev     0.406896 (   -0.257938 -       1.5708) Uncertainty ranges constrained by prior bounds
-Dispersivity z [L]                       :   -0.0752382 stddev      0.24672 (   -0.633319 -     0.482842)
+Source x coordinate [L]                  :     0.480791 stddev    0.0568009 (    0.352307 -     0.609274)
+Source y coordinate [L]                  :    -0.545715 stddev   0.00469289 (   -0.556331 -      -0.5351)
+Source x dimension [L]                   :    0.0975374 stddev     0.404471 (   -0.817375 -      1.01245)
+Source y dimension [L]                   :    0.0700368 stddev     0.238052 (   -0.468437 -      0.60851)
+Contaminant flux [M/T]                   :     0.638479 stddev    0.0133336 (    0.608319 -      0.66864)
+Start Time [T]                           :      -1.5708 stddev  3.46923e+06 (     -1.5708 -       1.5708) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :     0.079502 stddev    0.0254809 (   0.0218643 -      0.13714)
+Pore x velocity [L/T]                    :     0.262018 stddev    0.0340572 (    0.184981 -     0.339055)
+Dispersivity x [L]                       :     0.438638 stddev     0.136771 (    0.129263 -     0.748013)
+Dispersivity y [L]                       :      0.66246 stddev     0.333764 (  -0.0925151 -      1.41743)
+Dispersivity z [L]                       :   -0.0752383 stddev     0.153371 (   -0.422164 -     0.271687)
 Untransformed space:
-Source x coordinate [L]                  :      1124.05 stddev    0.0945988 (     999.784 -      1235.13)
-Source y coordinate [L]                  :      1398.34 stddev   0.00370973 (     1395.84 -      1400.86)
-Source x dimension [L]                   :      274.797 stddev     0.479539 (     42.2984 -      481.403)
-Source y dimension [L]                   :       267.96 stddev     0.204569 (     155.021 -      377.227)
-Contaminant flux [M/T]                   :      15.5579 stddev    0.0226614 (     12.8262 -      18.7358)
-Start Time [T]                           :  2.38698e-15 stddev  5.14301e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
-Flow Angle [degrees]                     :      2.38255 stddev    0.0185738 (     1.12438 -      3.63652)
-Pore x velocity [L/T]                    :      5.09992 stddev    0.0436508 (     3.16295 -      8.12096)
-Dispersivity x [L]                       :      65.5312 stddev     0.132386 (     44.9331 -      90.9216)
-Dispersivity y [L]                       :       15.589 stddev     0.406896 (     3.54947 -           30) Uncertainty ranges constrained by prior bounds
-Dispersivity z [L]                       :     0.290012 stddev      0.24672 (    0.159988 -     0.539696)
+Source x coordinate [L]                  :      1124.05 stddev    0.0568009 (     1050.67 -      1192.67)
+Source y coordinate [L]                  :      1398.34 stddev   0.00469289 (     1395.17 -      1401.53)
+Source x dimension [L]                   :      274.797 stddev     0.404471 (     68.5265 -      462.109)
+Source y dimension [L]                   :       267.96 stddev     0.238052 (     137.853 -      393.126)
+Contaminant flux [M/T]                   :      15.5579 stddev    0.0133336 (     13.8988 -      17.3716)
+Start Time [T]                           :            0 stddev  3.46923e+06 (           0 -           43) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]                     :      2.38255 stddev    0.0254809 (    0.655877 -      4.10131)
+Pore x velocity [L/T]                    :      5.09992 stddev    0.0340572 (     3.51604 -      7.34122)
+Dispersivity x [L]                       :      65.5312 stddev     0.136771 (     44.3541 -      91.8021)
+Dispersivity y [L]                       :       15.589 stddev     0.333764 (     4.68091 -      29.4071)
+Dispersivity z [L]                       :     0.290012 stddev     0.153371 (    0.197302 -     0.430704)
 
 Optimized model parameters:
 Source x coordinate [L] 1124.05
@@ -410,7 +410,7 @@ Source y coordinate [L] 1398.34
 Source x dimension [L] 274.797
 Source y dimension [L] 267.96
 Contaminant flux [M/T] 15.5579
-Start Time [T] 2.38698e-15
+Start Time [T] 0
 Flow Angle [degrees] 2.38255
 Pore x velocity [L/T] 5.09992
 Dispersivity x [L] 65.5312
@@ -419,25 +419,25 @@ Dispersivity z [L] 0.290012
 
 Model calibration targets:
 W-1       (   49):           0 -  0.000337751 =  0.000337751 ( 0.000337751) success 1 range            0 -           25
-W-2       (   49):           0 -  0.000687307 =  0.000687307 ( 0.000687307) success 1 range            0 -           10
-W-3       (   49):           0 -  5.04594e-07 =  5.04594e-07 ( 5.04594e-07) success 1 range            0 -           25
-W-4       (   44):         350 -          350 = -0.000177774 (-0.000177774) success 1 range          300 -          700
-W-4       (   49):         432 -          432 = -0.000166563 (-0.000166563) success 1 range          300 -          700
+W-2       (   49):           0 -  0.000687308 =  0.000687308 ( 0.000687308) success 1 range            0 -           10
+W-3       (   49):           0 -  5.04593e-07 =  5.04593e-07 ( 5.04593e-07) success 1 range            0 -           25
+W-4       (   44):         350 -          350 = -0.000177775 (-0.000177775) success 1 range          300 -          700
+W-4       (   49):         432 -          432 = -0.000166564 (-0.000166564) success 1 range          300 -          700
 W-5       (   49):           0 -  1.30582e-24 =  1.30582e-24 ( 1.30582e-24) success 1 range            0 -           10
 W-6       (   49):           0 -  1.54754e-25 =  1.54754e-25 ( 1.54754e-25) success 1 range            0 -           10
 W-7       (   49):           0 -  1.06682e-17 =  1.06682e-17 ( 1.06682e-17) success 1 range            0 -           10
 W-8       (   49):           0 -  1.22652e-19 =  1.22652e-19 ( 1.22652e-19) success 1 range            0 -           10
-W-9       (   49):         981 -      981.001 =  0.000832508 ( 0.000832508) success 1 range          600 -         1200
+W-9       (   49):         981 -      981.001 =  0.000832514 ( 0.000832514) success 1 range          600 -         1200
 W-10#1    (   49):         1.1 -      1.10075 =  0.000753541 ( 0.000753541) success 1 range            0 -            5
-W-10#2    (   49):         0.1 -    0.0911129 =  -0.00888705 ( -0.00888705) success 1 range            0 -            5
+W-10#2    (   49):         0.1 -    0.0911129 =  -0.00888706 ( -0.00888706) success 1 range            0 -            5
 W-11#1    (   49):          22 -      21.9997 = -0.000336463 (-0.000336463) success 1 range            3 -           25
 W-11#2    (   49):         0.3 -     0.323439 =    0.0234393 (   0.0234393) success 1 range            0 -            5
-W-12#1    (   49):          15 -      15.0001 =  5.67284e-05 ( 5.67284e-05) success 1 range            3 -           25
+W-12#1    (   49):          15 -      15.0001 =  5.67283e-05 ( 5.67283e-05) success 1 range            3 -           25
 W-12#2    (   49):        0.17 -     0.161874 =  -0.00812639 ( -0.00812639) success 1 range            0 -            5
-W-13#1    (   50):          72 -      72.0001 =  9.10633e-05 ( 9.10633e-05) success 1 range           40 -          100
+W-13#1    (   50):          72 -      72.0001 =  9.10635e-05 ( 9.10635e-05) success 1 range           40 -          100
 W-13#2    (   50):        0.26 -     0.240913 =   -0.0190871 (  -0.0190871) success 1 range            0 -           20
-W-14a     (   50):           0 -  0.000222376 =  0.000222376 ( 0.000222376) success 1 range            0 -            5
-W-14b     (   50):          30 -           30 =  2.33378e-05 ( 2.33378e-05) success 1 range            0 -           50
+W-14a     (   50):           0 -  0.000222375 =  0.000222375 ( 0.000222375) success 1 range            0 -            5
+W-14b     (   50):          30 -           30 =  2.33379e-05 ( 2.33379e-05) success 1 range            0 -           50
 Objective function: 0.00106082 Success: 1 (1)
 
 Model predictions for not calibration targets:
@@ -446,6 +446,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Mon Aug 12 16:39:36 2013
-Execution completed on Mon Aug 12 16:39:36 2013
-Execution date & time stamp: 20130812-163936
+Execution  started  on Thu Aug 15 18:58:12 2013
+Execution completed on Thu Aug 15 18:58:12 2013
+Execution date & time stamp: 20130815-185812

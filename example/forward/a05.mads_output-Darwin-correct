@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v1.1) 2012
+MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
 Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -37,7 +37,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130812-164007
+Execution date & time stamp: 20130815-185830
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -62,13 +62,13 @@ Dispersivity z [L] 0.1
 
 Model predictions (forward run; no calibration):
 W-1       (   49):           0 -  2.95055e-18 = -2.95055e-18 (-2.95055e-18) success 1 range            0 -           25
-W-2       (   49):           0 -  1.48873e-20 = -1.48873e-20 (-1.48873e-20) success 1 range            0 -           25
-W-3       (   49):           0 -  6.11085e-14 = -6.11085e-14 (-6.11085e-14) success 1 range            0 -           25
-W-4       (   49):           0 -  9.03293e-14 = -9.03293e-14 (-9.03293e-14) success 1 range            0 -           25
-Objective function: 1.18936e-26 Success: 1
+W-2       (   49):           0 -  4.93285e-19 = -4.93285e-19 (-4.93285e-19) success 1 range            0 -           25
+W-3       (   49):           0 -  5.92754e-14 = -5.92754e-14 (-5.92754e-14) success 1 range            0 -           25
+W-4       (   49):           0 -  8.92005e-14 = -8.92005e-14 (-8.92005e-14) success 1 range            0 -           25
+Objective function: 1.14703e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Mon Aug 12 16:40:07 2013
-Execution completed on Mon Aug 12 16:40:07 2013
-Execution date & time stamp: 20130812-164007
+Execution  started  on Thu Aug 15 18:58:30 2013
+Execution completed on Thu Aug 15 18:58:30 2013
+Execution date & time stamp: 20130815-185830
