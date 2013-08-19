@@ -33,8 +33,8 @@
 #include "../mads.h"
 
 #define NUMITER 10000
-#define EPSREL 1e-7
-#define EPSABS 0
+#define EPSREL 1.E-7
+#define EPSABS 1.E-9
 
 double point_source_nlc( double x, double y, double z, double t, void *params );
 double rectangle_source_nlc( double x, double y, double z, double t, void *params );
