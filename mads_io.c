@@ -77,6 +77,8 @@ void *malloc_check( const char *what, size_t n );
 int Ftest( char *filename );
 FILE *Fread( char *filename );
 void removeChars( char *str, char *garbage );
+char *white_trim( char *x );
+void white_skip( char **s );
 
 int set_param_id( struct opt_data *op )
 {
@@ -669,6 +671,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		pd->var[i] = 0;
 		fscanf( infile, "%[^:=]s", pd->var_name[i] );
 		fscanf( infile, "%c", &charecter );
+		white_skip( &pd->var_name[i] );
+		white_trim( pd->var_name[i] );
 		if( charecter == ':' ) // regular parameter
 		{
 			if( cd->debug ) tprintf( "%-26s: ", pd->var_name[i] );
@@ -727,7 +731,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 		else if( charecter == '=' )
 		{
-			if( cd->debug ) tprintf( "%-26s=", pd->var_name[i] );
+			if( cd->debug ) tprintf( "%-26s =", pd->var_name[i] );
 			pd->var_opt[i] = pd->var_log[i] = 0;
 			fscanf( infile, "%[^\n]s", buf );
 			fscanf( infile, "\n" );
@@ -929,6 +933,13 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				else tprintf( "%-26s: %-12s: %.12g\n", pd->var_name[i], pd->var_id[i], cd->var[i] );
 			}
 		}
+#ifdef MATHEVAL
+		for( i = 0; i < pd->nExpParam; i++ )
+		{
+			k = pd->param_expressions_index[i];
+			pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expression[i], pd->nParam, pd->var_id, cd->var );
+		}
+#endif
 		if( cd->debug )
 		{
 			short_names_printed = 1; // short names printed in the loop above

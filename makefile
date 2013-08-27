@@ -239,13 +239,20 @@ verify-contaminant:
 	./mads example/contamination/s01-tied obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s01-tied.results example/contamination/s01-tied.results-$(OS)-correct
 	@echo ""
-	@echo "TEST 3.6: Problem example/contamination/s01 with regularization terms for optimized model parameters ..."
+	@echo "TEST 3.6: Problem example/contamination/s01_yaml with coupled (tied) parameters based on mathematical expressions (YAML input format) ..."
+	rm -f example/contamination/s01-tied_yaml.results
+	./mads example/contamination/s01-tied_yaml obs_int=2 > /dev/null
+	@$(CMP) example/contamination/s01-tied_yaml.mads_output example/contamination/s01-tied_yaml.mads_output-$(OS)-correct
+	@$(CMP) example/contamination/s01-tied_yaml.results example/contamination/s01-tied.results-$(OS)-correct
+	@$(CMP) example/contamination/s01-tied_yaml.results example/contamination/s01-tied_yaml.results-$(OS)-correct
+	@echo ""
+	@echo "TEST 3.7: Problem example/contamination/s01 with regularization terms for optimized model parameters ..."
 	rm -f example/contamination/s01-regul.results
 	./mads example/contamination/s01-regul obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s01-regul.mads_output example/contamination/s01-regul.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01-regul.results example/contamination/s01-regul.results-$(OS)-correct
 	@echo ""
-	@echo "TEST 3.7: Problem example/contamination/s01_yaml with regularization terms for optimized model parameters ..."
+	@echo "TEST 3.8: Problem example/contamination/s01_yaml with regularization terms for optimized model parameters (YAML input format) ..."
 	rm -f example/contamination/s01-regul_yaml.results
 	./mads example/contamination/s01-regul_yaml obs_int=2 > /dev/null
 	@$(CMP) example/contamination/s01-regul_yaml.mads_output example/contamination/s01-regul_yaml.mads_output-$(OS)-correct

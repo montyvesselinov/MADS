@@ -1,4 +1,4 @@
-Problem type: eval=10
+Problem type: 
 Solution type: box
 Number of parameters: 19
 Source x coordinate [L]: 1124 1 0 25 210 1460
@@ -6,10 +6,10 @@ Source y coordinate [L]: 1393 1 0 25 1230 1930
 Source z coordinate [L]: 0 0 0 1 0 100
 Source x dimension [L]: 258 1 0 1 1 500
 Source y dimension [L]: 273 1 0 1 1 500
-Source z dimension [L] = z + 1
+Source z dimension [L] = z + 5
 Contaminant flux [M/T] = 4000 / ( 49 - t0 )
-Start Time [T]: 2 1 0 1 0 43
-End Time [T]: 100 0 0 1 1 100
+Start Time [T]: 0 1 0 1 0 43
+End Time [T] = t0 + 13
 Porosity [L3/L3]: 0.1 0 0 0.1 0 1
 Retardation Factor [-]: 1 0 1 1 1 10
 Half-life decay [1/T]: 0 0 1 1 0 1
@@ -17,7 +17,7 @@ Flow Angle [degrees]: 3 1 0 5 -30 30
 Pore x velocity [L/T]: 5 1 1 1.01074 .01 200
 Pore y velocity [L/T]: 0 0 0 1 0 1
 Pore z velocity [L/T]: 0 0 0 1 0 1
-Dispersivity x [L]: 130 1 1 5 10 140
+Dispersivity x [L]: 70 1 1 5 10 140
 Dispersivity y [L] = ax / 10
 Dispersivity z [L] = ay / 10
 Number of wells: 20

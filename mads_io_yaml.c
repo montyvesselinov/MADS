@@ -522,6 +522,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			index = i;
 			strcpy( pd->var_id[index], node_par->data );
 		}
+		expvar_count = 0;
 		pd->var_min[index] = -HUGE_VAL; pd->var_max[index] = HUGE_VAL; pd->var[index] = 0; pd->var_opt[index] = 1; pd->var_log[index] = 0;
 		for( k = 0; k < g_node_n_children( node_par ); k++ )  // Number of parameter arguments
 		{
@@ -552,33 +553,34 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 #endif
 			}
 		}
+		if( expvar_count > 0 )
+		{
+			pd->var_opt[index] = -1;
+			pd->nExpParam++;
+		}
 		cd->var[index] = pd->var[index];
 		if( pd->var_name[index][0] == 0 ) strcpy( pd->var_name[index], pd->var_id[index] );
 		if( cd->debug )
 		{
-			tprintf( "%-26s :%-6s: ", pd->var_name[index], pd->var_id[index] );
+			tprintf( "%-26s :%-6s ", pd->var_name[index], pd->var_id[index] );
 			if( pd->var_opt[index] > -1 )
-				tprintf( "init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_min[index], pd->var_max[index] );
+				tprintf( ": init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_min[index], pd->var_max[index] );
 			else
 			{
+				tprintf( "= %s ", evaluator_get_string( pd->param_expression[pd->nExpParam - 1] ) );
 				if( expvar_count > 0 )
 				{
-					if( cd->debug )
-					{
-						tprintf( " -> variables:" );
-						int j;
-						for( j = 0; j < expvar_count; j++ )
-							tprintf( " %s", expvar_names[j] );
-						tprintf( "\n" );
-					}
-					pd->var_opt[index] = -1;
-					pd->nExpParam++;
+					tprintf( "-> variables:" );
+					int j;
+					for( j = 0; j < expvar_count; j++ )
+						tprintf( " %s", expvar_names[j] );
+					tprintf( "\n" );
 				}
 				else
 				{
 #ifdef MATHEVAL
 					pd->var[index] = cd->var[index] = evaluator_evaluate_x( pd->param_expression[pd->nExpParam], 0 );
-					if( cd->debug ) tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[index] );
+					tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[index] );
 #else
 					tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
 #endif
@@ -630,6 +632,13 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			if( pd->var_dx[index] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
 		}
 	}
+#ifdef MATHEVAL
+	for( i = 0; i < pd->nExpParam; i++ )
+	{
+		k = pd->param_expressions_index[i];
+		pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expression[i], pd->nParam, pd->var_id, cd->var );
+	}
+#endif
 	if( bad_data ) return( 0 );
 	else return( 1 );
 }
