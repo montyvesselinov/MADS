@@ -56,7 +56,7 @@ enum storage_flags { VAR, VAL, SEQ }; // "Store as" switch
 
 /* Functions here */
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-void yaml_parse_layer( yaml_parser_t *parser, GNode *data );
+void yaml_parse_layer( yaml_parser_t *parser, GNode *data, int debug );
 gboolean gnode_tree_dump( GNode *n, gpointer data );
 void gnode_tree_dump_classes( GNode *n, gpointer data );
 void gnode_tree_parse_classes( GNode *node, gpointer data );
@@ -75,6 +75,10 @@ int load_ymal_instructions( GNode *node, gpointer data );
 static gboolean g_node_find_func( GNode *node, gpointer data );
 gpointer g_node_find_key( GNode *gnode_data, char **key );
 void set_param_arrays( int num_param, struct opt_data *op );
+int save_problem_yaml( char *filename, struct opt_data *op );
+const char *key_var_opt( int i );
+const char *key_source_type( int i );
+const char *key_yes_no( int i );
 
 /* Functions in mads_io */
 int set_param_id( struct opt_data *op );
@@ -98,13 +102,14 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	struct aquifer_data *qd;
 	GNode *gnode_data = g_node_new( filename );
 	yaml_parser_t parser;
-	char buf[1000];
+	char buf[1000], *sb;
 	char **keywords;
 	int *keyindex;
 	gpointer key_pointer;
 	int i, k, ier, num_keys = 0;
-	keyindex = NULL;
+	sb = ( char * ) malloc( 50 * sizeof( char ) );
 	keywords = NULL;
+	keyindex = NULL;
 	ier = 1;
 	qd = op->qd;
 	cd = op->cd;
@@ -121,7 +126,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	}
 	yaml_parser_initialize( &parser );
 	yaml_parser_set_input_file( &parser, infile );
-	yaml_parse_layer( &parser, gnode_data ); // Recursive parsing into GNODE data
+	yaml_parse_layer( &parser, gnode_data, ( int )( op->cd->debug > 5 ) );  // Recursive parsing into GNODE data
 	yaml_parser_delete( &parser ); // Destroy YAML parser
 	fclose( infile );
 	if( cd->debug > 5 )
@@ -148,17 +153,25 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 		for( i = 0; i < g_node_n_children( key_pointer ); i++ )
 		{
 			node_key = g_node_nth_child( key_pointer, i );
-			if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
+			if( cd->debug > 3 ) tprintf( " %s", ( char * ) node_key->data );
 			strcat( buf, " " ); strcat( buf, ( char * ) node_key->data );
 			if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
 			{
-				if( cd->debug > 1 ) tprintf( " = %s", ( char * ) node_value->data );
-				strcat( buf, "=" ); strcat( buf, ( char * ) node_value->data );
+				sb[0] = 0;
+				strcpy( sb, ( char * ) node_value->data );
+				white_skip( &sb );
+				white_trim( sb );
+				if( sb[0] != 0 )
+				{
+					if( cd->debug > 3 ) tprintf( " = %s", sb );
+					strcat( buf, "=" ); strcat( buf, sb );
+				}
 			}
 		}
 		tprintf( "\n" );
 	}
 	else tprintf( "WARNING: Problem class not found!\n" );
+	free( sb );
 	if( ier != 1 ) return( -1 );
 	// Parse commands
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
@@ -287,7 +300,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	return( ier );
 }
 
-void yaml_parse_layer( yaml_parser_t *parser, GNode *data )
+void yaml_parse_layer( yaml_parser_t *parser, GNode *data, int debug )
 {
 	GNode *last_leaf = data;
 	yaml_event_t event;
@@ -298,17 +311,17 @@ void yaml_parse_layer( yaml_parser_t *parser, GNode *data )
 		// Parse value either as a new leaf in the mapping or as a leaf value (one of them, in case it's a sequence)
 		if( event.type == YAML_SCALAR_EVENT )
 		{
-			if( storage ) g_node_append_data( last_leaf, g_strdup( ( gchar * ) event.data.scalar.value ) ); // if sequence or val
-			else last_leaf = g_node_append( data, g_node_new( g_strdup( ( gchar * ) event.data.scalar.value ) ) ); // if var
+			if( storage ) { g_node_append_data( last_leaf, g_strdup( ( gchar * ) event.data.scalar.value ) ); if( debug ) tprintf( "Data: %s\n", event.data.scalar.value ); } // if sequence or val
+			else { last_leaf = g_node_append( data, g_node_new( g_strdup( ( gchar * ) event.data.scalar.value ) ) ); if( debug ) tprintf( "Key : %s\n", event.data.scalar.value ); } // if var
 			storage ^= VAL; // Flip VAR/VAL switch for the next event
 		}
 		// Sequence - all the following scalars will be appended to the last_leaf
-		else if( event.type == YAML_SEQUENCE_START_EVENT ) { storage = SEQ; }
-		else if( event.type == YAML_SEQUENCE_END_EVENT ) {  storage = VAR; }
+		else if( event.type == YAML_SEQUENCE_START_EVENT ) { storage = SEQ; if( debug ) tprintf( "Sequence start\n" ); }
+		else if( event.type == YAML_SEQUENCE_END_EVENT ) {  storage = VAR; if( debug ) tprintf( "Sequence end\n" ); }
 		// depth += 1
 		else if( event.type == YAML_MAPPING_START_EVENT )
 		{
-			yaml_parse_layer( parser, last_leaf );
+			yaml_parse_layer( parser, last_leaf, debug );
 			storage ^= VAL; // Flip VAR/VAL, without touching SEQ
 			// storage = VAR; // Var should be expected ...
 		}
@@ -562,7 +575,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		if( pd->var_name[index][0] == 0 ) strcpy( pd->var_name[index], pd->var_id[index] );
 		if( cd->debug )
 		{
-			tprintf( "%-26s :%-6s ", pd->var_name[index], pd->var_id[index] );
+			tprintf( "%-27s:%-6s ", pd->var_name[index], pd->var_id[index] );
 			if( pd->var_opt[index] > -1 )
 				tprintf( ": init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_min[index], pd->var_max[index] );
 			else
@@ -687,7 +700,7 @@ int load_ymal_regularizations( GNode *node, gpointer data )
 			if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
 			if( ( node_value = g_node_nth_child( node_key, 0 ) ) != NULL )
 			{
-				if( cd->debug > 1 ) tprintf( "=%s\n", ( char * ) node_value->data );
+				if( cd->debug > 1 ) tprintf( ":%s\n", ( char * ) node_value->data );
 			}
 			else { if( cd->debug > 1 ) tprintf( " WARNING: No data\n" ); continue; }
 			if( !strcasecmp( ( char * ) node_key->data, "target" ) ) sscanf( ( char * ) node_value->data, "%lf", &rd->regul_target[i] );
@@ -1291,3 +1304,219 @@ static gboolean g_node_find_func( GNode *node, gpointer data )
 	d[1] = node;
 	return TRUE;
 }
+
+int save_problem_yaml( char *filename, struct opt_data *op )
+{
+	struct calc_data *cd;
+	struct param_data *pd;
+	struct regul_data *rd;
+	struct obs_data *od;
+	struct well_data *wd;
+	struct grid_data *gd;
+	struct extrn_data *ed;
+	cd = op->cd;
+	pd = op->pd;
+	rd = op->rd;
+	od = op->od;
+	wd = op->wd;
+	gd = op->gd;
+	ed = op->ed;
+	FILE *outfile;
+	int  i, j, count_param_expressions, count_param, param_limit;
+	if( ( outfile = fopen( filename, "w" ) ) == NULL )
+	{
+		tprintf( "File \'%s\' cannot be opened to save the problem information!\n", filename );
+		return( 0 );
+	}
+	fprintf( outfile, "Problem: { " );
+	switch( cd->problem_type )
+	{
+		case CREATE: fprintf( outfile, "create" ); break;
+		case FORWARD: fprintf( outfile, "forward" ); break;
+		case CALIBRATE: fprintf( outfile, "calibration" ); break;
+		case LOCALSENS: fprintf( outfile, "lsens" ); break;
+		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
+		case EIGEN: fprintf( outfile, "eigen" ); break;
+		case MONTECARLO: fprintf( outfile, "montecarlo, real: %d", cd->nreal ); break;
+		case ABAGUS: fprintf( outfile, " abagus, energy: %d", cd->energy ); break;
+		case POSTPUA: fprintf( outfile, " postpua" ); break;
+	}
+	if( cd->debug > 0 ) fprintf( outfile, ", debug: %d", cd->debug );
+	if( cd->fdebug > 0 ) fprintf( outfile, ", fdebug: %d", cd->fdebug );
+	if( cd->ldebug > 0 ) fprintf( outfile, ", ldebug: %d", cd->ldebug );
+	if( cd->pdebug > 0 ) fprintf( outfile, ", pdebug: %d", cd->pdebug );
+	if( cd->mdebug > 0 ) fprintf( outfile, ", mdebug: %d", cd->mdebug );
+	if( cd->odebug > 0 ) fprintf( outfile, ", odebug: %d", cd->odebug );
+	if( cd->insdebug > 0 ) fprintf( outfile, ", insdebug: %d", cd->insdebug );
+	if( cd->tpldebug > 0 ) fprintf( outfile, ", tpldebug: %d", cd->tpldebug );
+	if( cd->pardebug > 0 ) fprintf( outfile, ", pardebug: %d", cd->pardebug );
+	if( cd->test_func >= 0 ) fprintf( outfile, ", test: %d", cd->test_func );
+	if( cd->test_func_dim > 2 ) fprintf( outfile, ", dim: %d", cd->test_func_dim );
+	if( cd->phi_cutoff > 0 ) fprintf( outfile, ", cutoff: %g", cd->phi_cutoff );
+	if( cd->sintrans ) { if( cd->sindx > DBL_EPSILON ) fprintf( outfile, ", sindx: %g", cd->sindx ); }
+	else { if( cd->lindx > DBL_EPSILON ) fprintf( outfile, ", lindx: %g", cd->lindx ); }
+	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, ", pardx: %g", cd->pardx ); TODO when to print pardx?
+	if( cd->check_success ) fprintf( outfile, ", success" );
+	switch( cd->calib_type )
+	{
+		case SIMPLE: fprintf( outfile, ", single" ); break;
+		case PPSD: fprintf( outfile, ", ppsd" ); break;
+		case IGRND: fprintf( outfile, ", igrnd, real: %d", cd->nreal ); break;
+		case IGPD: fprintf( outfile, ", igpd" ); break;
+	}
+	fprintf( outfile, ", eval: %d", cd->maxeval );
+	if( cd->opt_method[0] != 0 ) fprintf( outfile, ", opt: \"%s\"", cd->opt_method );
+	if( cd->c_background > 0 ) fprintf( outfile, ", background: %g", cd->c_background );
+	if( cd->disp_tied ) fprintf( outfile, ", disp_tied" );
+	if( cd->disp_scaled ) fprintf( outfile, ", disp_scaled" );
+	if( cd->save ) fprintf( outfile, ", save" );
+	if( cd->seed_init < 0 ) fprintf( outfile, ", seed: %d", cd->seed_init * -1 );
+	if( cd->nretries > 0 ) fprintf( outfile, ", retry: %d", cd->nretries );
+	if( cd->init_particles > 1 ) fprintf( outfile, ", particles: %d", cd->init_particles );
+	else if( cd->init_particles < 0 ) fprintf( outfile, ", particles" );
+	if( cd->lm_eigen ) fprintf( outfile, ", lmeigen: %d", cd->lm_eigen );
+	if( cd->niter > 0 ) fprintf( outfile, ", iter: %d", cd->niter );
+	if( cd->smp_method[0] != 0 ) fprintf( outfile, ", rnd: %s", cd->smp_method );
+	if( cd->paran_method[0] != 0 ) fprintf( outfile, ", paran: %s", cd->paran_method );
+	switch( cd->objfunc_type )
+	{
+		case SSR: fprintf( outfile, ", ssr" ); break;
+		case SSDR: fprintf( outfile, ", ssdr" ); break;
+		case SSD0: fprintf( outfile, ", ssd0" ); break;
+		case SSDX: fprintf( outfile, ", ssdx" ); break;
+		case SSDA: fprintf( outfile, ", ssda" ); break;
+	}
+	fprintf( outfile, " }\n" );
+	fprintf( outfile, "Solution: " );
+	if( cd->solution_type[0] == EXTERNAL ) fprintf( outfile, "external\n" );
+	else if( cd->solution_type[0] == TEST ) fprintf( outfile, "test\n" );
+	else fprintf( outfile, "internal\n" );
+	count_param_expressions = count_param = 0;
+	if( cd->solution_type[0] != EXTERNAL && cd->solution_type[0] != TEST )
+	{
+		fprintf( outfile, "Sources:\n" );
+		for( i = 0; i < cd->num_sources; i++ )
+		{
+			fprintf( outfile, "- %s: {\n", key_source_type( cd->solution_type[i] ) );
+			for( i = 0; i < cd->num_source_params; i++, count_param++ )
+			{
+				fprintf( outfile, "  %-3s: {", pd->var_id[count_param] );
+				if( pd->var_name[count_param] != NULL || pd->var_name[count_param][0] != 0 ) fprintf( outfile, " longname: \"%s\", ", pd->var_name[count_param] );
+				if( pd->var_opt[count_param] == -1 ) // tied parameter
+#ifdef MATHEVAL
+					fprintf( outfile, "exp: \"%s\"", evaluator_get_string( pd->param_expression[count_param_expressions++] ) );
+#else
+					fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
+#endif
+				else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
+					fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
+				else // fixed or not log-transformed parameter
+					fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
+				if( cd->num_source_params == i + 1 ) fprintf( outfile, " }" );
+				else fprintf( outfile, " },\n" );
+			}
+			fprintf( outfile, " }\n" );
+		}
+		param_limit = cd->num_aquifer_params;
+	}
+	else param_limit = pd->nParam;
+	fprintf( outfile, "Parameters:\n" );
+	for( i = j = 0; i < param_limit; i++, count_param++ )
+	{
+		fprintf( outfile, "- %-8s: {", pd->var_id[count_param] );
+		if( pd->var_name[count_param] != NULL || pd->var_name[count_param][0] != 0 ) fprintf( outfile, " longname: \"%s\", ", pd->var_name[count_param] );
+		if( pd->var_opt[count_param] == -1 ) // tied parameter
+#ifdef MATHEVAL
+			fprintf( outfile, "exp: \"%s\"", evaluator_get_string( pd->param_expression[count_param_expressions++] ) );
+#else
+			fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
+#endif
+		else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
+			fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
+		else // fixed or not log-transformed parameter
+			fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
+		fprintf( outfile, " }\n" );
+	}
+	if( rd->nRegul > 0 )
+	{
+		fprintf( outfile, "Regularizations:\n" );
+		for( i = 0; i < rd->nRegul; i++ )
+#ifdef MATHEVAL
+			fprintf( outfile, "- %s: { equation: \"%s\", target: %g, weight: %g, log: %i, min: %g, max: %g }\n", rd->regul_id[i], evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+#else
+			fprintf( outfile, "- reg%d = { equations: \"\", target: %g, weight: %g, log: %i, min: %g, max: %g }\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+#endif
+	}
+	if( cd->solution_type[0] != EXTERNAL && cd->solution_type[0] != TEST )
+	{
+		fprintf( outfile, "Wells:\n" );
+		for( i = 0; i < wd->nW; i++ )
+		{
+			fprintf( outfile, "- %-6s: { x: %g, y: %g, z0: %g, z1: %g, obs: [", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i] );
+			for( j = 0; j < wd->nWellObs[i]; j++ )
+			{
+				fprintf( outfile, " %d: { t: %g, c: %g, weight: %g, log: %i, min: %g, max: %g }", j + 1, wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+				if( wd->nWellObs[i] == j + 1 ) fprintf( outfile, " ]" );
+				else fprintf( outfile, ",\n" );
+			}
+			fprintf( outfile, " }\n" );
+		}
+		fprintf( outfile, "Grid: { time: %g,\n", gd->time );
+		fprintf( outfile, "xcount: %i, ycount: %i, zcount: %i,\n", gd->nx, gd->ny, gd->nz );
+		fprintf( outfile, "xmin: %g, ymin: %g, zmin: %g,\n", gd->min_x, gd->min_y, gd->min_z );
+		fprintf( outfile, "xmax: %g, ymax: %g, zmax: %g }\n", gd->max_x, gd->max_y, gd->max_z );
+		fprintf( outfile, "Time: { start: %g, end: %g, step: %g }\n", gd->min_t, gd->max_t, gd->dt );
+	}
+	else
+	{
+		fprintf( outfile, "Number of observations: %i\n", od->nTObs );
+		for( i = 0; i < od->nTObs; i++ )
+			fprintf( outfile, "%s %g %g %d %g %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
+		fprintf( outfile, "Execution command: %s\n", ed->cmdline );
+		fprintf( outfile, "Number of execution templates: %d\n", ed->ntpl );
+		for( i = 0; i < ed->ntpl; i++ )
+			fprintf( outfile, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
+		fprintf( outfile, "Number of execution instructions: %d\n", ed->nins );
+		for( i = 0; i < ed->nins; i++ )
+			fprintf( outfile, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );
+	}
+	fclose( outfile );
+	return( 1 );
+}
+
+const char *key_var_opt( int i )
+{
+	switch( i )
+	{
+		case 0: return( "null" );
+		case 1: return( "opt" );
+		case 2: return( "flag" );
+	}
+	return( "" );
+}
+
+const char *key_source_type( int i )
+{
+	switch( i )
+	{
+		case POINT: return( "point" );
+		case PLANE: return( "plane" );
+		case PLANE3D: return( "plane3d" );
+		case GAUSSIAN2D: return( "gauss2d" );
+		case GAUSSIAN3D: return( "gauss3d" );
+		case BOX: return( "box" );
+		case POINT_TRIANGLE_TIME: return( "point_tri" );
+	}
+	return( "" );
+}
+
+const char *key_yes_no( int i )
+{
+	switch( i )
+	{
+		case 0: return( "no" );
+		case 1: return( "yes" );
+	}
+	return( "" );
+}
+

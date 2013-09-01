@@ -128,6 +128,7 @@ int get_seed( );
 // YAML
 #ifdef YAML
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
+int save_problem_yaml( char *filename, struct opt_data *op );
 #endif
 // Memory
 double **double_matrix( int maxCols, int maxRows );
@@ -303,7 +304,8 @@ int main( int argn, char *argv[] )
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
-				save_problem( filename, &op );
+				if( op.yaml ) save_problem_yaml( filename, &op );
+				else save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
@@ -333,7 +335,8 @@ int main( int argn, char *argv[] )
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
-				save_problem( filename, &op );
+				if( op.yaml ) save_problem_yaml( filename, &op );
+				else save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
@@ -999,7 +1002,8 @@ int main( int argn, char *argv[] )
 	{
 		cd.problem_type = CALIBRATE;
 		sprintf( filename, "%s-truth.mads", op.root );
-		save_problem( filename, &op );
+		if( op.yaml ) save_problem_yaml( filename, &op );
+		else save_problem( filename, &op );
 		tprintf( "\nMADS problem file named %s-truth.mads is created; modify the file if needed\n\n", op.root );
 		cd.problem_type = CREATE;
 	}
@@ -1920,7 +1924,8 @@ int igrnd( struct opt_data *op )
 				{
 					sprintf( filename, "%s-igrnd.%d.mads", op->root, count + 1 );
 					op->cd->calib_type = SIMPLE;
-					save_problem( filename, op );
+					if( op->yaml ) save_problem_yaml( filename, op );
+					else save_problem( filename, op );
 					op->cd->calib_type = IGRND;
 					continue;
 				}
@@ -2345,7 +2350,8 @@ int ppsd( struct opt_data *op )
 					{
 						sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
 						op->cd->calib_type = SIMPLE;
-						save_problem( filename, op );
+						if( op->yaml ) save_problem_yaml( filename, op );
+						else save_problem( filename, op );
 						op->cd->calib_type = PPSD;
 						for( i = 0; i < op->pd->nParam; i++ )
 							if( orig_opt[i] == 2 )
@@ -2411,7 +2417,8 @@ int ppsd( struct opt_data *op )
 			{
 				op->cd->calib_type = SIMPLE;
 				sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
-				save_problem( filename, op );
+				if( op->yaml ) save_problem_yaml( filename, op );
+				else save_problem( filename, op );
 				op->cd->calib_type = PPSD;
 				save_final_results( "ppsd", op, op->gd );
 			}
@@ -2924,7 +2931,11 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	// Save MADS rerun file
 	if( k == -1 ) sprintf( filename, "%s-rerun.mads", filename );
 	else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file
-	if( op->cd->solution_type[0] != TEST ) save_problem( filename, op );
+	if( op->cd->solution_type[0] != TEST )
+	{
+		if( op->yaml ) save_problem_yaml( filename, op );
+		else save_problem( filename, op );
+	}
 	// Save results file
 	strcpy( filename, fileroot );
 	strcat( filename, ".results" );

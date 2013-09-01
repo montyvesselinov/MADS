@@ -155,15 +155,15 @@ Retardation Factor [-]     :rf    : 1
 Half-life decay [1/T]      :lambda: 0
 Pore y velocity [L/T]      :vy    : 0
 Pore z velocity [L/T]      :vz    : 0
-Time Scale Dispersivity [-] :      : 2
-Time Scale Advection [-]   :      : 0
-Time Scale Reaction [-]    :      : 0
+Time Scale Dispersivity [-]:ts_dsp: 2
+Time Scale Advection [-]   :ts_adv: 0
+Time Scale Reaction [-]    :ts_rct: 0
 Number of parameters with computational expressions (coupled or tied parameters) = 0
 Number of regularization terms = 3
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130826-232331
+Execution date & time stamp: 20130901-093847
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -877,6 +877,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Mon Aug 26 23:23:31 2013
-Execution completed on Mon Aug 26 23:23:31 2013
-Execution date & time stamp: 20130826-232331
+Execution  started  on Sun Sep  1 09:38:47 2013
+Execution completed on Sun Sep  1 09:38:47 2013
+Execution date & time stamp: 20130901-093847

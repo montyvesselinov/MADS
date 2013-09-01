@@ -112,17 +112,26 @@ int set_param_names( struct opt_data *op )
 	if( op->cd->num_sources == 1 )
 	{
 		for( j = 0; j < op->cd->num_source_params; j++ )
+		{
 			strcpy( op->pd->var_name[j], op->sd->param_name[j] );
+			strcpy( op->pd->var_id[j], op->qd->param_id[j] );
+		}
 		k = op->cd->num_source_params;
 	}
 	else
 		for( k = 0, i = 0; i < op->cd->num_sources; i++ )
 		{
 			for( k = 0, j = 0; j < op->cd->num_source_params; j++, k++ )
+			{
 				sprintf( op->pd->var_name[k], "%s #%d", op->sd->param_name[j], i + 1 );
+				strcpy( op->pd->var_id[k], op->sd->param_id[j] );
+			}
 		}
 	for( i = 0; i < op->cd->num_aquifer_params; i++, k++ )
+	{
 		strcpy( op->pd->var_name[k], op->qd->param_name[i] );
+		strcpy( op->pd->var_id[k], op->qd->param_id[i] );
+	}
 	return( 1 );
 }
 
@@ -675,7 +684,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		white_trim( pd->var_name[i] );
 		if( charecter == ':' ) // regular parameter
 		{
-			if( cd->debug ) tprintf( "%-26s: ", pd->var_name[i] );
+			if( cd->debug ) tprintf( "%-27s: ", pd->var_name[i] );
 			if( fscanf( infile, "%lf %d %d %lf %lf %lf\n", &pd->var[i], &pd->var_opt[i], &pd->var_log[i], &pd->var_dx[i], &pd->var_min[i], &pd->var_max[i] ) != 6 )
 			{
 				tprintf( "ERROR: Specific parameter values expected for parameter \"%s\":\n", pd->var_name[i] );
@@ -731,7 +740,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 		else if( charecter == '=' )
 		{
-			if( cd->debug ) tprintf( "%-26s =", pd->var_name[i] );
+			if( cd->debug ) tprintf( "%-27s =", pd->var_name[i] );
 			pd->var_opt[i] = pd->var_log[i] = 0;
 			fscanf( infile, "%[^\n]s", buf );
 			fscanf( infile, "\n" );
@@ -846,7 +855,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				tprintf( "Binary file %s is found and parameter values are read\n", buf );
 				fread( (*pd).var, sizeof((*pd).var[i]), (*pd).nParam, infileb);
 				for( i = 0; i < (*pd).nParam; i++ )
-						tprintf( "%-26s: binary init %15.12g\n", pd->var_id[i], (*pd).var[i] );
+						tprintf( "%-27s: binary init %15.12g\n", pd->var_id[i], (*pd).var[i] );
 				fclose( infileb );
 			}
 		}
@@ -929,8 +938,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			else cd->var[i] = pd->var[i];
 			if( cd->debug )
 			{
-				if( cd->solution_type[0] == EXTERNAL ) tprintf( "%-26s: %.12g\n", pd->var_id[i], cd->var[i] );
-				else tprintf( "%-26s: %-12s: %.12g\n", pd->var_name[i], pd->var_id[i], cd->var[i] );
+				if( cd->solution_type[0] == EXTERNAL ) tprintf( "%-27s: %.12g\n", pd->var_id[i], cd->var[i] );
+				else tprintf( "%-27s: %-12s: %.12g\n", pd->var_name[i], pd->var_id[i], cd->var[i] );
 			}
 		}
 #ifdef MATHEVAL
@@ -946,7 +955,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			for( i = 0; i < pd->nExpParam; i++ )
 			{
 				k = pd->param_expressions_index[i];
-				tprintf( "%-26s= ", pd->var_name[k] );
+				tprintf( "%-27s= ", pd->var_name[k] );
 #ifdef MATHEVAL
 				tprintf( "%s", evaluator_get_string( pd->param_expression[i] ) );
 				pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expression[i], pd->nParam, pd->var_id, cd->var );
@@ -1114,8 +1123,8 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				else cd->var[i] = pd->var[i];
 				if( cd->debug )
 				{
-					if( cd->solution_type[0] == EXTERNAL ) tprintf( "%-26s: %.12g\n", pd->var_name[i], cd->var[i] );
-					else tprintf( "%-26s: %-12s: %.12g\n", pd->var_name[i], pd->var_id[i], cd->var[i] );
+					if( cd->solution_type[0] == EXTERNAL ) tprintf( "%-27s: %.12g\n", pd->var_name[i], cd->var[i] );
+					else tprintf( "%-27s: %-12s: %.12g\n", pd->var_name[i], pd->var_id[i], cd->var[i] );
 				}
 			}
 		}
@@ -1413,7 +1422,7 @@ int save_problem( char *filename, struct opt_data *op )
 		}
 	 */
 	i = 0;
-	fprintf( outfile, "Problem type: " );
+	fprintf( outfile, "Problem: " );
 	switch( cd->problem_type )
 	{
 		case CREATE: fprintf( outfile, "create" ); break;
@@ -1474,7 +1483,7 @@ int save_problem( char *filename, struct opt_data *op )
 		case SSDA: fprintf( outfile, "ssda" ); break;
 	}
 	fprintf( outfile, "\n" );
-	fprintf( outfile, "Solution type: %s\n", cd->solution_id );
+	fprintf( outfile, "Solution: %s\n", cd->solution_id );
 	fprintf( outfile, "Number of parameters: %i\n", pd->nParam );
 	for( i = j = 0; i < pd->nParam; i++ )
 	{
@@ -1915,7 +1924,7 @@ int set_optimized_params( struct opt_data *op )
 	for( k = i = 0; i < pd->nParam; i++ )
 		if( pd->var_opt[i] == 1 || ( pd->var_opt[i] > 1 && cd->calib_type != PPSD ) )
 		{
-			if( cd->debug ) tprintf( "%-26s :%-6s: init %9g step %8.3g min %9g max %9g\n", pd->var_name[i], pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+			if( cd->debug ) tprintf( "%-27s:%-6s: init %9g step %8.3g min %9g max %9g\n", pd->var_name[i], pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 			pd->var_index[k++] = i;
 		}
 	if( cd->debug ) tprintf( "\n" );
@@ -1924,7 +1933,7 @@ int set_optimized_params( struct opt_data *op )
 	{
 		for( i = 0; i < pd->nParam; i++ )
 			if( pd->var_opt[i] == 2 )
-				tprintf( "%-26s :%-6s: init %9g step %6g min %9g max %9g\n", pd->var_name[i], pd->var[i], pd->var_id[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+				tprintf( "%-27s:%-6s: init %9g step %6g min %9g max %9g\n", pd->var_name[i], pd->var[i], pd->var_id[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 	}
 	pd->nIgnParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
@@ -1939,7 +1948,7 @@ int set_optimized_params( struct opt_data *op )
 		{
 			for( i = 0; i < pd->nParam; i++ )
 				if( pd->var_opt[i] == 0 && pd->var_name[i][0] != 0 )
-					tprintf( "%-26s :%-6s: %g\n", pd->var_name[i], pd->var_id[i],  pd->var[i] );
+					tprintf( "%-27s:%-6s: %g\n", pd->var_name[i], pd->var_id[i],  pd->var[i] );
 		}
 	}
 	tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", pd->nExpParam );

@@ -110,7 +110,7 @@ int load_pst( char *filename, struct opt_data *op )
 	for( i = 0; i < pd->nParam; i++ )
 	{
 		fscanf( in, "%s %s %*s %lf %lf %lf %*s %*f %*f %*f\n", pd->var_name[i], code, &pd->var[i], &pd->var_min[i], &pd->var_max[i] );
-		tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_name[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
+		tprintf( "%-27s: init %15.12g min %12g max %12g\n", pd->var_name[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
 		if( strcmp( code, "fixed" ) == 0 ) pd->var_opt[i] = 0; else { pd->nOptParam++; pd->var_opt[i] = 1; }
 		if( strcmp( code, "log" ) == 0 ) pd->var_log[i] = 1; else pd->var_log[i] = 0;
 		if( pd->var_log[i] == 1 )
@@ -128,7 +128,7 @@ int load_pst( char *filename, struct opt_data *op )
 		if( pd->var_opt[i] == 1 )
 		{
 			if( pd->var_log[i] == 1 ) d = log10( pd->var[i] ); else d = pd->var[i];
-			tprintf( "%-26s: init %15.12g min %12g max %12g\n", pd->var_name[i], d, pd->var_min[i], pd->var_max[i] );
+			tprintf( "%-27s: init %15.12g min %12g max %12g\n", pd->var_name[i], d, pd->var_min[i], pd->var_max[i] );
 			pd->var_index[k++] = i;
 		}
 	for( i = 0; i < pd->nParam; i++ )
