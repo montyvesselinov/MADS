@@ -27,9 +27,6 @@
 #include <math.h>
 #include <gsl/gsl_math.h>
 
-/* Prototypes of the functions in this file */
-int  ludecp( double a[], double ul[], int n );
-void luelmp( double a[], double b[], int n, double x[] );
 double epsilon( void );
 
 double epsilon( void )

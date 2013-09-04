@@ -98,7 +98,7 @@ int lm_gsl( gsl_vector *x, struct opt_data *op, gsl_matrix *gsl_jacobian, gsl_ma
 // Info
 void mads_info();
 // IO
-char *timestamp(); // create time stamp
+int check_mads_problem( char *filename );
 char *datestamp(); // create date stamp
 int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
@@ -106,7 +106,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
-void compute_btc( char *filename, struct opt_data *op );
 void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 int Ftest( char *filename );
 FILE *Fread( char *filename );
@@ -120,8 +119,6 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 // Random sampling
 double epsilon();
 void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x[] );
-void lhs_center( int nvar, int npoint, int *seed, double x[] );
-void lhs_edge( int nvar, int npoint, int *seed, double x[] );
 void lhs_random( int nvar, int npoint, int *seed, double x[] );
 void smp_random( int nvar, int npoint, int *seed, double x[] );
 int get_seed( );
@@ -131,23 +128,15 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 int save_problem_yaml( char *filename, struct opt_data *op );
 #endif
 // Memory
-double **double_matrix( int maxCols, int maxRows );
-void free_matrix( void **matrix, int maxCols );
-void zero_double_matrix( double **matrix, int maxCols, int maxRows );
 char *white_trim( char *x );
 char **char_matrix( int maxCols, int maxRows );
 // Func
-int func_gsl_dx( const gsl_vector *x, void *data, gsl_matrix *J );
-int func_gsl_xdx( const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J );
-double func_gsl_deriv( double x, void *data );
-int func_gsl_deriv_dx( const gsl_vector *x, void *data, gsl_matrix *J );
 int func_extrn( double *x, void *data, double *f );
 int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
 void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data );
 int func_dx( double *x, double *f_x, void *data, double *jacobian );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
-double func_solver1( double x, double y, double z, double t, void *data );
 int func_extrn_write( int ieval, double *x, void *data );
 int func_extrn_exec_serial( int ieval, void *data );
 int func_extrn_read( int ieval, void *data, double *f );
@@ -251,7 +240,7 @@ int main( int argn, char *argv[] )
 	if( strcasestr( filename, "yaml" ) || strcasestr( filename, "yml" ) )
 	{
 		printf( "(YAML format expected)\n" );
-		cd.yaml = -1; // YAML format
+		cd.yaml = 1; // YAML format
 	}
 	else if( strcasecmp( extension, "pst" ) == 0 )
 	{
@@ -260,8 +249,8 @@ int main( int argn, char *argv[] )
 	}
 	else
 	{
-		printf( "(Plain text MADS format expected)\n" );
-		cd.yaml = 0; // MADS plain text format
+		printf( "\n" );
+		cd.yaml = 0; // MADS plain text format expected; it can be still YAML format
 	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
@@ -319,7 +308,9 @@ int main( int argn, char *argv[] )
 	}
 	else // MADS Problem
 	{
-		if( cd.yaml == -1 ) // YAML format
+		if( check_mads_problem( filename ) == 1 ) cd.yaml = 1;
+		else cd.yaml = 0;
+		if( cd.yaml ) // YAML format
 		{
 #ifdef YAML
 			ier = load_yaml_problem( filename, argn, argv, &op );
@@ -327,9 +318,8 @@ int main( int argn, char *argv[] )
 			tprintf( "\nMADS quits! YAML format is not supported in the compiled version of MADS. Recompile with YAML libraries.\n" );
 			exit( 0 );
 #endif
-			cd.yaml = 1;
 		}
-		else ier = load_problem( filename, argn, argv, &op ); // MADS plain text format
+		else ier = load_problem( filename, argn, argv, &op ); // MADS plain text format or "NO FILE"
 		if( ier <= 0 )
 		{
 			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );

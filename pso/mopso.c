@@ -225,7 +225,6 @@ struct swarm
 	struct fitness fBestStag;
 };
 // Specific to multi-objective
-void problem_init( struct opt_data *op, struct problem *pr );
 struct archived { struct position x; double crowD; };
 struct distRank { double dist; int rank; };
 

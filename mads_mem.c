@@ -53,6 +53,7 @@ char **char_matrix( int maxCols, int maxRows )
 			free( matrix );
 			return( NULL );
 		}
+		else matrix[i][0] = 0;
 	return( matrix );
 }
 

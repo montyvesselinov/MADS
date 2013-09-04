@@ -45,6 +45,7 @@
 #endif
 
 /* Functions here */
+int check_mads_problem( char *filename );
 int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op );
 int parse_cmd_debug( char *buf );
@@ -80,6 +81,25 @@ void removeChars( char *str, char *garbage );
 char *white_trim( char *x );
 void white_skip( char **s );
 
+int check_mads_problem( char *filename )
+{
+	FILE *infile;
+	char buf[5000], *word;
+	char *separator = " \t\n";
+	int c;
+	if( ( infile = fopen( filename, "r" ) ) == NULL ) return( 0 ); // No file
+	fscanf( infile, "%[^\n]s", buf );
+	fclose( infile );
+	// check the first line in the file
+	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
+	{
+		if( !strncasecmp( word, "yaml", 4 ) ) return( 1 ); // YAML file
+		if( !strncmp( word, "---", 3 ) && c == 0 ) return( 1 ); // YAML file
+		if( !strncmp( word, "{", 1 ) ) return( 1 ); // YAML file
+	}
+	return( 2 ); // Not YAML file
+}
+
 int set_param_id( struct opt_data *op )
 {
 	op->cd->num_aquifer_params = NUM_ANAL_PARAMS_AQUIFER;
@@ -97,7 +117,7 @@ int set_param_id( struct opt_data *op )
 	op->sd->param_name = char_matrix( op->cd->num_source_params, 50 );
 	op->qd->param_name = char_matrix( op->cd->num_aquifer_params, 50 );
 	strcpy( op->sd->param_name[0], "Source x coordinate [L]" ); strcpy( op->sd->param_name[1], "Source y coordinate [L]" ); strcpy( op->sd->param_name[2], "Source z coordinate [L]" );
-	strcpy( op->sd->param_name[3], "Source x dimension [L]" ); strcpy( op->sd->param_name[4], "Source z dimension [L]" ); strcpy( op->sd->param_name[5], "Source z dimension [L]" );
+	strcpy( op->sd->param_name[3], "Source x dimension [L]" ); strcpy( op->sd->param_name[4], "Source y dimension [L]" ); strcpy( op->sd->param_name[5], "Source z dimension [L]" );
 	strcpy( op->sd->param_name[6], "Contaminant flux [M/T]" ); strcpy( op->sd->param_name[7], "Start Time [T]" ); strcpy( op->sd->param_name[8], "End Time [T]" );
 	strcpy( op->qd->param_name[0], "Porosity [L3/L3]" ); strcpy( op->qd->param_name[1], "Retardation Factor [-]" ); strcpy( op->qd->param_name[2], "Half-life decay [1/T]" );
 	strcpy( op->qd->param_name[3], "Flow Angle [degrees]" ); strcpy( op->qd->param_name[4], "Pore x velocity [L/T]" ); strcpy( op->qd->param_name[5], "Pore y velocity [L/T]" ); strcpy( op->qd->param_name[6], "Pore z velocity [L/T]" );

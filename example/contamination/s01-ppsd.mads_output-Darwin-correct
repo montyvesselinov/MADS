@@ -29,7 +29,19 @@ Model: internal box contaminant source
 Transverse dispersivities are neither tied or scaled!
 
 Number of model parameters: 19
-ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
+WARNING: Internal analytical solver expects 22 parameters (22 != 19)!
+monty
+monty
+monty
+monty
+monty
+monty
+monty
+monty
+monty
+WARNING: Parameter name "" did not match expected "Time Scale Dispersivity [-]"! Potential input error!
+WARNING: Parameter name "" did not match expected "Time Scale Advection [-]"! Potential input error!
+WARNING: Parameter name "" did not match expected "Time Scale Reaction [-]"! Potential input error!
 Number of optimized parameters = 9
 Number of flagged parameters = 2
 Number of fixed parameters = 8
@@ -39,7 +51,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130815-185812
+Execution date & time stamp: 20130904-082825
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -93,10 +105,11 @@ Total number of evaluations = 130
 Total number of jacobians = 9
 None of the 9 sequential calibration runs produced predictions within calibration ranges!
 Results are saved in example/contamination/s01-ppsd.ppsd.results
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 130
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
-Execution  started  on Thu Aug 15 18:58:12 2013
-Execution completed on Thu Aug 15 18:58:12 2013
-Execution date & time stamp: 20130815-185812
+Functional evaluations per second = 130
+Execution  started  on Wed Sep  4 08:28:25 2013
+Execution completed on Wed Sep  4 08:28:26 2013
+Execution date & time stamp: 20130904-082825

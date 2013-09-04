@@ -35,7 +35,7 @@ Model: internal box contaminant source
 Transverse dispersivities are neither tied or scaled!
 
 Number of model parameters: 19
-ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
+WARNING: Internal analytical solver expects 22 parameters (22 != 19)!
 Source x coordinate [L]    : init      1124 opt 1 log 0 step      25 min       210 max      1460
 Source y coordinate [L]    : init      1393 opt 1 log 0 step      25 min      1230 max      1930
 Source z coordinate [L]    : init         0 opt 0 log 0 step       1 min         0 max       100
@@ -55,6 +55,18 @@ Pore z velocity [L/T]      : init         0 opt 0 log 0 step       1 min        
 Dispersivity x [L]         : init       130 opt 1 log 1 step       5 min        10 max       140
 Dispersivity y [L]         : init        15 opt 1 log 1 step       1 min         1 max        30
 Dispersivity z [L]         : init       0.3 opt 1 log 1 step     0.1 min       0.1 max         1
+monty
+monty
+monty
+monty
+monty
+monty
+monty
+monty
+monty
+WARNING: Parameter name "" did not match expected "Time Scale Dispersivity [-]"! Potential input error!
+WARNING: Parameter name "" did not match expected "Time Scale Advection [-]"! Potential input error!
+WARNING: Parameter name "" did not match expected "Time Scale Reaction [-]"! Potential input error!
 
 Parameter ID's:
 1 x
@@ -190,7 +202,7 @@ Grid Maximums: 500200 539400 0.1
 Breakthrough-curve time window: 0 0 1
 
 
-Execution date & time stamp: 20130901-093847
+Execution date & time stamp: 20130904-083025
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -904,6 +916,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sun Sep  1 09:38:47 2013
-Execution completed on Sun Sep  1 09:38:47 2013
-Execution date & time stamp: 20130901-093847
+Execution  started  on Wed Sep  4 08:30:25 2013
+Execution completed on Wed Sep  4 08:30:25 2013
+Execution date & time stamp: 20130904-083025

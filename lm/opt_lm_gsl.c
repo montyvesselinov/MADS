@@ -46,7 +46,6 @@
 #define MAX(X,Y) ( ((X) > (Y)) ? (X) : (Y) )
 
 /* Functions here */
-int optimize_gsl( struct opt_data *op );
 int func_gsl( const gsl_vector *x, void *data, gsl_vector *f );
 int func_gsl_dx( const gsl_vector *x, void *data, gsl_matrix *jacobian );
 int func_gsl_xdx( const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J );
@@ -55,15 +54,6 @@ int func_gsl_deriv_dx( const gsl_vector *x, void *data, gsl_matrix *J );
 int func_gsl_deriv_xdx( const gsl_vector *x, void *data, gsl_vector *f, gsl_matrix *J );
 
 /* Functions elsewhere */
-double point_source( double x, double y, double z, double t, void *params );
-double rectangle_source( double x, double y, double z, double t, void *params );
-double rectangle_source_vz( double x, double y, double z, double t, void *params );
-double box_source( double x, double y, double z, double t, void *params );
-double int_point_source( double tau, void *params );
-double int_rectangle_source( double tau, void *params );
-double int_rectangle_source_vz( double tau, void *params );
-double int_box_source( double tau, void *params );
-void Transform( double *v, void *data, double *vt );
 void DeTransform( double *v, void *data, double *vt );
 
 int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, gsl_matrix *covar )

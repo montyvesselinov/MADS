@@ -88,7 +88,6 @@ int set_optimized_params( struct opt_data *op );
 int map_obs( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
 char **shellpath( void );
-void freeshellpath( char *shellpath[] );
 
 /* Functions elsewhere */
 int set_test_problems( struct opt_data *op );
