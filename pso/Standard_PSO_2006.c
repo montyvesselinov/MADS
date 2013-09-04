@@ -123,7 +123,6 @@ int get_seed( );
 void position_lm_std( struct opt_data *op, struct position *P );
 int optimize_lm( struct opt_data *op );
 void seed_rand_kiss( unsigned int seed );
-unsigned int rand_kiss();
 
 // Global variables
 int best; // Best of the best position (rank in the swarm)

@@ -62,7 +62,6 @@ double box_source( double x, double y, double z, double t, void *params );
 int create_mprun_dir( char *dir );
 int delete_mprun_dir( char *dir );
 int mprun( int nJob, void *data );
-int Ftest( char *filename );
 int Ftestread( char *filename );
 time_t Fdatetime_t( char *filename, int debug );
 
