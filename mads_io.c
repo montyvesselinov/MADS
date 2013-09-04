@@ -223,6 +223,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
+		if( !strncasecmp( word, "yaml", 5 ) ) { w = 1; cd->yaml = 1; }
 		if( !strncasecmp( word, "quiet", 5 ) ) { w = 1; quiet = 1; }
 		if( !strncasecmp( word, "check", 5 ) ) { w = 1; cd->problem_type = CHECK; }
 		if( !strncasecmp( word, "create", 6 ) ) { w = 1; cd->problem_type = CREATE; }
@@ -648,24 +649,24 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		k = cd->num_source_params * cd->num_sources + cd->num_aquifer_params;
 		if( k != pd->nParam )
 		{
-			tprintf( "ERROR: Internal analytical solver expects %d parameters (%d != %d)!\n", k, k, pd->nParam );
+			tprintf( "WARNING: Internal analytical solver expects %d parameters (%d != %d)!\n", k, k, pd->nParam );
 			// bad_data = 1; TODO revisit this; currently the code does not check for consistency
 			// return( -1 );
 		}
-	}
-	pd->var_name = char_matrix( pd->nParam, 50 );
-	pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
-	cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
-	pd->var_opt = ( int * ) malloc( pd->nParam * sizeof( int ) );
-	pd->var_log = ( int * ) malloc( pd->nParam * sizeof( int ) );
-	pd->var_dx = ( double * ) malloc( pd->nParam * sizeof( double ) );
-	pd->var_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
-	pd->var_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
-	pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
-	pd->param_expressions_index = ( int * ) malloc( pd->nParam * sizeof( int ) );
-	pd->param_expression = ( void ** ) malloc( pd->nParam * sizeof( void * ) );
-	if( cd->solution_type[0] != TEST && cd->solution_type[0] != EXTERNAL )
-	{
+		pd->var_id = char_matrix( k, 10 );
+		pd->var_name = char_matrix( k, 50 );
+		for( i = 0; i < k; i++ )
+			pd->var_id[i][0] = pd->var_name[i][0] = 0;
+		pd->var = ( double * ) malloc( k * sizeof( double ) );
+		cd->var = ( double * ) malloc( k * sizeof( double ) );
+		pd->var_opt = ( int * ) malloc( k * sizeof( int ) );
+		pd->var_log = ( int * ) malloc( k * sizeof( int ) );
+		pd->var_dx = ( double * ) malloc( k * sizeof( double ) );
+		pd->var_min = ( double * ) malloc( k * sizeof( double ) );
+		pd->var_max = ( double * ) malloc( k * sizeof( double ) );
+		pd->var_range = ( double * ) malloc( k * sizeof( double ) );
+		pd->param_expressions_index = ( int * ) malloc( k * sizeof( int ) );
+		pd->param_expression = ( void ** ) malloc( k * sizeof( void * ) );
 		k = cd->num_source_params * ( cd->num_sources - 1 );
 		pd->var[k + TSCALE_DISP] = 2; pd->var[k + TSCALE_ADV] = 0; pd->var[k + TSCALE_REACT] = 0;
 		pd->var_opt[k + TSCALE_DISP] = 0; pd->var_opt[k + TSCALE_ADV] = 0; pd->var_opt[k + TSCALE_REACT] = 0;
@@ -673,6 +674,20 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
 		pd->var_min[k + TSCALE_DISP] = 0; pd->var_min[k + TSCALE_ADV] = 0; pd->var_min[k + TSCALE_REACT] = 0;
 		pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
+	}
+	else
+	{
+		pd->var_name = char_matrix( pd->nParam, 50 );
+		pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
+		cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
+		pd->var_opt = ( int * ) malloc( pd->nParam * sizeof( int ) );
+		pd->var_log = ( int * ) malloc( pd->nParam * sizeof( int ) );
+		pd->var_dx = ( double * ) malloc( pd->nParam * sizeof( double ) );
+		pd->var_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
+		pd->var_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
+		pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
+		pd->param_expressions_index = ( int * ) malloc( pd->nParam * sizeof( int ) );
+		pd->param_expression = ( void ** ) malloc( pd->nParam * sizeof( void * ) );
 	}
 	pd->nOptParam = pd->nFlgParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
@@ -876,23 +891,51 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			}
 		}
 	}
-	else // create short names for the internal model parameters
+	else // set short names for the internal model parameters
 	{
-		pd->var_id = char_matrix( pd->nParam, 10 );
+		set_param_id( op );
 		if( cd->num_sources == 1 )
 		{
 			for( i = 0; i < cd->num_source_params; i++ )
+			{
 				sprintf( pd->var_id[i], "%s", op->sd->param_id[i] );
+//				tprintf( "%s %s\n", pd->var_id[i],op->sd->param_id[i] );
+//				tprintf( "%s %s\n", pd->var_name[i],op->sd->param_name[i] );
+				if( !strcasestr( pd->var_name[i], op->sd->param_name[i] ) )
+				{
+					tprintf( "WARNING: Parameter name \"%s\" did not match expected \"%s\"! Potential input error!\n", pd->var_name[i], op->sd->param_name[i] );
+					sprintf( pd->var_name[i], "%s", op->sd->param_name[i] );
+				}
+				else tprintf( "monty\n" );
+			}
 		}
 		else
 		{
 			for( j = c = 0; c < cd->num_sources; c++ )
 				for( i = 0; i < cd->num_source_params; i++, j++ )
+				{
+//					tprintf( "%s\n", pd->var_id[j] );
 					sprintf( pd->var_id[j], "%s_%d", op->sd->param_id[i], c + 1 );
+					if( !strcasestr( pd->var_name[j], op->sd->param_name[i] ) )
+					{
+						tprintf( "WARNING: Parameter name \"%s\" did not match expected \"%s\"! Potential input error!\n", pd->var_name[j], op->sd->param_name[i] );
+						sprintf( pd->var_name[j], "%s", op->sd->param_name[i] );
+					}
+				}
 		}
 		j = cd->num_sources * cd->num_source_params;
-		for( i = 0; j < pd->nParam; i++, j++ )
+		// cd->num_aquifer_params = pd->nParam - j;
+		for( i = 0; i < cd->num_aquifer_params; i++, j++ )
+		{
 			sprintf( pd->var_id[j], "%s", op->qd->param_id[i] );
+			// tprintf( "%s\n", pd->var_id[j] );
+			// tprintf( "%s %s\n", pd->var_name[j],op->qd->param_name[i] );
+			if( !strcasestr( pd->var_name[j], op->qd->param_name[i] ) )
+			{
+				tprintf( "WARNING: Parameter name \"%s\" did not match expected \"%s\"! Potential input error!\n", pd->var_name[j], op->qd->param_name[i] );
+				sprintf( pd->var_name[j], "%s", op->qd->param_name[i] );
+			}
+		}
 		if( op->cd->debug )
 		{
 			tprintf( "\nParameter ID's:\n" );
@@ -1376,7 +1419,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( gd->nx == 1 ) gd->dx = 0;
 		else gd->dx = ( gd->max_x - gd->min_x ) / ( gd->nx - 1 );
 		if( gd->ny == 1 ) gd->dy = 0;
-		gd->dy = ( gd->max_y - gd->min_y ) / ( gd->ny - 1 );
+		else gd->dy = ( gd->max_y - gd->min_y ) / ( gd->ny - 1 );
 		// if(gd->nz == 1 ) gd->dz = gd->max_z - gd->min_z ); // In this way compute_grid computed for min_z
 		if( gd->nz == 1 ) gd->dz = 0;
 		else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );

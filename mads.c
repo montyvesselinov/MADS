@@ -251,17 +251,17 @@ int main( int argn, char *argv[] )
 	if( strcasestr( filename, "yaml" ) || strcasestr( filename, "yml" ) )
 	{
 		printf( "(YAML format expected)\n" );
-		op.yaml = 1; // YAML format
+		cd.yaml = -1; // YAML format
 	}
 	else if( strcasecmp( extension, "pst" ) == 0 )
 	{
 		printf( "(PEST format expected)\n" );
-		op.yaml = 0; // PEST format
+		cd.yaml = 0; // PEST format
 	}
 	else
 	{
 		printf( "(Plain text MADS format expected)\n" );
-		op.yaml = 0; // MADS plain text format
+		cd.yaml = 0; // MADS plain text format
 	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
@@ -304,7 +304,7 @@ int main( int argn, char *argv[] )
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
-				if( op.yaml ) save_problem_yaml( filename, &op );
+				if( cd.yaml ) save_problem_yaml( filename, &op );
 				else save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
@@ -319,7 +319,7 @@ int main( int argn, char *argv[] )
 	}
 	else // MADS Problem
 	{
-		if( op.yaml ) // YAML format
+		if( cd.yaml == -1 ) // YAML format
 		{
 #ifdef YAML
 			ier = load_yaml_problem( filename, argn, argv, &op );
@@ -327,6 +327,7 @@ int main( int argn, char *argv[] )
 			tprintf( "\nMADS quits! YAML format is not supported in the compiled version of MADS. Recompile with YAML libraries.\n" );
 			exit( 0 );
 #endif
+			cd.yaml = 1;
 		}
 		else ier = load_problem( filename, argn, argv, &op ); // MADS plain text format
 		if( ier <= 0 )
@@ -335,7 +336,7 @@ int main( int argn, char *argv[] )
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
-				if( op.yaml ) save_problem_yaml( filename, &op );
+				if( cd.yaml ) save_problem_yaml( filename, &op );
 				else save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
@@ -1002,7 +1003,7 @@ int main( int argn, char *argv[] )
 	{
 		cd.problem_type = CALIBRATE;
 		sprintf( filename, "%s-truth.mads", op.root );
-		if( op.yaml ) save_problem_yaml( filename, &op );
+		if( cd.yaml ) save_problem_yaml( filename, &op );
 		else save_problem( filename, &op );
 		tprintf( "\nMADS problem file named %s-truth.mads is created; modify the file if needed\n\n", op.root );
 		cd.problem_type = CREATE;
@@ -1924,7 +1925,7 @@ int igrnd( struct opt_data *op )
 				{
 					sprintf( filename, "%s-igrnd.%d.mads", op->root, count + 1 );
 					op->cd->calib_type = SIMPLE;
-					if( op->yaml ) save_problem_yaml( filename, op );
+					if( op->cd->yaml ) save_problem_yaml( filename, op );
 					else save_problem( filename, op );
 					op->cd->calib_type = IGRND;
 					continue;
@@ -2350,7 +2351,7 @@ int ppsd( struct opt_data *op )
 					{
 						sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
 						op->cd->calib_type = SIMPLE;
-						if( op->yaml ) save_problem_yaml( filename, op );
+						if( op->cd->yaml ) save_problem_yaml( filename, op );
 						else save_problem( filename, op );
 						op->cd->calib_type = PPSD;
 						for( i = 0; i < op->pd->nParam; i++ )
@@ -2417,7 +2418,7 @@ int ppsd( struct opt_data *op )
 			{
 				op->cd->calib_type = SIMPLE;
 				sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
-				if( op->yaml ) save_problem_yaml( filename, op );
+				if( op->cd->yaml ) save_problem_yaml( filename, op );
 				else save_problem( filename, op );
 				op->cd->calib_type = PPSD;
 				save_final_results( "ppsd", op, op->gd );
@@ -2933,7 +2934,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file
 	if( op->cd->solution_type[0] != TEST )
 	{
-		if( op->yaml ) save_problem_yaml( filename, op );
+		if( op->cd->yaml ) save_problem_yaml( filename, op );
 		else save_problem( filename, op );
 	}
 	// Save results file

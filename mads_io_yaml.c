@@ -120,7 +120,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	if( fabs( op->cd->obsstep ) > DBL_EPSILON ) op->od->include_predictions = 1;
 	if( ( infile = fopen( filename, "rb" ) ) == NULL )
 	{
-		tprintf( "File \'%s\' cannot be opened to read problem information!\n", filename );
+		tprintf( "Files \'%s\' cannot be opened to read problem information!\n", filename );
 		tprintf( "ERROR: Input file is needed!\n\n" );
 		return( -1 );
 	}
@@ -1424,6 +1424,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	for( i = j = 0; i < param_limit; i++, count_param++ )
 	{
 		fprintf( outfile, "- %-8s: {", pd->var_id[count_param] );
+		fflush( outfile );
 		if( pd->var_name[count_param] != NULL || pd->var_name[count_param][0] != 0 ) fprintf( outfile, " longname: \"%s\", ", pd->var_name[count_param] );
 		if( pd->var_opt[count_param] == -1 ) // tied parameter
 #ifdef MATHEVAL

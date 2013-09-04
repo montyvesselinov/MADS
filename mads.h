@@ -60,7 +60,6 @@ struct opt_data // TODO class MADS (in C++)
 	int counter; // current run counter (Monte Carlo / paranoid / retry / igrd / igpd ... )
 	char *root; // problem name (filename root)
 	char *filename; // problem filename
-	int yaml;
 	char *label; // problem label (for output file generation)
 	char *datetime_stamp; // date & time of the simulation
 	FILE *f_ofe; // runtime output file with current best objective function
@@ -82,6 +81,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 {
 	int problem_type; // problem type: forward, calibration, ...
 	int calib_type; // calibration type: simple, igpd, ...
+	int yaml; // input / output format
 	int gsa_type; // global sensitivity analysis type: sobol, saltelli, moat, ...
 	int paranoid; // paranoid calibration
 	int num_sources; // number of contaminant sources (internal solutions)
