@@ -42,7 +42,7 @@ ifeq ($(OS),Darwin)
 # Mac
 $(info MAC OS X)
 CFLAGS += -I/opt/local/include
-LDLIBS += -lgfortran -latlas -L/opt/local/lib
+LDLIBS += -lgfortran -latlas -lblas -L/opt/local/lib
 YAML = true
 ifeq ($(ND),dazed.local)
 $(info Machine -- Dazed)
