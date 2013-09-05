@@ -30,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20130815-190815
+Execution date & time stamp: 20130905-124226
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -71,10 +71,11 @@ Parameter #2 0.999979
 Parameter #3 0.999957
 Objective function: 9.9808e-10 Success: 1 (1)
 SUCCESS: Objective function is below the predefined cutoff value (9.9808e-10 < 0.001)!
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 3773
 Jacobian evaluations = 552
 Levenberg-Marquardt optimizations = 78
-Execution  started  on Thu Aug 15 19:08:15 2013
-Execution completed on Thu Aug 15 19:08:15 2013
-Execution date & time stamp: 20130815-190815
+Functional evaluations per second = 3773
+Execution  started  on Thu Sep  5 12:42:26 2013
+Execution completed on Thu Sep  5 12:42:27 2013
+Execution date & time stamp: 20130905-124226

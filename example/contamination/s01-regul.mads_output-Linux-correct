@@ -35,26 +35,29 @@ Model: internal box contaminant source
 Transverse dispersivities are neither tied or scaled!
 
 Number of model parameters: 19
-ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
-Source x coordinate [L]   : init      1124 opt 1 log 0 step      25 min       210 max      1460
-Source y coordinate [L]   : init      1393 opt 1 log 0 step      25 min      1230 max      1930
-Source z coordinate [L]   : init         0 opt 0 log 0 step       1 min         0 max       100
-Source x dimension [L]    : init       258 opt 1 log 0 step       1 min         1 max       500
-Source y dimension [L]    : init       273 opt 1 log 0 step       1 min         1 max       500
-Source z dimension [L]    : init         1 opt 0 log 0 step       1 min         1 max        10
-Contaminant flux [M/T]    : init        60 opt 1 log 1 step      10 min      0.01 max       100
-Start Time [T]            : init         0 opt 1 log 0 step       1 min         0 max        43
-End Time [T]              : init       100 opt 0 log 0 step       1 min         1 max        44
-Porosity [L3/L3]          : init       0.1 opt 0 log 0 step     0.1 min         0 max         1
-Retardation Factor [-]    : init         1 opt 0 log 1 step       1 min         1 max        10
-Half-life decay [1/T]     : init         0 opt 0 log 1 step       1 min         0 max         1
-Flow Angle [degrees]      : init         3 opt 1 log 0 step       5 min       -30 max        30
-Pore x velocity [L/T]     : init         5 opt 1 log 1 step 1.01074 min      0.01 max       200
-Pore y velocity [L/T]     : init         0 opt 0 log 0 step       1 min         0 max         1
-Pore z velocity [L/T]     : init         0 opt 0 log 0 step       1 min         0 max         1
-Dispersivity x [L]        : init       130 opt 1 log 1 step       5 min        10 max       140
-Dispersivity y [L]        : init        15 opt 1 log 1 step       1 min         1 max        30
-Dispersivity z [L]        : init       0.3 opt 1 log 1 step     0.1 min       0.1 max         1
+WARNING: Internal analytical solver expects 22 parameters (22 != 19)!
+Source x coordinate [L]    : init      1124 opt 1 log 0 step      25 min       210 max      1460
+Source y coordinate [L]    : init      1393 opt 1 log 0 step      25 min      1230 max      1930
+Source z coordinate [L]    : init         0 opt 0 log 0 step       1 min         0 max       100
+Source x dimension [L]     : init       258 opt 1 log 0 step       1 min         1 max       500
+Source y dimension [L]     : init       273 opt 1 log 0 step       1 min         1 max       500
+Source z dimension [L]     : init         1 opt 0 log 0 step       1 min         1 max        10
+Contaminant flux [M/T]     : init        60 opt 1 log 1 step      10 min      0.01 max       100
+Start Time [T]             : init         0 opt 1 log 0 step       1 min         0 max        43
+End Time [T]               : init       100 opt 0 log 0 step       1 min         1 max        44
+Porosity [L3/L3]           : init       0.1 opt 0 log 0 step     0.1 min         0 max         1
+Retardation Factor [-]     : init         1 opt 0 log 1 step       1 min         1 max        10
+Half-life decay [1/T]      : init         0 opt 0 log 1 step       1 min         0 max         1
+Flow Angle [degrees]       : init         3 opt 1 log 0 step       5 min       -30 max        30
+Pore x velocity [L/T]      : init         5 opt 1 log 1 step 1.01074 min      0.01 max       200
+Pore y velocity [L/T]      : init         0 opt 0 log 0 step       1 min         0 max         1
+Pore z velocity [L/T]      : init         0 opt 0 log 0 step       1 min         0 max         1
+Dispersivity x [L]         : init       130 opt 1 log 1 step       5 min        10 max       140
+Dispersivity y [L]         : init        15 opt 1 log 1 step       1 min         1 max        30
+Dispersivity z [L]         : init       0.3 opt 1 log 1 step     0.1 min       0.1 max         1
+WARNING: Parameter name "" did not match expected "Time Scale Dispersivity [-]"! Potential input error!
+WARNING: Parameter name "" did not match expected "Time Scale Advection [-]"! Potential input error!
+WARNING: Parameter name "" did not match expected "Time Scale Reaction [-]"! Potential input error!
 
 Parameter ID's:
 1 x
@@ -152,25 +155,25 @@ W14b_50: 30 weight 1
 
 
 Parameter values for computation of the regularization terms:
-Source x coordinate [L]   : x           : 1124
-Source y coordinate [L]   : y           : 1393
-Source z coordinate [L]   : z           : 0
-Source x dimension [L]    : dx          : 258
-Source y dimension [L]    : dy          : 273
-Source z dimension [L]    : dz          : 1
-Contaminant flux [M/T]    : f           : 60
-Start Time [T]            : t0          : 0
-End Time [T]              : t1          : 100
-Porosity [L3/L3]          : n           : 0.1
-Retardation Factor [-]    : rf          : 1
-Half-life decay [1/T]     : lambda      : 0
-Flow Angle [degrees]      : tetha       : 3
-Pore x velocity [L/T]     : vx          : 5
-Pore y velocity [L/T]     : vy          : 0
-Pore z velocity [L/T]     : vz          : 0
-Dispersivity x [L]        : ax          : 130
-Dispersivity y [L]        : ay          : 15
-Dispersivity z [L]        : az          : 0.3
+Source x coordinate [L]    : x           : 1124
+Source y coordinate [L]    : y           : 1393
+Source z coordinate [L]    : z           : 0
+Source x dimension [L]     : dx          : 258
+Source y dimension [L]     : dy          : 273
+Source z dimension [L]     : dz          : 1
+Contaminant flux [M/T]     : f           : 60
+Start Time [T]             : t0          : 0
+End Time [T]               : t1          : 100
+Porosity [L3/L3]           : n           : 0.1
+Retardation Factor [-]     : rf          : 1
+Half-life decay [1/T]      : lambda      : 0
+Flow Angle [degrees]       : tetha       : 3
+Pore x velocity [L/T]      : vx          : 5
+Pore y velocity [L/T]      : vy          : 0
+Pore z velocity [L/T]      : vz          : 0
+Dispersivity x [L]         : ax          : 130
+Dispersivity y [L]         : ay          : 15
+Dispersivity z [L]         : az          : 0.3
 
 Number of regularization terms = 3
 reg1        : target 4000 weight 1 log 0 min 2000 max 5000 : equation f * ( 49 - t0 )  -> variables: t0 f
@@ -190,7 +193,7 @@ Grid Maximums: 500200 539400 0.1
 Breakthrough-curve time window: 0 0 1
 
 
-Execution date & time stamp: 20130815-190817
+Execution date & time stamp: 20130905-124229
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -900,10 +903,11 @@ Objective function: 50132.6 Success: 0 (0)
 
 Model predictions for not calibration targets:
 W-14c     (   50):          10 -      346.373 =     -336.373 success 0 range            0 -           20
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Aug 15 19:08:17 2013
-Execution completed on Thu Aug 15 19:08:17 2013
-Execution date & time stamp: 20130815-190817
+Functional evaluations per second = 58
+Execution  started  on Thu Sep  5 12:42:29 2013
+Execution completed on Thu Sep  5 12:42:30 2013
+Execution date & time stamp: 20130905-124229

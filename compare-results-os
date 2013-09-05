@@ -1,0 +1,6 @@
+#!/bin/tcsh -f
+foreach i ( */*/*$1-correct )
+	set j = `echo $i | sed "s/$1/$2/"`
+	echo "compare " $i $j
+	./compare-results $i $j
+	end
