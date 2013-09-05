@@ -10,6 +10,7 @@
 #include <math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
+#include <gsl/gsl_sf.h>
 
 #include "astable.h"
 #include "pqueue.h"
@@ -224,6 +225,7 @@ struct interpolant_params *setup_interpolant(double alpha, double beta, double l
 	/* Now sort them in increasing values of the left interval point. */
 	q_x = pqueue_new(&interval_comp_x, N + 1);
 	i = 0;
+	current_interval = NULL;//Tell the compiler to stop warning me.
 	/* Take them off the old queue and add them to the new queue. */
 	while(q->size > 0)
 	{
@@ -243,7 +245,7 @@ struct interpolant_params *setup_interpolant(double alpha, double beta, double l
 	}
 	x_sorted[i] = current_interval->right;
 	y_sorted[i] = current_interval->func_right;
-	free(current_interval);
+	if(current_interval != NULL) free(current_interval);
 
 	ip->xa = x_sorted;
 	ip->ya = y_sorted;
