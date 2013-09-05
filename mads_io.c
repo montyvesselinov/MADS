@@ -48,6 +48,7 @@
 int check_mads_problem( char *filename );
 int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op );
+void init_scaling_params( struct opt_data *op );
 int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
@@ -104,7 +105,7 @@ int set_param_id( struct opt_data *op )
 {
 	op->cd->num_aquifer_params = NUM_ANAL_PARAMS_AQUIFER;
 	op->cd->num_source_params = NUM_ANAL_PARAMS_SOURCE;
-	if( ( op->ad->var = ( double * ) malloc( ( op->cd->num_aquifer_params + op->cd->num_source_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( op->ad->var = ( double * ) malloc( ( op->cd->num_source_params + op->cd->num_aquifer_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	op->sd->param_id = char_matrix( op->cd->num_source_params, 6 );
 	op->qd->param_id = char_matrix( op->cd->num_aquifer_params, 6 );
 	strcpy( op->sd->param_id[0], "x" ); strcpy( op->sd->param_id[1], "y" ); strcpy( op->sd->param_id[2], "z" );
@@ -153,6 +154,27 @@ int set_param_names( struct opt_data *op )
 		strcpy( op->pd->var_id[k], op->qd->param_id[i] );
 	}
 	return( 1 );
+}
+
+void init_scaling_params( struct opt_data *op )
+{
+	struct opt_data *p = ( struct opt_data * ) op;
+	struct param_data *pd;
+	struct calc_data *cd;
+	int k;
+	cd = p->cd;
+	pd = p->pd;
+	if( cd->num_sources > 1 ) k = cd->num_source_params * ( cd->num_sources - 1 );
+	else k = 0;
+	cd->var[k + TSCALE_DISP] = pd->var[k + TSCALE_DISP] = 1;
+	cd->var[k + TSCALE_ADV] = pd->var[k + TSCALE_ADV] = 1;
+	cd->var[k + TSCALE_REACT] = pd->var[k + TSCALE_REACT] = 1;
+	pd->var_opt[k + TSCALE_DISP] = 0; pd->var_opt[k + TSCALE_ADV] = 0; pd->var_opt[k + TSCALE_REACT] = 0;
+	pd->var_log[k + TSCALE_DISP] = 1; pd->var_log[k + TSCALE_ADV] = 1; pd->var_log[k + TSCALE_REACT] = 1;
+	pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
+	pd->var_min[k + TSCALE_DISP] = 0.1; pd->var_min[k + TSCALE_ADV] = 0.1; pd->var_min[k + TSCALE_REACT] = 0.1;
+	pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
+	cd->scaling_dispersion = 0;
 }
 
 int parse_cmd_debug( char *buf )
@@ -687,13 +709,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		pd->var_range = ( double * ) malloc( k * sizeof( double ) );
 		pd->param_expressions_index = ( int * ) malloc( k * sizeof( int ) );
 		pd->param_expression = ( void ** ) malloc( k * sizeof( void * ) );
-		k = cd->num_source_params * ( cd->num_sources - 1 );
-		pd->var[k + TSCALE_DISP] = 2; pd->var[k + TSCALE_ADV] = 0; pd->var[k + TSCALE_REACT] = 0;
-		pd->var_opt[k + TSCALE_DISP] = 0; pd->var_opt[k + TSCALE_ADV] = 0; pd->var_opt[k + TSCALE_REACT] = 0;
-		pd->var_log[k + TSCALE_DISP] = 0; pd->var_log[k + TSCALE_ADV] = 0; pd->var_log[k + TSCALE_REACT] = 0;
-		pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
-		pd->var_min[k + TSCALE_DISP] = 0; pd->var_min[k + TSCALE_ADV] = 0; pd->var_min[k + TSCALE_REACT] = 0;
-		pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
+		init_scaling_params( op );
 	}
 	else
 	{
@@ -926,7 +942,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					tprintf( "WARNING: Parameter name \"%s\" did not match expected \"%s\"! Potential input error!\n", pd->var_name[i], op->sd->param_name[i] );
 					sprintf( pd->var_name[i], "%s", op->sd->param_name[i] );
 				}
-				else tprintf( "monty\n" );
 			}
 		}
 		else
@@ -944,7 +959,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				}
 		}
 		j = cd->num_sources * cd->num_source_params;
-		// cd->num_aquifer_params = pd->nParam - j;
 		for( i = 0; i < cd->num_aquifer_params; i++, j++ )
 		{
 			sprintf( pd->var_id[j], "%s", op->qd->param_id[i] );
@@ -956,6 +970,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				sprintf( pd->var_name[j], "%s", op->qd->param_name[i] );
 			}
 		}
+		if( cd->num_sources > 1 ) k = cd->num_source_params * ( cd->num_sources - 1 );
+		else k = 0;
+		if( fabs( pd->var[k + TSCALE_DISP] - 1 ) < COMPARE_EPSILON || pd->var[k + TSCALE_DISP] < COMPARE_EPSILON ) cd->scaling_dispersion = 0;
+		else cd->scaling_dispersion = 1;
 		if( op->cd->debug )
 		{
 			tprintf( "\nParameter ID's:\n" );
@@ -1561,16 +1579,6 @@ int save_problem( char *filename, struct opt_data *op )
 		else // fixed or not log-transformed parameter
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pd->var[i], pd->var_opt[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 	}
-	if( rd->nRegul > 0 )
-	{
-		fprintf( outfile, "Number of regularization terms: %d\n", rd->nRegul );
-		for( i = 0; i < rd->nRegul; i++ )
-#ifdef MATHEVAL
-			fprintf( outfile, "%s = %g %g %i %g %g\n", evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
-#else
-			fprintf( outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
-#endif
-	}
 	if( cd->solution_type[0] != EXTERNAL )
 	{
 		fprintf( outfile, "Number of wells: %i\n", wd->nW );
@@ -1581,11 +1589,6 @@ int save_problem( char *filename, struct opt_data *op )
 			for( j = 0; j < wd->nWellObs[i]; j++ )
 				fprintf( outfile, "%g %g %g %i %g %g\n", wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
 		}
-		fprintf( outfile, "Grid Time: %g\n", gd->time );
-		fprintf( outfile, "Grid lines: %i %i %i\n", gd->nx, gd->ny, gd->nz );
-		fprintf( outfile, "Grid Minimums: %g %g %g\n", gd->min_x, gd->min_y, gd->min_z );
-		fprintf( outfile, "Grid Maximums: %g %g %g\n", gd->max_x, gd->max_y, gd->max_z );
-		fprintf( outfile, "Time Window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
 	}
 	else
 	{
@@ -1599,6 +1602,24 @@ int save_problem( char *filename, struct opt_data *op )
 		fprintf( outfile, "Number of execution instructions: %d\n", ed->nins );
 		for( i = 0; i < ed->nins; i++ )
 			fprintf( outfile, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );
+	}
+	if( rd->nRegul > 0 )
+	{
+		fprintf( outfile, "Number of regularization terms: %d\n", rd->nRegul );
+		for( i = 0; i < rd->nRegul; i++ )
+#ifdef MATHEVAL
+			fprintf( outfile, "%s = %g %g %i %g %g\n", evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+#else
+			fprintf( outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+#endif
+	}
+	if( cd->solution_type[0] != EXTERNAL )
+	{
+		fprintf( outfile, "Grid Time: %g\n", gd->time );
+		fprintf( outfile, "Grid lines: %i %i %i\n", gd->nx, gd->ny, gd->nz );
+		fprintf( outfile, "Grid Minimums: %g %g %g\n", gd->min_x, gd->min_y, gd->min_z );
+		fprintf( outfile, "Grid Maximums: %g %g %g\n", gd->max_x, gd->max_y, gd->max_z );
+		fprintf( outfile, "Time Window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
 	}
 	fclose( outfile );
 	return( 1 );

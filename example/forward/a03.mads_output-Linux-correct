@@ -26,7 +26,10 @@ Model: internal planar (2d) gaussian contaminant source
 Transverse dispersivities are neither tied or scaled!
 
 Number of model parameters: 19
-ERROR: Internal analytical solver expects 22 parameters (22 != 19)!
+WARNING: Internal analytical solver expects 22 parameters (22 != 19)!
+WARNING: Parameter name "" did not match expected "Time Scale Dispersivity [-]"! Potential input error!
+WARNING: Parameter name "" did not match expected "Time Scale Advection [-]"! Potential input error!
+WARNING: Parameter name "" did not match expected "Time Scale Reaction [-]"! Potential input error!
 Number of optimized parameters = 11
 Number of flagged parameters = 0
 Number of fixed parameters = 8
@@ -37,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130815-190905
+Execution date & time stamp: 20130905-124333
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -50,8 +53,8 @@ Contaminant flux [M/T] 100000
 Start Time [T] 0
 End Time [T] 1
 Porosity [L3/L3] 0.1
-Kd [-] 1
-Lambda [1/T] 1
+Retardation Factor [-] 1
+Half-life decay [1/T] 1
 Flow Angle [degrees] 3
 Pore x velocity [L/T] 1
 Pore y velocity [L/T] 0
@@ -69,6 +72,6 @@ Objective function: 1.14703e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Thu Aug 15 19:09:05 2013
-Execution completed on Thu Aug 15 19:09:05 2013
-Execution date & time stamp: 20130815-190905
+Execution  started  on Thu Sep  5 12:43:33 2013
+Execution completed on Thu Sep  5 12:43:33 2013
+Execution date & time stamp: 20130905-124333

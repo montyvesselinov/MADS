@@ -422,6 +422,9 @@ verify-forward:
 	@echo "TEST 9: DONE"
 	@echo ""
 
+compare-os:
+	./compare-results-os Linux Darwin
+
 clean-example:
 	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running example/*/*-rerun.mads example/*/*-error.mads
 	rm -fR example/wells-short_w01parallel*
