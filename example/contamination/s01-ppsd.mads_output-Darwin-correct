@@ -30,15 +30,6 @@ Transverse dispersivities are neither tied or scaled!
 
 Number of model parameters: 19
 WARNING: Internal analytical solver expects 22 parameters (22 != 19)!
-monty
-monty
-monty
-monty
-monty
-monty
-monty
-monty
-monty
 WARNING: Parameter name "" did not match expected "Time Scale Dispersivity [-]"! Potential input error!
 WARNING: Parameter name "" did not match expected "Time Scale Advection [-]"! Potential input error!
 WARNING: Parameter name "" did not match expected "Time Scale Reaction [-]"! Potential input error!
@@ -51,7 +42,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130904-082825
+Execution date & time stamp: 20130904-215449
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -105,11 +96,10 @@ Total number of evaluations = 130
 Total number of jacobians = 9
 None of the 9 sequential calibration runs produced predictions within calibration ranges!
 Results are saved in example/contamination/s01-ppsd.ppsd.results
-Simulation time = 1 seconds
+Simulation time = 0 seconds
 Functional evaluations = 130
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
-Functional evaluations per second = 130
-Execution  started  on Wed Sep  4 08:28:25 2013
-Execution completed on Wed Sep  4 08:28:26 2013
-Execution date & time stamp: 20130904-082825
+Execution  started  on Wed Sep  4 21:54:49 2013
+Execution completed on Wed Sep  4 21:54:49 2013
+Execution date & time stamp: 20130904-215449

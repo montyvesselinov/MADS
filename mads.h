@@ -112,6 +112,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int energy; // starting energy for pssa particles
 	int disp_tied;
 	int disp_scaled;
+	int scaling_dispersion;
 	int save;
 	int pargen;
 	int obs_int;

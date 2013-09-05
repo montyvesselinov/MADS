@@ -83,6 +83,7 @@ const char *key_yes_no( int i );
 /* Functions in mads_io */
 int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op );
+void init_scaling_params( struct opt_data *op );
 int parse_cmd( char *buf, struct calc_data *cd );
 int set_optimized_params( struct opt_data *op );
 int map_obs( struct opt_data *op );
@@ -501,13 +502,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 	{
 		if( num_param != num_keys )
 			tprintf( "WARNING: The number of provided parameters (%d) is different than the number of expected parameters (%d)\n", num_param, num_keys );
-		k = cd->num_source_params * ( cd->num_sources - 1 );
-		pd->var[k + TSCALE_DISP] = 2; pd->var[k + TSCALE_ADV] = 0; pd->var[k + TSCALE_REACT] = 0;
-		pd->var_opt[k + TSCALE_DISP] = 0; pd->var_opt[k + TSCALE_ADV] = 0; pd->var_opt[k + TSCALE_REACT] = 0;
-		pd->var_log[k + TSCALE_DISP] = 0; pd->var_log[k + TSCALE_ADV] = 0; pd->var_log[k + TSCALE_REACT] = 0;
-		pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
-		pd->var_min[k + TSCALE_DISP] = 0; pd->var_min[k + TSCALE_ADV] = 0; pd->var_min[k + TSCALE_REACT] = 0;
-		pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
+		init_scaling_params( op );
 	}
 	for( i = 0; i < num_param; i++ )
 	{
@@ -643,6 +638,13 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			pd->var_range[index] = pd->var_max[index] - pd->var_min[index];
 			if( pd->var_dx[index] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
 		}
+	}
+	if( internal )
+	{
+		if( cd->num_sources > 1 ) k = cd->num_source_params * ( cd->num_sources - 1 );
+		else k = 0;
+		if( fabs( pd->var[k + TSCALE_DISP] - 1 ) < COMPARE_EPSILON || pd->var[k + TSCALE_DISP] < COMPARE_EPSILON ) cd->scaling_dispersion = 0;
+		else cd->scaling_dispersion = 1;
 	}
 #ifdef MATHEVAL
 	for( i = 0; i < pd->nExpParam; i++ )

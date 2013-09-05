@@ -27,15 +27,6 @@ Transverse dispersivities are neither tied or scaled!
 
 Number of model parameters: 19
 WARNING: Internal analytical solver expects 22 parameters (22 != 19)!
-monty
-monty
-monty
-monty
-monty
-monty
-monty
-monty
-monty
 WARNING: Parameter name "" did not match expected "Time Scale Dispersivity [-]"! Potential input error!
 WARNING: Parameter name "" did not match expected "Time Scale Advection [-]"! Potential input error!
 WARNING: Parameter name "" did not match expected "Time Scale Reaction [-]"! Potential input error!
@@ -49,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130904-082949
+Execution date & time stamp: 20130904-215507
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -81,6 +72,6 @@ Objective function: 1.14703e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Wed Sep  4 08:29:49 2013
-Execution completed on Wed Sep  4 08:29:49 2013
-Execution date & time stamp: 20130904-082949
+Execution  started  on Wed Sep  4 21:55:07 2013
+Execution completed on Wed Sep  4 21:55:07 2013
+Execution date & time stamp: 20130904-215507

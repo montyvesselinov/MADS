@@ -708,8 +708,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 							tprintf( "AZ %.12g\n", p->ad->var[AZ] );
 						}
 					}
-					if( fabs(p->ad->var[TSCALE_DISP] - 1) < COMPARE_EPSILON || p->ad->var[TSCALE_DISP] == 0. ) p->ad->scaling_dispersion = 0;
-					else p->ad->scaling_dispersion = 1;
+					p->ad->scaling_dispersion = p->cd->scaling_dispersion;
 					// TODO merge func_intrn and func_solver; func_intrn is called by methods (PE, UQ, ..); func_solver is called by forward and grid solvers
 					if( p->cd->obs_int == 1 ) // TODO add other integration models ...
 					{
@@ -1005,8 +1004,7 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 				tprintf( "AZ %.12g\n", ad.var[AZ] );
 			}
 		}
-		if( fabs(ad.var[TSCALE_DISP] - 1) < COMPARE_EPSILON || ad.var[TSCALE_DISP] == 0. ) ad.scaling_dispersion = 0;
-		else ad.scaling_dispersion = 1;
+		ad.scaling_dispersion = cd->scaling_dispersion;
 		if( cd->fdebug > 6 )
 			for( i = 0; i < num_params; i++ )
 				tprintf( "func_solver1 source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );
