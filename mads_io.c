@@ -1272,7 +1272,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		free( od->obs_current );
 		cd->var = &rd->regul_map_val[0];
 		od->obs_current = &rd->regul_map_val[pd->nAnalParam];
-		for( k = 0; k < rd->regul_nMap; k++ ) { tprintf( "%s %g\n", rd->regul_map_id[k], rd->regul_map_val[k] ); }
+		// for( k = 0; k < rd->regul_nMap; k++ ) { tprintf( "%s %g\n", rd->regul_map_id[k], rd->regul_map_val[k] ); }
 #endif
 		if( cd->debug )
 		{

@@ -444,7 +444,7 @@ double int_gaussian_source_2d( double tau, void *params )
 	sx =  -( xe - vx * tau ) * ( xe - vx * tau ) / ( 2 * varx );
 	sy = -ye * ye / ( 2 * vary );
 	ez = ( exp( -ze * ze / ( 2 * varz ) ) + exp( -( ze + 2 * p->var[SOURCE_Z] ) * ( ze + 2 * p->var[SOURCE_Z] ) / ( 2 * varz ) ) );
-	return exp( -tau * lambda + sx + sy) * ez * ts;
+	return exp( -tau * lambda + sx + sy ) * ez * ts;
 }
 
 double gaussian_source_3d( double x, double y, double z, double t, void *params )
@@ -511,77 +511,73 @@ double int_gaussian_source_3d( double tau, void *params )
 
 double box_source_levy_dispersion( double x, double y, double z, double t, void *params )
 {
-   gsl_integration_workspace *w;
-   gsl_function F;
-   int status;
-   struct anal_data *p = ( struct anal_data * )params;
-   double result, error, time;
-   if( t <= p->var[TIME_INIT] ) return( 0 );
-   p->xe = x;
-   p->ye = y;
-   p->ze = z;
-   time = t - p->var[TIME_INIT];
-   w = gsl_integration_workspace_alloc( NUMITER );
-   F.function = &int_box_source_levy_dispersion;
-   F.params = p;
-   gsl_set_error_handler_off();
-   if( t < p->var[TIME_END] )
-       status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
-   else
-       status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
-   if( status != 0 )
-   {
-       printf( "error: %s\n", gsl_strerror( status ) );
-       //result = 0;
-   }
-   gsl_integration_workspace_free( w );
-   // Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
-   return( p->var[FLUX] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
-   // return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
+	gsl_integration_workspace *w;
+	gsl_function F;
+	int status;
+	struct anal_data *p = ( struct anal_data * )params;
+	double result, error, time;
+	if( t <= p->var[TIME_INIT] ) return( 0 );
+	p->xe = x;
+	p->ye = y;
+	p->ze = z;
+	time = t - p->var[TIME_INIT];
+	w = gsl_integration_workspace_alloc( NUMITER );
+	F.function = &int_box_source_levy_dispersion;
+	F.params = p;
+	gsl_set_error_handler_off();
+	if( t < p->var[TIME_END] )
+		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+	else
+		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+	if( status != 0 )
+	{
+		printf( "error: %s\n", gsl_strerror( status ) );
+		//result = 0;
+	}
+	gsl_integration_workspace_free( w );
+	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	return( p->var[FLUX] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
+	// return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
 }
 
 double int_box_source_levy_dispersion( double tau, void *params )
 {
-   struct anal_data *p = ( struct anal_data * )params;
-   double lambda = ( p->var[LAMBDA] );
-   double vx = ( p->var[VX] );
-   double ax = ( p->var[AX] );
-   double ay = ( p->var[AY] );
-   double az = ( p->var[AZ] );
-   double source_sizex = ( p->var[SOURCE_DX] );
-   double source_sizey = ( p->var[SOURCE_DY] );
-   double source_sizez = ( p->var[SOURCE_DZ] );
-   double source_z = ( p->var[SOURCE_Z] );
-   double alpha, beta;
-   double lambda_x, lambda_y, lambda_z;
-   double tau_d, tv;
-   double angle, rot1, rot2, xe, ye, ze, x0, y0;
-   double decay_factor, px, py, pz;
-
-   alpha = 1.5;
-   beta = 1.;
-
-   x0 = ( p->xe - p->var[SOURCE_X] );
-   y0 = ( p->ye - p->var[SOURCE_Y] );
-   angle = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
-   rot1 = cos( angle );
-   rot2 = sin( angle );
-   xe = x0 * rot1 - y0 * rot2;
-   ye = x0 * rot2  + y0 * rot1;
-   ze = ( p->ze - source_z );
-
-   if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
-   else tau_d = tau;
-   tv = ( double ) 2 * tau_d * vx;
-
-   lambda_x = pow( tv * ax, 1 / alpha );
-   lambda_y = pow( tv * ay, 1 / alpha );
-   lambda_z = pow( tv * az, 1 / alpha );
-   decay_factor = exp( -tau * lambda );
-   px = astable_cdf(xe + source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x) - astable_cdf(xe - source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x);
-   py = astable_cdf(ye + source_sizey / 2., alpha, beta, 0., lambda_y) - astable_cdf(ye - source_sizey / 2., alpha, beta, 0., lambda_y);
-   pz = astable_cdf(ze + source_sizez, alpha, beta, 0., lambda_z) - astable_cdf(ze, alpha, beta, 0., lambda_z);
-   // ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz ) - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz );
-   // if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
-   return( decay_factor * px * py * pz );
+	struct anal_data *p = ( struct anal_data * )params;
+	double lambda = ( p->var[LAMBDA] );
+	double vx = ( p->var[VX] );
+	double ax = ( p->var[AX] );
+	double ay = ( p->var[AY] );
+	double az = ( p->var[AZ] );
+	double source_sizex = ( p->var[SOURCE_DX] );
+	double source_sizey = ( p->var[SOURCE_DY] );
+	double source_sizez = ( p->var[SOURCE_DZ] );
+	double source_z = ( p->var[SOURCE_Z] );
+	double alpha, beta;
+	double lambda_x, lambda_y, lambda_z;
+	double tau_d, tv;
+	double angle, rot1, rot2, xe, ye, ze, x0, y0;
+	double decay_factor, px, py, pz;
+	alpha = 1.5;
+	beta = 1.;
+	x0 = ( p->xe - p->var[SOURCE_X] );
+	y0 = ( p->ye - p->var[SOURCE_Y] );
+	angle = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
+	rot1 = cos( angle );
+	rot2 = sin( angle );
+	xe = x0 * rot1 - y0 * rot2;
+	ye = x0 * rot2  + y0 * rot1;
+	ze = ( p->ze - source_z );
+	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
+	else tau_d = tau;
+	tv = ( double ) 2 * tau_d * vx;
+	lambda_x = pow( tv * ax, 1 / alpha );
+	lambda_y = pow( tv * ay, 1 / alpha );
+	lambda_z = pow( tv * az, 1 / alpha );
+	decay_factor = exp( -tau * lambda );
+	px = astable_cdf( xe + source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x ) - astable_cdf( xe - source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x );
+	py = astable_cdf( ye + source_sizey / 2., alpha, beta, 0., lambda_y ) - astable_cdf( ye - source_sizey / 2., alpha, beta, 0., lambda_y );
+	pz = astable_cdf( ze + source_sizez, alpha, beta, 0., lambda_z ) - astable_cdf( ze, alpha, beta, 0., lambda_z );
+	// ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz ) - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz );
+	// if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
+	return( decay_factor * px * py * pz );
 }
