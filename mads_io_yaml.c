@@ -451,7 +451,7 @@ int load_ymal_sources( GNode *node, gpointer data )
 	cd->num_sources = g_node_n_children( node );
 	tprintf( "Number of sources: %i\n", cd->num_sources );
 	set_param_id( op ); // set analytical parameter id's
-	pd->nParam = cd->num_sources * cd->num_source_params + cd->num_aquifer_params;
+	pd->nAnalParam = pd->nParam = cd->num_sources * cd->num_source_params + cd->num_aquifer_params;
 	set_param_arrays( pd->nParam, op );
 	set_param_names( op );
 	cd->solution_type = ( int * ) malloc( cd->num_sources * sizeof( int ) );
@@ -495,7 +495,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 	tprintf( "Number of parameters: %i\n", num_param );
 	if( !internal )
 	{
-		pd->nParam = num_param;
+		pd->nAnalParam = pd->nParam = num_param;
 		set_param_arrays( pd->nParam, op );
 	}
 	else
@@ -638,13 +638,6 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			pd->var_range[index] = pd->var_max[index] - pd->var_min[index];
 			if( pd->var_dx[index] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
 		}
-	}
-	if( internal )
-	{
-		if( cd->num_sources > 1 ) k = cd->num_source_params * ( cd->num_sources - 1 );
-		else k = 0;
-		if( fabs( pd->var[k + TSCALE_DISP] - 1 ) < COMPARE_EPSILON || pd->var[k + TSCALE_DISP] < COMPARE_EPSILON ) cd->scaling_dispersion = 0;
-		else cd->scaling_dispersion = 1;
 	}
 #ifdef MATHEVAL
 	for( i = 0; i < pd->nExpParam; i++ )

@@ -112,7 +112,6 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int energy; // starting energy for pssa particles
 	int disp_tied;
 	int disp_scaled;
-	int scaling_dispersion;
 	int save;
 	int pargen;
 	int obs_int;
@@ -180,6 +179,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 struct param_data // data structure for model parameters
 {
 	int nParam; // number of parameters
+	int nAnalParam; // global number of parameter for internal analytical solutions
 	int nOptParam; // number of optimized parameters
 	int nFlgParam; // number of special (flagged) parameters
 	int nFixParam; // number of fixed parameters

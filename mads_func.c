@@ -648,10 +648,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	else
 	{
-		if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
-		l = p->cd->num_source_params * p->cd->num_sources + p->cd->num_aquifer_params;
-		p2 = p->cd->num_source_params;
-		for( p1 = p->cd->num_source_params * p->cd->num_sources; p1 < l; p1++, p2++ )
+		for( p1 = p->cd->num_source_params * p->cd->num_sources, p2 = p->cd->num_source_params; p1 < p->pd->nAnalParam; p1++, p2++ )
 			p->ad->var[p2] = p->cd->var[p1];
 		if( p->cd->disp_tied && p->cd->disp_scaled == 0 ) // Tied dispersivities
 		{
@@ -663,6 +660,15 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 			p->ad->var[AY] = p->ad->var[AX] / p->ad->var[AY];
 			p->ad->var[AZ] = p->ad->var[AY] / p->ad->var[AZ];
 		}
+		if( p->cd->fdebug > 10 )
+		{
+			for( i = 0; i < p->pd->nAnalParam; i++ )
+			{
+				tprintf( "%s %g\n", p->pd->var_name[i], p->cd->var[i] );
+			}
+			for( k = 0; k < p->rd->regul_nMap; k++ ) { tprintf( "%s %g\n", p->rd->regul_map_id[k], p->rd->regul_map_val[k] ); }
+		}
+		if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
 		for( k = 0; k < p->od->nTObs; k++ ) // for computational efficiency performed only for observations with weight > DBL_EPSILON
 		{
 			if( p->cd->oderiv != -1 ) { k = p->cd->oderiv; }
@@ -708,7 +714,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 							tprintf( "AZ %.12g\n", p->ad->var[AZ] );
 						}
 					}
-					p->ad->scaling_dispersion = p->cd->scaling_dispersion;
+					if( fabs( p->ad->var[TSCALE_DISP] - 1 ) < COMPARE_EPSILON || p->ad->var[TSCALE_DISP] == 0. ) p->ad->scaling_dispersion = 0;
+					else p->ad->scaling_dispersion = 1;
 					// TODO merge func_intrn and func_solver; func_intrn is called by methods (PE, UQ, ..); func_solver is called by forward and grid solvers
 					if( p->cd->obs_int == 1 ) // TODO add other integration models ...
 					{
@@ -1004,7 +1011,8 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 				tprintf( "AZ %.12g\n", ad.var[AZ] );
 			}
 		}
-		ad.scaling_dispersion = cd->scaling_dispersion;
+		if( fabs( ad.var[TSCALE_DISP] - 1 ) < COMPARE_EPSILON || ad.var[TSCALE_DISP] == 0. ) ad.scaling_dispersion = 0;
+		else ad.scaling_dispersion = 1;
 		if( cd->fdebug > 6 )
 			for( i = 0; i < num_params; i++ )
 				tprintf( "func_solver1 source #%d parameter #%d %g\n", s + 1, i + 1, ad.var[i] );

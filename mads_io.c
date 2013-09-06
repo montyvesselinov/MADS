@@ -170,11 +170,10 @@ void init_scaling_params( struct opt_data *op )
 	cd->var[k + TSCALE_ADV] = pd->var[k + TSCALE_ADV] = 1;
 	cd->var[k + TSCALE_REACT] = pd->var[k + TSCALE_REACT] = 1;
 	pd->var_opt[k + TSCALE_DISP] = 0; pd->var_opt[k + TSCALE_ADV] = 0; pd->var_opt[k + TSCALE_REACT] = 0;
-	pd->var_log[k + TSCALE_DISP] = 1; pd->var_log[k + TSCALE_ADV] = 1; pd->var_log[k + TSCALE_REACT] = 1;
+	pd->var_log[k + TSCALE_DISP] = 0; pd->var_log[k + TSCALE_ADV] = 0; pd->var_log[k + TSCALE_REACT] = 0;
 	pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
 	pd->var_min[k + TSCALE_DISP] = 0.1; pd->var_min[k + TSCALE_ADV] = 0.1; pd->var_min[k + TSCALE_REACT] = 0.1;
 	pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
-	cd->scaling_dispersion = 0;
 }
 
 int parse_cmd_debug( char *buf )
@@ -688,31 +687,32 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( cd->solution_type[0] != TEST && cd->solution_type[0] != EXTERNAL )
 	{
 		set_param_id( op ); // set analytical parameter id's
-		k = cd->num_source_params * cd->num_sources + cd->num_aquifer_params;
-		if( k != pd->nParam )
+		pd->nAnalParam = cd->num_source_params * cd->num_sources + cd->num_aquifer_params;
+		if( pd->nAnalParam != pd->nParam )
 		{
-			tprintf( "WARNING: Internal analytical solver expects %d parameters (%d != %d)!\n", k, k, pd->nParam );
+			tprintf( "WARNING: Internal analytical solver expects %d parameters (%d != %d)!\n", pd->nAnalParam , pd->nAnalParam , pd->nParam );
 			// bad_data = 1; TODO revisit this; currently the code does not check for consistency
 			// return( -1 );
 		}
-		pd->var_id = char_matrix( k, 10 );
-		pd->var_name = char_matrix( k, 50 );
-		for( i = 0; i < k; i++ )
+		pd->var_id = char_matrix( pd->nAnalParam , 10 );
+		pd->var_name = char_matrix( pd->nAnalParam , 50 );
+		for( i = 0; i < pd->nAnalParam ; i++ )
 			pd->var_id[i][0] = pd->var_name[i][0] = 0;
-		pd->var = ( double * ) malloc( k * sizeof( double ) );
-		cd->var = ( double * ) malloc( k * sizeof( double ) );
-		pd->var_opt = ( int * ) malloc( k * sizeof( int ) );
-		pd->var_log = ( int * ) malloc( k * sizeof( int ) );
-		pd->var_dx = ( double * ) malloc( k * sizeof( double ) );
-		pd->var_min = ( double * ) malloc( k * sizeof( double ) );
-		pd->var_max = ( double * ) malloc( k * sizeof( double ) );
-		pd->var_range = ( double * ) malloc( k * sizeof( double ) );
-		pd->param_expressions_index = ( int * ) malloc( k * sizeof( int ) );
-		pd->param_expression = ( void ** ) malloc( k * sizeof( void * ) );
+		pd->var = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
+		cd->var = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
+		pd->var_opt = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
+		pd->var_log = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
+		pd->var_dx = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
+		pd->var_min = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
+		pd->var_max = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
+		pd->var_range = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
+		pd->param_expressions_index = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
+		pd->param_expression = ( void ** ) malloc( pd->nAnalParam  * sizeof( void * ) );
 		init_scaling_params( op );
 	}
 	else
 	{
+		pd->nAnalParam = pd->nParam; // just in case
 		pd->var_name = char_matrix( pd->nParam, 50 );
 		pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
@@ -972,8 +972,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		}
 		if( cd->num_sources > 1 ) k = cd->num_source_params * ( cd->num_sources - 1 );
 		else k = 0;
-		if( fabs( pd->var[k + TSCALE_DISP] - 1 ) < COMPARE_EPSILON || pd->var[k + TSCALE_DISP] < COMPARE_EPSILON ) cd->scaling_dispersion = 0;
-		else cd->scaling_dispersion = 1;
 		if( op->cd->debug )
 		{
 			tprintf( "\nParameter ID's:\n" );
@@ -1220,7 +1218,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		rd->regul_max = ( double * ) malloc( rd->nRegul * sizeof( double ) );
 		rd->regul_log = ( int * ) malloc( rd->nRegul * sizeof( int ) );
 #ifdef MATHEVAL
-		rd->regul_nMap = pd->nParam + od->nObs; // rd->nRegul is not needed
+		rd->regul_nMap = pd->nAnalParam + od->nObs; // rd->nRegul is not needed
 		rd->regul_map_id = ( char ** ) malloc( ( rd->regul_nMap ) * sizeof( char * ) );
 		rd->regul_map_val = ( double * ) malloc( ( rd->regul_nMap + rd->nRegul ) * sizeof( double ) ); // rd->nRegul added to accommodate cd->obs_current
 #endif
@@ -1268,13 +1266,13 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 #endif
 		}
 #ifdef MATHEVAL
-		for( k = 0; k < pd->nParam; k++ ) { rd->regul_map_id[k] = pd->var_id[k]; rd->regul_map_val[k] = cd->var[k]; }
-		for( i = pd->nParam, k = 0; k < od->nObs; k++, i++ ) { rd->regul_map_id[i] = od->obs_id[k]; rd->regul_map_val[i] = od->obs_current[k] = od->obs_target[k]; }
+		for( k = 0; k < pd->nAnalParam; k++ ) { rd->regul_map_id[k] = pd->var_id[k]; rd->regul_map_val[k] = cd->var[k]; }
+		for( i = pd->nAnalParam, k = 0; k < od->nObs; k++, i++ ) { rd->regul_map_id[i] = od->obs_id[k]; rd->regul_map_val[i] = od->obs_current[k] = od->obs_target[k]; }
 		// free( cd->var ); // TODO Linux fails to free cd->var; needs debugging
 		free( od->obs_current );
 		cd->var = &rd->regul_map_val[0];
-		od->obs_current = &rd->regul_map_val[pd->nParam];
-		// for( k = 0; k < rd->regul_nMap; k++ ) { tprintf( "%s %g\n", rd->regul_map_id[k], rd->regul_map_val[k] ); }
+		od->obs_current = &rd->regul_map_val[pd->nAnalParam];
+		for( k = 0; k < rd->regul_nMap; k++ ) { tprintf( "%s %g\n", rd->regul_map_id[k], rd->regul_map_val[k] ); }
 #endif
 		if( cd->debug )
 		{
@@ -2100,7 +2098,7 @@ int map_obs( struct opt_data *op )
 	od->obs_best = od2.obs_best;
 	od->res = od2.res;
 	od->obs_log = od2.obs_log;
-	for( i = pd->nParam, k = 0; k < od->nObs; k++, i++ ) rd->regul_map_id[i] = od->obs_id[k];
+	for( i = pd->nAnalParam, k = 0; k < od->nObs; k++, i++ ) rd->regul_map_id[i] = od->obs_id[k]; // remap the pointer to the new observation id array
 	// for( k = 0; k < rd->regul_nMap; k++ ) tprintf( "%s %g\n", rd->regul_map_id[k], rd->regul_map_val[k] );
 	return( 1 );
 }
