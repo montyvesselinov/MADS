@@ -254,15 +254,11 @@ struct well_data // data structure for well data (INTERNAL PROBLEM)
 	double *y;
 	double *z1;
 	double *z2;
-	double *xa; // adjusted well coordinates
-	double *ya;
-	double *za1;
-	double *za2;
 	int    *nWellObs; // number of observations at the wells
 	double **obs_time; // observation time
 	double **obs_target; // observation value (target)
-	int **obs_log; // log transformation
 	double **obs_weight; // observation weight
+	int **obs_log; // log transformation
 	double **obs_min; // observation min
 	double **obs_max; // observation max
 };

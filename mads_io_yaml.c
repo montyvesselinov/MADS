@@ -888,21 +888,17 @@ int load_ymal_wells( GNode *node, gpointer data )
 	wd->nW = g_node_n_children( node );
 	tprintf( "Number of wells: %i\n", wd->nW );
 	wd->id = char_matrix( wd->nW, 40 );
-	wd->x = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->y = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->z1 = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->z2 = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->xa = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->ya = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->za1 = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->za2 = ( double * ) malloc( wd->nW * sizeof( double ) );
-	wd->nWellObs = ( int * ) malloc( wd->nW * sizeof( int ) );
-	wd->obs_target = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) );
-	wd->obs_time = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	wd->obs_weight = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-	wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) );
+	if( ( wd->x = ( double * ) malloc( wd->nW * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->y = ( double * ) malloc( wd->nW * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->z1 = ( double * ) malloc( wd->nW * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->z2 = ( double * ) malloc( wd->nW * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->nWellObs = ( int * ) malloc( wd->nW * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_time = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_target = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_weight = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	od->nObs = preds->nTObs = 0;
 	for( i = 0; i < wd->nW; i++ ) // Number of wells loop
 	{
@@ -927,12 +923,12 @@ int load_ymal_wells( GNode *node, gpointer data )
 				if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
 				if( wd->nWellObs[i] > 0 )
 				{
-					wd->obs_target[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-					wd->obs_time[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-					wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) );
-					wd->obs_weight[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-					wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-					wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
+					if( ( wd->obs_time[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+					if( ( wd->obs_target[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+					if( ( wd->obs_weight[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+					if( ( wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+					if( ( wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+					if( ( wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 					for( j = 0; j < wd->nWellObs[i]; j++ )
 					{
 						node_obs = g_node_nth_child( node_key, j );
@@ -1076,7 +1072,9 @@ int load_ymal_time( GNode *node, gpointer data )
 		if( !strcasecmp( ( char * ) node_key->data, "end" ) ) sscanf( ( char * ) node_value->data, "%lf", &gd->max_t );
 		if( !strcasecmp( ( char * ) node_key->data, "step" ) ) sscanf( ( char * ) node_value->data, "%lf", &gd->dt );
 	}
-	if( cd->debug ) tprintf( "Breakthrough-curve time window: start %g end %g step %g\n", gd->min_t, gd->max_t, gd->dt );
+	gd->nt = 1 + ( int )( ( double )( gd->max_t - gd->min_t ) / gd->dt );
+	if( gd->nt < 0 ) gd->nt = 0;
+	if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g number of time steps: %g\n", gd->min_t, gd->max_t, gd->dt, gd->nt );
 	return( 1 );
 }
 

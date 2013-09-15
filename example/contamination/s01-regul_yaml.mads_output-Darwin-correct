@@ -129,7 +129,7 @@ Grid lines: 25 29 1
 Grid Minimums: 499000 538300 0
 Grid Maximums: 500200 539400 0.1
 Process Time ... Number of time components: 3
-Breakthrough-curve time window: start 0 end 0 step 1
+Breakthrough-curve time window: 0 0 1 number of time steps: 0
 
 Number of optimized parameters = 11
 Source x coordinate [L]    :x     : init      1124 step       25 min       210 max      1460
@@ -163,7 +163,7 @@ Number of regularization terms = 3
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130904-215448
+Execution date & time stamp: 20130915-093653
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -877,6 +877,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Wed Sep  4 21:54:48 2013
-Execution completed on Wed Sep  4 21:54:48 2013
-Execution date & time stamp: 20130904-215448
+Execution  started  on Sun Sep 15 09:36:53 2013
+Execution completed on Sun Sep 15 09:36:53 2013
+Execution date & time stamp: 20130915-093653

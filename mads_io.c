@@ -89,7 +89,7 @@ int check_mads_problem( char *filename )
 	char *separator = " \t\n";
 	int c;
 	if( ( infile = fopen( filename, "r" ) ) == NULL ) return( 0 ); // No file
-	fscanf( infile, "%[^\n]s", buf );
+	fscanf( infile, "%1000[^\n]s", buf );
 	fclose( infile );
 	// check the first line in the file
 	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
@@ -579,6 +579,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	ed = op->ed;
 	pd->nParam = pd->nFixParam = pd->nFlgParam = pd->nOptParam = pd->nExpParam = 0;
 	od->nObs = od->nTObs = od->nCObs = 0;
+	gd->min_t = gd->time = 0;
 	// IMPORTANT
 	// internal problem: nCObs = nObs
 	// external problem: nTObs = nObs
@@ -598,7 +599,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	if( nofile == 0 )
 	{
 		// Read commands in the file
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fscanf( infile, "%[^\n]s\n", buf ); fscanf( infile, "\n" );
+		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ":" ); fscanf( infile, "%1000[^\n]s\n", buf ); fscanf( infile, "\n" );
 		if( sscanf( buf, "%i", &pd->nParam ) == 1 ) { buf[0] = 0; skip = 1; }
 	}
 	else buf[0] = 0;
@@ -612,7 +613,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	// Read Solution Type
 	cd->solution_id = ( char * ) malloc( 150 * sizeof( char ) ); // Needed only to save text MADS files
 	cd->solution_id[0] = 0;
-	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%[^:]s", buf ); fscanf( infile, ":" ); fgets( cd->solution_id, 150, infile ); /*fscanf( infile, "%s\n", cd->solution_id );*/ }
+	if( nofile == 0 && skip == 0 ) { fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ":" ); fgets( cd->solution_id, 150, infile ); /*fscanf( infile, "%s\n", cd->solution_id );*/ }
 	strcpy( buf, cd->solution_id );
 	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
 		if( cd->debug > 1 ) tprintf( "Model #%d %s\n", c + 1, word );
@@ -682,7 +683,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	rd->nRegul = 0;
 	// ------------------------------------------------------------ Reading parameters ----------------------------------------------------------------
-	if( skip == 0 ) fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i\n", &pd->nParam );
+	if( skip == 0 ) fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %i\n", &pd->nParam );
 	tprintf( "\nNumber of model parameters: %d\n", pd->nParam );
 	if( cd->solution_type[0] != TEST && cd->solution_type[0] != EXTERNAL )
 	{
@@ -729,7 +730,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	for( i = 0; i < pd->nParam; i++ )
 	{
 		pd->var[i] = 0;
-		fscanf( infile, "%[^:=]s", pd->var_name[i] );
+		fscanf( infile, "%50[^:=]s", pd->var_name[i] );
 		fscanf( infile, "%c", &charecter );
 		white_skip( &pd->var_name[i] );
 		white_trim( pd->var_name[i] );
@@ -793,7 +794,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		{
 			if( cd->debug ) tprintf( "%-27s =", pd->var_name[i] );
 			pd->var_opt[i] = pd->var_log[i] = 0;
-			fscanf( infile, "%[^\n]s", buf );
+			fscanf( infile, "%1000[^\n]s", buf );
 			fscanf( infile, "\n" );
 			if( cd->debug ) tprintf( " %s", buf );
 #ifdef MATHEVAL
@@ -1047,7 +1048,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	}
 	if( pd->nParam == 0 || ( pd->nOptParam == 0 && pd->nFlgParam == 0 ) ) { tprintf( "\nERROR: Number of model parameters is zero!\n\n" ); bad_data = 1; }
 	if( bad_data ) return( 0 );
-	fscanf( infile, "%[^:]s", buf );
+	fscanf( infile, "%1000[^:]s", buf );
 	// ------------------------------------------------------------ Reading Observations ----------------------------------------------------------------
 	// ------------------------------------------------------------ Reading external problem ----------------------------------------------------------------
 	if( cd->solution_type[0] == EXTERNAL )
@@ -1118,23 +1119,19 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	{
 		// ------------------------------------------------------------ Reading internal problem ----------------------------------------------------------------
 		fscanf( infile, ": %i\n", &wd->nW );
-		if( cd->debug ) tprintf( "Number of wells: %d\n", wd->nW );
+		tprintf( "Number of wells: %d\n", wd->nW );
 		wd->id = char_matrix( wd->nW, 40 );
-		wd->x = ( double * ) malloc( wd->nW * sizeof( double ) );
-		wd->y = ( double * ) malloc( wd->nW * sizeof( double ) );
-		wd->z1 = ( double * ) malloc( wd->nW * sizeof( double ) );
-		wd->z2 = ( double * ) malloc( wd->nW * sizeof( double ) );
-		wd->xa = ( double * ) malloc( wd->nW * sizeof( double ) );
-		wd->ya = ( double * ) malloc( wd->nW * sizeof( double ) );
-		wd->za1 = ( double * ) malloc( wd->nW * sizeof( double ) );
-		wd->za2 = ( double * ) malloc( wd->nW * sizeof( double ) );
-		wd->nWellObs = ( int * ) malloc( wd->nW * sizeof( int ) );
-		wd->obs_target = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-		wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) );
-		wd->obs_time = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-		wd->obs_weight = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-		wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) );
-		wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) );
+		if( ( wd->x = ( double * ) malloc( wd->nW * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->y = ( double * ) malloc( wd->nW * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->z1 = ( double * ) malloc( wd->nW * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->z2 = ( double * ) malloc( wd->nW * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->nWellObs = ( int * ) malloc( wd->nW * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_time = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_target = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_weight = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		od->nObs = preds->nTObs = 0;
 		if( cd->debug ) tprintf( "\nObservation data:\n" );
 		for( i = 0; i < wd->nW; i++ )
@@ -1143,12 +1140,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( status != 6 ) { tprintf( "ERROR: Well %s data provided in the input file %s is incomplete; input file error!\n", wd->id[i], filename ); bad_data = 1; }
 			if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
 			if( wd->nWellObs[i] <= 0 ) { if( cd->debug ) tprintf( "WARNING: no observations!\n" ); fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &d, &d, &d, &j, &d, &d ); continue; }
-			wd->obs_target[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-			wd->obs_time[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-			wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) );
-			wd->obs_weight[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-			wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
-			wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) );
+			if( ( wd->obs_time[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_target[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_weight[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			for( j = 0; j < wd->nWellObs[i]; j++ )
 			{
 				wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
@@ -1161,7 +1158,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 					bad_data = 1;
 				}
 				if( cd->obsdomain > DBL_EPSILON && wd->obs_weight[i][j] > DBL_EPSILON ) { wd->obs_min[i][j] = wd->obs_target[i][j] - cd->obsdomain; wd->obs_max[i][j] = wd->obs_target[i][j] + cd->obsdomain; }
-				if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
 				if( cd->ologtrans == 1 ) wd->obs_log[i][j] = 1;
 				else if( cd->ologtrans == 0 ) wd->obs_log[i][j] = 0;
 				if( cd->oweight == 1 ) wd->obs_weight[i][j] = 1;
@@ -1190,7 +1186,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		map_well_obs( op );
 	}
 	// ------------------------------------------------------------ Reading regularization terms ----------------------------------------------------------------
-	fscanf( infile, "%[^:]s", buf );
+	fscanf( infile, "%1000[^:]s", buf );
 	if( !strncasecmp( buf, "Number of regul", 15 ) )
 	{
 		if( cd->debug && short_names_printed == 0 ) // if param names and values are not already printed (above for param expressions)
@@ -1228,7 +1224,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		for( i = 0; i < rd->nRegul; i++ )
 		{
 			sprintf( rd->regul_id[i], "reg%d", i + 1 );
-			fscanf( infile, "%[^=]s", buf );
+			fscanf( infile, "%1000[^=]s", buf );
 			fscanf( infile, "= %lf %lf %i %lf %lf\n", &rd->regul_target[i], &rd->regul_weight[i], &rd->regul_log[i], &rd->regul_min[i], &rd->regul_max[i] );
 			if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], buf );
 			if( !( rd->regul_weight[i] > DBL_EPSILON ) ) tprintf( " WARNING Weight <= 0 " );
@@ -1291,7 +1287,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 #endif
 			}
 		}
-		fscanf( infile, "%[^:]s", buf );
+		fscanf( infile, "%1000[^:]s", buf );
 	}
 	else tprintf( "Number of regularization terms = %d\n", rd->nRegul );
 	if( bad_data ) return ( 0 );
@@ -1399,7 +1395,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			tprintf( "ERROR: Program \'%s\' does not exist or cannot be executed!\n", file );
 			bad_data = 1;
 		}
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %d\n", &ed->ntpl );
+		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %d\n", &ed->ntpl );
 		ed->fn_tpl = char_matrix( ed->ntpl, 80 );
 		ed->fn_out = char_matrix( ed->ntpl, 80 );
 		for( i = 0; i < ed->ntpl; i++ )
@@ -1415,7 +1411,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		tprintf( "- to provide current model parameters:\n" );
 		for( i = 0; i < ed->ntpl; i++ )
 			tprintf( "%s -> %s\n", ed->fn_tpl[i], ed->fn_out[i] );
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %d\n", &ed->nins );
+		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %d\n", &ed->nins );
 		ed->fn_ins = char_matrix( ed->nins, 80 );
 		ed->fn_obs = char_matrix( ed->nins, 80 );
 		for( i = 0; i < ed->nins; i++ )
@@ -1440,10 +1436,10 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	{
 		// ------------------------------------------------------------ Read grid and breakthrough computational data ----------------------------------------------------------------
 		fscanf( infile, ": %lf\n", &gd->time );
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &gd->nx, &gd->ny, &gd->nz );
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->min_x, &gd->min_y, &gd->min_z );
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->max_x, &gd->max_y, &gd->max_z );
-		fscanf( infile, "%[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->min_t, &gd->max_t, &gd->dt );
+		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %i %i %i\n", &gd->nx, &gd->ny, &gd->nz );
+		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->min_x, &gd->min_y, &gd->min_z );
+		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->max_x, &gd->max_y, &gd->max_z );
+		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %lf %lf %lf\n", &gd->min_t, &gd->max_t, &gd->dt );
 		fclose( infile );
 		if( cd->debug )
 		{
@@ -1459,8 +1455,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		// if(gd->nz == 1 ) gd->dz = gd->max_z - gd->min_z ); // In this way compute_grid computed for min_z
 		if( gd->nz == 1 ) gd->dz = 0;
 		else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
-		if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
 		gd->nt = 1 + ( int )( ( double )( gd->max_t - gd->min_t ) / gd->dt );
+		if( gd->nt < 0 ) gd->nt = 0;
+		if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g number of time steps: %g\n", gd->min_t, gd->max_t, gd->dt, gd->nt );
 	}
 	return( 1 );
 }

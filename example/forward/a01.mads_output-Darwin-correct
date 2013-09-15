@@ -34,13 +34,14 @@ Number of optimized parameters = 11
 Number of flagged parameters = 0
 Number of fixed parameters = 8
 Number of parameters with computational expressions (coupled or tied parameters) = 0
+Number of wells: 4
 Number of calibration targets = 4
 WARNING: Number of optimized model parameters is greater than number of observations and regularizations (11>4)
 Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130904-215507
+Execution date & time stamp: 20130915-093712
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -72,6 +73,6 @@ Objective function: 1.14703e-26 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Wed Sep  4 21:55:07 2013
-Execution completed on Wed Sep  4 21:55:07 2013
-Execution date & time stamp: 20130904-215507
+Execution  started  on Sun Sep 15 09:37:12 2013
+Execution completed on Sun Sep 15 09:37:12 2013
+Execution date & time stamp: 20130915-093712
