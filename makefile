@@ -418,6 +418,12 @@ verify-forward:
 	cd example/forward; ../../mads a05 > /dev/null
 	@$(CMP) example/forward/a05.mads_output example/forward/a05.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a05.results example/forward/a05.results-$(OS)-correct
+	@echo "" 
+	@echo "TEST 9.6: Box source | Levy ... "
+	rm -f example/forward/a06.mads_output example/forward/a06.results
+	cd example/forward; ../../mads a06_yaml > /dev/null
+	@$(CMP) example/forward/a06_yaml.mads_output example/forward/a06_yaml.mads_output-$(OS)-correct
+	@$(CMP) example/forward/a06_yaml.results example/forward/a06_yaml.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 9: DONE"
 	@echo ""

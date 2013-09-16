@@ -48,7 +48,7 @@
 int check_mads_problem( char *filename );
 int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op );
-void init_scaling_params( struct opt_data *op );
+void init_params( struct opt_data *op );
 int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
@@ -115,6 +115,7 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->qd->param_id[3], "tetha" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
 	strcpy( op->qd->param_id[10], "ts_dsp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_rct" );
+	strcpy( op->qd->param_id[13], "alpha" ); strcpy( op->qd->param_id[14], "beta" ); strcpy( op->qd->param_id[15], "nlc0" );
 	op->sd->param_name = char_matrix( op->cd->num_source_params, 50 );
 	op->qd->param_name = char_matrix( op->cd->num_aquifer_params, 50 );
 	strcpy( op->sd->param_name[0], "Source x coordinate [L]" ); strcpy( op->sd->param_name[1], "Source y coordinate [L]" ); strcpy( op->sd->param_name[2], "Source z coordinate [L]" );
@@ -124,6 +125,7 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->qd->param_name[3], "Flow Angle [degrees]" ); strcpy( op->qd->param_name[4], "Pore x velocity [L/T]" ); strcpy( op->qd->param_name[5], "Pore y velocity [L/T]" ); strcpy( op->qd->param_name[6], "Pore z velocity [L/T]" );
 	strcpy( op->qd->param_name[7], "Dispersivity x [L]" ); strcpy( op->qd->param_name[8], "Dispersivity y [L]" ); strcpy( op->qd->param_name[9], "Dispersivity z [L]" );
 	strcpy( op->qd->param_name[10], "Time Scale Dispersivity [-]" ); strcpy( op->qd->param_name[11], "Time Scale Advection [-]" ); strcpy( op->qd->param_name[12], "Time Scale Reaction [-]" );
+	strcpy( op->qd->param_name[13], "Levy alpha [-]" ); strcpy( op->qd->param_name[14], "Levy beta [-]" ); strcpy( op->qd->param_name[15], "NLC 0 [-]" );
 	return( 1 );
 }
 
@@ -156,7 +158,7 @@ int set_param_names( struct opt_data *op )
 	return( 1 );
 }
 
-void init_scaling_params( struct opt_data *op )
+void init_params( struct opt_data *op )
 {
 	struct opt_data *p = ( struct opt_data * ) op;
 	struct param_data *pd;
@@ -174,6 +176,15 @@ void init_scaling_params( struct opt_data *op )
 	pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
 	pd->var_min[k + TSCALE_DISP] = 0.1; pd->var_min[k + TSCALE_ADV] = 0.1; pd->var_min[k + TSCALE_REACT] = 0.1;
 	pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
+
+	cd->var[k + ALPHA] = pd->var[k + ALPHA] = 2.;
+	cd->var[k + BETA] = pd->var[k + BETA] = 0.;
+	cd->var[k + NLC0] = pd->var[k + NLC0] = 1.;
+	pd->var_opt[k + ALPHA] = 0; pd->var_opt[k + BETA] = 0; pd->var_opt[k + NLC0] = 0;
+	pd->var_log[k + ALPHA] = 0; pd->var_log[k + BETA] = 0; pd->var_log[k + NLC0] = 0;
+	pd->var_dx[k + ALPHA] = 0.1; pd->var_dx[k + BETA] = 0.1; pd->var_dx[k + NLC0] = 0.1;
+	pd->var_min[k + ALPHA] = 0.5; pd->var_min[k + BETA] = -1.; pd->var_min[k + NLC0] = 0.1;
+	pd->var_max[k + ALPHA] = 2; pd->var_max[k + BETA] = 1.; pd->var_max[k + NLC0] = 2.;
 }
 
 int parse_cmd_debug( char *buf )
@@ -202,6 +213,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->problem_type = UNKNOWN;
 	cd->calib_type = SIMPLE;
 	cd->solution_type[0] = EXTERNAL;
+	cd->levy = 0;
 	cd->objfunc_type = SSR;
 	cd->check_success = 0;
 	cd->c_background = 0;
@@ -361,6 +373,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "gau", 3 ) ) { w = 1; if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
 		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) ) cd->solution_type[0] = PLANE3D; else cd->solution_type[0] = PLANE; }
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; cd->solution_type[0] = BOX; }
+		if( !strncasecmp( word, "levy", 4 ) ) { w = 1; cd->levy = 1; }
 		if( !strncasecmp( word, "point_tri", 9 ) ) { w = 1; cd->solution_type[0] = POINT_TRIANGLE_TIME; }
 		if( !strncasecmp( word, "obs_int=", 8 ) ) { w = 1; sscanf( word, "obs_int=%d", &cd->obs_int ); if( cd->obs_int > 2 || cd->obs_int < 1 ) cd->obs_int = 2; }
 		if( !strncasecmp( word, "paran", 5 ) ) { w = 1; cd->paranoid = 1; } // legacy
@@ -709,7 +722,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		pd->var_range = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->param_expressions_index = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
 		pd->param_expression = ( void ** ) malloc( pd->nAnalParam  * sizeof( void * ) );
-		init_scaling_params( op );
+		init_params( op );
 	}
 	else
 	{

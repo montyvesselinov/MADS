@@ -83,7 +83,7 @@ const char *key_yes_no( int i );
 /* Functions in mads_io */
 int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op );
-void init_scaling_params( struct opt_data *op );
+void init_params( struct opt_data *op );
 int parse_cmd( char *buf, struct calc_data *cd );
 int set_optimized_params( struct opt_data *op );
 int map_obs( struct opt_data *op );
@@ -212,6 +212,8 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 					default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 				}
 			}
+			if( cd->levy == 1 ) tprintf( " | Levy dispersion" );
+			else tprintf( " | Gaussian dispersion" );
 			if( cd->c_background ) tprintf( " | background concentration = %g", cd->c_background );
 			tprintf( "\n" );
 		}
@@ -387,6 +389,8 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 				default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 			}
 		}
+		if( cd->levy == 1 ) tprintf( " | Levy dispersion" );
+		else tprintf( " | Gaussian dispersion" );
 		if( cd->c_background ) tprintf( " | background concentration = %g", cd->c_background );
 		tprintf( "\n" );
 		found = 1;
@@ -502,7 +506,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 	{
 		if( num_param != num_keys )
 			tprintf( "WARNING: The number of provided parameters (%d) is different than the number of expected parameters (%d)\n", num_param, num_keys );
-		init_scaling_params( op );
+		init_params( op );
 	}
 	for( i = 0; i < num_param; i++ )
 	{

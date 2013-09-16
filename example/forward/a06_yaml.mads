@@ -1,0 +1,58 @@
+Problem: { forward, levy: 1, obs_int: 2 }
+Solution: internal
+Sources: 
+- box: {
+  x:  { longname: "Source x coordinate [L]", init: 1124, type: null, log:  no, step: 25, min:  210,    max: 1460 },
+  y:  { longname: "Source y coordinate [L]", init: 1393, type: null, log:  no, step: 25, min: 1230,    max: 1930 },
+  z:  { longname: "Source z coordinate [L]", init:    0, type: null, log:  no, step:  1, min:    0,    max:  100 },
+  dx: { longname: "Source x dimension [L]",  init:  258, type: null, log:  no, step:  1, min:    1,    max:  500 },
+  dy: { longname: "Source y dimension [L]",  init:  273, type: null, log:  no, step:  1, min:    1,    max:  500 },
+  dz: { longname: "Source z dimension [L]",  init:    1, type: null, log:  no, step:  1, min:    1,    max:   10 },
+  f:  { longname: "Contaminant flux [M/T]",  init:   16, type: null, log: yes, step: 10, min:    0.01, max:  100 },
+  t0: { longname: "Start Time [T]",          init:    0, type: null, log:  no, step:  1, min:    0,    max:   43 },
+  t1: { longname: "End Time [T]",            init:  100, type: null, log:  no, step:  1, min:    1,    max:  100 } }
+Parameters:
+- n:      { longname: "Porosity [L3/L3]",       init:  0.1, type: null, log: yes, step: 0.1, min:   0,    max:   1 }
+- rf:     { longname: "Retardation Factor [-]", init:  1,   type: null, log:  no, step: 1,   min:   1,    max:  10 }
+- lambda: { longname: "Half-life decay [1/T]",  init:  0,   type: null, log:  no, step: 1,   min:   0,    max:   1 }
+- tetha:  { longname: "Flow Angle [degrees]",   init:  3,   type: null, log:  no, step: 5,   min: -30,    max:  30 }
+- vx:     { longname: "Pore x velocity [L/T]",  init:  5,   type: null, log: yes, step: 1,   min:   0.01, max: 200 }
+- vy:     { longname: "Pore y velocity [L/T]",  init:  0,   type: null, log:  no, step: 1,   min:   0,    max:   1 }
+- vz:     { longname: "Pore z velocity [L/T]",  init:  0,   type: null, log:  no, step: 1,   min:   0,    max:   1 }
+- ax:     { longname: "Dispersivity x [L]",     init: 70,   type: null, log: yes, step: 5,   min:  10,    max: 140 }
+- ay:     { longname: "Dispersivity y [L]",     init: 15,   type: null, log: yes, step: 5,   min:   1,    max:  30 }
+- az:     { longname: "Dispersivity z [L]",     init:  0.3, type: null, log: yes, step: 0.1, min:   0.1,  max:   1 }
+- ts_dsp: { longname: "Time Scale Dispersivity [-]", init:  1.0, type: null, log: yes, step: 0.1, min:   0.5,  max:   2 }
+- ts_adv: { longname: "Time Scale Advection [-]",    init:  1.0, type:  null, log: yes, step: 0.1, min:   0.5,  max:   2 }
+- ts_rct: { longname: "Time Scale Reaction [-]",     init:  1.0, type:  null, log: yes, step: 0.1, min:   0.5,  max:   2 }
+- alpha:  { longname: "Levy alpha [-]",         init:  1.5, type: null, log: yes, step: 0.1, min:   0.5,  max:   2 }
+- beta:   { longname: "Levy beta [-]",          init:  0.0, type: null, log: yes, step: 0.1, min:   -1,   max:   1 }
+- nlc0:   { longname: "NLC 0 [-]",              init:  1.0, type: null, log: yes, step: 0.1, min:   0.1,  max:   2 }
+Wells:
+- W-1:    { x: 1503, y: 1954, z0:  5.57, z1: 12.55, obs: [ 1: { t: 49, c:   0   , weight: 1, log: no, min:   0, max:   25 } ] }
+- W-2:    { x: 2113, y: 1479, z0: 36.73, z1: 55.14, obs: [ 1: { t: 49, c:   0   , weight: 1, log: no, min:   0, max:   10 } ] }
+- W-3:    { x:  418, y:  950, z0:     0, z1: 15.04, obs: [ 1: { t: 49, c:   0   , weight: 1, log: no, min:   0, max:   25 } ] }
+- W-4:    { x: 1377, y: 1534, z0: 13.15, z1: 20.41, obs: [ 1: { t: 44, c: 350   , weight: 1, log: no, min: 300, max:  700 },
+                                                           2: { t: 49, c: 432   , weight: 1, log: no, min: 300, max:  700 } ] }
+- W-5:    { x: 3268, y: 1074, z0: 26.73, z1: 33.71, obs: [ 1: { t: 49, c:   0   , weight: 1, log: no, min:   0, max:   10 } ] }
+- W-6:    { x: 2112, y: 2294, z0: 69.01, z1: 83.98, obs: [ 1: { t: 49, c:   0   , weight: 1, log: no, min:   0, max:   10 } ] }
+- W-7:    { x: 2086, y: 2284, z0: 11.15, z1: 18.19, obs: [ 1: { t: 49, c:   0   , weight: 1, log: no, min:   0, max:   10 } ] }
+- W-8:    { x: 2770, y: 2119, z0:  4.86, z1: 11.87, obs: [ 1: { t: 49, c:   0   , weight: 1, log: no, min:   0, max:   10 } ] }
+- W-9:    { x:  975, y: 1450, z0:  3.66, z1: 10.09, obs: [ 1: { t: 49, c: 981   , weight: 1, log: no, min: 600, max: 1200 } ] }
+- W-10#1: { x:  723, y: 1599, z0:  3.32, z1:  9.63, obs: [ 1: { t: 49, c:   1.1 , weight: 1, log: no, min:   0, max:    5 } ] }
+- W-10#2: { x:  723, y: 1599, z0: 23.2 , z1: 26.24, obs: [ 1: { t: 49, c:   0.1 , weight: 1, log: no, min:   0, max:    5 } ] }
+- W-11#1: { x: 1850, y: 1368, z0:  4.94, z1:  7.99, obs: [ 1: { t: 49, c:  22   , weight: 1, log: no, min:   3, max:   25 } ] }
+- W-11#2: { x: 1850, y: 1368, z0: 32.46, z1: 35.48, obs: [ 1: { t: 49, c:   0.3 , weight: 1, log: no, min:   0, max:    5 } ] }
+- W-12#1: { x: 1761, y: 1636, z0:  3.59, z1:  6.64, obs: [ 1: { t: 49, c:  15   , weight: 1, log: no, min:   3, max:   25 } ] }
+- W-12#2: { x: 1761, y: 1636, z0: 32.51, z1: 38.61, obs: [ 1: { t: 49, c:   0.17, weight: 1, log: no, min:   0, max:    5 } ] }
+- W-13#1: { x: 1485, y: 1149, z0:  3   , z1:  6   , obs: [ 1: { t: 50, c:  72   , weight: 1, log: no, min:  40, max:  100 } ] }
+- W-13#2: { x: 1485, y: 1149, z0: 36   , z1: 42   , obs: [ 1: { t: 50, c:   0.26, weight: 1, log: no, min:   0, max:   20 } ] }
+- W-14a:  { x:  972, y:  869, z0: 3    , z1:  6   , obs: [ 1: { t: 50, c:   0   , weight: 1, log: no, min:   0, max:    5 } ] }
+- W-14b:  { x:  940, y: 1160, z0: 3    , z1:  6   , obs: [ 1: { t: 50, c:  30   , weight: 1, log: no, min:   0, max:   50 } ] }
+- W-14c:  { x:  900, y: 1260, z0: 3    , z1:  6   , obs: [ 1: { t: 50, c:  10   , weight: 0, log: no, min:   0, max:   20 } ] }
+Grid: {
+ time: 0,
+ xcount: 25, ycount: 29, zcount: 1,
+ xmin: 499000, ymin: 538300, zmin: 0,
+ xmax: 500200, ymax: 539400, zmax: 0.1 }
+Time: { start: 0, end: 0, step: 1 }

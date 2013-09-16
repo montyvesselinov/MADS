@@ -557,8 +557,8 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	double tau_d, tv;
 	double angle, rot1, rot2, xe, ye, ze, x0, y0;
 	double decay_factor, px, py, pz;
-	alpha = 1.5;
-	beta = 1.;
+	alpha = p->var[ALPHA];
+	beta = p->var[BETA];
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
 	angle = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
