@@ -274,7 +274,6 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
-	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_rectangle_source;
 	F.params = p;
 	gsl_set_error_handler_off();
@@ -334,7 +333,6 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
-	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_rectangle_source_vz;
 	F.params = p;
 	gsl_set_error_handler_off();
@@ -398,7 +396,6 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
-	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_gaussian_source_2d;
 	F.params = p;
 	gsl_set_error_handler_off();
@@ -459,7 +456,6 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
-	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_gaussian_source_3d;
 	F.params = p;
 	gsl_set_error_handler_off();
