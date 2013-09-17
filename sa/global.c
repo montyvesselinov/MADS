@@ -234,7 +234,7 @@ int sa_sobol( struct opt_data *op )
 	tprintf( "Global Sensitivity MC results are saved in %s.sobol.results\n", op->root );
 	// Calculate total output mean and variance based on sample a
 	gs.f_hat_0 = fhat / ( 2 * n_sub );
-	gs.D_hat_t = fhat2 / ( 2 * n_sub ) - gs.f_hat_0;
+	gs.D_hat_t = fhat2 / ( 2 * n_sub ) - gs.f_hat_0 * gs.f_hat_0;
 	tprintf( "Total output mean = %g\n", gs.f_hat_0 );
 	tprintf( "Total output variance = %g\n", gs.D_hat_t );
 	gs.f_hat_0 = gsl_stats_mean( phis_full, 1, op->cd->nreal );
