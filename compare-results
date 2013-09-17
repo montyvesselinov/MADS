@@ -13,8 +13,8 @@ if( ! -e $2 ) then
 	echo '--------------------------------------------------------------------------------------------------'
 	exit 0
 endif
-grep -v Execution $1 | grep -v "Functional evaluations per" | grep -v "Simulation time" | grep -v "running exists" >! $1_e_$$
-grep -v Execution $2 | grep -v "Functional evaluations per" | grep -v "Simulation time" | grep -v "running exists" >! $2_e_$$
+grep -v Execution $1 | grep -v "Functional evaluations per" | grep -v "Simulation time" | grep -v "running exists" | grep -v "WARNING: The number of provided parameters" >! $1_e_$$
+grep -v Execution $2 | grep -v "Functional evaluations per" | grep -v "Simulation time" | grep -v "running exists" | grep -v "WARNING: The number of provided parameters" >! $2_e_$$
 # keeep this lines together
 sdiff $1_e_$$ $2_e_$$ > $1_$$
 set a = $?

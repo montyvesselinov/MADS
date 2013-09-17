@@ -922,12 +922,12 @@ int main( int argn, char *argv[] )
 			}
 		}
 		else if( cd.solution_type[0] != TEST )
-			for( i = 0; i < wd.nW; i++ )
+			for( k = i = 0; i < wd.nW; i++ )
 				for( j = 0; j < wd.nWellObs[i]; j++ )
 				{
 					if( cd.problem_type == CALIBRATE && wd.obs_weight[i][j] > DBL_EPSILON ) continue;
 					compare = 1;
-					c = func_solver( wd.x[i], wd.y[i], wd.z1[i], wd.z2[i], wd.obs_time[i][j], &cd );
+					od.obs_current[k++] = c = func_solver( wd.x[i], wd.y[i], wd.z1[i], wd.z2[i], wd.obs_time[i][j], &cd );
 					err = wd.obs_target[i][j] - c;
 					min = wd.obs_min[i][j];
 					max = wd.obs_max[i][j];

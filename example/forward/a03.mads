@@ -7,7 +7,7 @@ Source z coordinate [L]: 10 0 0 1 0 100
 Source x dimension [L]: 0.00001 1 0 1 0 500
 Source y dimension [L]: 0.00001 1 0 1 0 500
 Source z dimension [L]: 0.00001 0 0 1 0 10
-Contaminant flux [M/T]: 1e5 1 1 10 0 1e20
+Contaminant flux [M/T]: 1e20 1 1 10 0 1e20
 Start Time [T]: 0 1 0 1 0 43
 End Time [T]: 1 0 0 1 1 44
 Porosity [L3/L3]: 0.1 0 0 0.1 0 1

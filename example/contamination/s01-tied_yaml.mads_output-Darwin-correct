@@ -55,9 +55,9 @@ Source z dimension [L]     :dz     = (z+5) -> variables: z
 Contaminant flux [M/T]     :f      = (4000/(49-t0)) -> variables: t0
 Start Time [T]             :t0     : init         0 opt 1 log 0 step       1 min         0 max        43
 End Time [T]               :t1     = (t0+13) -> variables: t0
-Model: internal box contaminant source
+Model: internal box contaminant source | Gaussian dispersion
 Process Parameters ... Number of parameters: 10
-WARNING: The number of provided parameters (10) is different than the number of expected parameters (13)
+WARNING: The number of provided parameters (10) is different than the number of expected parameters (16)
 Porosity [L3/L3]           :n      : init       0.1 opt 0 log 1 step     0.1 min         0 max         1
 Retardation Factor [-]     :rf     : init         1 opt 0 log 0 step       1 min         1 max        10
 Half-life decay [1/T]      :lambda : init         0 opt 0 log 0 step       1 min         0 max         1
@@ -135,7 +135,7 @@ Dispersivity x [L]         :ax    : init    1.8451 step    0.699 min         1 m
 
 Number of flagged parameters = 0
 
-Number of fixed parameters = 9
+Number of fixed parameters = 12
 Source z coordinate [L]    :z     : 0
 End Time [T]               :t1    : 13
 Porosity [L3/L3]           :n     : 0.1
@@ -146,12 +146,15 @@ Pore z velocity [L/T]      :vz    : 0
 Time Scale Dispersivity [-]:ts_dsp: 1
 Time Scale Advection [-]   :ts_adv: 1
 Time Scale Reaction [-]    :ts_rct: 1
+Levy alpha [-]             :alpha : 2
+Levy beta [-]              :beta  : 0
+NLC 0 [-]                  :nlc0  : 1
 Number of parameters with computational expressions (coupled or tied parameters) = 5
 Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130915-093653
+Execution date & time stamp: 20130916-183355
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -1328,6 +1331,6 @@ Simulation time = 0 seconds
 Functional evaluations = 103
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sun Sep 15 09:36:53 2013
-Execution completed on Sun Sep 15 09:36:53 2013
-Execution date & time stamp: 20130915-093653
+Execution  started  on Mon Sep 16 18:33:55 2013
+Execution completed on Mon Sep 16 18:33:55 2013
+Execution date & time stamp: 20130916-183355

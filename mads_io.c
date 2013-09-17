@@ -176,7 +176,6 @@ void init_params( struct opt_data *op )
 	pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
 	pd->var_min[k + TSCALE_DISP] = 0.1; pd->var_min[k + TSCALE_ADV] = 0.1; pd->var_min[k + TSCALE_REACT] = 0.1;
 	pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
-
 	cd->var[k + ALPHA] = pd->var[k + ALPHA] = 2.;
 	cd->var[k + BETA] = pd->var[k + BETA] = 0.;
 	cd->var[k + NLC0] = pd->var[k + NLC0] = 1.;
@@ -704,7 +703,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		pd->nAnalParam = cd->num_source_params * cd->num_sources + cd->num_aquifer_params;
 		if( pd->nAnalParam != pd->nParam )
 		{
-			tprintf( "WARNING: Internal analytical solver expects %d parameters (%d != %d)!\n", pd->nAnalParam , pd->nAnalParam , pd->nParam );
+			tprintf( "WARNING: The number of provided parameters (%d) is different than the number of expected parameters (%d)!\n", pd->nParam, pd->nAnalParam );
 			// bad_data = 1; TODO revisit this; currently the code does not check for consistency
 			// return( -1 );
 		}
@@ -951,7 +950,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				sprintf( pd->var_id[i], "%s", op->sd->param_id[i] );
 //				tprintf( "%s %s\n", pd->var_id[i],op->sd->param_id[i] );
 //				tprintf( "%s %s\n", pd->var_name[i],op->sd->param_name[i] );
-				if( !strcasestr( pd->var_name[i], op->sd->param_name[i] ) )
+				if( pd->var_name[i][0] != 0 && !strcasestr( pd->var_name[i], op->sd->param_name[i] ) )
 				{
 					tprintf( "WARNING: Parameter name \"%s\" did not match expected \"%s\"! Potential input error!\n", pd->var_name[i], op->sd->param_name[i] );
 					sprintf( pd->var_name[i], "%s", op->sd->param_name[i] );
@@ -965,7 +964,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				{
 //					tprintf( "%s\n", pd->var_id[j] );
 					sprintf( pd->var_id[j], "%s_%d", op->sd->param_id[i], c + 1 );
-					if( !strcasestr( pd->var_name[j], op->sd->param_name[i] ) )
+					if( pd->var_name[j][0] != 0 && !strcasestr( pd->var_name[j], op->sd->param_name[i] ) )
 					{
 						tprintf( "WARNING: Parameter name \"%s\" did not match expected \"%s\"! Potential input error!\n", pd->var_name[j], op->sd->param_name[i] );
 						sprintf( pd->var_name[j], "%s", op->sd->param_name[i] );
@@ -978,7 +977,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			sprintf( pd->var_id[j], "%s", op->qd->param_id[i] );
 			// tprintf( "%s\n", pd->var_id[j] );
 			// tprintf( "%s %s\n", pd->var_name[j],op->qd->param_name[i] );
-			if( !strcasestr( pd->var_name[j], op->qd->param_name[i] ) )
+			if( pd->var_name[j][0] != 0 && !strcasestr( pd->var_name[j], op->qd->param_name[i] ) )
 			{
 				tprintf( "WARNING: Parameter name \"%s\" did not match expected \"%s\"! Potential input error!\n", pd->var_name[j], op->qd->param_name[i] );
 				sprintf( pd->var_name[j], "%s", op->qd->param_name[i] );
