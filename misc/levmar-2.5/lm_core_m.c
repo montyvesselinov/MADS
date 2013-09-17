@@ -440,7 +440,7 @@ int LEVMAR_DER2(
 				}
 				if( skipped >= op->od->nCObs )
 				{
-					tprintf( "\nERROR: All the calibration targets (%d observations with weight greater than zero) have zero sensitivities! Model setup error!\n", op->od->nCObs );
+					tprintf( "\nERROR: All the calibration targets (%d) have zero sensitivities! LM quits! Potential model setup error or complex parameter space!\n", op->od->nCObs );
 					stop = 10;
 					break;
 				}
@@ -1419,7 +1419,7 @@ int LEVMAR_DER(
 				}
 				if( skipped >= op->od->nCObs )
 				{
-					tprintf( "\nERROR: All the calibration targets (%d observations with weight greater than zero) have zero sensitivities! Model setup error!\n", op->od->nCObs );
+					tprintf( "\nERROR: All the calibration targets (%d) have zero sensitivities! LM quits! Potential model setup error or complex parameter space!\n", op->od->nCObs );
 					stop = 10;
 					break;
 				}

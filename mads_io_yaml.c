@@ -660,7 +660,7 @@ int load_ymal_regularizations( GNode *node, gpointer data )
 	struct calc_data *cd;
 	struct param_data *pd;
 	struct regul_data *rd;
-	struct obs_data *od;
+	struct obs_data *od, *preds;
 	GNode *node_key, *node_value, *node_regul;
 	char **expvar_names;
 	int expvar_count;
@@ -669,6 +669,7 @@ int load_ymal_regularizations( GNode *node, gpointer data )
 	pd = op->pd;
 	rd = op->rd;
 	od = op->od;
+	preds = op->preds;
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
 	rd->nRegul = g_node_n_children( node );
 	tprintf( "Number of regularization terms = %d\n", rd->nRegul );
@@ -718,7 +719,7 @@ int load_ymal_regularizations( GNode *node, gpointer data )
 			}
 		}
 		if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], evaluator_get_string( rd->regul_expression[i] ) );
-		if( !( rd->regul_weight[i] > DBL_EPSILON ) ) tprintf( " WARNING Weight <= 0 " );
+		if( !( rd->regul_weight[i] > DBL_EPSILON ) ) { if( cd->debug ) tprintf( "Regularization term \'%s\' will be analyzed as a prediction (weight = %g <= 0)\n", rd->regul_id[i], rd->regul_weight[i] ); preds->nTObs++; }
 		if( expvar_count > 0 )
 		{
 			int j, l1, status;

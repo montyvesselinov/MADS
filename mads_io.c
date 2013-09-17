@@ -1239,7 +1239,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			fscanf( infile, "%1000[^=]s", buf );
 			fscanf( infile, "= %lf %lf %i %lf %lf\n", &rd->regul_target[i], &rd->regul_weight[i], &rd->regul_log[i], &rd->regul_min[i], &rd->regul_max[i] );
 			if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], buf );
-			if( !( rd->regul_weight[i] > DBL_EPSILON ) ) tprintf( " WARNING Weight <= 0 " );
+			if( !( rd->regul_weight[i] > DBL_EPSILON ) ) { if( cd->debug ) tprintf( "Regularization term \'%s\' will be analyzed as a prediction (weight = %g <= 0)\n", rd->regul_id[i], rd->regul_weight[i] ); preds->nTObs++; }
 #ifdef MATHEVAL
 			rd->regul_expression[i] = evaluator_create( buf );
 			assert( rd->regul_expression[i] );
@@ -1329,25 +1329,45 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		preds->obs_max = ( double * ) malloc( preds->nTObs * sizeof( double ) );
 		preds->obs_log = ( int * ) malloc( preds->nTObs * sizeof( int ) );
 		preds->res = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		for( c = k = i = 0; i < wd->nW; i++ )
-			for( j = 0; j < wd->nWellObs[i]; j++ )
+		/*
+				for( c = k = i = 0; i < wd->nW; i++ )
+					for( j = 0; j < wd->nWellObs[i]; j++ )
+					{
+						if( fabs( wd->obs_weight[i][j] ) > DBL_EPSILON ) c++;
+						if( wd->obs_weight[i][j] < -DBL_EPSILON )
+						{
+							preds->obs_index[k] = c - 1;
+							preds->obs_target[k] = wd->obs_target[i][j];
+							preds->obs_weight[k] = 1.0;
+							preds->obs_min[k] = wd->obs_target[i][j];
+							preds->obs_max[k] = wd->obs_target[i][j];
+							preds->obs_log[k] = wd->obs_log[i][j];
+							preds->obs_well_index[k] = i;
+							preds->obs_time_index[k] = j;
+							sprintf( preds->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
+							if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
+							k++;
+						}
+					}
+		*/
+		for( c = k = i = 0; i < od->nTObs; i++ )
+		{
+			if( fabs( od->obs_weight[i] ) > DBL_EPSILON ) c++;
+			if( od->obs_weight[i] < -DBL_EPSILON )
 			{
-				if( fabs( wd->obs_weight[i][j] ) > DBL_EPSILON ) c++;
-				if( wd->obs_weight[i][j] < -DBL_EPSILON )
-				{
-					preds->obs_index[k] = c - 1;
-					preds->obs_target[k] = wd->obs_target[i][j];
-					preds->obs_weight[k] = 1.0;
-					preds->obs_min[k] = wd->obs_target[i][j];
-					preds->obs_max[k] = wd->obs_target[i][j];
-					preds->obs_log[k] = wd->obs_log[i][j];
-					preds->obs_well_index[k] = i;
-					preds->obs_time_index[k] = j;
-					sprintf( preds->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
-					if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
-					k++;
-				}
+				preds->obs_index[k] = c - 1;
+				preds->obs_target[k] = od->obs_target[i];
+				preds->obs_weight[k] = fabs( od->obs_weight[i] );
+				preds->obs_min[k] = od->obs_target[i];
+				preds->obs_max[k] = od->obs_target[i];
+				preds->obs_log[k] = od->obs_log[i];
+				preds->obs_well_index[k] = od->obs_well_index[i];
+				preds->obs_time_index[k] = od->obs_time_index[i];
+				sprintf( preds->obs_id[k], "%s", od->obs_id[i] );
+				if( cd->debug ) tprintf( "%s: %g weight %g\n", preds->obs_id[k], preds->obs_target[k], preds->obs_weight[k] );
+				k++;
 			}
+		}
 	}
 	else
 	{

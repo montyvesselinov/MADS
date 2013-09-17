@@ -62,7 +62,7 @@ int count_cols( char *filename, int row );
 
 int infogap_obs( struct opt_data *op )
 {
-	int i, j, k, status, count, neval_total, njac_total;
+	int i, j, ig_index, status, count, neval_total, njac_total;
 	int ( *optimize_func )( struct opt_data * op );
 	tprintf( "\n\nInfo-gap analysis: observation step %g observation domain %g\nInfo-gap search: ", op->cd->obsstep, op->cd->obsdomain );
 	if( op->cd->obsstep > DBL_EPSILON ) tprintf( "maximum\n" );
@@ -75,18 +75,18 @@ int infogap_obs( struct opt_data *op )
 		j = op->preds->obs_index[i];
 		op->od->obs_weight[j] *= -1;
 	}
-	k = op->preds->obs_index[0]; // first prediction is applied only
+	ig_index = op->preds->obs_index[0]; // first prediction is applied only
 	tprintf( "Info-gap observation:\n" );
-	tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[k], op->od->obs_target[k], op->od->obs_weight[k], op->od->obs_min[k], op->od->obs_max[k] );
-	if( op->cd->obsstep > DBL_EPSILON ) { op->od->obs_target[k] = op->od->obs_min[k]; op->od->obs_min[k] -= op->cd->obsstep / 2; } // obsstep is negative
-	else { op->od->obs_target[k] = op->od->obs_max[k]; op->od->obs_max[k] -= op->cd->obsstep / 2; } // obsstep is negative
+	tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[ig_index], op->od->obs_target[ig_index], op->od->obs_weight[ig_index], op->od->obs_min[ig_index], op->od->obs_max[ig_index] );
+	if( op->cd->obsstep > DBL_EPSILON ) { op->od->obs_target[ig_index] = op->od->obs_min[ig_index]; op->od->obs_min[ig_index] -= op->cd->obsstep / 2; } // obsstep is negative
+	else { op->od->obs_target[ig_index] = op->od->obs_max[ig_index]; op->od->obs_max[ig_index] -= op->cd->obsstep / 2; } // obsstep is negative
 	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	neval_total = njac_total = count = 0;
 	while( 1 )
 	{
 		tprintf( "\n\nInfo-gap analysis #%d\n", ++count );
-		tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[k], op->od->obs_target[k], op->od->obs_weight[k], op->od->obs_min[k], op->od->obs_max[k] );
+		tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[ig_index], op->od->obs_target[ig_index], op->od->obs_weight[ig_index], op->od->obs_min[ig_index], op->od->obs_max[ig_index] );
 		op->cd->neval = op->cd->njac = 0;
 		if( op->cd->calib_type == IGRND ) status = igrnd( op );
 		else status = optimize_func( op );
@@ -94,6 +94,7 @@ int infogap_obs( struct opt_data *op )
 		neval_total += op->cd->neval;
 		njac_total += op->cd->njac;
 		tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
+		tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[ig_index], op->od->obs_target[ig_index], op->od->obs_weight[ig_index], op->od->obs_min[ig_index], op->od->obs_max[ig_index] );
 		for( i = 0; i < op->preds->nTObs; i++ )
 		{
 			j = op->preds->obs_index[i];
@@ -103,28 +104,28 @@ int infogap_obs( struct opt_data *op )
 		if( op->cd->debug ) print_results( op, 1 );
 		save_final_results( "infogap", op, op->gd );
 		if( !op->success ) break;
-		op->od->obs_target[k] += op->cd->obsstep;
+		op->od->obs_target[ig_index] += op->cd->obsstep;
 		if( op->cd->obsstep > DBL_EPSILON ) // max search
 		{
-			if( op->od->obs_target[k] > op->od->obs_max[k] ) break;
-			if( fabs( op->preds->obs_best[0] - op->od->obs_max[k] ) < DBL_EPSILON ) break;
-			op->od->obs_min[k] += op->cd->obsstep;
-			j = ( int )( ( double )( op->preds->obs_best[0] - op->od->obs_min[k] + op->cd->obsstep / 2 ) / op->cd->obsstep + 1 );
-			op->od->obs_target[k] += op->cd->obsstep * j;
-			op->od->obs_min[k] += op->cd->obsstep * j;
-			if( op->od->obs_target[k] > op->od->obs_max[k] ) op->od->obs_target[k] = op->od->obs_max[k];
-			if( op->od->obs_min[k] > op->od->obs_max[k] ) op->od->obs_min[k] = op->od->obs_max[k];
+			if( op->od->obs_target[ig_index] > op->od->obs_max[ig_index] ) break;
+			if( fabs( op->preds->obs_best[0] - op->od->obs_max[ig_index] ) < DBL_EPSILON ) break;
+			op->od->obs_min[ig_index] += op->cd->obsstep;
+			j = ( int )( ( double )( op->preds->obs_best[0] - op->od->obs_min[ig_index] + op->cd->obsstep / 2 ) / op->cd->obsstep + 1 );
+			op->od->obs_target[ig_index] += op->cd->obsstep * j;
+			op->od->obs_min[ig_index] += op->cd->obsstep * j;
+			if( op->od->obs_target[ig_index] > op->od->obs_max[ig_index] ) op->od->obs_target[ig_index] = op->od->obs_max[ig_index];
+			if( op->od->obs_min[ig_index] > op->od->obs_max[ig_index] ) op->od->obs_min[ig_index] = op->od->obs_max[ig_index];
 		}
 		else // min search
 		{
-			if( op->od->obs_target[k] < op->od->obs_min[k] ) break;
-			if( fabs( op->preds->obs_best[0] - op->od->obs_min[k] ) < DBL_EPSILON ) break;
-			op->od->obs_max[k] += op->cd->obsstep; // obsstep is negative
-			j = ( int )( ( double )( op->od->obs_max[k] - op->preds->obs_best[0] - op->cd->obsstep / 2 ) / -op->cd->obsstep + 1 ); // obsstep is negative
-			op->od->obs_target[k] += op->cd->obsstep * j;
-			op->od->obs_max[k] += op->cd->obsstep * j;
-			if( op->od->obs_target[k] < op->od->obs_min[k] ) op->od->obs_target[k] = op->od->obs_min[k];
-			if( op->od->obs_max[k] < op->od->obs_min[k] ) op->od->obs_max[k] = op->od->obs_min[k];
+			if( op->od->obs_target[ig_index] < op->od->obs_min[ig_index] ) break;
+			if( fabs( op->preds->obs_best[0] - op->od->obs_min[ig_index] ) < DBL_EPSILON ) break;
+			op->od->obs_max[ig_index] += op->cd->obsstep; // obsstep is negative
+			j = ( int )( ( double )( op->od->obs_max[ig_index] - op->preds->obs_best[0] - op->cd->obsstep / 2 ) / -op->cd->obsstep + 1 ); // obsstep is negative
+			op->od->obs_target[ig_index] += op->cd->obsstep * j;
+			op->od->obs_max[ig_index] += op->cd->obsstep * j;
+			if( op->od->obs_target[ig_index] < op->od->obs_min[ig_index] ) op->od->obs_target[ig_index] = op->od->obs_min[ig_index];
+			if( op->od->obs_max[ig_index] < op->od->obs_min[ig_index] ) op->od->obs_max[ig_index] = op->od->obs_min[ig_index];
 		}
 	}
 	op->cd->neval = neval_total; // provide the correct number of total evaluations
