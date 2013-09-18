@@ -249,8 +249,9 @@ double int_box_source( double tau, void *params )
 	ze = ( p->ze - source_z );
 	// if( p->debug >= 3 ) printf( "param %g %g %g %g %g %g %g %.12g %.12g %.12g %.12g\n", d, alpha, beta, xe, ye, x0, y0, p->xe, p->var[SOURCE_X], p->ye, p->var[SOURCE_Y] );
 	// printf( "param %g %g %g %g %g %g\n", source_z, source_sizez, ze, p->ze, rz, az );
-	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
-	else tau_d = tau;
+	tau_d = tau + p->var[NLC0] * sin( tau / p->var[NLC1] );
+	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] );
+	else tau_d = tau_d;
 	tv = ( double ) 4 * tau_d * vx;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );

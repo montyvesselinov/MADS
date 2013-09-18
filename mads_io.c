@@ -115,7 +115,7 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->qd->param_id[3], "tetha" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
 	strcpy( op->qd->param_id[10], "ts_dsp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_rct" );
-	strcpy( op->qd->param_id[13], "alpha" ); strcpy( op->qd->param_id[14], "beta" ); strcpy( op->qd->param_id[15], "nlc0" );
+	strcpy( op->qd->param_id[13], "alpha" ); strcpy( op->qd->param_id[14], "beta" ); strcpy( op->qd->param_id[15], "nlc0" ); strcpy( op->qd->param_id[16], "nlc1" );
 	op->sd->param_name = char_matrix( op->cd->num_source_params, 50 );
 	op->qd->param_name = char_matrix( op->cd->num_aquifer_params, 50 );
 	strcpy( op->sd->param_name[0], "Source x coordinate [L]" ); strcpy( op->sd->param_name[1], "Source y coordinate [L]" ); strcpy( op->sd->param_name[2], "Source z coordinate [L]" );
@@ -125,7 +125,7 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->qd->param_name[3], "Flow Angle [degrees]" ); strcpy( op->qd->param_name[4], "Pore x velocity [L/T]" ); strcpy( op->qd->param_name[5], "Pore y velocity [L/T]" ); strcpy( op->qd->param_name[6], "Pore z velocity [L/T]" );
 	strcpy( op->qd->param_name[7], "Dispersivity x [L]" ); strcpy( op->qd->param_name[8], "Dispersivity y [L]" ); strcpy( op->qd->param_name[9], "Dispersivity z [L]" );
 	strcpy( op->qd->param_name[10], "Time Scale Dispersivity [-]" ); strcpy( op->qd->param_name[11], "Time Scale Advection [-]" ); strcpy( op->qd->param_name[12], "Time Scale Reaction [-]" );
-	strcpy( op->qd->param_name[13], "Levy alpha [-]" ); strcpy( op->qd->param_name[14], "Levy beta [-]" ); strcpy( op->qd->param_name[15], "NLC 0 [-]" );
+	strcpy( op->qd->param_name[13], "Levy alpha [-]" ); strcpy( op->qd->param_name[14], "Levy beta [-]" ); strcpy( op->qd->param_name[15], "NLC 0 [T]" ); strcpy( op->qd->param_name[16], "NLC 1 [T]" );
 	return( 1 );
 }
 
@@ -178,12 +178,13 @@ void init_params( struct opt_data *op )
 	pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
 	cd->var[k + ALPHA] = pd->var[k + ALPHA] = 2.;
 	cd->var[k + BETA] = pd->var[k + BETA] = 0.;
-	cd->var[k + NLC0] = pd->var[k + NLC0] = 1.;
-	pd->var_opt[k + ALPHA] = 0; pd->var_opt[k + BETA] = 0; pd->var_opt[k + NLC0] = 0;
-	pd->var_log[k + ALPHA] = 0; pd->var_log[k + BETA] = 0; pd->var_log[k + NLC0] = 0;
-	pd->var_dx[k + ALPHA] = 0.1; pd->var_dx[k + BETA] = 0.1; pd->var_dx[k + NLC0] = 0.1;
-	pd->var_min[k + ALPHA] = 0.5; pd->var_min[k + BETA] = -1.; pd->var_min[k + NLC0] = 0.1;
-	pd->var_max[k + ALPHA] = 2; pd->var_max[k + BETA] = 1.; pd->var_max[k + NLC0] = 2.;
+	cd->var[k + NLC0] = pd->var[k + NLC0] = 0.;
+	cd->var[k + NLC1] = pd->var[k + NLC1] = 1.;
+	pd->var_opt[k + ALPHA] = 0; pd->var_opt[k + BETA] = 0; pd->var_opt[k + NLC0] = 0; pd->var_opt[k + NLC1] = 0;
+	pd->var_log[k + ALPHA] = 0; pd->var_log[k + BETA] = 0; pd->var_log[k + NLC0] = 0; pd->var_log[k + NLC1] = 0;
+	pd->var_dx[k + ALPHA] = 0.1; pd->var_dx[k + BETA] = 0.1; pd->var_dx[k + NLC0] = 0.1; pd->var_dx[k + NLC1] = 1.;
+	pd->var_min[k + ALPHA] = 0.5; pd->var_min[k + BETA] = -1.; pd->var_min[k + NLC0] = -1.; pd->var_min[k + NLC1] = 0.1;
+	pd->var_max[k + ALPHA] = 2; pd->var_max[k + BETA] = 1.; pd->var_max[k + NLC0] = 1.; pd->var_max[k + NLC1] = 10.;
 }
 
 int parse_cmd_debug( char *buf )
