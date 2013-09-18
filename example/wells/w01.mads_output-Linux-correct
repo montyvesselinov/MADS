@@ -50,7 +50,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20130905-124231
+Execution date & time stamp: 20130918-104533
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -355,11 +355,11 @@ o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range 
 o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
 o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
 o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
-Simulation time = 8 seconds
+Simulation time = 6 seconds
 Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 5
-Execution  started  on Thu Sep  5 12:42:31 2013
-Execution completed on Thu Sep  5 12:42:39 2013
-Execution date & time stamp: 20130905-124231
+Functional evaluations per second = 7
+Execution  started  on Wed Sep 18 10:45:33 2013
+Execution completed on Wed Sep 18 10:45:39 2013
+Execution date & time stamp: 20130918-104533

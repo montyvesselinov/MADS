@@ -1078,8 +1078,7 @@ int load_ymal_time( GNode *node, gpointer data )
 		if( !strcasecmp( ( char * ) node_key->data, "step" ) ) sscanf( ( char * ) node_value->data, "%lf", &gd->dt );
 	}
 	gd->nt = 1 + ( int )( ( double )( gd->max_t - gd->min_t ) / gd->dt );
-	if( gd->nt < 0 ) gd->nt = 0;
-	if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g number of time steps: %g\n", gd->min_t, gd->max_t, gd->dt, gd->nt );
+	if( cd->debug ) tprintf( "Breakthrough-curve time window: start %g end %g step %g number of time steps: %d\n", gd->min_t, gd->max_t, gd->dt, gd->nt );
 	return( 1 );
 }
 

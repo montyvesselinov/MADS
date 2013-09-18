@@ -56,9 +56,9 @@ Source z dimension [L]     :dz     : init         1 opt 0 log 0 step       1 min
 Contaminant flux [M/T]     :f      : init        16 opt 1 log 1 step      10 min      0.01 max       100
 Start Time [T]             :t0     : init         0 opt 1 log 0 step       1 min         0 max        43
 End Time [T]               :t1     : init       100 opt 0 log 0 step       1 min         1 max       100
-Model: internal box contaminant source
+Model: internal box contaminant source | Gaussian dispersion
 Process Parameters ... Number of parameters: 10
-WARNING: The number of provided parameters (10) is different than the number of expected parameters (13)
+WARNING: The number of provided parameters (10) is different than the number of expected parameters (17)
 Porosity [L3/L3]           :n      : init       0.1 opt 0 log 1 step     0.1 min         0 max         1
 Retardation Factor [-]     :rf     : init         1 opt 0 log 0 step       1 min         1 max        10
 Half-life decay [1/T]      :lambda : init         0 opt 0 log 0 step       1 min         0 max         1
@@ -122,7 +122,7 @@ Grid lines: 25 29 1
 Grid Minimums: 499000 538300 0
 Grid Maximums: 500200 539400 0.1
 Process Time ... Number of time components: 3
-Breakthrough-curve time window: start 0 end 0 step 1
+Breakthrough-curve time window: start 0 end 0 step 1 number of time steps: 1
 
 Number of optimized parameters = 11
 Source x coordinate [L]    :x     : init      1124 step       25 min       210 max      1460
@@ -139,7 +139,7 @@ Dispersivity z [L]         :az    : init -0.522879 step    0.111 min        -1 m
 
 Number of flagged parameters = 0
 
-Number of fixed parameters = 11
+Number of fixed parameters = 15
 Source z coordinate [L]    :z     : 0
 Source z dimension [L]     :dz    : 1
 End Time [T]               :t1    : 100
@@ -151,12 +151,16 @@ Pore z velocity [L/T]      :vz    : 0
 Time Scale Dispersivity [-]:ts_dsp: 1
 Time Scale Advection [-]   :ts_adv: 1
 Time Scale Reaction [-]    :ts_rct: 1
+Levy alpha [-]             :alpha : 2
+Levy beta [-]              :beta  : 0
+NLC 0 [T]                  :nlc0  : 0
+NLC 1 [T]                  :nlc1  : 1
 Number of parameters with computational expressions (coupled or tied parameters) = 0
 Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130905-124227
+Execution date & time stamp: 20130918-111553
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -1398,11 +1402,11 @@ Objective function: 0.00106082 Success: 1 (1)
 
 Model predictions for not calibration targets:
 W-14c     (   50):          10 -      165.171 =     -155.171 success 0 range            0 -           20
-Simulation time = 1 seconds
+Simulation time = 4 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 111
-Execution  started  on Thu Sep  5 12:42:27 2013
-Execution completed on Thu Sep  5 12:42:28 2013
-Execution date & time stamp: 20130905-124227
+Functional evaluations per second = 27
+Execution  started  on Wed Sep 18 11:15:53 2013
+Execution completed on Wed Sep 18 11:15:57 2013
+Execution date & time stamp: 20130918-111553

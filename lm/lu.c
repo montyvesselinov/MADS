@@ -41,7 +41,7 @@ int lu_decomposition( double a[], double ul[], int n )
 	double x, rn;
 	int ip, i, j, k, iq, ip1, ir;
 	rn = ( double ) 1.0 / ( 16.0 * n );
-	ip = 0;
+	ip = ip1 = 0;
 	for( i = 0; i < n; i++ )
 	{
 		iq = ip;
