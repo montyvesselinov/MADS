@@ -58,7 +58,7 @@ double int_box_source_levy_dispersion( double tau, void *params );
 
 double point_source( double x, double y, double z, double t, void *params )
 {
-	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
+	gsl_integration_workspace *w;
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
@@ -69,6 +69,7 @@ double point_source( double x, double y, double z, double t, void *params )
 	p->ze = z;
 	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
 		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
+	w = gsl_integration_workspace_alloc( NUMITER );
 	time = t - p->var[TIME_INIT];
 	F.function = &int_point_source;
 	F.params = p;
@@ -125,7 +126,7 @@ double int_point_source( double tau, void *params )
 
 double point_source_triangle_time( double x, double y, double z, double t, void *params )
 {
-	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
+	gsl_integration_workspace *w;
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
@@ -136,6 +137,7 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 	p->ze = z;
 	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
 		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
+	w = gsl_integration_workspace_alloc( NUMITER );
 	time = t - p->var[TIME_INIT];
 	F.function = &int_point_source_triangle_time;
 	F.params = p;
@@ -264,7 +266,7 @@ double int_box_source( double tau, void *params )
 
 double rectangle_source( double x, double y, double z, double t, void *params )
 {
-	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
+	gsl_integration_workspace *w;
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
@@ -274,6 +276,7 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_rectangle_source;
 	F.params = p;
 	gsl_set_error_handler_off();
@@ -323,7 +326,7 @@ double int_rectangle_source( double tau, void *params )
 
 double rectangle_source_vz( double x, double y, double z, double t, void *params )
 {
-	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
+	gsl_integration_workspace *w;
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
@@ -333,6 +336,7 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_rectangle_source_vz;
 	F.params = p;
 	gsl_set_error_handler_off();
@@ -386,7 +390,7 @@ double int_rectangle_source_vz( double tau, void *params )
 
 double gaussian_source_2d( double x, double y, double z, double t, void *params )
 {
-	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
+	gsl_integration_workspace *w;
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
@@ -396,6 +400,7 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	w  = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_gaussian_source_2d;
 	F.params = p;
 	gsl_set_error_handler_off();
@@ -446,7 +451,7 @@ double int_gaussian_source_2d( double tau, void *params )
 
 double gaussian_source_3d( double x, double y, double z, double t, void *params )
 {
-	gsl_integration_workspace *w = gsl_integration_workspace_alloc( NUMITER );
+	gsl_integration_workspace *w;
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
@@ -456,6 +461,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_gaussian_source_3d;
 	F.params = p;
 	gsl_set_error_handler_off();
