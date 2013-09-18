@@ -112,7 +112,7 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->sd->param_id[3], "dx" ); strcpy( op->sd->param_id[4], "dy" ); strcpy( op->sd->param_id[5], "dz" );
 	strcpy( op->sd->param_id[6], "f" ); strcpy( op->sd->param_id[7], "t0" ); strcpy( op->sd->param_id[8], "t1" );
 	strcpy( op->qd->param_id[0], "n" ); strcpy( op->qd->param_id[1], "rf" ); strcpy( op->qd->param_id[2], "lambda" );
-	strcpy( op->qd->param_id[3], "tetha" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
+	strcpy( op->qd->param_id[3], "theta" ); strcpy( op->qd->param_id[4], "vx" ); strcpy( op->qd->param_id[5], "vy" ); strcpy( op->qd->param_id[6], "vz" );
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
 	strcpy( op->qd->param_id[10], "ts_dsp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_rct" );
 	strcpy( op->qd->param_id[13], "alpha" ); strcpy( op->qd->param_id[14], "beta" ); strcpy( op->qd->param_id[15], "nlc0" ); strcpy( op->qd->param_id[16], "nlc1" );

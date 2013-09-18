@@ -97,6 +97,13 @@ int set_test_problems( struct opt_data *op )
 	od->nTObs = 0; // modified for test problems with observations below
 	switch( cd->test_func )
 	{
+		case 111: // Test
+			printf( "Test" );
+			if( cd->test_func_nobs > 0 ) od->nTObs = cd->test_func_nobs;
+			else od->nTObs = cd->test_func_dim;
+			for( d = 0; d < pd->nOptParam; d++ )
+				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
+			break;
 		case 1: // Parabola (Sphere)
 			printf( "Parabola (Sphere)" );
 			if( cd->test_func_nobs > 0 ) od->nTObs = cd->test_func_nobs;
@@ -445,6 +452,20 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 	pi = acos( -1 );
 	switch( function )
 	{
+		case 111: // Test
+			p = 0; // Shift
+			if( nObs == D )
+			{
+				float a;
+				f = 1;
+				for( d = 0; d < D; d++ )
+				{
+					a = (d < 2 ? 0 : 3);
+					o[d] = ( fabs( 4 * ( x[d] + .5 ) - 2) + a ) / ( 1 + a );
+					f *= o[d];
+				}
+			}
+			break;
 		case 1: // Parabola (Sphere)
 			p = 0; // Shift
 			if( nObs == D )

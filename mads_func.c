@@ -612,7 +612,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				if( fabs( p->cd->var[k] - p->pd->var_truth[k] ) > p->cd->parerror ) success_all = 0;
 			if( p->cd->fdebug >= 4 ) tprintf( "Test OF %g Success %d\n", phi, success_all );
 		}
-		if( p->cd->test_func >= 40 )
+		if( p->cd->test_func >= 40 && p->cd->test_func < 100 )
 		{
 			phi = 0;
 			if( p->cd->check_success && p->cd->obserror > DBL_EPSILON ) success_all = 1;
