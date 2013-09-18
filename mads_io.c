@@ -1489,8 +1489,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( gd->nz == 1 ) gd->dz = 0;
 		else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
 		gd->nt = 1 + ( int )( ( double )( gd->max_t - gd->min_t ) / gd->dt );
-		if( gd->nt < 0 ) gd->nt = 0;
-		if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g number of time steps: %g\n", gd->min_t, gd->max_t, gd->dt, gd->nt );
+		if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g number of time steps: %d\n", gd->min_t, gd->max_t, gd->dt, gd->nt );
 	}
 	return( 1 );
 }

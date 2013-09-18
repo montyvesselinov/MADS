@@ -24,8 +24,9 @@ LDLIBS += -lgfortran
 $(info LINUX)
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
+YAML = true
 CFLAGS += -I/home/monty/local/include
-LDLIBS += -L/home/monty/local/lib -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
+LDLIBS += -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
 endif
 ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
