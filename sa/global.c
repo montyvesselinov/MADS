@@ -455,7 +455,9 @@ int sa_sobol( struct opt_data *op )
 		fprintf( out, "\n" );
 		fflush( out );
 	}
-	var_y = fhat2 / n_sub - ( fhat * fhat / ( n_sub * n_sub ) );
+	fprintf( stderr, "%g, %g, %g, %g\n", fhat2 / n_sub, fhat / n_sub, ( fhat * fhat / ( n_sub * n_sub ) ), pow( fhat / n_sub, 2 ) );
+	var_y = fhat2 / n_sub - ( fhat * fhat / ( (double)n_sub * n_sub ) );
+	fprintf( stderr, "%g\n", var_y );
 	gs.f_hat_a = fhat / n_sub;
 	gs.D_hat_t = fhat2 / n_sub - gs.f_hat_a * gs.f_hat_a;
 	tprintf( "Sample A output mean     (simple) = %g\n", gs.f_hat_a );
@@ -600,7 +602,54 @@ int sa_sobol( struct opt_data *op )
 
 int sa_saltelli( struct opt_data *op)
 {
-	return 0;
+	int num_opt_params;
+	int num_samples;
+	int num_samples_per_param;
+	int i, j, k, n, m;
+	double *func_evals;
+	double *opt_params;
+	double var_value;
+	double mean;
+	double variance;
+	double ep;//used by ave_sorted and var_sorted
+
+	num_opt_params = op->pd->nOptParam;
+	//Round up on the number of samples per param
+	num_samples_per_param = ceil( pow( op->cd->nreal, 1. / num_opt_params ) );
+	num_samples = pow(num_samples_per_param, num_opt_params);
+	if( num_samples != op->cd->nreal ) { tprintf( "You requested %d samples. You got %d samples. Life is cruel.\n", op->cd->nreal, num_samples ); }
+
+	if( ( func_evals = ( double * ) malloc( num_samples * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return 0; }
+	if( ( opt_params = ( double * ) malloc( num_opt_params * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return 0; }
+
+	//do all the function evaluations
+	for( i = 0; i < num_samples; i++ )
+	{
+		n = i;
+		//map i into num_opt_params dimensional indicies
+		for( j = 0; j < num_opt_params; j++ )
+		{
+			k = op->pd->var_index[j];
+			m = n % num_samples_per_param;
+			n = ( n - m ) / num_opt_params;
+			var_value = op->pd->var_min[k] + ( m + .5 ) / num_samples_per_param * op->pd->var_range[k];
+			opt_params[j] = op->pd->var[k] = var_value;
+		}
+		Transform( opt_params, op, opt_params );
+		func_global( opt_params, op, op->od->res );
+		func_evals[i] = op->phi;
+	}
+
+	//compute the mean and variance
+	ave_sorted ( func_evals, num_samples, &mean, &ep );
+	mean /= ( num_samples - 1 );
+	var_sorted( func_evals, func_evals, num_samples, ave, ep, &variance );
+
+	//compute the first order sensitivities
+	
+	//compute the total sensitivities
+	
+	return 1;
 }
 
 int sa_moat( struct opt_data *op )
