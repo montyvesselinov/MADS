@@ -367,7 +367,7 @@ int sa_sobol( struct opt_data *op )
 	//		gsl_qrng *q = gsl_qrng_alloc( gsl_qrng_sobol, op->pd->nOptParam );
 	n_sub = op->cd->nreal / 2;	// set to half of user specified reals
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Temporary variable to store op->cd->nreal phis
-	if( ( phis_full = ( double * ) malloc( op->cd->nreal * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Temporary variable to store m_sub phis
+	if( ( phis_full = ( double * ) malloc( 2 * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Temporary variable to store m_sub phis
 	if( ( phis_half = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Temporary variable to store random sample a
 	if( ( var_a_lhs = ( double * ) malloc( op->pd->nOptParam * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Sample a phis
 	if( ( gs.f_a = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Sample b phis
@@ -386,11 +386,11 @@ int sa_sobol( struct opt_data *op )
 	else tprintf( "Current seed: %d\n", op->cd->seed );
 	// Create samples
 	// Sample A
-	tprintf( "Random sampling set 1 (variables %d; realizations %d) using ", op->pd->nOptParam, op->cd->nreal );
+	tprintf( "Random sampling set 1 (variables %d; realizations %d) using ", op->pd->nOptParam, n_sub );
 	sampling( op->pd->nOptParam, n_sub, &op->cd->seed, var_a_lhs, op, 1 );
 	tprintf( "done.\n" );
 	// Sample B
-	tprintf( "Random sampling set 2 (variables %d; realizations %d) using ", op->pd->nOptParam, op->cd->nreal );
+	tprintf( "Random sampling set 2 (variables %d; realizations %d) using ", op->pd->nOptParam, n_sub );
 	sampling( op->pd->nOptParam, n_sub, &op->cd->seed, var_b_lhs, op, 1 );
 	tprintf( "done.\n" );
 	// Copy temp lhs vectors to matrices
@@ -500,7 +500,6 @@ int sa_sobol( struct opt_data *op )
 		tprintf( "Global Sensitivity MC results are saved in %s.sobol.results\n", op->root );
 		fclose( out );
 	}
-	tprintf( "done.\n" );
 	// Calculate total output mean and variance based on sample a
 	gs.f_hat_b = fhat / n_sub;
 	gs.D_hat_t = fhat2 / n_sub - gs.f_hat_b * gs.f_hat_b;
