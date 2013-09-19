@@ -55,6 +55,8 @@
 int sa_sobol( struct opt_data *op );
 int sa_saltelli( struct opt_data *op );
 int sa_moat( struct opt_data *op );
+void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
+void ave_sorted( double data[], int n, double *ave, double *ep );
 
 /* Functions elsewhere */
 int get_seed( );
@@ -299,12 +301,10 @@ int sa_sobol_dh( struct opt_data *op )
 		}
 	}
 	tprintf( "done.\n" );
-
 	// gs.f_hat_0 = gfhat / ( 2 * n_sub * ( op->pd->nOptParam + 1 ) );
 	// gs.D_hat_t = gfhat2 / ( 2 * n_sub * ( op->pd->nOptParam + 1 ) ) - gs.f_hat_0 * gs.f_hat_0;
 	tprintf( "Total output mean     (simple) = %g\n", gs.f_hat_0 );
 	tprintf( "Total output variance (simple) = %g\n", gs.D_hat_t );
-
 	// Calculate individual and interaction output variances
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
@@ -343,7 +343,7 @@ int sa_sobol_dh( struct opt_data *op )
 	// Print sensitivity indices
 	tprintf( "\nParameter sensitivity indices:\n" );
 	tprintf( "parameter SI (individual sensitvity index) ST (total sensitvity index)\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, (double) gs.D_hat_a[i] / gs.D_hat_t, (double) 1 - ( gs.D_hat_b[i] / gs.D_hat_t ) );
+	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, ( double ) gs.D_hat_a[i] / gs.D_hat_t, ( double ) 1 - ( gs.D_hat_b[i] / gs.D_hat_t ) );
 	tprintf( "\n" );
 	free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat_a ); free( gs.D_hat_b );
 	free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
@@ -455,7 +455,7 @@ int sa_sobol( struct opt_data *op )
 		fprintf( out, "\n" );
 		fflush( out );
 	}
-	var_y = fhat2 / n_sub - ( fhat * fhat / ( (double) n_sub * n_sub ) );
+	var_y = fhat2 / n_sub - ( fhat * fhat / ( ( double ) n_sub * n_sub ) );
 	gs.f_hat_a = fhat / n_sub;
 	gs.D_hat_t = fhat2 / n_sub - gs.f_hat_a * gs.f_hat_a;
 	tprintf( "Sample A output mean     (simple) = %g\n", gs.f_hat_a );
@@ -574,8 +574,8 @@ int sa_sobol( struct opt_data *op )
 		// gs.D_hat_a[i] = ( fhat2 / n_sub ) - gs.f_hat_a * gs.f_hat_a;
 		//gs.D_hat_a[i] = fhat / n_sub;
 		//gs.D_hat_b[i] = fhat2 / ( 2 * n_sub );
-		gs.D_hat_a[i] = var_y - t1 / ( 2 * n_sub); //var_y * eq. 18
-		gs.D_hat_b[i] = t2 / ( 2 * n_sub); // var_y * eq. 19
+		gs.D_hat_a[i] = var_y - t1 / ( 2 * n_sub ); //var_y * eq. 18
+		gs.D_hat_b[i] = t2 / ( 2 * n_sub ); // var_y * eq. 19
 		//gs.D_hat_a[i] = t1 / n_sub;
 		//gs.D_hat_b[i] = t2 / ( 2 * n_sub );
 		tprintf( "hat{D}_a %d (simple) %g", i + 1, gs.D_hat_a[i] );
@@ -588,7 +588,7 @@ int sa_sobol( struct opt_data *op )
 	tprintf( "var_y: %g\n", var_y );
 	tprintf( "\nParameter sensitivity indices:\n" );
 	tprintf( "parameter SI (individual sensitvity index) ST (total sensitvity index)\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, (double) gs.D_hat_a[i] / var_y, gs.D_hat_b[i] / var_y );
+	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, ( double ) gs.D_hat_a[i] / var_y, gs.D_hat_b[i] / var_y );
 	tprintf( "\n" );
 	free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat_a ); free( gs.D_hat_b );
 	free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
@@ -598,7 +598,7 @@ int sa_sobol( struct opt_data *op )
 	return( 1 );
 }
 
-int sa_saltelli( struct opt_data *op)
+int sa_saltelli( struct opt_data *op )
 {
 	return 0;
 }
@@ -607,4 +607,49 @@ int sa_moat( struct opt_data *op )
 {
 	tprintf( "MOAT\n" );
 	return( 1 );
+}
+
+// Modified from Numerical Recipes in C: The Art of Scientific Computing (ISBN 0-521-43108-5)
+// corrected three-pass algorithm to minimize roundoff error in variance
+void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var )
+{
+	int j;
+	double *dev2;
+	if( ( dev2 = ( double * ) malloc( n * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return; }
+	// First pass to calculate mean
+	//	s = 0.0;
+	//	for( j = 0; j < n; j++ ) s += data[j];
+	//	*ave = s/n;
+	// Second pass to calculate absolute deviations
+	for( j = 0; j < n; j++ )
+		dev2[j] = ( data[j] - ave ) * ( datb[j] - ave );
+	// Sort devs
+	gsl_sort( dev2, 1, n );
+	// Third pass to calculate first (absolute) and second moments
+	*var = 0.0;
+	for( j = 0; j < n; j++ )
+		*var += dev2[j];
+	*var = ( *var - ep * ep / n ) / ( n - 1 );
+	free( dev2 );
+}
+
+void ave_sorted( double data[], int n, double *ave, double *ep )
+{
+	int j;
+	double s, *dev;
+	if( ( dev = ( double * ) malloc( n * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return; }
+	// First pass to calculate mean
+	s = 0.0;
+	for( j = 0; j < n; j++ ) s += data[j];
+	*ave = s / n;
+	// Second pass to calculate absolute deviations
+	for( j = 0; j < n; j++ )
+		dev[j] = data[j] - *ave;
+	// Sort devs
+	gsl_sort( dev, 1, n );
+	// Third pass to calculate first (absolute) moment
+	*ep = 0.0;
+	for( j = 0; j < n; j++ )
+		*ep += dev[j];
+	free( dev );
 }
