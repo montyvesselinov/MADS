@@ -76,8 +76,6 @@ int montecarlo( struct opt_data *op );
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op, int verbosity ); // Print final results
 void save_final_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
-void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
-void ave_sorted( double data[], int n, double *ave, double *ep );
 int sort_int( const void *x, const void *y );
 double sort_double( const void *a, const void *b );
 
@@ -3062,47 +3060,6 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		sprintf( filename, "%s.vtk", fileroot );
 		compute_grid( filename, op->cd, gd );
 	}
-}
-
-// Modified from Numerical Recipes in C: The Art of Scientific Computing (ISBN 0-521-43108-5)
-// corrected three-pass algorithm to minimize roundoff error in variance
-void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var )
-{
-	int j;
-	double dev2[n];
-	// First pass to calculate mean
-	//	s = 0.0;
-	//	for( j = 0; j < n; j++ ) s += data[j];
-	//	*ave = s/n;
-	// Second pass to calculate absolute deviations
-	for( j = 0; j < n; j++ )
-		dev2[j] = ( data[j] - ave ) * ( datb[j] - ave );
-	// Sort devs
-	gsl_sort( dev2, 1, n );
-	// Third pass to calculate first (absolute) and second moments
-	*var = 0.0;
-	for( j = 0; j < n; j++ )
-		*var += dev2[j];
-	*var = ( *var - ep * ep / n ) / ( n - 1 );
-}
-
-void ave_sorted( double data[], int n, double *ave, double *ep )
-{
-	int j;
-	double s, dev[n];
-	// First pass to calculate mean
-	s = 0.0;
-	for( j = 0; j < n; j++ ) s += data[j];
-	*ave = s / n;
-	// Second pass to calculate absolute deviations
-	for( j = 0; j < n; j++ )
-		dev[j] = data[j] - *ave;
-	// Sort devs
-	gsl_sort( dev, 1, n );
-	// Third pass to calculate first (absolute) moment
-	*ep = 0.0;
-	for( j = 0; j < n; j++ )
-		*ep += dev[j];
 }
 
 int sort_int( const void *x, const void *y )

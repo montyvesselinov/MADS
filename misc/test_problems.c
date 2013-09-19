@@ -460,8 +460,8 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				f = 1;
 				for( d = 0; d < D; d++ )
 				{
-					a = (d < 2 ? 0 : 3);
-					o[d] = ( fabs( 4 * ( x[d] + .5 ) - 2) + a ) / ( 1 + a );
+					a = ( d < 2 ? 0 : 3 );
+					o[d] = ( fabs( 4 * ( x[d] + .5 ) - 2 ) + a ) / ( 1 + a );
 					f *= o[d];
 				}
 			}

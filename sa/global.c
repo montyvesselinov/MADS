@@ -55,6 +55,8 @@
 int sa_sobol( struct opt_data *op );
 int sa_saltelli( struct opt_data *op );
 int sa_moat( struct opt_data *op );
+void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
+void ave_sorted( double data[], int n, double *ave, double *ep );
 
 /* Functions elsewhere */
 int get_seed( );
@@ -299,12 +301,10 @@ int sa_sobol_dh( struct opt_data *op )
 		}
 	}
 	tprintf( "done.\n" );
-
 	// gs.f_hat_0 = gfhat / ( 2 * n_sub * ( op->pd->nOptParam + 1 ) );
 	// gs.D_hat_t = gfhat2 / ( 2 * n_sub * ( op->pd->nOptParam + 1 ) ) - gs.f_hat_0 * gs.f_hat_0;
 	tprintf( "Total output mean     (simple) = %g\n", gs.f_hat_0 );
 	tprintf( "Total output variance (simple) = %g\n", gs.D_hat_t );
-
 	// Calculate individual and interaction output variances
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
@@ -343,7 +343,7 @@ int sa_sobol_dh( struct opt_data *op )
 	// Print sensitivity indices
 	tprintf( "\nParameter sensitivity indices:\n" );
 	tprintf( "parameter SI (individual sensitvity index) ST (total sensitvity index)\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, (double) gs.D_hat_a[i] / gs.D_hat_t, (double) 1 - ( gs.D_hat_b[i] / gs.D_hat_t ) );
+	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, ( double ) gs.D_hat_a[i] / gs.D_hat_t, ( double ) 1 - ( gs.D_hat_b[i] / gs.D_hat_t ) );
 	tprintf( "\n" );
 	free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat_a ); free( gs.D_hat_b );
 	free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
@@ -367,7 +367,7 @@ int sa_sobol( struct opt_data *op )
 	//		gsl_qrng *q = gsl_qrng_alloc( gsl_qrng_sobol, op->pd->nOptParam );
 	n_sub = op->cd->nreal / 2;	// set to half of user specified reals
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Temporary variable to store op->cd->nreal phis
-	if( ( phis_full = ( double * ) malloc( op->cd->nreal * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Temporary variable to store m_sub phis
+	if( ( phis_full = ( double * ) malloc( 2 * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Temporary variable to store m_sub phis
 	if( ( phis_half = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Temporary variable to store random sample a
 	if( ( var_a_lhs = ( double * ) malloc( op->pd->nOptParam * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Sample a phis
 	if( ( gs.f_a = ( double * ) malloc( n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); } // Sample b phis
@@ -386,11 +386,11 @@ int sa_sobol( struct opt_data *op )
 	else tprintf( "Current seed: %d\n", op->cd->seed );
 	// Create samples
 	// Sample A
-	tprintf( "Random sampling set 1 (variables %d; realizations %d) using ", op->pd->nOptParam, op->cd->nreal );
+	tprintf( "Random sampling set 1 (variables %d; realizations %d) using ", op->pd->nOptParam, n_sub );
 	sampling( op->pd->nOptParam, n_sub, &op->cd->seed, var_a_lhs, op, 1 );
 	tprintf( "done.\n" );
 	// Sample B
-	tprintf( "Random sampling set 2 (variables %d; realizations %d) using ", op->pd->nOptParam, op->cd->nreal );
+	tprintf( "Random sampling set 2 (variables %d; realizations %d) using ", op->pd->nOptParam, n_sub );
 	sampling( op->pd->nOptParam, n_sub, &op->cd->seed, var_b_lhs, op, 1 );
 	tprintf( "done.\n" );
 	// Copy temp lhs vectors to matrices
@@ -425,11 +425,14 @@ int sa_sobol( struct opt_data *op )
 		fclose( out2 );
 		tprintf( "Random sampling sets a and b saved in %s.mcrnd_set_a and %s.mcrnd_set_b\n", op->root, op->root );
 	}
-	sprintf( filename, "%s.sobol.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.sobol_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	out = Fwrite( filename );
+	if( op->cd->mdebug > 1 )
+	{
+		sprintf( filename, "%s.sobol.results", op->root );
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.sobol_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+		out = Fwrite( filename );
+	}
 	// Accumulate phis into fhat and fhat2 for total output mean and variance
-	tprintf( "Computing phis to calculate total output mean and variance...\n" );
+	tprintf( "Computing model outputs to calculate total output mean and variance ... Sample A ... \n" );
 	gfhat = gfhat2 = fhat = fhat2 = 0;
 	// Compute sample a phis
 	for( count = 0; count < n_sub; count++ )
@@ -446,23 +449,25 @@ int sa_sobol( struct opt_data *op )
 		gfhat2 = fhat2 += op->phi * op->phi;
 		// Save sample a phis
 		gs.f_a[count] = phis_full[count] = op->phi;
-		// save to results file
-		fprintf( out, "%d : ", count + 1 ); // counter
-		fprintf( out, "%g :", op->phi );
-		for( i = 0; i < op->pd->nParam; i++ )
-			if( op->pd->var_opt[i] >= 1 )
-				fprintf( out, " %.15g", op->pd->var[i] );
-		fprintf( out, "\n" );
-		fflush( out );
+		if( op->cd->mdebug > 1 )
+		{
+			// save to results file
+			fprintf( out, "%d : ", count + 1 ); // counter
+			fprintf( out, "%g :", op->phi );
+			for( i = 0; i < op->pd->nParam; i++ )
+				if( op->pd->var_opt[i] >= 1 )
+					fprintf( out, " %g", op->pd->var[i] );
+			fprintf( out, "\n" );
+			fflush( out );
+		}
 	}
-	fprintf( stderr, "%g, %g, %g, %g\n", fhat2 / n_sub, fhat / n_sub, ( fhat * fhat / ( n_sub * n_sub ) ), pow( fhat / n_sub, 2 ) );
-	var_y = fhat2 / n_sub - ( fhat * fhat / ( (double)n_sub * n_sub ) );
-	fprintf( stderr, "%g\n", var_y );
+	var_y = fhat2 / n_sub - ( fhat * fhat / ( ( double ) n_sub * n_sub ) );
 	gs.f_hat_a = fhat / n_sub;
 	gs.D_hat_t = fhat2 / n_sub - gs.f_hat_a * gs.f_hat_a;
 	tprintf( "Sample A output mean     (simple) = %g\n", gs.f_hat_a );
 	tprintf( "Sample A output variance (simple) = %g\n", gs.D_hat_t );
 	// Compute sample b phis
+	tprintf( "Computing model outputs to calculate total output mean and variance ... Sample B ... \n" );
 	fhat = fhat2 = 0;
 	for( count = 0; count < n_sub; count++ )
 	{
@@ -478,17 +483,23 @@ int sa_sobol( struct opt_data *op )
 		gfhat2 = fhat2 += op->phi * op->phi;
 		// Save sample b phis
 		gs.f_b[count] = phis_full[n_sub + count] = op->phi;
-		// save to results file
-		fprintf( out, "%d : ", n_sub + count + 1 ); // counter
-		fprintf( out, "%g :", op->phi );
-		for( i = 0; i < op->pd->nParam; i++ )
-			if( op->pd->var_opt[i] >= 1 )
-				fprintf( out, " %.15g", op->pd->var[i] );
-		fprintf( out, "\n" );
-		fflush( out );
+		if( op->cd->mdebug > 1 )
+		{
+			// save to results file
+			fprintf( out, "%d : ", n_sub + count + 1 ); // counter
+			fprintf( out, "%g :", op->phi );
+			for( i = 0; i < op->pd->nParam; i++ )
+				if( op->pd->var_opt[i] >= 1 )
+					fprintf( out, " %.15g", op->pd->var[i] );
+			fprintf( out, "\n" );
+			fflush( out );
+		}
 	}
-	fclose( out );
-	tprintf( "Global Sensitivity MC results are saved in %s.sobol.results\n", op->root );
+	if( op->cd->mdebug > 1 )
+	{
+		tprintf( "Global Sensitivity MC results are saved in %s.sobol.results\n", op->root );
+		fclose( out );
+	}
 	// Calculate total output mean and variance based on sample a
 	gs.f_hat_b = fhat / n_sub;
 	gs.D_hat_t = fhat2 / n_sub - gs.f_hat_b * gs.f_hat_b;
@@ -512,7 +523,8 @@ int sa_sobol( struct opt_data *op )
 	// gfhat = gfhat2 = 0;
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
-		tprintf( "Parameter %d...\n", i + 1 );
+		k = op->pd->var_index[i];
+		tprintf( "Processing parameter %d out of %d ... %s ...\n", i + 1, op->pd->nOptParam, op->pd->var_name[k] );
 		for( count = 0; count < n_sub; count++ )
 		{
 			for( j = 0; j < op->pd->nOptParam; j++ )
@@ -533,7 +545,8 @@ int sa_sobol( struct opt_data *op )
 	tprintf( "Computing phis for calculation of individual plus interaction output variances:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
-		tprintf( "Parameter %d...\n", i + 1 );
+		k = op->pd->var_index[i];
+		tprintf( "Processing parameter %d out of %d ... %s ...\n", i + 1, op->pd->nOptParam, op->pd->var_name[k] );
 		for( count = 0; count < n_sub; count++ )
 		{
 			for( j = 0; j < op->pd->nOptParam; j++ )
@@ -576,8 +589,8 @@ int sa_sobol( struct opt_data *op )
 		// gs.D_hat_a[i] = ( fhat2 / n_sub ) - gs.f_hat_a * gs.f_hat_a;
 		//gs.D_hat_a[i] = fhat / n_sub;
 		//gs.D_hat_b[i] = fhat2 / ( 2 * n_sub );
-		gs.D_hat_a[i] = var_y - t1 / ( 2 * n_sub); //var_y * eq. 18
-		gs.D_hat_b[i] = t2 / ( 2 * n_sub); // var_y * eq. 19
+		gs.D_hat_a[i] = var_y - t1 / ( 2 * n_sub ); //var_y * eq. 18
+		gs.D_hat_b[i] = t2 / ( 2 * n_sub ); // var_y * eq. 19
 		//gs.D_hat_a[i] = t1 / n_sub;
 		//gs.D_hat_b[i] = t2 / ( 2 * n_sub );
 		tprintf( "hat{D}_a %d (simple) %g", i + 1, gs.D_hat_a[i] );
@@ -587,10 +600,12 @@ int sa_sobol( struct opt_data *op )
 		tprintf( " (nr) %g\n", gs.D_hat_a[i] );
 	}
 	// Print sensitivity indices
-	tprintf( "var_y: %g\n", var_y );
 	tprintf( "\nParameter sensitivity indices:\n" );
-	tprintf( "parameter SI (individual sensitvity index) ST (total sensitvity index)\n" );
-	for( i = 0; i < op->pd->nOptParam; i++ ) tprintf( "%d %g %g\n", i + 1, (double) gs.D_hat_a[i] / var_y, gs.D_hat_b[i] / var_y );
+	for( i = 0; i < op->pd->nOptParam; i++ )
+	{
+		k = op->pd->var_index[i];
+		tprintf( "%-39s: %g (total) %g\n", op->pd->var_name[k], ( double ) gs.D_hat_a[i] / var_y, gs.D_hat_b[i] / var_y );
+	}
 	tprintf( "\n" );
 	free( opt_params ); free( phis_half ); free( gs.f_a ); free( gs.f_b ); free( gs.D_hat_a ); free( gs.D_hat_b );
 	free_matrix( ( void ** ) gs.var_a_lhs, n_sub );
@@ -600,7 +615,7 @@ int sa_sobol( struct opt_data *op )
 	return( 1 );
 }
 
-int sa_saltelli( struct opt_data *op)
+int sa_saltelli( struct opt_data *op )
 {
 	int num_opt_params;
 	int num_samples;
@@ -643,7 +658,7 @@ int sa_saltelli( struct opt_data *op)
 	//compute the mean and variance
 	ave_sorted ( func_evals, num_samples, &mean, &ep );
 	mean /= ( num_samples - 1 );
-	var_sorted( func_evals, func_evals, num_samples, ave, ep, &variance );
+	var_sorted( func_evals, func_evals, num_samples, mean, ep, &variance );
 
 	//compute the first order sensitivities
 	
@@ -656,4 +671,49 @@ int sa_moat( struct opt_data *op )
 {
 	tprintf( "MOAT\n" );
 	return( 1 );
+}
+
+// Modified from Numerical Recipes in C: The Art of Scientific Computing (ISBN 0-521-43108-5)
+// corrected three-pass algorithm to minimize roundoff error in variance
+void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var )
+{
+	int j;
+	double *dev2;
+	if( ( dev2 = ( double * ) malloc( n * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return; }
+	// First pass to calculate mean
+	//	s = 0.0;
+	//	for( j = 0; j < n; j++ ) s += data[j];
+	//	*ave = s/n;
+	// Second pass to calculate absolute deviations
+	for( j = 0; j < n; j++ )
+		dev2[j] = ( data[j] - ave ) * ( datb[j] - ave );
+	// Sort devs
+	gsl_sort( dev2, 1, n );
+	// Third pass to calculate first (absolute) and second moments
+	*var = 0.0;
+	for( j = 0; j < n; j++ )
+		*var += dev2[j];
+	*var = ( *var - ep * ep / n ) / ( n - 1 );
+	free( dev2 );
+}
+
+void ave_sorted( double data[], int n, double *ave, double *ep )
+{
+	int j;
+	double s, *dev;
+	if( ( dev = ( double * ) malloc( n * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return; }
+	// First pass to calculate mean
+	s = 0.0;
+	for( j = 0; j < n; j++ ) s += data[j];
+	*ave = s / n;
+	// Second pass to calculate absolute deviations
+	for( j = 0; j < n; j++ )
+		dev[j] = data[j] - *ave;
+	// Sort devs
+	gsl_sort( dev, 1, n );
+	// Third pass to calculate first (absolute) moment
+	*ep = 0.0;
+	for( j = 0; j < n; j++ )
+		*ep += dev[j];
+	free( dev );
 }
