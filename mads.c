@@ -3069,7 +3069,8 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var )
 {
 	int j;
-	double dev2[n];
+	double *dev2;
+	if( ( dev2 = ( double * ) malloc( n * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return; }
 	// First pass to calculate mean
 	//	s = 0.0;
 	//	for( j = 0; j < n; j++ ) s += data[j];
@@ -3089,7 +3090,8 @@ void var_sorted( double data[], double datb[], int n, double ave, double ep, dou
 void ave_sorted( double data[], int n, double *ave, double *ep )
 {
 	int j;
-	double s, dev[n];
+	double s, *dev;
+	if( ( dev = ( double * ) malloc( n * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return; }
 	// First pass to calculate mean
 	s = 0.0;
 	for( j = 0; j < n; j++ ) s += data[j];
@@ -3103,6 +3105,7 @@ void ave_sorted( double data[], int n, double *ave, double *ep )
 	*ep = 0.0;
 	for( j = 0; j < n; j++ )
 		*ep += dev[j];
+	free( dev );
 }
 
 int sort_int( const void *x, const void *y )

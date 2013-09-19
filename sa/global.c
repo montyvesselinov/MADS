@@ -455,7 +455,7 @@ int sa_sobol( struct opt_data *op )
 		fprintf( out, "\n" );
 		fflush( out );
 	}
-	var_y = fhat2 / n_sub - ( fhat * fhat / ( n_sub * n_sub ) );
+	var_y = fhat2 / n_sub - ( fhat * fhat / ( (double) n_sub * n_sub ) );
 	gs.f_hat_a = fhat / n_sub;
 	gs.D_hat_t = fhat2 / n_sub - gs.f_hat_a * gs.f_hat_a;
 	tprintf( "Sample A output mean     (simple) = %g\n", gs.f_hat_a );
