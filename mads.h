@@ -296,23 +296,6 @@ struct extrn_data // data structure for external problem
 	char **fn_obs; // model output filename associated with the instruction file
 };
 
-struct gsa_data // global sensitivity analysis data structure
-{
-	double **var_a_lhs;	// sample a for global sensitivity analysis
-	double **var_b_lhs;	// sample b for global sensitivity analysis
-	double f_hat_0;		// total output mean
-	double f_hat_a;		// Sample A output mean
-	double f_hat_b;		// Sample B output mean
-	double *f_a;		// sample a phis
-	double *f_b;		// sample b phis
-	double **fmat_a;	// matrix of phis - rows \theta_i^a; column \theta_{~i}^b
-	double **fmat_b;	// matrix of phis - rows \theta_i^b; column \theta_{~i}^a
-	double D_hat_t;		// total output variance
-	double *D_hat_a;    // component output variance (\hat{D}_i)
-	double *D_hat_b; 	// not component output variance (\hat{D}_{~i})
-	double ep;          // absolute first moment
-};
-
 struct anal_data
 {
 	int num_param;

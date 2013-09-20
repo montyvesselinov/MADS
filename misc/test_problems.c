@@ -99,8 +99,7 @@ int set_test_problems( struct opt_data *op )
 	{
 		case 111: // Test
 			printf( "Test" );
-			if( cd->test_func_nobs > 0 ) od->nTObs = cd->test_func_nobs;
-			else od->nTObs = cd->test_func_dim;
+			od->nTObs = 0;
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
 			break;
@@ -453,16 +452,14 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 	switch( function )
 	{
 		case 111: // Test
-			p = 0; // Shift
-			if( nObs == D )
 			{
-				float a;
+				float a, b;
 				f = 1;
 				for( d = 0; d < D; d++ )
 				{
 					a = ( d < 2 ? 0 : 3 );
-					o[d] = ( fabs( 4 * ( x[d] + .5 ) - 2 ) + a ) / ( 1 + a );
-					f *= o[d];
+					b = ( fabs( 4 * ( x[d] + .5 ) - 2 ) + a ) / ( 1 + a );
+					f *= b;
 				}
 			}
 			break;
