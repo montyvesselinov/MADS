@@ -559,7 +559,7 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	double lambda_x, lambda_y, lambda_z;
 	double tau_d, tv;
 	double angle, rot1, rot2, xe, ye, ze, x0, y0;
-	double decay_factor, px, py, pz;
+	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2;
 	alpha = p->var[ALPHA];
 	beta = p->var[BETA];
 	x0 = ( p->xe - p->var[SOURCE_X] );
@@ -577,9 +577,15 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	lambda_y = pow( tv * ay, 1 / alpha );
 	lambda_z = pow( tv * az, 1 / alpha );
 	decay_factor = exp( -tau * lambda );
-	px = astable_cdf( xe + source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x ) - astable_cdf( xe - source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x );
-	py = astable_cdf( ye + source_sizey / 2., alpha, beta, 0., lambda_y ) - astable_cdf( ye - source_sizey / 2., alpha, beta, 0., lambda_y );
-	pz = astable_cdf( ze + source_sizez, alpha, beta, 0., lambda_z ) - astable_cdf( ze, alpha, beta, 0., lambda_z );
+	astable_cdf_interp( xe + source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x, &px1 );
+	astable_cdf_interp( xe - source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x, &px2 );
+	px = px1 - px2;
+	astable_cdf_interp( ye + source_sizey / 2., alpha, beta, 0., lambda_y, &py1 );
+	astable_cdf_interp( ye - source_sizey / 2., alpha, beta, 0., lambda_y, &py2 );
+	py = py1 - py2;
+	astable_cdf_interp( ze + source_sizez, alpha, beta, 0., lambda_z, &pz1 );
+	astable_cdf_interp( ze, alpha, beta, 0., lambda_z, &pz2 );
+	pz = pz1 - pz2;
 	// ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz ) - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz );
 	// if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
 	return( decay_factor * px * py * pz );

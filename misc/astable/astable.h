@@ -10,6 +10,7 @@
 
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
+#include <gsl/gsl_sf_gamma.h>
 
 #define INTERP_CDF 0
 #define INTERP_PDF 1
@@ -32,8 +33,8 @@ struct interpolant_params
 	double beta;
 	gsl_interp_accel *acc;
 	gsl_spline *spline;
-	double *xa;
-	double *ya;
+	double ymax;
+	double ymin;
 	int size;
 	double limiting_coefficient;
 	int cdf_or_pdf;
@@ -56,6 +57,7 @@ inline double nolan_V(double theta, void *params);
 double bisection_solver(double (*f)(double, void *), double value, double a, double b, void *params, double tol);
 
 //Defined in interpolation.c
+void astable_cdf_interp(double x, double alpha, double beta, double gamma, double lambda, double *val);
 struct interpolant_params *automate_interpolant(double alpha, double beta, double percentile, double abserr, int CDF_OR_PDF);
 double interpolate(double x, double gamma, double lambda, struct interpolant_params *ip);
 struct interpolant_params *setup_interpolant(double alpha, double beta, double left, double right, int N, int CDF_OR_PDF);
