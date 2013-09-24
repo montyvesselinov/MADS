@@ -41,28 +41,28 @@ struct interpolant_params
 };
 
 //Defined in astable.c
-double astable_pdf(double x, double alpha, double beta, double gamma, double lambda);
-double astable_cdf(double x, double alpha, double beta, double gamma, double lambda);
-void setup_params(struct integrand_params *params, double x, double alpha, double beta);
-double pdf_integrand(double theta, void *params);
-double standard_astable_pdf(double x, double alpha, double beta);
-double cdf_integrand(double theta, void *params);
-double standard_astable_cdf(double x, double alpha, double beta);
-inline double nolan_g(double theta, void *params);
-inline double nolan_log_g(double theta, void *params);
-inline double nolan_g_minus_one(double theta, void *params);
-inline double exp_g_minus_half(double theta, void *params);
-inline double nolan_log_V(double theta, void *params);
-inline double nolan_V(double theta, void *params);
-double bisection_solver(double (*f)(double, void *), double value, double a, double b, void *params, double tol);
+double astable_pdf( double x, double alpha, double beta, double gamma, double lambda );
+double astable_cdf( double x, double alpha, double beta, double gamma, double lambda );
+void setup_params( struct integrand_params *params, double x, double alpha, double beta );
+double pdf_integrand( double theta, void *params );
+double standard_astable_pdf( double x, double alpha, double beta );
+double cdf_integrand( double theta, void *params );
+double standard_astable_cdf( double x, double alpha, double beta );
+inline double nolan_g( double theta, void *params );
+inline double nolan_log_g( double theta, void *params );
+inline double nolan_g_minus_one( double theta, void *params );
+inline double exp_g_minus_half( double theta, void *params );
+inline double nolan_log_V( double theta, void *params );
+inline double nolan_V( double theta, void *params );
+double bisection_solver( double( *f )( double, void * ), double value, double a, double b, void *params, double tol );
 
 //Defined in interpolation.c
-void astable_cdf_interp(double x, double alpha, double beta, double gamma, double lambda, double *val);
-struct interpolant_params *automate_interpolant(double alpha, double beta, double percentile, double abserr, int CDF_OR_PDF);
-double interpolate(double x, double gamma, double lambda, struct interpolant_params *ip);
-struct interpolant_params *setup_interpolant(double alpha, double beta, double left, double right, int N, int CDF_OR_PDF);
-void free_interpolant_params(struct interpolant_params *ip);
-int interval_comp(const void *d1, const void *d2);
-int interval_comp_x(const void *d1, const void *d2);
+void astable_cdf_interp( double x, double alpha, double beta, double gamma, double lambda, double *val );
+struct interpolant_params *automate_interpolant( double alpha, double beta, double percentile, double abserr, int CDF_OR_PDF );
+double interpolate( double x, double gamma, double lambda, struct interpolant_params *ip );
+struct interpolant_params *setup_interpolant( double alpha, double beta, double left, double right, int N, int CDF_OR_PDF );
+void free_interpolant_params( struct interpolant_params *ip );
+int interval_comp( const void *d1, const void *d2 );
+int interval_comp_x( const void *d1, const void *d2 );
 
 #endif /* ASTABLE_H_ */
