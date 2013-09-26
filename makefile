@@ -28,6 +28,12 @@ YAML = true
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
 endif
+ifeq ($(ND),madsmax)
+$(info Machine -- MadsMax)
+CFLAGS += -I/home/monty/local/include
+LDLIBS += -L/home/monty/local/lib -lgslcblas -lm -llapack -lblas
+YAML = true
+endif
 ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include

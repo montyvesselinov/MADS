@@ -285,8 +285,8 @@ int mprun( int nJob, void *data )
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], pid, exec_name, dir );
-				if( type ) execlp( "bpsh", "bpsh", kidhost[child], "/bin/tcsh", "-f", "-c", buf, ( char * ) 0 );
-				else       execlp( "/bin/tcsh", "-f", "-c", buf, ( char * ) 0 );
+				if( type ) execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				else       execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				exit( 7 );
 			}
 			if( return_fork > 0 )

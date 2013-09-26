@@ -50,7 +50,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20130918-104533
+Execution date & time stamp: 20130926-154726
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -70,8 +70,8 @@ Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
 Optimized model parameters:
-k                                        :            1 stddev      13.5908 (          -5 -            5) Uncertainty ranges constrained by prior bounds
-S                                        :            1 stddev      29.1219 (          -5 -            5) Uncertainty ranges constrained by prior bounds
+k                          :            1 stddev      13.5908 (          -5 -            5) Uncertainty ranges constrained by prior bounds
+S                          :            1 stddev      29.1219 (          -5 -            5) Uncertainty ranges constrained by prior bounds
 Computed initial lambda 0.00167603
 OF 79780.1 lambda 0.00167603
 OF 79781.6 lambda 0.00335207
@@ -90,8 +90,8 @@ Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
 Optimized model parameters:
-k                                        :            1 stddev      13.5908 (          -5 -            5) Uncertainty ranges constrained by prior bounds
-S                                        :            1 stddev      29.1219 (          -5 -            5) Uncertainty ranges constrained by prior bounds
+k                          :            1 stddev      13.5908 (          -5 -            5) Uncertainty ranges constrained by prior bounds
+S                          :            1 stddev      29.1219 (          -5 -            5) Uncertainty ranges constrained by prior bounds
 Parameters did not change between last two jacobian iterations.
 OF 79757 lambda 1.71626
 OF 79781.6 lambda 3.43252
@@ -110,8 +110,8 @@ Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 32.2522 < 200)
 Optimized model parameters:
-k                                        :      -1.0073 stddev    0.0252182 (    -1.24805 -      -0.7641)
-S                                        :      -4.7429 stddev      1.29608 (          -5 -      4.80637) Uncertainty ranges constrained by prior bounds
+k                          :      -1.0073 stddev    0.0252182 (    -1.24805 -      -0.7641)
+S                          :      -4.7429 stddev      1.29608 (          -5 -      4.80637) Uncertainty ranges constrained by prior bounds
 Parameter with maximum estimate change between jacobian iterations: S                              (5.7429)
 Parameter with minimum estimate change between jacobian iterations: k                              (2.0073)
 OF 79781.6 lambda 36.6135
@@ -130,8 +130,8 @@ Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 2.41192 < 200)
 Optimized model parameters:
-k                                        :     -1.84872 stddev   0.00116428 (    -1.85931 -     -1.83811)
-S                                        :     -3.00178 stddev    0.0109224 (    -3.08669 -     -2.91549)
+k                          :     -1.84872 stddev   0.00116428 (    -1.85931 -     -1.83811)
+S                          :     -3.00178 stddev    0.0109224 (    -3.08669 -     -2.91549)
 Parameter with maximum estimate change between jacobian iterations: S                              (-1.74113)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.841414)
 OF 3076.62 lambda 97.636
@@ -151,8 +151,8 @@ Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
 Optimized model parameters:
-k                                        :     -1.93197 stddev  0.000911836 (    -1.94021 -     -1.92373)
-S                                        :     -2.80097 stddev   0.00719816 (    -2.85913 -     -2.74226)
+k                          :     -1.93197 stddev  0.000911836 (    -1.94021 -     -1.92373)
+S                          :     -2.80097 stddev   0.00719816 (    -2.85913 -     -2.74226)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.200806)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.083255)
 OF 2845.29 lambda 31.6935
@@ -172,8 +172,8 @@ Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
 Optimized model parameters:
-k                                        :     -1.93197 stddev  0.000911836 (    -1.94021 -     -1.92373)
-S                                        :     -2.80097 stddev   0.00719816 (    -2.85913 -     -2.74226)
+k                          :     -1.93197 stddev  0.000911836 (    -1.94021 -     -1.92373)
+S                          :     -2.80097 stddev   0.00719816 (    -2.85913 -     -2.74226)
 Parameters did not change between last two jacobian iterations.
 OF 2844.71 lambda 32454.1
 OF 2844.61 lambda 62642.2
@@ -192,8 +192,8 @@ Eigen vactors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
 Optimized model parameters:
-k                                        :     -1.93403 stddev  0.000909453 (    -1.94225 -     -1.92581)
-S                                        :     -2.79024 stddev   0.00712231 (    -2.84788 -     -2.73205)
+k                          :     -1.93403 stddev  0.000909453 (    -1.94225 -     -1.92581)
+S                          :     -2.79024 stddev   0.00712231 (    -2.84788 -     -2.73205)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.0107376)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.00205928)
 OF 2844.63 lambda 137910
@@ -209,30 +209,30 @@ Eigen analysis ...
 Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
-Observations              : o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 ... o4943 o4944 o4945 o4946 o4947 o4948 o4949 o4950 o4951
-k                         :    0.0   -4.7   -2.2    2.6    7.4   11.9   16.0   19.8   23.2   26.3 ...    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0
-S                         :    0.0   -7.0  -11.4  -13.5  -14.7  -15.5  -16.1  -16.5  -16.8  -17.0 ...   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0
+Observations               : o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 ... o4943 o4944 o4945 o4946 o4947 o4948 o4949 o4950 o4951
+k                          :    0.0   -4.7   -2.2    2.6    7.4   11.9   16.0   19.8   23.2   26.3 ...    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0
+S                          :    0.0   -7.0  -11.4  -13.5  -14.7  -15.5  -16.1  -16.5  -16.8  -17.0 ...   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0
 Jacobian matrix stored (w01.jacobian)
 
 Covariance matrix
-k                         :   4e-07   3e-06
-S                         :   3e-06   3e-05
+k                          :   4e-07   3e-06
+S                          :   3e-06   3e-05
 Covariance matrix stored (w01.covariance)
 
 Correlation matrix
-k                         :   1.000  0.910
-S                         :   0.910  1.000
+k                          :  1.000  0.910
+S                          :  0.910  1.000
 Correlation matrix stored (w01.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
-k                         :  0.993  0.116
-S                         : -0.116  0.993
-Eigenvalues               :  7e-08  3e-05
+k                          :  0.993  0.116
+S                          : -0.116  0.993
+Eigenvalues                :  7e-08  3e-05
 
 Eigenvectors (sorted by eigenvalues)
-k                         :  0.993  0.116
-S                         : -0.116  0.993
-Eigenvalues               :  7e-08  3e-05
+k                          :  0.993  0.116
+S                          : -0.116  0.993
+Eigenvalues                :  7e-08  3e-05
 Eigen vactors and eigen values stored (w01.eigen)
 
 Number of parameters           : 2
@@ -261,11 +261,11 @@ KIC (Kashyap Information Criterion) : 4126.63
 Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
 Optimized model parameters:
 Transformed space (applied during optimization):
-k                                        :    -0.397166 stddev  0.000909453 (   -0.398948 -    -0.395383)
-S                                        :    -0.592031 stddev   0.00712231 (    -0.60599 -    -0.578071)
+k                          :    -0.397166 stddev  0.000909453 (   -0.398948 -    -0.395383)
+S                          :    -0.592031 stddev   0.00712231 (    -0.60599 -    -0.578071)
 Untransformed space:
-k                                        :     -1.93403 stddev  0.000909453 (    -1.94225 -     -1.92581)
-S                                        :     -2.79024 stddev   0.00712231 (    -2.84788 -     -2.73205)
+k                          :     -1.93403 stddev  0.000909453 (    -1.94225 -     -1.92581)
+S                          :     -2.79024 stddev   0.00712231 (    -2.84788 -     -2.73205)
 
 Optimized model parameters:
 k -1.93403
@@ -355,11 +355,11 @@ o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range 
 o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
 o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
 o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
-Simulation time = 6 seconds
+Simulation time = 10 seconds
 Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 7
-Execution  started  on Wed Sep 18 10:45:33 2013
-Execution completed on Wed Sep 18 10:45:39 2013
-Execution date & time stamp: 20130918-104533
+Functional evaluations per second = 4
+Execution  started  on Thu Sep 26 15:47:26 2013
+Execution completed on Thu Sep 26 15:47:36 2013
+Execution date & time stamp: 20130926-154726

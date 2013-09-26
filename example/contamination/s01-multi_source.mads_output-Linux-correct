@@ -1,0 +1,2904 @@
+MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+---------------------------------------------------
+Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: example/contamination/s01-multi_source.mads
+Problem root name: example/contamination/s01-multi_source
+Key : Problem
+Key : time_step
+Data: 
+Key : Solution
+Data: internal
+Key : Sources
+Sequence start
+Key : box
+Key : x
+Key : longname
+Data: Source x coordinate [L]
+Key : init
+Data: 1124
+Key : type
+Data: opt
+Key : log
+Data: no
+Key : step
+Data: 25
+Key : min
+Data: 210
+Key : max
+Data: 1460
+Key : y
+Key : longname
+Data: Source y coordinate [L]
+Key : init
+Data: 1393
+Key : type
+Data: opt
+Key : log
+Data: no
+Key : step
+Data: 25
+Key : min
+Data: 1230
+Key : max
+Data: 1930
+Key : z
+Key : longname
+Data: Source z coordinate [L]
+Key : init
+Data: 0
+Key : type
+Data: null
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 0
+Key : max
+Data: 100
+Key : dx
+Key : longname
+Data: Source x dimension [L]
+Key : init
+Data: 258
+Key : type
+Data: null
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 1
+Key : max
+Data: 500
+Key : dy
+Key : longname
+Data: Source y dimension [L]
+Key : init
+Data: 273
+Key : type
+Data: null
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 1
+Key : max
+Data: 500
+Key : dz
+Key : longname
+Data: Source z dimension [L]
+Key : init
+Data: 1
+Key : type
+Data: null
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 1
+Key : max
+Data: 10
+Key : f
+Key : longname
+Data: Contaminant flux [M/T]
+Key : init
+Data: 16
+Key : type
+Data: opt
+Key : log
+Data: yes
+Key : step
+Data: 10
+Key : min
+Data: 0.01
+Key : max
+Data: 100
+Key : t0
+Key : longname
+Data: Start Time [T]
+Key : init
+Data: 0
+Key : type
+Data: opt
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 0
+Key : max
+Data: 43
+Key : t1
+Key : longname
+Data: End Time [T]
+Key : init
+Data: 10
+Key : type
+Data: opt
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 1
+Key : max
+Data: 100
+Key : box
+Key : x
+Key : longname
+Data: Source x coordinate [L]
+Key : exp
+Data: x_1
+Key : y
+Key : longname
+Data: Source y coordinate [L]
+Key : exp
+Data: y_1
+Key : z
+Key : longname
+Data: Source z coordinate [L]
+Key : exp
+Data: z_1
+Key : dx
+Key : longname
+Data: Source x dimension [L]
+Key : exp
+Data: dx_1
+Key : dy
+Key : longname
+Data: Source y dimension [L]
+Key : exp
+Data: dy_1
+Key : dz
+Key : longname
+Data: Source z dimension [L]
+Key : exp
+Data: dz_1
+Key : f
+Key : longname
+Data: Contaminant flux [M/T]
+Key : init
+Data: 16
+Key : type
+Data: opt
+Key : log
+Data: yes
+Key : step
+Data: 10
+Key : min
+Data: 0.01
+Key : max
+Data: 100
+Key : t0
+Key : longname
+Data: Start Time [T]
+Key : exp
+Data: t0_1 + t1_1
+Key : t1
+Key : longname
+Data: End Time [T]
+Key : exp
+Data: t0_1 + 2 * t1_1
+Key : box
+Key : x
+Key : longname
+Data: Source x coordinate [L]
+Key : exp
+Data: x_1
+Key : y
+Key : longname
+Data: Source y coordinate [L]
+Key : exp
+Data: y_1
+Key : z
+Key : longname
+Data: Source z coordinate [L]
+Key : exp
+Data: z_1
+Key : dx
+Key : longname
+Data: Source x dimension [L]
+Key : exp
+Data: dx_1
+Key : dy
+Key : longname
+Data: Source y dimension [L]
+Key : exp
+Data: dy_1
+Key : dz
+Key : longname
+Data: Source z dimension [L]
+Key : exp
+Data: dz_1
+Key : f
+Key : longname
+Data: Contaminant flux [M/T]
+Key : init
+Data: 16
+Key : type
+Data: opt
+Key : log
+Data: yes
+Key : step
+Data: 10
+Key : min
+Data: 0.01
+Key : max
+Data: 100
+Key : t0
+Key : longname
+Data: Start Time [T]
+Key : exp
+Data: t0_2 + t1_1
+Key : t1
+Key : longname
+Data: End Time [T]
+Key : exp
+Data: t0_2 + 2 * t1_1
+Sequence end
+Key : Parameters
+Sequence start
+Key : n
+Key : longname
+Data: Porosity [L3/L3]
+Key : init
+Data: 0.1
+Key : type
+Data: null
+Key : log
+Data: yes
+Key : step
+Data: 0.1
+Key : min
+Data: 0
+Key : max
+Data: 1
+Key : rf
+Key : longname
+Data: Retardation Factor [-]
+Key : init
+Data: 1
+Key : type
+Data: null
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 1
+Key : max
+Data: 10
+Key : lambda
+Key : longname
+Data: Half-life decay [1/T]
+Key : init
+Data: 0
+Key : type
+Data: null
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 0
+Key : max
+Data: 1
+Key : theta
+Key : longname
+Data: Flow Angle [degrees]
+Key : init
+Data: 3
+Key : type
+Data: opt
+Key : log
+Data: no
+Key : step
+Data: 5
+Key : min
+Data: -30
+Key : max
+Data: 30
+Key : vx
+Key : longname
+Data: Pore x velocity [L/T]
+Key : init
+Data: 5
+Key : type
+Data: opt
+Key : log
+Data: yes
+Key : step
+Data: 1
+Key : min
+Data: 0.01
+Key : max
+Data: 200
+Key : vy
+Key : longname
+Data: Pore y velocity [L/T]
+Key : init
+Data: 0
+Key : type
+Data: null
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 0
+Key : max
+Data: 1
+Key : vz
+Key : longname
+Data: Pore z velocity [L/T]
+Key : init
+Data: 0
+Key : type
+Data: null
+Key : log
+Data: no
+Key : step
+Data: 1
+Key : min
+Data: 0
+Key : max
+Data: 1
+Key : ax
+Key : longname
+Data: Dispersivity x [L]
+Key : init
+Data: 70
+Key : type
+Data: opt
+Key : log
+Data: yes
+Key : step
+Data: 5
+Key : min
+Data: 10
+Key : max
+Data: 140
+Key : ay
+Key : longname
+Data: Dispersivity y [L]
+Key : init
+Data: 15
+Key : type
+Data: opt
+Key : log
+Data: yes
+Key : step
+Data: 5
+Key : min
+Data: 1
+Key : max
+Data: 30
+Key : az
+Key : longname
+Data: Dispersivity z [L]
+Key : init
+Data: 0.3
+Key : type
+Data: opt
+Key : log
+Data: yes
+Key : step
+Data: 0.1
+Key : min
+Data: 0.1
+Key : max
+Data: 1
+Sequence end
+Key : Wells
+Sequence start
+Key : W-1
+Key : x
+Data: 1503
+Key : y
+Data: 1954
+Key : z0
+Data: 5.57
+Key : z1
+Data: 12.55
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 25
+Sequence end
+Key : W-2
+Key : x
+Data: 2113
+Key : y
+Data: 1479
+Key : z0
+Data: 36.73
+Key : z1
+Data: 55.14
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 10
+Sequence end
+Key : W-3
+Key : x
+Data: 418
+Key : y
+Data: 950
+Key : z0
+Data: 0
+Key : z1
+Data: 15.04
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 25
+Sequence end
+Key : W-4
+Key : x
+Data: 1377
+Key : y
+Data: 1534
+Key : z0
+Data: 13.15
+Key : z1
+Data: 20.41
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 44
+Key : c
+Data: 350
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 300
+Key : max
+Data: 700
+Key : 2
+Key : t
+Data: 49
+Key : c
+Data: 432
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 300
+Key : max
+Data: 700
+Sequence end
+Key : W-5
+Key : x
+Data: 3268
+Key : y
+Data: 1074
+Key : z0
+Data: 26.73
+Key : z1
+Data: 33.71
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 10
+Sequence end
+Key : W-6
+Key : x
+Data: 2112
+Key : y
+Data: 2294
+Key : z0
+Data: 69.01
+Key : z1
+Data: 83.98
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 10
+Sequence end
+Key : W-7
+Key : x
+Data: 2086
+Key : y
+Data: 2284
+Key : z0
+Data: 11.15
+Key : z1
+Data: 18.19
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 10
+Sequence end
+Key : W-8
+Key : x
+Data: 2770
+Key : y
+Data: 2119
+Key : z0
+Data: 4.86
+Key : z1
+Data: 11.87
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 10
+Sequence end
+Key : W-9
+Key : x
+Data: 975
+Key : y
+Data: 1450
+Key : z0
+Data: 3.66
+Key : z1
+Data: 10.09
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 981
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 600
+Key : max
+Data: 1200
+Sequence end
+Key : W-10#1
+Key : x
+Data: 723
+Key : y
+Data: 1599
+Key : z0
+Data: 3.32
+Key : z1
+Data: 9.63
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 1.1
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 5
+Sequence end
+Key : W-10#2
+Key : x
+Data: 723
+Key : y
+Data: 1599
+Key : z0
+Data: 23.2
+Key : z1
+Data: 26.24
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0.1
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 5
+Sequence end
+Key : W-11#1
+Key : x
+Data: 1850
+Key : y
+Data: 1368
+Key : z0
+Data: 4.94
+Key : z1
+Data: 7.99
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 22
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 3
+Key : max
+Data: 25
+Sequence end
+Key : W-11#2
+Key : x
+Data: 1850
+Key : y
+Data: 1368
+Key : z0
+Data: 32.46
+Key : z1
+Data: 35.48
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0.3
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 5
+Sequence end
+Key : W-12#1
+Key : x
+Data: 1761
+Key : y
+Data: 1636
+Key : z0
+Data: 3.59
+Key : z1
+Data: 6.64
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 15
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 3
+Key : max
+Data: 25
+Sequence end
+Key : W-12#2
+Key : x
+Data: 1761
+Key : y
+Data: 1636
+Key : z0
+Data: 32.51
+Key : z1
+Data: 38.61
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 49
+Key : c
+Data: 0.17
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 5
+Sequence end
+Key : W-13#1
+Key : x
+Data: 1485
+Key : y
+Data: 1149
+Key : z0
+Data: 3
+Key : z1
+Data: 6
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 50
+Key : c
+Data: 72
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 40
+Key : max
+Data: 100
+Sequence end
+Key : W-13#2
+Key : x
+Data: 1485
+Key : y
+Data: 1149
+Key : z0
+Data: 36
+Key : z1
+Data: 42
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 50
+Key : c
+Data: 0.26
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 20
+Sequence end
+Key : W-14a
+Key : x
+Data: 972
+Key : y
+Data: 869
+Key : z0
+Data: 3
+Key : z1
+Data: 6
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 50
+Key : c
+Data: 0
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 5
+Sequence end
+Key : W-14b
+Key : x
+Data: 940
+Key : y
+Data: 1160
+Key : z0
+Data: 3
+Key : z1
+Data: 6
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 50
+Key : c
+Data: 30
+Key : weight
+Data: 1
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 50
+Sequence end
+Key : W-14c
+Key : x
+Data: 900
+Key : y
+Data: 1260
+Key : z0
+Data: 3
+Key : z1
+Data: 6
+Key : obs
+Sequence start
+Key : 1
+Key : t
+Data: 50
+Key : c
+Data: 10
+Key : weight
+Data: 0
+Key : log
+Data: no
+Key : min
+Data: 0
+Key : max
+Data: 20
+Sequence end
+Sequence end
+Key : Grid
+Key : time
+Data: 0
+Key : xcount
+Data: 25
+Key : ycount
+Data: 29
+Key : zcount
+Data: 1
+Key : xmin
+Data: 499000
+Key : ymin
+Data: 538300
+Key : zmin
+Data: 0
+Key : xmax
+Data: 500200
+Key : ymax
+Data: 539400
+Key : zmax
+Data: 0.1
+Key : Time
+Key : start
+Data: 0
+Key : end
+Data: 0
+Key : step
+Data: 1
+YAML/GNODE Complete Tree:
+example/contamination/s01-multi_source.mads
+    Problem
+        time_step
+            
+    Solution
+        internal
+    Sources
+        box
+            x
+                longname
+                    Source x coordinate [L]
+                init
+                    1124
+                type
+                    opt
+                log
+                    no
+                step
+                    25
+                min
+                    210
+                max
+                    1460
+            y
+                longname
+                    Source y coordinate [L]
+                init
+                    1393
+                type
+                    opt
+                log
+                    no
+                step
+                    25
+                min
+                    1230
+                max
+                    1930
+            z
+                longname
+                    Source z coordinate [L]
+                init
+                    0
+                type
+                    null
+                log
+                    no
+                step
+                    1
+                min
+                    0
+                max
+                    100
+            dx
+                longname
+                    Source x dimension [L]
+                init
+                    258
+                type
+                    null
+                log
+                    no
+                step
+                    1
+                min
+                    1
+                max
+                    500
+            dy
+                longname
+                    Source y dimension [L]
+                init
+                    273
+                type
+                    null
+                log
+                    no
+                step
+                    1
+                min
+                    1
+                max
+                    500
+            dz
+                longname
+                    Source z dimension [L]
+                init
+                    1
+                type
+                    null
+                log
+                    no
+                step
+                    1
+                min
+                    1
+                max
+                    10
+            f
+                longname
+                    Contaminant flux [M/T]
+                init
+                    16
+                type
+                    opt
+                log
+                    yes
+                step
+                    10
+                min
+                    0.01
+                max
+                    100
+            t0
+                longname
+                    Start Time [T]
+                init
+                    0
+                type
+                    opt
+                log
+                    no
+                step
+                    1
+                min
+                    0
+                max
+                    43
+            t1
+                longname
+                    End Time [T]
+                init
+                    10
+                type
+                    opt
+                log
+                    no
+                step
+                    1
+                min
+                    1
+                max
+                    100
+        box
+            x
+                longname
+                    Source x coordinate [L]
+                exp
+                    x_1
+            y
+                longname
+                    Source y coordinate [L]
+                exp
+                    y_1
+            z
+                longname
+                    Source z coordinate [L]
+                exp
+                    z_1
+            dx
+                longname
+                    Source x dimension [L]
+                exp
+                    dx_1
+            dy
+                longname
+                    Source y dimension [L]
+                exp
+                    dy_1
+            dz
+                longname
+                    Source z dimension [L]
+                exp
+                    dz_1
+            f
+                longname
+                    Contaminant flux [M/T]
+                init
+                    16
+                type
+                    opt
+                log
+                    yes
+                step
+                    10
+                min
+                    0.01
+                max
+                    100
+            t0
+                longname
+                    Start Time [T]
+                exp
+                    t0_1 + t1_1
+            t1
+                longname
+                    End Time [T]
+                exp
+                    t0_1 + 2 * t1_1
+        box
+            x
+                longname
+                    Source x coordinate [L]
+                exp
+                    x_1
+            y
+                longname
+                    Source y coordinate [L]
+                exp
+                    y_1
+            z
+                longname
+                    Source z coordinate [L]
+                exp
+                    z_1
+            dx
+                longname
+                    Source x dimension [L]
+                exp
+                    dx_1
+            dy
+                longname
+                    Source y dimension [L]
+                exp
+                    dy_1
+            dz
+                longname
+                    Source z dimension [L]
+                exp
+                    dz_1
+            f
+                longname
+                    Contaminant flux [M/T]
+                init
+                    16
+                type
+                    opt
+                log
+                    yes
+                step
+                    10
+                min
+                    0.01
+                max
+                    100
+            t0
+                longname
+                    Start Time [T]
+                exp
+                    t0_2 + t1_1
+            t1
+                longname
+                    End Time [T]
+                exp
+                    t0_2 + 2 * t1_1
+    Parameters
+        n
+            longname
+                Porosity [L3/L3]
+            init
+                0.1
+            type
+                null
+            log
+                yes
+            step
+                0.1
+            min
+                0
+            max
+                1
+        rf
+            longname
+                Retardation Factor [-]
+            init
+                1
+            type
+                null
+            log
+                no
+            step
+                1
+            min
+                1
+            max
+                10
+        lambda
+            longname
+                Half-life decay [1/T]
+            init
+                0
+            type
+                null
+            log
+                no
+            step
+                1
+            min
+                0
+            max
+                1
+        theta
+            longname
+                Flow Angle [degrees]
+            init
+                3
+            type
+                opt
+            log
+                no
+            step
+                5
+            min
+                -30
+            max
+                30
+        vx
+            longname
+                Pore x velocity [L/T]
+            init
+                5
+            type
+                opt
+            log
+                yes
+            step
+                1
+            min
+                0.01
+            max
+                200
+        vy
+            longname
+                Pore y velocity [L/T]
+            init
+                0
+            type
+                null
+            log
+                no
+            step
+                1
+            min
+                0
+            max
+                1
+        vz
+            longname
+                Pore z velocity [L/T]
+            init
+                0
+            type
+                null
+            log
+                no
+            step
+                1
+            min
+                0
+            max
+                1
+        ax
+            longname
+                Dispersivity x [L]
+            init
+                70
+            type
+                opt
+            log
+                yes
+            step
+                5
+            min
+                10
+            max
+                140
+        ay
+            longname
+                Dispersivity y [L]
+            init
+                15
+            type
+                opt
+            log
+                yes
+            step
+                5
+            min
+                1
+            max
+                30
+        az
+            longname
+                Dispersivity z [L]
+            init
+                0.3
+            type
+                opt
+            log
+                yes
+            step
+                0.1
+            min
+                0.1
+            max
+                1
+    Wells
+        W-1
+            x
+                1503
+            y
+                1954
+            z0
+                5.57
+            z1
+                12.55
+            obs
+                1
+                    t
+                        49
+                    c
+                        0
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        25
+        W-2
+            x
+                2113
+            y
+                1479
+            z0
+                36.73
+            z1
+                55.14
+            obs
+                1
+                    t
+                        49
+                    c
+                        0
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        10
+        W-3
+            x
+                418
+            y
+                950
+            z0
+                0
+            z1
+                15.04
+            obs
+                1
+                    t
+                        49
+                    c
+                        0
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        25
+        W-4
+            x
+                1377
+            y
+                1534
+            z0
+                13.15
+            z1
+                20.41
+            obs
+                1
+                    t
+                        44
+                    c
+                        350
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        300
+                    max
+                        700
+                2
+                    t
+                        49
+                    c
+                        432
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        300
+                    max
+                        700
+        W-5
+            x
+                3268
+            y
+                1074
+            z0
+                26.73
+            z1
+                33.71
+            obs
+                1
+                    t
+                        49
+                    c
+                        0
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        10
+        W-6
+            x
+                2112
+            y
+                2294
+            z0
+                69.01
+            z1
+                83.98
+            obs
+                1
+                    t
+                        49
+                    c
+                        0
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        10
+        W-7
+            x
+                2086
+            y
+                2284
+            z0
+                11.15
+            z1
+                18.19
+            obs
+                1
+                    t
+                        49
+                    c
+                        0
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        10
+        W-8
+            x
+                2770
+            y
+                2119
+            z0
+                4.86
+            z1
+                11.87
+            obs
+                1
+                    t
+                        49
+                    c
+                        0
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        10
+        W-9
+            x
+                975
+            y
+                1450
+            z0
+                3.66
+            z1
+                10.09
+            obs
+                1
+                    t
+                        49
+                    c
+                        981
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        600
+                    max
+                        1200
+        W-10#1
+            x
+                723
+            y
+                1599
+            z0
+                3.32
+            z1
+                9.63
+            obs
+                1
+                    t
+                        49
+                    c
+                        1.1
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        5
+        W-10#2
+            x
+                723
+            y
+                1599
+            z0
+                23.2
+            z1
+                26.24
+            obs
+                1
+                    t
+                        49
+                    c
+                        0.1
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        5
+        W-11#1
+            x
+                1850
+            y
+                1368
+            z0
+                4.94
+            z1
+                7.99
+            obs
+                1
+                    t
+                        49
+                    c
+                        22
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        3
+                    max
+                        25
+        W-11#2
+            x
+                1850
+            y
+                1368
+            z0
+                32.46
+            z1
+                35.48
+            obs
+                1
+                    t
+                        49
+                    c
+                        0.3
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        5
+        W-12#1
+            x
+                1761
+            y
+                1636
+            z0
+                3.59
+            z1
+                6.64
+            obs
+                1
+                    t
+                        49
+                    c
+                        15
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        3
+                    max
+                        25
+        W-12#2
+            x
+                1761
+            y
+                1636
+            z0
+                32.51
+            z1
+                38.61
+            obs
+                1
+                    t
+                        49
+                    c
+                        0.17
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        5
+        W-13#1
+            x
+                1485
+            y
+                1149
+            z0
+                3
+            z1
+                6
+            obs
+                1
+                    t
+                        50
+                    c
+                        72
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        40
+                    max
+                        100
+        W-13#2
+            x
+                1485
+            y
+                1149
+            z0
+                36
+            z1
+                42
+            obs
+                1
+                    t
+                        50
+                    c
+                        0.26
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        20
+        W-14a
+            x
+                972
+            y
+                869
+            z0
+                3
+            z1
+                6
+            obs
+                1
+                    t
+                        50
+                    c
+                        0
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        5
+        W-14b
+            x
+                940
+            y
+                1160
+            z0
+                3
+            z1
+                6
+            obs
+                1
+                    t
+                        50
+                    c
+                        30
+                    weight
+                        1
+                    log
+                        no
+                    min
+                        0
+                    max
+                        50
+        W-14c
+            x
+                900
+            y
+                1260
+            z0
+                3
+            z1
+                6
+            obs
+                1
+                    t
+                        50
+                    c
+                        10
+                    weight
+                        0
+                    log
+                        no
+                    min
+                        0
+                    max
+                        20
+    Grid
+        time
+            0
+        xcount
+            25
+        ycount
+            29
+        zcount
+            1
+        xmin
+            499000
+        ymin
+            538300
+        zmin
+            0
+        xmax
+            500200
+        ymax
+            539400
+        zmax
+            0.1
+    Time
+        start
+            0
+        end
+            0
+        step
+            1
+example/contamination/s01-multi_source.mads
+    Problem
+        time_step
+    Solution
+    Sources
+        box
+            x
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            y
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            z
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            dx
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            dy
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            dz
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            f
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            t0
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            t1
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+        box
+            x
+                longname
+                exp
+            y
+                longname
+                exp
+            z
+                longname
+                exp
+            dx
+                longname
+                exp
+            dy
+                longname
+                exp
+            dz
+                longname
+                exp
+            f
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            t0
+                longname
+                exp
+            t1
+                longname
+                exp
+        box
+            x
+                longname
+                exp
+            y
+                longname
+                exp
+            z
+                longname
+                exp
+            dx
+                longname
+                exp
+            dy
+                longname
+                exp
+            dz
+                longname
+                exp
+            f
+                longname
+                init
+                type
+                log
+                step
+                min
+                max
+            t0
+                longname
+                exp
+            t1
+                longname
+                exp
+    Parameters
+        n
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        rf
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        lambda
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        theta
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        vx
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        vy
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        vz
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        ax
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        ay
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+        az
+            longname
+            init
+            type
+            log
+            step
+            min
+            max
+    Wells
+        W-1
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-2
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-3
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-4
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+                2
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-5
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-6
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-7
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-8
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-9
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-10#1
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-10#2
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-11#1
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-11#2
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-12#1
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-12#2
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-13#1
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-13#2
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-14a
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-14b
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+        W-14c
+            x
+            y
+            z0
+            z1
+            obs
+                1
+                    t
+                    c
+                    weight
+                    log
+                    min
+                    max
+    Grid
+        time
+        xcount
+        ycount
+        zcount
+        xmin
+        ymin
+        zmin
+        xmax
+        ymax
+        zmax
+    Time
+        start
+        end
+        step
+Tree Depth 1
+Tree Max Height 7
+Tree Number of Data Sets 508
+Number of YAML classes 7
+YAML Classes:
+ Problem -> 1 components
+ Solution -> 1 components
+ Sources -> 3 components
+ Parameters -> 10 components
+ Wells -> 20 components
+ Grid -> 10 components
+ Time -> 3 components
+Process YAML Classes ...
+Process Problem ... Number of components: 1 ... Components: time_step
+
+Problem type: calibration
+
+Calibration technique: single calibration using initial guesses provided in the input file
+
+Optimization method: opt=lm --- Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 5000
+2: Objective function cutoff value: NOT implemented (ADD keyword cutoff=[value] to implement)
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: sum of squared residuals
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Process Solution ... Number of solution components: 1
+
+Process Sources ... Number of sources: 3
+Source #1 type: box ... Number of parameters: 9
+Source #2 type: box ... Number of parameters: 9
+Source #3 type: box ... Number of parameters: 9
+
+Models: (1) internal box contaminant source (2) internal box contaminant source (3) internal box contaminant source | Gaussian dispersion
+Process Parameters ... Number of parameters: 10
+WARNING: The number of provided parameters (10) is different than the number of expected parameters (17)
+Process Wells ... Number of wells: 20
+Number of calibration targets = 20
+WARNING: Regularization class not found!
+Process Grid ... Number of grid components: 10
+Process Time ... Number of time components: 3
+Number of optimized parameters = 12
+Number of flagged parameters = 0
+Number of fixed parameters = 16
+Number of parameters with computational expressions (coupled or tied parameters) = 16
+Number of regularization terms = 0
+Number of predictions = 0
+
+
+Execution date & time stamp: 20130926-154626
+
+SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
+Number of Levenberg-Marquardt iterations = 50
+Levenberg-Marquardt Optimization ... 
+LM using SVD decomposition
+LM without LM acceleration
+LM with indirect computation of lambda changes
+Initial evaluation: OF 50549
+Jacobian #1: Linear solves 0 Evaluations 13 OF 50549 lambda 0.001
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is not very good (chi^2/dof = 6318.62 > 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :         1124 stddev      1204.03 (         210 -         1460) Uncertainty ranges constrained by prior bounds
+Source y coordinate [L] #1 :         1393 stddev      98.0374 (        1230 -         1930) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #1  :           16 stddev      2712.66 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev   1.3839e+11 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :           10 stddev         4858 (           1 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :           16 stddev      1334.97 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :           16 stddev      2171.06 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :            3 stddev      42.6457 (         -30 -           30) Uncertainty ranges constrained by prior bounds
+Pore x velocity [L/T]      :            5 stddev      1085.22 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
+Dispersivity x [L]         :           70 stddev      2790.53 (          10 -          140) Uncertainty ranges constrained by prior bounds
+Dispersivity y [L]         :           15 stddev      2869.55 (           1 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]         :          0.3 stddev       2448.5 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Computed initial lambda 10
+OF 15774 lambda 10
+New Jacobian requested because: > OF estimate declined substantially (15774 << 50549)
+
+Jacobian #2: Linear solves 1 Evaluations 26 OF 15774 lambda 9.46888
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is not very good (chi^2/dof = 1971.75 > 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :      1115.86 stddev      382.367 (         210 -         1460) Uncertainty ranges constrained by prior bounds
+Source y coordinate [L] #1 :      1397.88 stddev      86.9387 (        1230 -         1930) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #1  :      17.9478 stddev      4012.26 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev  2.91388e+11 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :      8.64006 stddev      3552.15 (           1 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :      9.49258 stddev      896.955 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :      14.8346 stddev      1591.13 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :      2.36491 stddev      120.609 (         -30 -           30) Uncertainty ranges constrained by prior bounds
+Pore x velocity [L/T]      :      5.21825 stddev      1178.95 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
+Dispersivity x [L]         :      65.5824 stddev      984.222 (          10 -          140) Uncertainty ranges constrained by prior bounds
+Dispersivity y [L]         :      14.8093 stddev      1267.45 (           1 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]         :     0.281838 stddev      754.837 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (8.13717)
+Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
+OF 5871.2 lambda 9.46888
+New Jacobian requested because: > OF estimate declined substantially (5871.2 << 15774)
+
+Jacobian #3: Linear solves 2 Evaluations 39 OF 5871.2 lambda 9.31079
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is not very good (chi^2/dof = 733.901 > 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :      1117.82 stddev      206.945 (         210 -         1460) Uncertainty ranges constrained by prior bounds
+Source y coordinate [L] #1 :      1398.54 stddev      28.5993 (        1230 -         1930) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #1  :      19.9054 stddev      666.382 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev  3.28757e+10 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :      9.89799 stddev      895.706 (           1 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :      9.14993 stddev      965.176 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :      12.2823 stddev      803.564 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :      2.27126 stddev      56.1211 (         -30 -           30) Uncertainty ranges constrained by prior bounds
+Pore x velocity [L/T]      :      5.13604 stddev       144.06 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
+Dispersivity x [L]         :      64.9166 stddev      526.603 (          10 -          140) Uncertainty ranges constrained by prior bounds
+Dispersivity y [L]         :      14.8605 stddev      425.568 (           1 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]         :     0.283027 stddev      486.443 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Parameter with maximum estimate change between jacobian iterations: Contaminant flux [M/T] #3      (0.081996)
+Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
+OF 48.7932 lambda 9.31079
+New Jacobian requested because: > OF estimate declined substantially (48.7932 << 5871.2)
+
+Jacobian #4: Linear solves 3 Evaluations 52 OF 48.7932 lambda 3.1036
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 6.09915 < 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :      1110.64 stddev      32.2569 (         210 -         1460) Uncertainty ranges constrained by prior bounds
+Source y coordinate [L] #1 :      1399.17 stddev      4.54546 (        1230 -         1930) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #1  :      20.6098 stddev      209.252 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev  6.48697e+09 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :      9.93685 stddev      330.631 (           1 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :      7.87445 stddev       200.29 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :      12.9233 stddev      55.9696 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :      2.13282 stddev      1.27355 (         -30 -           30) Uncertainty ranges constrained by prior bounds
+Pore x velocity [L/T]      :      5.27966 stddev       31.073 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
+Dispersivity x [L]         :      62.8373 stddev      55.7912 (          10 -          140) Uncertainty ranges constrained by prior bounds
+Dispersivity y [L]         :        14.48 stddev      71.8167 (           1 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]         :     0.277478 stddev       55.014 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (7.18605)
+Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
+OF 0.0148728 lambda 3.1036
+New Jacobian requested because: > OF estimate declined substantially (0.0148728 << 48.7932)
+
+Jacobian #5: Linear solves 4 Evaluations 65 OF 0.0148728 lambda 1.03453
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 0.0018591 < 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :      1111.64 stddev      1.13533 (         210 -         1460) Uncertainty ranges constrained by prior bounds
+Source y coordinate [L] #1 :      1398.47 stddev    0.0773436 (     1348.26 -      1454.44)
+Contaminant flux [M/T] #1  :      21.0064 stddev      1.19997 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev  7.84733e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :       10.018 stddev      1.20596 (           1 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :      7.63945 stddev      2.15818 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :       13.079 stddev      2.63578 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :      2.23766 stddev     0.024468 (    0.547012 -      3.92118)
+Pore x velocity [L/T]      :       5.2571 stddev     0.877897 (        0.01 -          200) Uncertainty ranges constrained by prior bounds
+Dispersivity x [L]         :       62.538 stddev      2.77694 (          10 -          140) Uncertainty ranges constrained by prior bounds
+Dispersivity y [L]         :       14.344 stddev       2.5257 (           1 -           30) Uncertainty ranges constrained by prior bounds
+Dispersivity z [L]         :     0.275119 stddev      2.43381 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-1.00263)
+Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
+OF 0.000749027 lambda 1.03453
+New Jacobian requested because: > OF estimate declined substantially (0.000749027 << 0.0148728)
+
+Jacobian #6: Linear solves 5 Evaluations 78 OF 0.000749027 lambda 0.344844
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 9.36284e-05 < 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :         1112 stddev    0.0784516 (     1006.68 -      1208.29)
+Source y coordinate [L] #1 :      1398.39 stddev   0.00400961 (     1395.63 -      1401.17)
+Contaminant flux [M/T] #1  :      21.1549 stddev     0.381214 (    0.491951 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev  1.60037e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :       10.098 stddev     0.827754 (           1 -      90.8787) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :       7.5907 stddev     0.574565 (   0.0296747 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :       13.116 stddev     0.340644 (    0.414422 -      91.8688)
+Flow Angle [degrees]       :      2.25146 stddev    0.0130826 (     1.34807 -      3.15281)
+Pore x velocity [L/T]      :      5.24304 stddev    0.0615038 (     2.63466 -      10.1628)
+Dispersivity x [L]         :      62.5669 stddev     0.204566 (     34.0504 -      102.753)
+Dispersivity y [L]         :      14.3262 stddev     0.166275 (     7.90513 -      22.5792)
+Dispersivity z [L]         :     0.274522 stddev     0.182199 (    0.174387 -     0.442917)
+Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.363648)
+Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
+OF 0.00188595 lambda 0.344844
+OF 0.000631347 lambda 0.689688
+OF 0.0008821 lambda 0.688083
+OF 0.000540311 lambda 1.37617
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #7: Linear solves 9 Evaluations 94 OF 0.000540311 lambda 0.458722
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 6.75388e-05 < 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :      1112.28 stddev     0.105339 (     969.409 -      1238.86)
+Source y coordinate [L] #1 :      1398.39 stddev   0.00893567 (     1392.26 -      1404.59)
+Contaminant flux [M/T] #1  :      21.1908 stddev     0.524489 (     0.11705 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev  1.38815e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :      10.2256 stddev     0.975617 (           1 -      98.1884) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :      7.56583 stddev     0.958965 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :      13.1135 stddev     0.540896 (   0.0606455 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :      2.25229 stddev    0.0245755 (    0.554247 -      3.94311)
+Pore x velocity [L/T]      :      5.23219 stddev    0.0442277 (     3.19567 -      8.45085)
+Dispersivity x [L]         :      62.6627 stddev     0.275876 (       27.53 -      116.572)
+Dispersivity y [L]         :       14.341 stddev     0.191212 (     7.19018 -      23.7935)
+Dispersivity z [L]         :     0.274893 stddev      0.24347 (    0.152854 -     0.516094)
+Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.272461)
+Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
+OF 0.000838212 lambda 0.458722
+OF 0.000546027 lambda 0.917444
+OF 0.000531833 lambda 3.66978
+OF 0.000536384 lambda 1.22326
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #8: Linear solves 13 Evaluations 110 OF 0.000531833 lambda 2.44652
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 6.64791e-05 < 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :       1112.3 stddev     0.168165 (     879.911 -      1303.52)
+Source y coordinate [L] #1 :      1398.39 stddev    0.0173302 (     1386.58 -      1410.49)
+Contaminant flux [M/T] #1  :      21.1933 stddev      0.71175 (   0.0258963 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev   1.3429e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :      10.2406 stddev      1.50206 (           1 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :      7.56296 stddev      1.45862 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :      13.1127 stddev     0.876053 (   0.0104855 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :      2.25224 stddev    0.0420652 (   -0.655659 -      5.13896)
+Pore x velocity [L/T]      :      5.23108 stddev    0.0726008 (     2.31752 -      11.3835)
+Dispersivity x [L]         :      62.6736 stddev     0.426848 (      18.102 -      136.888)
+Dispersivity y [L]         :      14.3431 stddev     0.329429 (     4.19189 -      28.9061)
+Dispersivity z [L]         :     0.274953 stddev     0.377741 (    0.120561 -      0.69272)
+Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.0276654)
+Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
+OF 0.000528348 lambda 2.44652
+OF 0.00053283 lambda 1.30441
+OF 0.000524767 lambda 2.60882
+OF 0.000539197 lambda 1.03516
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+Jacobian #9: Linear solves 17 Evaluations 126 OF 0.000524767 lambda 2.07032
+Jacobian matrix analysis ...
+WARNING: 3 observations have zero sensitivities!
+Eigen analysis ...
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Obtained fit is relatively good (chi^2/dof = 6.55959e-05 < 200)
+Optimized model parameters:
+Source x coordinate [L] #1 :      1112.39 stddev      0.12638 (     939.771 -      1261.62)
+Source y coordinate [L] #1 :      1398.39 stddev    0.0098399 (     1391.65 -      1405.22)
+Contaminant flux [M/T] #1  :       21.199 stddev     0.384202 (    0.478086 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev  1.52662e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :      10.2835 stddev     0.871078 (           1 -      93.6902) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :      7.55558 stddev     0.756405 (   0.0119821 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :      13.1112 stddev     0.550863 (   0.0557926 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :      2.25224 stddev    0.0050199 (      1.9058 -      2.59837)
+Pore x velocity [L/T]      :      5.22781 stddev     0.045595 (     3.14413 -      8.56778)
+Dispersivity x [L]         :      62.7063 stddev     0.337689 (     23.0295 -      126.792)
+Dispersivity y [L]         :      14.3492 stddev     0.291258 (     4.86631 -       27.846)
+Dispersivity z [L]         :     0.275121 stddev     0.284658 (     0.14099 -     0.568846)
+Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.0850492)
+Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
+OF 0.000520906 lambda 2.07032
+OF 0.000522925 lambda 1.42511
+OF 0.000517374 lambda 2.85022
+OF 0.000534093 lambda 0.950074
+New Jacobian requested because: > Linear solve OF estimates do not change substantially
+
+
+CONVERGED: 5 Jacobian OF estimates are very close to the best current OF (0.000517374)
+LM optimization is completed. Reason: small OF changes
+Eigen analysis ...
+Analyzed state provided externally.
+
+Jacobian matrix (provided externally)
+Observations               : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
+Source x coordinate [L] #1 :    0.0    0.0   -0.0  741.3  756.9    0.0    0.0    0.0    0.0 -9e+03  -13.4   -1.0  188.1    2.6  102.0    1.0  239.5    0.6   -0.0 -214.6
+Source y coordinate [L] #1 :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  401.1    7.0    0.5  -18.9   -0.3   84.1    0.9 -578.0   -1.8   -0.0 -267.8
+Contaminant flux [M/T] #1  :    0.0    0.0    0.0  747.1  787.0    0.0    0.0    0.0    0.0  411.9    2.3    0.3   70.7    1.1   47.2    0.5  179.4    0.8    0.0   39.2
+Start Time [T] #1          :   -0.0   -0.0    0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0    0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0    0.0   -0.0
+End Time [T] #1            :    0.0    0.0    0.0   22.5   40.7    0.0    0.0    0.0    0.0  552.5    0.1    0.0   13.7    0.1    9.5    0.1   20.8    0.1    0.0    6.0
+Contaminant flux [M/T] #2  :    0.0    0.0    0.0  346.2  460.8   -0.0   -0.0   -0.0   -0.0  685.6    1.1    0.1    5.7    0.0    4.8    0.0   56.9    0.1    0.0   34.6
+Contaminant flux [M/T] #3  :    0.0   -0.0    0.0  189.3  352.6   -0.0   -0.0   -0.0   -0.0  3e+03    0.6    0.0    0.4    0.0    0.5    0.0   23.6    0.0    0.0   39.2
+Flow Angle [degrees]       :    0.0    0.0    0.0  405.6  499.8   -0.0    0.0    0.0    0.0  323.7   -2.3   -0.2  -19.0   -0.3   72.6    0.8 -320.2   -1.0    0.0   32.9
+Pore x velocity [L/T]      :    0.0    0.0    0.0  2e+03  2e+03    0.0    0.0    0.0    0.0 -3e+03    6.6    1.3  608.2   14.6  366.4    6.9  747.3    8.2    0.0   33.9
+Dispersivity x [L]         :   -0.0    0.0    0.0  -84.9 -124.8    0.0    0.0    0.0    0.0  786.5    6.1    0.5   75.9    1.0   34.8    0.3   -7.9   -0.1    0.0   53.5
+Dispersivity y [L]         :    0.0   -0.0    0.0  -29.6  -36.6    0.0    0.0    0.0    0.0 -119.7    1.4    0.1   -5.5   -0.1   14.5    0.1  173.8    0.5    0.0   58.4
+Dispersivity z [L]         :   -0.0    0.0   -0.0  304.8  341.5    0.0    0.0    0.0   -0.0  -48.7   -0.4    0.2   -8.3    1.4   -6.7    0.7  -33.0    1.3   -0.0  -12.7
+Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+
+Covariance matrix
+Source x coordinate [L] #1 :   2e+02   2e+01   7e+02   2e+10  -2e+03  -1e+03   1e+03   6e+00  -7e+01   6e+02   6e+02   5e+02
+Source y coordinate [L] #1 :   2e+01   1e+00   6e+01   2e+09  -1e+02  -1e+02   8e+01   2e-01  -3e+00   5e+01   4e+01   4e+01
+Contaminant flux [M/T] #1  :   7e+02   6e+01   2e+03   9e+10  -5e+03  -4e+03   3e+03   1e+01  -1e+02   2e+03   2e+03   2e+03
+Start Time [T] #1          :   2e+10   2e+09   9e+10   4e+18  -2e+11  -2e+11   1e+11   2e+08  -4e+09   7e+10   6e+10   6e+10
+End Time [T] #1            :  -2e+03  -1e+02  -5e+03  -2e+11   1e+04   1e+04  -7e+03  -2e+01   3e+02  -4e+03  -4e+03  -3e+03
+Contaminant flux [M/T] #2  :  -1e+03  -1e+02  -4e+03  -2e+11   1e+04   9e+03  -6e+03  -3e+01   4e+02  -4e+03  -3e+03  -3e+03
+Contaminant flux [M/T] #3  :   1e+03   8e+01   3e+03   1e+11  -7e+03  -6e+03   5e+03   2e+01  -3e+02   3e+03   2e+03   2e+03
+Flow Angle [degrees]       :   6e+00   2e-01   1e+01   2e+08  -2e+01  -3e+01   2e+01   4e-01  -3e+00   2e+01   1e+01   1e+01
+Pore x velocity [L/T]      :  -7e+01  -3e+00  -1e+02  -4e+09   3e+02   4e+02  -3e+02  -3e+00   3e+01  -2e+02  -2e+02  -2e+02
+Dispersivity x [L]         :   6e+02   5e+01   2e+03   7e+10  -4e+03  -4e+03   3e+03   2e+01  -2e+02   2e+03   1e+03   1e+03
+Dispersivity y [L]         :   6e+02   4e+01   2e+03   6e+10  -4e+03  -3e+03   2e+03   1e+01  -2e+02   1e+03   1e+03   1e+03
+Dispersivity z [L]         :   5e+02   4e+01   2e+03   6e+10  -3e+03  -3e+03   2e+03   1e+01  -2e+02   1e+03   1e+03   1e+03
+Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+
+Correlation matrix
+Source x coordinate [L] #1 :  1.000  0.907  0.938  0.841 -0.931 -0.990  0.990  0.652 -0.815  1.000  0.999  1.000
+Source y coordinate [L] #1 :  0.907  1.000  0.997  0.990 -0.995 -0.957  0.955  0.276 -0.497  0.918  0.925  0.900
+Contaminant flux [M/T] #1  :  0.938  0.997  1.000  0.976 -0.998 -0.977  0.975  0.351 -0.563  0.946  0.952  0.931
+Start Time [T] #1          :  0.841  0.990  0.976  1.000 -0.975 -0.907  0.904  0.141 -0.372  0.855  0.864  0.831
+End Time [T] #1            : -0.931 -0.995 -0.998 -0.975  1.000  0.973 -0.973 -0.347  0.551 -0.940 -0.947 -0.923
+Contaminant flux [M/T] #2  : -0.990 -0.957 -0.977 -0.907  0.973  1.000 -1.000 -0.544  0.726 -0.993 -0.995 -0.987
+Contaminant flux [M/T] #3  :  0.990  0.955  0.975  0.904 -0.973 -1.000  1.000  0.549 -0.729  0.993  0.996  0.987
+Flow Angle [degrees]       :  0.652  0.276  0.351  0.141 -0.347 -0.544  0.549  1.000 -0.964  0.631  0.617  0.662
+Pore x velocity [L/T]      : -0.815 -0.497 -0.563 -0.372  0.551  0.726 -0.729 -0.964  1.000 -0.799 -0.788 -0.825
+Dispersivity x [L]         :  1.000  0.918  0.946  0.855 -0.940 -0.993  0.993  0.631 -0.799  1.000  1.000  0.999
+Dispersivity y [L]         :  0.999  0.925  0.952  0.864 -0.947 -0.995  0.996  0.617 -0.788  1.000  1.000  0.998
+Dispersivity z [L]         :  1.000  0.900  0.931  0.831 -0.923 -0.987  0.987  0.662 -0.825  0.999  0.998  1.000
+Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+
+Eigenvectors (sorted by absolute values of eigenvalues)
+Source x coordinate [L] #1 :  0.876 -0.268  0.222 -0.033 -0.217 -0.106 -0.042  0.160 -0.091 -0.000  0.129  0.000
+Source y coordinate [L] #1 :  0.000 -0.000 -0.000  0.000 -0.000  0.000 -0.000 -0.000  0.000  1.000  0.002  0.000
+Contaminant flux [M/T] #1  : -0.013  0.360  0.475 -0.178  0.551 -0.117  0.038  0.518 -0.030 -0.000  0.157  0.000
+Start Time [T] #1          : -0.000 -0.000 -0.000  0.000 -0.000  0.000  0.000 -0.000 -0.000 -0.000 -0.000  1.000
+End Time [T] #1            : -0.053  0.062 -0.009  0.083 -0.109  0.080  0.212  0.166 -0.879  0.001 -0.350 -0.000
+Contaminant flux [M/T] #2  : -0.053  0.194  0.407 -0.189 -0.282 -0.219 -0.498 -0.098  0.110  0.001 -0.600 -0.000
+Contaminant flux [M/T] #3  : -0.249  0.276  0.296  0.108 -0.699 -0.101  0.218  0.139  0.021 -0.001  0.444  0.000
+Flow Angle [degrees]       : -0.017 -0.017 -0.198 -0.936 -0.161  0.100  0.215  0.046 -0.001 -0.000  0.009  0.000
+Pore x velocity [L/T]      :  0.397  0.816 -0.350  0.074 -0.018  0.070  0.085 -0.154  0.077  0.000 -0.079 -0.000
+Dispersivity x [L]         : -0.080  0.050 -0.454 -0.065 -0.045 -0.379 -0.630  0.251 -0.258 -0.001  0.330  0.000
+Dispersivity y [L]         :  0.011  0.085  0.210 -0.070 -0.006  0.780 -0.451 -0.154 -0.179 -0.001  0.276  0.000
+Dispersivity z [L]         :  0.015  0.063  0.245 -0.150  0.203 -0.380  0.049 -0.733 -0.317 -0.001  0.296  0.000
+Eigenvalues                :  1e-08  4e-07  2e-05  4e-05  1e-04  6e-04  3e-02  1e-01  6e+01 -5e+02  4e+03  4e+18
+
+Eigenvectors (sorted by eigenvalues)
+Source x coordinate [L] #1 : -0.000  0.876 -0.268  0.222 -0.033 -0.217 -0.106 -0.042  0.160 -0.091  0.129  0.000
+Source y coordinate [L] #1 :  1.000  0.000 -0.000 -0.000  0.000 -0.000  0.000 -0.000 -0.000  0.000  0.002  0.000
+Contaminant flux [M/T] #1  : -0.000 -0.013  0.360  0.475 -0.178  0.551 -0.117  0.038  0.518 -0.030  0.157  0.000
+Start Time [T] #1          : -0.000 -0.000 -0.000 -0.000  0.000 -0.000  0.000  0.000 -0.000 -0.000 -0.000  1.000
+End Time [T] #1            :  0.001 -0.053  0.062 -0.009  0.083 -0.109  0.080  0.212  0.166 -0.879 -0.350 -0.000
+Contaminant flux [M/T] #2  :  0.001 -0.053  0.194  0.407 -0.189 -0.282 -0.219 -0.498 -0.098  0.110 -0.600 -0.000
+Contaminant flux [M/T] #3  : -0.001 -0.249  0.276  0.296  0.108 -0.699 -0.101  0.218  0.139  0.021  0.444  0.000
+Flow Angle [degrees]       : -0.000 -0.017 -0.017 -0.198 -0.936 -0.161  0.100  0.215  0.046 -0.001  0.009  0.000
+Pore x velocity [L/T]      :  0.000  0.397  0.816 -0.350  0.074 -0.018  0.070  0.085 -0.154  0.077 -0.079 -0.000
+Dispersivity x [L]         : -0.001 -0.080  0.050 -0.454 -0.065 -0.045 -0.379 -0.630  0.251 -0.258  0.330  0.000
+Dispersivity y [L]         : -0.001  0.011  0.085  0.210 -0.070 -0.006  0.780 -0.451 -0.154 -0.179  0.276  0.000
+Dispersivity z [L]         : -0.001  0.015  0.063  0.245 -0.150  0.203 -0.380  0.049 -0.733 -0.317  0.296  0.000
+Eigenvalues                : -5e+02  1e-08  4e-07  2e-05  4e-05  1e-04  6e-04  3e-02  1e-01  6e+01  4e+03  4e+18
+Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+
+Number of parameters           : 12
+Number of observations         : 20
+Number of degrees of freedom   : 8
+Objective function             : 0.000517374
+Posterior measurement variance : 6.46718e-05
+
+Optimality metrics based on covariance matrix of observation errors:
+A-optimality (matrix trace)               : 3.58026e+18
+C-optimality (matrix conditioning number) : 6.99218e+15
+E-optimality (matrix maximum eigenvalue)  : 3.58026e+18
+D-optimality (matrix determinant)         : 4.14306e-07
+
+Determinant of covariance matrix of observation errors : 4.14306e-07     ( ln(det S) = -14.6967 )
+Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
+Determinant of covariance matrix of measurement errors : 5.35275e-51     ( ln(det V) = -115.754 )
+
+Log likelihood function             : 35.4983
+Maximum likelihood                  : -70.9967
+AIC (Akaike information criterion)  : -46.9967
+BIC                                 : -35.0479
+CIC                                 : -44.6642
+KIC (Kashyap Information Criterion) : -42.4058
+
+Obtained fit is relatively good (chi^2/dof = 6.46718e-05 < 200)
+Optimized model parameters:
+Transformed space (applied during optimization):
+Source x coordinate [L] #1 :      0.46002 stddev     0.125277 (    0.171133 -     0.748908)
+Source y coordinate [L] #1 :    -0.545552 stddev   0.00977284 (   -0.568088 -    -0.523016)
+Contaminant flux [M/T] #1  :     0.725102 stddev     0.381159 (    -0.15385 -       1.5708) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :      -1.5708 stddev  1.52165e+07 (     -1.5708 -       1.5708) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :    -0.946832 stddev     0.864654 (     -1.5708 -      1.04706) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :       0.4544 stddev      0.74864 (    -1.27196 -       1.5708) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :     0.592941 stddev     0.545909 (   -0.665924 -       1.5708) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :    0.0751457 stddev   0.00498244 (   0.0636562 -    0.0866352)
+Pore x velocity [L/T]      :     0.267065 stddev    0.0450249 (    0.163238 -     0.370892)
+Dispersivity x [L]         :     0.402509 stddev     0.334896 (   -0.369761 -      1.17478)
+Dispersivity y [L]         :     0.602362 stddev     0.288721 (  -0.0634292 -      1.26815)
+Dispersivity z [L]         :     -0.12069 stddev     0.282217 (   -0.771483 -     0.530103)
+Untransformed space:
+Source x coordinate [L] #1 :      1112.48 stddev     0.125277 (     941.437 -      1260.52)
+Source y coordinate [L] #1 :      1398.39 stddev   0.00977284 (     1391.69 -      1405.18)
+Contaminant flux [M/T] #1  :      21.2043 stddev     0.381159 (    0.493755 -          100) Uncertainty ranges constrained by prior bounds
+Start Time [T] #1          :            0 stddev  1.52165e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :      10.3273 stddev     0.864654 (           1 -      93.3649) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #2  :      7.54826 stddev      0.74864 (   0.0122642 -          100) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :      13.1101 stddev     0.545909 (   0.0581337 -          100) Uncertainty ranges constrained by prior bounds
+Flow Angle [degrees]       :      2.25225 stddev   0.00498244 (      1.9084 -      2.59581)
+Pore x velocity [L/T]      :      5.22444 stddev    0.0450249 (      3.1623 -      8.51066)
+Dispersivity x [L]         :      62.7407 stddev     0.334896 (     23.2254 -      126.408)
+Dispersivity y [L]         :      14.3556 stddev     0.288721 (     4.91752 -      27.7687)
+Dispersivity z [L]         :     0.275297 stddev     0.282217 (     0.14171 -     0.565993)
+
+Optimized model parameters:
+Source x coordinate [L] #1 1112.48
+Source y coordinate [L] #1 1398.39
+Contaminant flux [M/T] #1 21.2043
+Start Time [T] #1 0
+End Time [T] #1 10.3273
+Contaminant flux [M/T] #2 7.54826
+Contaminant flux [M/T] #3 13.1101
+Flow Angle [degrees] 2.25225
+Pore x velocity [L/T] 5.22444
+Dispersivity x [L] 62.7407
+Dispersivity y [L] 14.3556
+Dispersivity z [L] 0.275297
+Tied model parameters:
+Source x coordinate [L] #2 = x_1 = 1112.48
+Source y coordinate [L] #2 = y_1 = 1398.39
+Source z coordinate [L] #2 = z_1 = 0
+Source x dimension [L] #2 = dx_1 = 258
+Source y dimension [L] #2 = dy_1 = 273
+Source z dimension [L] #2 = dz_1 = 1
+Start Time [T] #2 = (t0_1+t1_1) = 10.3273
+End Time [T] #2 = (t0_1+(2*t1_1)) = 20.6547
+Source x coordinate [L] #3 = x_1 = 1112.48
+Source y coordinate [L] #3 = y_1 = 1398.39
+Source z coordinate [L] #3 = z_1 = 0
+Source x dimension [L] #3 = dx_1 = 258
+Source y dimension [L] #3 = dy_1 = 273
+Source z dimension [L] #3 = dz_1 = 1
+Start Time [T] #3 = (t0_2+t1_1) = 20.6547
+End Time [T] #3 = (t0_2+(2*t1_1)) = 30.982
+
+Model calibration targets:
+W-1       (   49):           0 -  0.000246796 =  0.000246796 ( 0.000246796) success 1 range            0 -           25
+W-2       (   49):           0 -  0.000562587 =  0.000562587 ( 0.000562587) success 1 range            0 -           10
+W-3       (   49):           0 -  3.80906e-07 =  3.80906e-07 ( 3.80906e-07) success 1 range            0 -           25
+W-4       (   44):         350 -          350 = -3.27339e-05 (-3.27339e-05) success 1 range          300 -          700
+W-4       (   49):         432 -          432 =  7.85145e-05 ( 7.85145e-05) success 1 range          300 -          700
+W-5       (   49):           0 -   2.8529e-25 =   2.8529e-25 (  2.8529e-25) success 1 range            0 -           10
+W-6       (   49):           0 -  1.29146e-26 =  1.29146e-26 ( 1.29146e-26) success 1 range            0 -           10
+W-7       (   49):           0 -  1.48476e-18 =  1.48476e-18 ( 1.48476e-18) success 1 range            0 -           10
+W-8       (   49):           0 -  1.99915e-20 =  1.99915e-20 ( 1.99915e-20) success 1 range            0 -           10
+W-9       (   49):         981 -          981 = -0.000415744 (-0.000415744) success 1 range          600 -         1200
+W-10#1    (   49):         1.1 -      1.10048 =   0.00048271 (  0.00048271) success 1 range            0 -            5
+W-10#2    (   49):         0.1 -    0.0911102 =   -0.0088898 (  -0.0088898) success 1 range            0 -            5
+W-11#1    (   49):          22 -      21.9998 = -0.000216642 (-0.000216642) success 1 range            3 -           25
+W-11#2    (   49):         0.3 -      0.31532 =    0.0153197 (   0.0153197) success 1 range            0 -            5
+W-12#1    (   49):          15 -      15.0001 =  0.000107552 ( 0.000107552) success 1 range            3 -           25
+W-12#2    (   49):        0.17 -     0.159385 =   -0.0106152 (  -0.0106152) success 1 range            0 -            5
+W-13#1    (   50):          72 -           72 = -1.65569e-05 (-1.65569e-05) success 1 range           40 -          100
+W-13#2    (   50):        0.26 -     0.250508 =  -0.00949177 ( -0.00949177) success 1 range            0 -           20
+W-14a     (   50):           0 -   0.00016822 =   0.00016822 (  0.00016822) success 1 range            0 -            5
+W-14b     (   50):          30 -           30 =  2.20736e-05 ( 2.20736e-05) success 1 range            0 -           50
+Objective function: 0.000517374 Success: 1 (1)
+
+Model predictions for not calibration targets:
+W-14c     (   50):          10 -      169.476 =     -159.476 success 0 range            0 -           20
+Simulation time = 1 seconds
+Functional evaluations = 131
+Jacobian evaluations = 9
+Levenberg-Marquardt optimizations = 1
+Functional evaluations per second = 131
+Execution  started  on Thu Sep 26 15:46:26 2013
+Execution completed on Thu Sep 26 15:46:27 2013
+Execution date & time stamp: 20130926-154626

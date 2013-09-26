@@ -695,7 +695,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		tprintf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
 	}
-	sprintf( buf, "rm -f %s >& /dev/null", fn_out );
+	sprintf( buf, "/usr/bin/env tcsh -f -c \"rm -f %s >& /dev/null\"", fn_out );
 	if( debug ) tprintf( "Remove files for model inputs: %s\n", buf );
 	system( buf );
 	if( ( out = fopen( fn_out, "w" ) ) == NULL )

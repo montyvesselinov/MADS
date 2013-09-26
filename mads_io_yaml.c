@@ -62,16 +62,16 @@ void gnode_tree_dump_classes( GNode *n, gpointer data );
 void gnode_tree_parse_classes( GNode *node, gpointer data );
 int load_yaml_wells( GNode *node, gpointer data );
 int load_yaml_grid( GNode *node, gpointer data );
-int laod_yaml_sources( GNode *node, gpointer data );
+int load_yaml_sources( GNode *node, gpointer data );
 int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords, int *keyindex );
-int laod_yaml_observations( GNode *node, gpointer data );
-int laod_yaml_regularizations( GNode *node, gpointer data );
-int laod_yaml_time( GNode *node, gpointer data );
-int laod_yaml_problem( GNode *node, gpointer data );
-int laod_yaml_solution( GNode *node, gpointer data );
-int laod_yaml_command( GNode *node, gpointer data );
-int laod_yaml_templates( GNode *node, gpointer data );
-int laod_yaml_instructions( GNode *node, gpointer data );
+int load_yaml_observations( GNode *node, gpointer data );
+int load_yaml_regularizations( GNode *node, gpointer data );
+int load_yaml_time( GNode *node, gpointer data );
+int load_yaml_problem_type( GNode *node, gpointer data );
+int load_yaml_solution( GNode *node, gpointer data );
+int load_yaml_command( GNode *node, gpointer data );
+int load_yaml_templates( GNode *node, gpointer data );
+int load_yaml_instructions( GNode *node, gpointer data );
 static gboolean g_node_find_func( GNode *node, gpointer data );
 gpointer g_node_find_key( GNode *gnode_data, char **key );
 void set_param_arrays( int num_param, struct opt_data *op );
@@ -183,7 +183,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	if( fabs( cd->obsstep ) > DBL_EPSILON ) od->include_predictions = 1;
 	// Solution
 	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Solution" );
-	if( key_pointer != NULL ) { tprintf( "Process Solution ... " ); laod_yaml_solution( ( GNode * ) key_pointer, ( void * ) op ); }
+	if( key_pointer != NULL ) { tprintf( "Process Solution ... " ); load_yaml_solution( ( GNode * ) key_pointer, ( void * ) op ); }
 	else tprintf( "WARNING: Solution class not found!\n" );
 	if( cd->solution_type[0] != EXTERNAL )
 	{
@@ -192,7 +192,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 		if( key_pointer != NULL )
 		{
 			tprintf( "Process Sources ... " );
-			ier = laod_yaml_sources( key_pointer, ( void * ) op );
+			ier = load_yaml_sources( key_pointer, ( void * ) op );
 			if( cd->num_sources > 1 ) tprintf( "\nModels:" );
 			else tprintf( "Model: " );
 			for( i = 0; i < cd->num_sources; i++ )
@@ -270,13 +270,13 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	{
 		// Observations
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Observations" );
-		if( key_pointer != NULL ) { tprintf( "Process Observations ... " ); ier = laod_yaml_observations( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Observations ... " ); ier = load_yaml_observations( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Observations class not found!\n" );
 	}
 	if( ier != 1 ) return( -1 );
 	// Regularization
 	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Regularizations" );
-	if( key_pointer != NULL ) { tprintf( "Process Regularizations ... " ); ier = laod_yaml_regularizations( ( GNode * ) key_pointer, ( void * ) op ); }
+	if( key_pointer != NULL ) { tprintf( "Process Regularizations ... " ); ier = load_yaml_regularizations( ( GNode * ) key_pointer, ( void * ) op ); }
 	else tprintf( "WARNING: Regularization class not found!\n" );
 	if( ier != 1 ) return( -1 );
 	if( cd->solution_type[0] != EXTERNAL )
@@ -288,24 +288,24 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 		if( ier != 1 ) return( -1 );
 		// Time
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Time" );
-		if( key_pointer != NULL ) { tprintf( "Process Time ... " ); ier = laod_yaml_time( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Time ... " ); ier = load_yaml_time( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Time class not found!\n" );
 	}
 	else
 	{
 		// Execution Command
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Command" );
-		if( key_pointer != NULL ) { tprintf( "Process Execution Command ... " ); ier = laod_yaml_command( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Execution Command ... " ); ier = load_yaml_command( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Command class not found!\n" );
 		if( ier != 1 ) return( -1 );
 		// Templates
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Templates" );
-		if( key_pointer != NULL ) { tprintf( "Process Templates and Output files ... " ); ier = laod_yaml_templates( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Templates and Output files ... " ); ier = load_yaml_templates( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Templates class not found!\n" );
 		if( ier != 1 ) return( -1 );
 		// Instructions
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Instructions" );
-		if( key_pointer != NULL ) { tprintf( "Process Instructions and Input files ... " ); ier = laod_yaml_instructions( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Instructions and Input files ... " ); ier = load_yaml_instructions( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Instructions class not found!\n" );
 		if( ier != 1 ) return( -1 );
 	}
@@ -381,12 +381,12 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 	tprintf( "Processing Class:" );
 	while( --i ) tprintf( " " );
 	tprintf( "%s ", ( char * ) node->data );
-	if( !strcasecmp( ( char * ) node->data, "Problem" ) ) { tprintf( " ... process solution ... " ); laod_yaml_problem( node, op ); found = 1; }
-	if( !strcasecmp( ( char * ) node->data, "Solution" ) ) { tprintf( " ... process solution ... " ); laod_yaml_solution( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Problem" ) ) { tprintf( " ... process solution ... " ); load_yaml_problem_type( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Solution" ) ) { tprintf( " ... process solution ... " ); load_yaml_solution( node, op ); found = 1; }
 	if( !strcasecmp( ( char * ) node->data, "Sources" ) )
 	{
 		tprintf( " ... process sources ... " );
-		laod_yaml_sources( node, op );
+		load_yaml_sources( node, op );
 		if( cd->num_sources > 1 ) tprintf( "\nModels:" );
 		else tprintf( "Model: " );
 		for( c = 0; c < cd->num_sources; c++ )
@@ -429,7 +429,7 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 	}
 	if( !strcasecmp( ( char * ) node->data, "Wells" ) ) { tprintf( " ... process wells ... " ); load_yaml_wells( node, op ); found = 1; }
 	if( !strcasecmp( ( char * ) node->data, "Grid" ) ) { tprintf( " ... process grid ... " ); load_yaml_grid( node, op ); found = 1; }
-	if( !strcasecmp( ( char * ) node->data, "Time" ) ) { tprintf( " ... process breakthrough time data ... " ); laod_yaml_time( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Time" ) ) { tprintf( " ... process breakthrough time data ... " ); load_yaml_time( node, op ); found = 1; }
 	if( found == 0 ) tprintf( " WARNING: this data set will be not processed!\n" );
 }
 
@@ -457,7 +457,7 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	pd->nOptParam = pd->nFlgParam = pd->nExpParam = 0;
 }
 
-int laod_yaml_sources( GNode *node, gpointer data )
+int load_yaml_sources( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -671,7 +671,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 	else return( 1 );
 }
 
-int laod_yaml_regularizations( GNode *node, gpointer data )
+int load_yaml_regularizations( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -806,7 +806,7 @@ int laod_yaml_regularizations( GNode *node, gpointer data )
 	else return( 1 );
 }
 
-int laod_yaml_observations( GNode *node, gpointer data )
+int load_yaml_observations( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1081,7 +1081,7 @@ int load_yaml_grid( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int laod_yaml_time( GNode *node, gpointer data )
+int load_yaml_time( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct grid_data *gd;
@@ -1110,7 +1110,7 @@ int laod_yaml_time( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int laod_yaml_problem( GNode *node, gpointer data )
+int load_yaml_problem_type( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1132,7 +1132,7 @@ int laod_yaml_problem( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int laod_yaml_solution( GNode *node, gpointer data )
+int load_yaml_solution( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1158,7 +1158,7 @@ int laod_yaml_solution( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int laod_yaml_command( GNode *node, gpointer data )
+int load_yaml_command( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1218,7 +1218,7 @@ int laod_yaml_command( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int laod_yaml_templates( GNode *node, gpointer data )
+int load_yaml_templates( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1264,7 +1264,7 @@ int laod_yaml_templates( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int laod_yaml_instructions( GNode *node, gpointer data )
+int load_yaml_instructions( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
