@@ -294,7 +294,7 @@ int sa_sobol( struct opt_data *op )
 		}
 		for( j = 0; j < n_obs; j++ )
 		{
-			sens_index[i][j] = (double) 1 - t1[j] / ( 2 * n_sub ) / var_y[j]; //var_y * eq. 18
+			sens_index[i][j] = ( double ) 1 - t1[j] / ( 2 * n_sub ) / var_y[j]; //var_y * eq. 18
 			sens_total[i][j] = t2[j] / ( 2 * n_sub ) / var_y[j]; // var_y * eq. 19
 		}
 		k = op->pd->var_index[i];
@@ -361,16 +361,13 @@ int sa_saltelli( struct opt_data *op )
 	double mean;
 	double variance;
 	double ep;//used by ave_sorted and var_sorted
-
 	num_opt_params = op->pd->nOptParam;
 	//Round up on the number of samples per param
 	num_samples_per_param = ceil( pow( op->cd->nreal, 1. / num_opt_params ) );
-	num_samples = pow(num_samples_per_param, num_opt_params);
+	num_samples = pow( num_samples_per_param, num_opt_params );
 	if( num_samples != op->cd->nreal ) { tprintf( "You requested %d samples. You got %d samples. Life is cruel.\n", op->cd->nreal, num_samples ); }
-
 	if( ( func_evals = ( double * ) malloc( num_samples * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return 0; }
 	if( ( opt_params = ( double * ) malloc( num_opt_params * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return 0; }
-
 	//do all the function evaluations
 	for( i = 0; i < num_samples; i++ )
 	{
@@ -388,16 +385,12 @@ int sa_saltelli( struct opt_data *op )
 		func_global( opt_params, op, op->od->res );
 		func_evals[i] = op->phi;
 	}
-
 	//compute the mean and variance
-	ave_sorted ( func_evals, num_samples, &mean, &ep );
+	ave_sorted( func_evals, num_samples, &mean, &ep );
 	mean /= ( num_samples - 1 );
 	var_sorted( func_evals, func_evals, num_samples, mean, ep, &variance );
-
 	//compute the first order sensitivities
-	
 	//compute the total sensitivities
-	
 	return 1;
 }
 

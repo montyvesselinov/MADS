@@ -47,7 +47,7 @@
 /* Functions here */
 int check_mads_problem( char *filename );
 int set_param_id( struct opt_data *op );
-int set_param_names( struct opt_data *op );
+int set_param_names( struct opt_data *op, int flag );
 void init_params( struct opt_data *op );
 int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
@@ -116,8 +116,8 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
 	strcpy( op->qd->param_id[10], "ts_dsp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_rct" );
 	strcpy( op->qd->param_id[13], "alpha" ); strcpy( op->qd->param_id[14], "beta" ); strcpy( op->qd->param_id[15], "nlc0" ); strcpy( op->qd->param_id[16], "nlc1" );
-	op->sd->param_name = char_matrix( op->cd->num_source_params, 50 );
-	op->qd->param_name = char_matrix( op->cd->num_aquifer_params, 50 );
+	op->sd->param_name = char_matrix( op->cd->num_source_params, 60 );
+	op->qd->param_name = char_matrix( op->cd->num_aquifer_params, 60 );
 	strcpy( op->sd->param_name[0], "Source x coordinate [L]" ); strcpy( op->sd->param_name[1], "Source y coordinate [L]" ); strcpy( op->sd->param_name[2], "Source z coordinate [L]" );
 	strcpy( op->sd->param_name[3], "Source x dimension [L]" ); strcpy( op->sd->param_name[4], "Source y dimension [L]" ); strcpy( op->sd->param_name[5], "Source z dimension [L]" );
 	strcpy( op->sd->param_name[6], "Contaminant flux [M/T]" ); strcpy( op->sd->param_name[7], "Start Time [T]" ); strcpy( op->sd->param_name[8], "End Time [T]" );
@@ -129,7 +129,7 @@ int set_param_id( struct opt_data *op )
 	return( 1 );
 }
 
-int set_param_names( struct opt_data *op )
+int set_param_names( struct opt_data *op, int flag )
 {
 	int i, j, k;
 	if( op->cd->num_sources == 1 )
@@ -137,17 +137,18 @@ int set_param_names( struct opt_data *op )
 		for( j = 0; j < op->cd->num_source_params; j++ )
 		{
 			strcpy( op->pd->var_name[j], op->sd->param_name[j] );
-			strcpy( op->pd->var_id[j], op->qd->param_id[j] );
+			strcpy( op->pd->var_id[j], op->sd->param_id[j] );
 		}
 		k = op->cd->num_source_params;
 	}
 	else
 		for( k = 0, i = 0; i < op->cd->num_sources; i++ )
 		{
-			for( k = 0, j = 0; j < op->cd->num_source_params; j++, k++ )
+			for( j = 0; j < op->cd->num_source_params; j++, k++ )
 			{
 				sprintf( op->pd->var_name[k], "%s #%d", op->sd->param_name[j], i + 1 );
-				strcpy( op->pd->var_id[k], op->sd->param_id[j] );
+				if( flag == 1 ) sprintf( op->pd->var_id[k], "%s_%d", op->sd->param_id[j], i + 1 );
+				else strcpy( op->pd->var_id[k], op->sd->param_id[j] );
 			}
 		}
 	for( i = 0; i < op->cd->num_aquifer_params; i++, k++ )
@@ -272,6 +273,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->squads = 0;
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	cd->obs_int = 2;
+	cd->time_step = 0;
 	quiet = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
@@ -375,6 +377,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; cd->solution_type[0] = BOX; }
 		if( !strncasecmp( word, "levy", 4 ) ) { w = 1; cd->levy = 1; }
 		if( !strncasecmp( word, "point_tri", 9 ) ) { w = 1; cd->solution_type[0] = POINT_TRIANGLE_TIME; }
+		if( !strncasecmp( word, "time_step", 9 ) ) { w = 1; cd->time_step = 1; }
 		if( !strncasecmp( word, "obs_int=", 8 ) ) { w = 1; sscanf( word, "obs_int=%d", &cd->obs_int ); if( cd->obs_int > 2 || cd->obs_int < 1 ) cd->obs_int = 2; }
 		if( !strncasecmp( word, "paran", 5 ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( strcasestr( word, "_ms" ) ) { w = 1; cd->paranoid = 1; } // legacy

@@ -1438,7 +1438,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	{
 		if( compute_jacobian ) tprintf( "\nJacobian matrix\n" ); // Print Jacobian
 		else tprintf( "\nJacobian matrix (provided externally)\n" );
-		tprintf( "%-25s :", "Observations" );
+		tprintf( "%-27s:", "Observations" );
 		for( k = 0; k < op->od->nTObs; k++ )
 		{
 			if( op->od->nTObs < 30 || ( k < 10 || k > op->od->nTObs - 10 ) ) tprintf( " %s", op->od->obs_id[k] );
@@ -1447,7 +1447,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		tprintf( "\n" );
 		for( k = i = 0; i < op->pd->nOptParam; i++ )
 		{
-			tprintf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
+			tprintf( "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = 0; j < op->od->nTObs; j++ )
 			{
 				eps = gsl_matrix_get( gsl_jacobian, j, i );
@@ -1458,7 +1458,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			}
 			tprintf( "\n" );
 			/*
-			tprintf( "%-25s :", op->pd->var_id[op->pd->var_index[i]] );
+			tprintf( "%-27s:", op->pd->var_id[op->pd->var_index[i]] );
 			for( j = 0; j < op->od->nObs; j++, k++ )
 			{
 				eps = jacobian[k];
@@ -1476,13 +1476,13 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
 	strcat( filename, ".jacobian" );
 	out = Fwrite( filename );
-	fprintf( out, "%-25s :", "Parameters" );
+	fprintf( out, "%-27s:", "Parameters" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		fprintf( out, " \"%s\"", op->pd->var_name[op->pd->var_index[i]] );
 	fprintf( out, "\n" );
 	for( j = 0; j < op->od->nTObs; j++ )
 	{
-		fprintf( out, "%-25s :", op->od->obs_id[j] );
+		fprintf( out, "%-27s:", op->od->obs_id[j] );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			fprintf( out, " %g", gsl_matrix_get( gsl_jacobian, j, i ) );
 		fprintf( out, "\n" );
@@ -1502,7 +1502,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		else tprintf( "\nCovariance matrix (provided externally)\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			tprintf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
+			tprintf( "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = 0; j < op->pd->nOptParam; j++ )
 				tprintf( " %7.0e", gsl_matrix_get( gsl_covar, i, j ) );
 			tprintf( "\n" );
@@ -1515,7 +1515,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	out = Fwrite( filename );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
-		fprintf( out, "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
+		fprintf( out, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 		for( j = 0; j < op->pd->nOptParam; j++ )
 			fprintf( out, " %g", gsl_matrix_get( gsl_covar, i, j ) );
 		fprintf( out, "\n" );
@@ -1539,7 +1539,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			tprintf( "\nCorrelation matrix\n" );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
-				tprintf( "%-25s : ", op->pd->var_name[op->pd->var_index[i]] );
+				tprintf( "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 				for( j = 0; j < op->pd->nOptParam; j++ )
 					tprintf( " %6.3f", gsl_matrix_get( gsl_covar, i, j ) / ( stddev[i] * stddev[j] ) );
 				tprintf( "\n" );
@@ -1552,7 +1552,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		out = Fwrite( filename );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			fprintf( out, "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
+			fprintf( out, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = 0; j < op->pd->nOptParam; j++ )
 				fprintf( out, " %g", gsl_matrix_get( gsl_covar, i, j ) / ( stddev[i] * stddev[j] ) );
 			fprintf( out, "\n" );
@@ -1567,12 +1567,12 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			gsl_eigen_symmv_sort( eigenval, eigenvec, GSL_EIGEN_SORT_ABS_ASC );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
-				tprintf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
+				tprintf( "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 				for( j = 0; j < op->pd->nOptParam; j++ )
 					tprintf( " %6.3f", gsl_matrix_get( eigenvec, i, j ) );
 				tprintf( "\n" );
 			}
-			tprintf( "%-25s :", "Eigenvalues" );
+			tprintf( "%-27s:", "Eigenvalues" );
 			for( j = 0; j < op->pd->nOptParam; j++ )
 				tprintf( " %6.0e", gsl_vector_get( eigenval, j ) );
 			tprintf( "\n" );
@@ -1580,12 +1580,12 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			gsl_eigen_symmv_sort( eigenval, eigenvec, GSL_EIGEN_SORT_VAL_ASC );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
-				tprintf( "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
+				tprintf( "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 				for( j = 0; j < op->pd->nOptParam; j++ )
 					tprintf( " %6.3f", gsl_matrix_get( eigenvec, i, j ) );
 				tprintf( "\n" );
 			}
-			tprintf( "%-25s :", "Eigenvalues" );
+			tprintf( "%-27s:", "Eigenvalues" );
 			for( j = 0; j < op->pd->nOptParam; j++ )
 				tprintf( " %6.0e", gsl_vector_get( eigenval, j ) );
 			tprintf( "\n" );
@@ -1598,12 +1598,12 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		out = Fwrite( filename );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			fprintf( out, "%-25s :", op->pd->var_name[op->pd->var_index[i]] );
+			fprintf( out, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = op->pd->nOptParam - 1; j >= 0; j-- )
 				fprintf( out, " %g", gsl_matrix_get( eigenvec, i, j ) );
 			fprintf( out, "\n" );
 		}
-		fprintf( out, "%-25s :", "Eigenvalues" );
+		fprintf( out, "%-27s:", "Eigenvalues" );
 		for( j = 0; j < op->pd->nOptParam; j++ )
 			fprintf( out, " %g", gsl_vector_get( eigenval, j ) );
 		fprintf( out, "\n" );
@@ -1701,12 +1701,12 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		{
 			if( dof > 0 )
 			{
-				tprintf( "%-40s : %12g stddev %12g (%12g - %12g)", op->pd->var_name[k], opt_params[i], stddev[i], x_d[i], x_u[i] );
+				tprintf( "%-27s: %12g stddev %12g (%12g - %12g)", op->pd->var_name[k], opt_params[i], stddev[i], x_d[i], x_u[i] );
 				if( status ) tprintf( " Uncertainty ranges constrained by prior bounds\n" );
 				else tprintf( "\n" );
 			}
 			else
-				tprintf( "%-40s : %12g -- Uncertainty ranges cannot be estimated\n", op->pd->var_name[k], opt_params[i] );
+				tprintf( "%-27s: %12g -- Uncertainty ranges cannot be estimated\n", op->pd->var_name[k], opt_params[i] );
 		}
 	}
 	DeTransform( x_u, op, x_u );
@@ -1717,7 +1717,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
 			k = op->pd->var_index[i];
-			tprintf( "%-40s : ", op->pd->var_name[k] );
+			tprintf( "%-27s: ", op->pd->var_name[k] );
 			if( dof > 0 )
 			{
 				if( op->pd->var_log[k] == 0 ) tprintf( "%12g stddev %12g (%12g - %12g)", op->pd->var[k], stddev[i], x_d[i], x_u[i] );

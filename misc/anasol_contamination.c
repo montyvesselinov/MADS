@@ -62,7 +62,7 @@ double point_source( double x, double y, double z, double t, void *params )
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
-	double result, error, time;
+	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
 	p->ye = y;
@@ -71,14 +71,16 @@ double point_source( double x, double y, double z, double t, void *params )
 		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
 	w = gsl_integration_workspace_alloc( NUMITER );
 	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
 	F.function = &int_point_source;
 	F.params = p;
 	gsl_set_error_handler_off();
 	// gsl_set_error_handler(&handler);
-	if( t < p->var[TIME_END] )
+	if( t < time_end )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
-		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 ) result = 0;
 //	printf ("result			 = % .18f\n", result);
 //	printf ("estimated error = % .18f\n", error);
@@ -130,7 +132,7 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
-	double result, error, time;
+	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
 	p->ye = y;
@@ -139,14 +141,16 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
 	w = gsl_integration_workspace_alloc( NUMITER );
 	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
 	F.function = &int_point_source_triangle_time;
 	F.params = p;
 	gsl_set_error_handler_off();
 	// gsl_set_error_handler(&handler);
-	if( t < p->var[TIME_END] )
+	if( t < time_end )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
-		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 ) result = 0;
 //	printf ("result			 = % .18f\n", result);
 //	printf ("estimated error = % .18f\n", error);
@@ -199,21 +203,23 @@ double box_source( double x, double y, double z, double t, void *params )
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
-	double result, error, time;
+	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_box_source;
 	F.params = p;
 	gsl_set_error_handler_off();
 	// gsl_set_error_handler(&handler);
-	if( t < p->var[TIME_END] )
+	if( t < time_end )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
-		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
 		printf( "error: %s\n", gsl_strerror( status ) );
@@ -271,21 +277,23 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
-	double result, error, time;
+	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_rectangle_source;
 	F.params = p;
 	gsl_set_error_handler_off();
 	// gsl_set_error_handler(&handler);
-	if( t < p->var[TIME_END] )
+	if( t < time_end )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
-		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 ) result = 0;
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
@@ -331,21 +339,23 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
-	double result, error, time;
+	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_rectangle_source_vz;
 	F.params = p;
 	gsl_set_error_handler_off();
 	// gsl_set_error_handler(&handler);
-	if( t < p->var[TIME_END] )
+	if( t < time_end )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
-		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 ) result = 0;
 	gsl_integration_workspace_free( w );
 	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
@@ -395,21 +405,23 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
-	double result, error, time;
+	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
 	w  = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_gaussian_source_2d;
 	F.params = p;
 	gsl_set_error_handler_off();
 	// gsl_set_error_handler(&handler);
-	if( t < p->var[TIME_END] )
+	if( t < time_end )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
-		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 ) result = 0;
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
@@ -456,21 +468,23 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
-	double result, error, time;
+	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_gaussian_source_3d;
 	F.params = p;
 	gsl_set_error_handler_off();
 	// gsl_set_error_handler(&handler);
-	if( t < p->var[TIME_END] )
+	if( t < time_end )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
-		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 ) result = 0;
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
@@ -518,20 +532,22 @@ double box_source_levy_dispersion( double x, double y, double z, double t, void 
 	gsl_function F;
 	int status;
 	struct anal_data *p = ( struct anal_data * )params;
-	double result, error, time;
+	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
 	p->xe = x;
 	p->ye = y;
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_box_source_levy_dispersion;
 	F.params = p;
 	gsl_set_error_handler_off();
-	if( t < p->var[TIME_END] )
+	if( t < time_end )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
-		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
 		printf( "error: %s\n", gsl_strerror( status ) );

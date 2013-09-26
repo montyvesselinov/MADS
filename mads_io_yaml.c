@@ -60,18 +60,18 @@ void yaml_parse_layer( yaml_parser_t *parser, GNode *data, int debug );
 gboolean gnode_tree_dump( GNode *n, gpointer data );
 void gnode_tree_dump_classes( GNode *n, gpointer data );
 void gnode_tree_parse_classes( GNode *node, gpointer data );
-int load_ymal_wells( GNode *node, gpointer data );
-int load_ymal_grid( GNode *node, gpointer data );
-int load_ymal_sources( GNode *node, gpointer data );
-int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords, int *keyindex );
-int load_ymal_observations( GNode *node, gpointer data );
-int load_ymal_regularizations( GNode *node, gpointer data );
-int load_ymal_time( GNode *node, gpointer data );
-int load_ymal_problem( GNode *node, gpointer data );
-int load_ymal_solution( GNode *node, gpointer data );
-int load_ymal_command( GNode *node, gpointer data );
-int load_ymal_templates( GNode *node, gpointer data );
-int load_ymal_instructions( GNode *node, gpointer data );
+int load_yaml_wells( GNode *node, gpointer data );
+int load_yaml_grid( GNode *node, gpointer data );
+int laod_yaml_sources( GNode *node, gpointer data );
+int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords, int *keyindex );
+int laod_yaml_observations( GNode *node, gpointer data );
+int laod_yaml_regularizations( GNode *node, gpointer data );
+int laod_yaml_time( GNode *node, gpointer data );
+int laod_yaml_problem( GNode *node, gpointer data );
+int laod_yaml_solution( GNode *node, gpointer data );
+int laod_yaml_command( GNode *node, gpointer data );
+int laod_yaml_templates( GNode *node, gpointer data );
+int laod_yaml_instructions( GNode *node, gpointer data );
 static gboolean g_node_find_func( GNode *node, gpointer data );
 gpointer g_node_find_key( GNode *gnode_data, char **key );
 void set_param_arrays( int num_param, struct opt_data *op );
@@ -82,7 +82,7 @@ const char *key_yes_no( int i );
 
 /* Functions in mads_io */
 int set_param_id( struct opt_data *op );
-int set_param_names( struct opt_data *op );
+int set_param_names( struct opt_data *op, int flag );
 void init_params( struct opt_data *op );
 int parse_cmd( char *buf, struct calc_data *cd );
 int set_optimized_params( struct opt_data *op );
@@ -183,7 +183,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	if( fabs( cd->obsstep ) > DBL_EPSILON ) od->include_predictions = 1;
 	// Solution
 	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Solution" );
-	if( key_pointer != NULL ) { tprintf( "Process Solution ... " ); load_ymal_solution( ( GNode * ) key_pointer, ( void * ) op ); }
+	if( key_pointer != NULL ) { tprintf( "Process Solution ... " ); laod_yaml_solution( ( GNode * ) key_pointer, ( void * ) op ); }
 	else tprintf( "WARNING: Solution class not found!\n" );
 	if( cd->solution_type[0] != EXTERNAL )
 	{
@@ -192,7 +192,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 		if( key_pointer != NULL )
 		{
 			tprintf( "Process Sources ... " );
-			ier = load_ymal_sources( key_pointer, ( void * ) op );
+			ier = laod_yaml_sources( key_pointer, ( void * ) op );
 			if( cd->num_sources > 1 ) tprintf( "\nModels:" );
 			else tprintf( "Model: " );
 			for( i = 0; i < cd->num_sources; i++ )
@@ -235,60 +235,77 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 				for( i = 0; i < cd->num_aquifer_params; i++ ) keyindex[i] = k + i;
 				keywords = qd->param_id;
 			}
-			ier = load_ymal_params( key_pointer, op, num_keys, keywords, keyindex );
+			ier = load_yaml_params( key_pointer, op, num_keys, keywords, keyindex );
 			if( num_keys && keyindex != NULL ) free( keyindex );
 		}
-		else ier = load_ymal_params( key_pointer, op, 0, NULL, NULL );
+		else ier = load_yaml_params( key_pointer, op, 0, NULL, NULL );
+		if( cd->debug )
+		{
+			if( op->pd->nExpParam > 0 ) tprintf( "\nNumber of parameters with computational expressions (coupled or tied parameters) = %d\n", op->pd->nExpParam );
+			for( i = 0; i < op->pd->nExpParam; i++ )
+			{
+				k = op->pd->param_expressions_index[i];
+				tprintf( "%-27s= ", op->pd->var_name[k] );
+#ifdef MATHEVAL
+				tprintf( "%s", evaluator_get_string( op->pd->param_expression[i] ) );
+				op->pd->var[k] = cd->var[k] = evaluator_evaluate( op->pd->param_expression[i], op->pd->nParam, op->pd->var_id, cd->var );
+				tprintf( " = %g\n", op->pd->var[k] );
+#else
+				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
+			}
+			if( op->pd->nExpParam > 0 ) tprintf( "\n" );
+		}
 	}
-	else tprintf( "WARNING: Wells class not found!\n" );
+	else tprintf( "WARNING: Parameter class not found!\n" );
 	if( ier != 1 ) return( -1 );
 	if( cd->solution_type[0] != EXTERNAL )
 	{
 		// Wells
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Wells" );
-		if( key_pointer != NULL ) { tprintf( "Process Wells ... " ); ier = load_ymal_wells( ( GNode * ) key_pointer, ( void * ) op ); map_well_obs( op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Wells ... " ); ier = load_yaml_wells( ( GNode * ) key_pointer, ( void * ) op ); map_well_obs( op ); }
 		else tprintf( "WARNING: Wells class not found!\n" );
 	}
 	else
 	{
 		// Observations
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Observations" );
-		if( key_pointer != NULL ) { tprintf( "Process Observations ... " ); ier = load_ymal_observations( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Observations ... " ); ier = laod_yaml_observations( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Observations class not found!\n" );
 	}
 	if( ier != 1 ) return( -1 );
 	// Regularization
 	key_pointer = g_node_find_key( gnode_data, ( char ** ) "Regularizations" );
-	if( key_pointer != NULL ) { tprintf( "Process Regularizations ... " ); ier = load_ymal_regularizations( ( GNode * ) key_pointer, ( void * ) op ); }
+	if( key_pointer != NULL ) { tprintf( "Process Regularizations ... " ); ier = laod_yaml_regularizations( ( GNode * ) key_pointer, ( void * ) op ); }
 	else tprintf( "WARNING: Regularization class not found!\n" );
 	if( ier != 1 ) return( -1 );
 	if( cd->solution_type[0] != EXTERNAL )
 	{
 		// Grid
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Grid" );
-		if( key_pointer != NULL ) { tprintf( "Process Grid ... " ); ier = load_ymal_grid( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Grid ... " ); ier = load_yaml_grid( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Grid class not found!\n" );
 		if( ier != 1 ) return( -1 );
 		// Time
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Time" );
-		if( key_pointer != NULL ) { tprintf( "Process Time ... " ); ier = load_ymal_time( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Time ... " ); ier = laod_yaml_time( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Time class not found!\n" );
 	}
 	else
 	{
 		// Execution Command
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Command" );
-		if( key_pointer != NULL ) { tprintf( "Process Execution Command ... " ); ier = load_ymal_command( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Execution Command ... " ); ier = laod_yaml_command( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Command class not found!\n" );
 		if( ier != 1 ) return( -1 );
 		// Templates
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Templates" );
-		if( key_pointer != NULL ) { tprintf( "Process Templates and Output files ... " ); ier = load_ymal_templates( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Templates and Output files ... " ); ier = laod_yaml_templates( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Templates class not found!\n" );
 		if( ier != 1 ) return( -1 );
 		// Instructions
 		key_pointer = g_node_find_key( gnode_data, ( char ** ) "Instructions" );
-		if( key_pointer != NULL ) { tprintf( "Process Instructions and Input files ... " ); ier = load_ymal_instructions( ( GNode * ) key_pointer, ( void * ) op ); }
+		if( key_pointer != NULL ) { tprintf( "Process Instructions and Input files ... " ); ier = laod_yaml_instructions( ( GNode * ) key_pointer, ( void * ) op ); }
 		else tprintf( "WARNING: Instructions class not found!\n" );
 		if( ier != 1 ) return( -1 );
 	}
@@ -364,12 +381,12 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 	tprintf( "Processing Class:" );
 	while( --i ) tprintf( " " );
 	tprintf( "%s ", ( char * ) node->data );
-	if( !strcasecmp( ( char * ) node->data, "Problem" ) ) { tprintf( " ... process solution ... " ); load_ymal_problem( node, op ); found = 1; }
-	if( !strcasecmp( ( char * ) node->data, "Solution" ) ) { tprintf( " ... process solution ... " ); load_ymal_solution( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Problem" ) ) { tprintf( " ... process solution ... " ); laod_yaml_problem( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Solution" ) ) { tprintf( " ... process solution ... " ); laod_yaml_solution( node, op ); found = 1; }
 	if( !strcasecmp( ( char * ) node->data, "Sources" ) )
 	{
 		tprintf( " ... process sources ... " );
-		load_ymal_sources( node, op );
+		laod_yaml_sources( node, op );
 		if( cd->num_sources > 1 ) tprintf( "\nModels:" );
 		else tprintf( "Model: " );
 		for( c = 0; c < cd->num_sources; c++ )
@@ -406,13 +423,13 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 			for( i = 0; i < cd->num_aquifer_params; i++ ) keyindex[i] = k + i;
 			keywords = qd->param_id;
 		}
-		load_ymal_params( node, op, num_keys, keywords, keyindex );
+		load_yaml_params( node, op, num_keys, keywords, keyindex );
 		if( num_keys && keyindex != NULL ) free( keyindex );
 		found = 1;
 	}
-	if( !strcasecmp( ( char * ) node->data, "Wells" ) ) { tprintf( " ... process wells ... " ); load_ymal_wells( node, op ); found = 1; }
-	if( !strcasecmp( ( char * ) node->data, "Grid" ) ) { tprintf( " ... process grid ... " ); load_ymal_grid( node, op ); found = 1; }
-	if( !strcasecmp( ( char * ) node->data, "Time" ) ) { tprintf( " ... process breakthrough time data ... " ); load_ymal_time( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Wells" ) ) { tprintf( " ... process wells ... " ); load_yaml_wells( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Grid" ) ) { tprintf( " ... process grid ... " ); load_yaml_grid( node, op ); found = 1; }
+	if( !strcasecmp( ( char * ) node->data, "Time" ) ) { tprintf( " ... process breakthrough time data ... " ); laod_yaml_time( node, op ); found = 1; }
 	if( found == 0 ) tprintf( " WARNING: this data set will be not processed!\n" );
 }
 
@@ -423,8 +440,8 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	int i;
 	pd = op->pd;
 	cd = op->cd;
-	pd->var_name = char_matrix( num_param, 50 );
-	pd->var_id = char_matrix( num_param, 10 );
+	pd->var_name = char_matrix( num_param, 60 );
+	pd->var_id = char_matrix( num_param, 20 );
 	for( i = 0; i < num_param; i++ )
 		pd->var_name[i][0] = pd->var_id[i][0] = 0;
 	pd->var = ( double * ) malloc( num_param * sizeof( double ) );
@@ -440,7 +457,7 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	pd->nOptParam = pd->nFlgParam = pd->nExpParam = 0;
 }
 
-int load_ymal_sources( GNode *node, gpointer data )
+int laod_yaml_sources( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -457,7 +474,7 @@ int load_ymal_sources( GNode *node, gpointer data )
 	set_param_id( op ); // set analytical parameter id's
 	pd->nAnalParam = pd->nParam = cd->num_sources * cd->num_source_params + cd->num_aquifer_params;
 	set_param_arrays( pd->nParam, op );
-	set_param_names( op );
+	set_param_names( op, 0 );
 	cd->solution_type = ( int * ) malloc( cd->num_sources * sizeof( int ) );
 	keyindex = ( int * ) malloc( cd->num_source_params * sizeof( int ) );
 	for( i = 0; i < cd->num_sources; i++ )
@@ -470,15 +487,15 @@ int load_ymal_sources( GNode *node, gpointer data )
 		if( !strncasecmp( ( char * ) node_par->data, "box", 3 ) ) cd->solution_type[i] = BOX;
 		if( !strncasecmp( ( char * ) node_par->data, "point_tri", 9 ) ) cd->solution_type[i] = POINT_TRIANGLE_TIME;
 		for( k = 0; k < cd->num_source_params; k++ ) keyindex[k] = i * cd->num_source_params + k;
-		node_par = g_node_nth_child( node, 0 );
-		load_ymal_params( node_par, op, cd->num_source_params, sd->param_id, keyindex );
+		load_yaml_params( node_par, op, cd->num_source_params, sd->param_id, keyindex );
 	}
+	set_param_names( op, 1 );
 	if( keyindex != NULL ) free( keyindex );
 	if( bad_data ) return( 0 );
 	else return( 1 );
 }
 
-int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords, int *keyindex )
+int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords, int *keyindex )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -540,7 +557,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			node_key = g_node_nth_child( node_par, k );
 			node_value = g_node_nth_child( node_key, 0 );
 			if( cd->debug > 2 ) tprintf( "Key %s = %s\n", ( char * ) node_key->data, ( char * ) node_value->data );
-			if( !strcasecmp( ( char * ) node_key->data, "longname" ) ) strcpy( pd->var_name[index], ( char * ) node_value->data );
+			if( pd->var_name[index][0] == 0 && !strcasecmp( ( char * ) node_key->data, "longname" ) ) strcpy( pd->var_name[index], ( char * ) node_value->data );
 			if( !strcasecmp( ( char * ) node_key->data, "log" ) ) if( !strcasecmp( ( char * ) node_value->data, "yes" ) || !strcasecmp( ( char * ) node_value->data, "1" ) ) pd->var_log[index] = 1;
 			if( !strcasecmp( ( char * ) node_key->data, "type" ) )
 			{
@@ -553,7 +570,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_max[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "exp" ) )
 			{
-				pd->var_opt[i] = pd->var_log[i] = 0;
+				pd->var_opt[index] = pd->var_log[index] = 0;
 #ifdef MATHEVAL
 				pd->param_expressions_index[pd->nExpParam] = index;
 				pd->param_expression[pd->nExpParam] = evaluator_create( ( char * ) node_value->data );
@@ -654,7 +671,7 @@ int load_ymal_params( GNode *node, gpointer data, int num_keys, char **keywords,
 	else return( 1 );
 }
 
-int load_ymal_regularizations( GNode *node, gpointer data )
+int laod_yaml_regularizations( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -739,13 +756,24 @@ int load_ymal_regularizations( GNode *node, gpointer data )
 				for( k = 0; k < od->nObs; k++ )
 					if( !strncmp( expvar_names[j], od->obs_id[k], l1 ) ) { status = 1; break; }
 #ifdef MATHEVAL
-				if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) ); bad_data = 1; }
+				if( status == 0 )
+				{
+					tprintf( "ERROR: parameter name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) );
+					bad_data = 1;
+				}
 #endif
 			}
 		}
 #ifdef MATHEVAL
 		else { tprintf( "ERROR: no variables\n" ); bad_data = 1; }
 #endif
+	}
+	if( bad_data )
+	{
+		for( k = 0; k < pd->nParam; k++ )
+			tprintf( "%s %g\n", pd->var_id[k], cd->var[k] );
+		for( k = 0; k < od->nObs; k++ )
+			tprintf( "%s %g\n", od->obs_id[k], od->obs_target[k] );
 	}
 #ifdef MATHEVAL
 	for( k = 0; k < pd->nParam; k++ ) { rd->regul_map_id[k] = pd->var_id[k]; rd->regul_map_val[k] = cd->var[k]; }
@@ -778,7 +806,7 @@ int load_ymal_regularizations( GNode *node, gpointer data )
 	else return( 1 );
 }
 
-int load_ymal_observations( GNode *node, gpointer data )
+int laod_yaml_observations( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -877,7 +905,7 @@ int load_ymal_observations( GNode *node, gpointer data )
 	else return( 1 );
 }
 
-int load_ymal_wells( GNode *node, gpointer data )
+int load_yaml_wells( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct well_data *wd;
@@ -1005,7 +1033,7 @@ int load_ymal_wells( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int load_ymal_grid( GNode *node, gpointer data )
+int load_yaml_grid( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct grid_data *gd;
@@ -1053,7 +1081,7 @@ int load_ymal_grid( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int load_ymal_time( GNode *node, gpointer data )
+int laod_yaml_time( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct grid_data *gd;
@@ -1082,7 +1110,7 @@ int load_ymal_time( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int load_ymal_problem( GNode *node, gpointer data )
+int laod_yaml_problem( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1104,7 +1132,7 @@ int load_ymal_problem( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int load_ymal_solution( GNode *node, gpointer data )
+int laod_yaml_solution( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1130,7 +1158,7 @@ int load_ymal_solution( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int load_ymal_command( GNode *node, gpointer data )
+int laod_yaml_command( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1190,7 +1218,7 @@ int load_ymal_command( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int load_ymal_templates( GNode *node, gpointer data )
+int laod_yaml_templates( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1236,7 +1264,7 @@ int load_ymal_templates( GNode *node, gpointer data )
 	return( 1 );
 }
 
-int load_ymal_instructions( GNode *node, gpointer data )
+int laod_yaml_instructions( GNode *node, gpointer data )
 {
 	struct opt_data *op = ( struct opt_data * ) data;
 	struct calc_data *cd;
@@ -1317,6 +1345,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	wd = op->wd;
 	gd = op->gd;
 	ed = op->ed;
+	set_param_names( op, 0 );
 	FILE *outfile;
 	int  i, j, count_param_expressions, count_param, param_limit;
 	if( ( outfile = fopen( filename, "w" ) ) == NULL )
@@ -1394,7 +1423,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 		for( i = 0; i < cd->num_sources; i++ )
 		{
 			fprintf( outfile, "- %s: {\n", key_source_type( cd->solution_type[i] ) );
-			for( i = 0; i < cd->num_source_params; i++, count_param++ )
+			for( j = 0; j < cd->num_source_params; j++, count_param++ )
 			{
 				fprintf( outfile, "  %-3s: {", pd->var_id[count_param] );
 				if( pd->var_name[count_param] != NULL || pd->var_name[count_param][0] != 0 ) fprintf( outfile, " longname: \"%s\", ", pd->var_name[count_param] );
@@ -1408,7 +1437,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 					fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
 				else // fixed or not log-transformed parameter
 					fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
-				if( cd->num_source_params == i + 1 ) fprintf( outfile, " }" );
+				if( cd->num_source_params == j + 1 ) fprintf( outfile, " }" );
 				else fprintf( outfile, " },\n" );
 			}
 			fprintf( outfile, " }\n" );

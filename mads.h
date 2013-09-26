@@ -113,6 +113,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int energy; // starting energy for pssa particles
 	int disp_tied;
 	int disp_scaled;
+	int time_step; // 1 => End time == Time step
 	int save;
 	int pargen;
 	int obs_int;
@@ -301,6 +302,7 @@ struct anal_data
 	int num_param;
 	int debug;
 	int scaling_dispersion;
+	int time_step;
 	double xe; // x coordinate; needed only for the functions during integration (can be a subclass)
 	double ye; // y coordinate; needed only for the functions during integration (can be a subclass)
 	double ze; // z coordinate; needed only for the functions during integration (can be a subclass)

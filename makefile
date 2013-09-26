@@ -267,6 +267,13 @@ verify-contaminant:
 	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul.results-$(OS)-correct
 	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul_yaml.results-$(OS)-correct
 	@echo "**************************************************************************************"
+	@echo ""
+	@echo "TEST 3.9: Problem example/contamination/s01-multi_source with multiple source and tied model parameters (YAML input format) ..."
+	rm -f example/contamination/s01-multi_source.results
+	./mads example/contamination/s01-multi_source obs_int=2 > /dev/null
+	@$(CMP) example/contamination/s01-multi_source.mads_output example/contamination/s01-multi_source.mads_output-$(OS)-correct
+	@$(CMP) example/contamination/s01-multi_source.results example/contamination/s01-multi_source.results-$(OS)-correct
+	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
 	@echo ""
 	@echo ""

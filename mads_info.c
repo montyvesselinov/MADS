@@ -120,6 +120,7 @@ void mads_info()
 	printf( "                        if disp_scaled and disp_tied are applied, longitudinal dispersivity is scaled and\n" );
 	printf( "                        lateral and vertical transverse dispersivities are fractions of the scaled longitudinal dispersivity\n" );
 	printf( "   disp_scaled=2      - longitudinal, lateral and vertical transverse dispersivities are scaled with the travel distance\n" );
+	printf( "   time_step          - parameter \"end time\" is representing the period (dt) within which the source is active\n" );
 	printf( "\nbuild-in test problems for optimization / uncertainty-quantification techniques (local and global methods):\n" );
 	printf( "   test=[integer]     - test problem ID [default=1]:\n" );
 	printf( "                           1: Parabola (Sphere)\n" );
