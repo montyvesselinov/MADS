@@ -137,7 +137,7 @@ int func_extrn( double *x, void *data, double *f )
 	for( i = 0; i < p->ed->ntpl; i++ )
 		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug ) == -1 )
 			exit( -1 );
-	strcpy( buf, "/usr/bin/env tcsh -f -c \"rm -f " );
+	sprintf( buf, "%s \"rm -f ", SHELL );
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		strcat( buf, p->ed->fn_obs[i] );
@@ -147,7 +147,7 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "\nDelete the expected output files before execution (\'%s\')\n", buf );
 	system( buf );
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
-	sprintf( buf, "/usr/bin/env tcsh -f -c \"%s\"", p->ed->cmdline );
+	sprintf( buf, "%s \"%s\"", SHELL, p->ed->cmdline );
 	system( buf );
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
@@ -305,7 +305,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
 	// Delete expected output files in the root directory to prevent the creation of links to these files in the "child" directories
-	strcpy( buf, "/usr/bin/env tcsh -f -c \"rm -f " );
+	sprintf( buf, "%s \"rm -f ", SHELL );
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		strcat( buf, p->ed->fn_obs[i] );
@@ -324,7 +324,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	// Update model input files in zip restart files
 	if( p->cd->restart )
 	{
-		sprintf( buf, "/usr/bin/env tcsh -f -c \"zip -u %s ", p->cd->restart_zip_file ); // Archive input files
+		sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive input files
 		for( i = 0; i < p->ed->ntpl; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
 		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
@@ -333,7 +333,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
 	if( p->cd->restart == 0 ) // Do not delete if restart is attempted
 	{
-		sprintf( buf, "/usr/bin/env tcsh -f -c \"cd ../%s; rm -f ", dir ); // Delete expected output files in the hosts directories
+		sprintf( buf, "%s \"cd ../%s; rm -f ", SHELL, dir ); // Delete expected output files in the hosts directories
 		for( i = 0; i < p->ed->nins; i++ )
 		{
 			strcat( buf, p->ed->fn_obs[i] );
@@ -345,7 +345,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	else // Just in case; the restart file should have been already extracted
 	{
-		sprintf( buf, "/usr/bin/env tcsh -f -c \"unzip -u -: %s ", p->cd->restart_zip_file ); // Archive input files
+		sprintf( buf, "%s \"unzip -u -: %s ", SHELL, p->cd->restart_zip_file ); // Archive input files
 		for( i = 0; i < p->ed->nins; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
@@ -368,7 +368,7 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 		system( buf );
 	}
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
-	sprintf( buf, "/usr/bin/env tcsh -f -c \"cd ../%s; %s\"", dir, p->ed->cmdline );
+	sprintf( buf, "%s \"cd ../%s; %s\"", SHELL, dir, p->ed->cmdline );
 	system( buf );
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	return GSL_SUCCESS;
@@ -447,7 +447,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 	}
 	if( bad_data ) return( bad_data );
-	sprintf( buf, "/usr/bin/env tcsh -f -c \"zip -u %s ", p->cd->restart_zip_file ); // Archive output files
+	sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive output files
 	for( i = 0; i < p->ed->nins; i++ )
 		sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );

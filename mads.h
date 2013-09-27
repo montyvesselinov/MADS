@@ -45,6 +45,8 @@ enum SOURCE_PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, 
 #define NUM_ANAL_PARAMS_AQUIFER 17
 enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, RF, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, TSCALE_DISP, TSCALE_ADV, TSCALE_REACT, ALPHA, BETA, NLC0, NLC1 };
 
+#define SHELL "/usr/bin/env tcsh -f -c"
+
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
 FILE *mads_output;

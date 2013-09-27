@@ -42,10 +42,10 @@ int create_mprun_dir( char *dir )
 {
 	char buf[1000];
 	int r;
-	sprintf( buf, "/usr/bin/env tcsh -f -c \"mkdir ../%s >& /dev/null\"", dir );
+	sprintf( buf, "%s \"mkdir ../%s >& /dev/null\"", SHELL, dir );
 	r = system( buf );
 	if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
-	sprintf( buf, "/usr/bin/env tcsh -f -c \"ln -s $PWD/* ../%s >& /dev/null\"", dir );
+	sprintf( buf, "%s \"ln -s $PWD/* ../%s >& /dev/null\"", SHELL, dir );
 	r = system( buf );
 	if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	return( 0 );
@@ -55,7 +55,7 @@ int delete_mprun_dir( char *dirs )
 {
 	char buf[1000];
 	int r;
-	sprintf( buf, "/usr/bin/env tcsh -f -c \"rm -fR ../%s >& /dev/null\"", dirs );
+	sprintf( buf, "%s \"rm -fR ../%s >& /dev/null\"", SHELL, dirs );
 	r = system( buf );
 	if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	return( 0 );
@@ -67,10 +67,10 @@ int create_mprun_dirs( int nDir, char **dirs )
 	int i, r;
 	for( i = 0; i < nDir; i++ )
 	{
-		sprintf( buf, "/usr/bin/env tcsh -f -c \"mkdir ../%s  >& /dev/null\"", dirs[i] );
+		sprintf( buf, "%s \"mkdir ../%s  >& /dev/null\"", SHELL, dirs[i] );
 		r = system( buf );
 		if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
-		sprintf( buf, "/usr/bin/env tcsh -f -c \"ln -s $cwd/* ../%s\"", dirs[i] );
+		sprintf( buf, "%s \"ln -s $cwd/* ../%s\"", SHELL, dirs[i] );
 		r = system( buf );
 		if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	}
@@ -83,7 +83,7 @@ int delete_mprun_dirs( int nDir, char **dirs )
 	int i, r;
 	for( i = 0; i < nDir; i++ )
 	{
-		sprintf( buf, "/usr/bin/env tcsh -f -c \"rm -fR ../%s >& /dev/null\"", dirs[i] );
+		sprintf( buf, "%s \"rm -fR ../%s >& /dev/null\"", SHELL, dirs[i] );
 		r = system( buf );
 		if( r == -1 || r == 127 ) {	 tprintf( "ERROR: System call failed!\n" ); return( -1 ); }
 	}
