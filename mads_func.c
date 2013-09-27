@@ -323,11 +323,13 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	// Update model input files in zip restart files
 	if( p->cd->restart )
+	{
 		sprintf( buf, "/usr/bin/env tcsh -f -c \"zip -u %s ", p->cd->restart_zip_file ); // Archive input files
-	for( i = 0; i < p->ed->ntpl; i++ )
-		sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
-	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
-	system( buf );
+		for( i = 0; i < p->ed->ntpl; i++ )
+			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
+		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
+		system( buf );
+	}
 	if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
 	if( p->cd->restart == 0 ) // Do not delete if restart is attempted
 	{
@@ -650,7 +652,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	else
 	{
-		for( p1 = p->cd->num_source_params *p->cd->num_sources, p2 = p->cd->num_source_params; p1 < p->pd->nAnalParam; p1++, p2++ )
+		for( p1 = p->cd->num_source_params * p->cd->num_sources, p2 = p->cd->num_source_params; p1 < p->pd->nAnalParam; p1++, p2++ )
 			p->ad->var[p2] = p->cd->var[p1];
 		if( p->cd->disp_tied && p->cd->disp_scaled == 0 ) // Tied dispersivities
 		{
@@ -934,7 +936,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			exit( 1 );
 		}
-		system( "sleep 2" ); // TODO investigate how much sleep is needed
+		system( "sleep 0" ); // TODO investigate how much sleep is needed
 		ieval -= ( p->pd->nOptParam + compute_center );
 		if( compute_center ) func_extrn_read( ++ieval, data, f_x );
 		for( k = j = 0; j < p->pd->nOptParam; j++ )

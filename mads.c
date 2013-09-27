@@ -396,13 +396,13 @@ int main( int argn, char *argv[] )
 		tprintf( "\nLocal parallel execution is requested using %d processors (np=%d)\n", cd.num_proc, cd.num_proc );
 		cwd = getenv( "OSTYPE" ); tprintf( "OS type: %s\n", cwd );
 		if( strncasecmp( cwd, "darwin", 6 ) == 0 )
-			system( "/usr/bin/env tcsh -f -c \"\\rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"" ); // MAC OS
+			system( "/usr/bin/env tcsh -f -c \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"" ); // MAC OS
 		else
-			system( "/usr/bin/env tcsh -f -c \"\\rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"" ); // LINUX
+			system( "/usr/bin/env tcsh -f -c \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"" ); // LINUX
 		in = Fread( "num_proc" );
 		fscanf( in, "%d", &k );
 		fclose( in );
-		system( "/usr/bin/env tcsh -f -c \"\\rm -f num_proc >& /dev/null\"" );
+		system( "/usr/bin/env tcsh -f -c \"rm -f num_proc >& /dev/null\"" );
 		tprintf( "Number of local processors available for parallel execution: %i\n", k );
 		if( k < cd.num_proc ) tprintf( "WARNING: Number of requested processors exceeds the available resources!\n" );
 	}
@@ -530,7 +530,7 @@ int main( int argn, char *argv[] )
 		if( Ftest( cd.restart_zip_file ) == 0 )
 		{
 			if( cd.pardebug ) tprintf( "Previous restart file (%s) exists!\n", cd.restart_zip_file );
-			if( cd.restart ) sprintf( buf, "cp %s %s.restart_%s_%s.zip >& /dev/null", cd.restart_zip_file, op.root, cd.datetime_infile, Fdatetime( cd.restart_zip_file, 0 ) );  // Copy if restart
+			if( cd.restart ) sprintf( buf, "/usr/bin/env tcsh -f -c \"cp %s %s.restart_%s_%s.zip >& /dev/null\"", cd.restart_zip_file, op.root, cd.datetime_infile, Fdatetime( cd.restart_zip_file, 0 ) );  // Copy if restart
 			else sprintf( buf, "/usr/bin/env tcsh -f -c \"mv %s %s.restart_%s_%s.zip >& /dev/null\"", cd.restart_zip_file, op.root, cd.datetime_infile, Fdatetime( cd.restart_zip_file, 0 ) );  // Move if no restart
 			system( buf );
 		}
@@ -1864,7 +1864,7 @@ int igrnd( struct opt_data *op )
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	// File management
 	sprintf( filename, "%s.igrnd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "/usr/bin/env tcsh -f -c \"mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null\"", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 	sprintf( buf, "/usr/bin/env tcsh -f -c \"zip -m %s.igrnd.zip %s.igrnd-[0-9]*.* >& /dev/null\"", op->root, op->root ); system( buf );
 	sprintf( buf, "/usr/bin/env tcsh -f -c \"mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null\"", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.igrnd.results", op->root );
@@ -2118,7 +2118,7 @@ int igpd( struct opt_data *op )
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	// File management
 	sprintf( filename, "%s.igpd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "/usr/bin/env tcsh -f -c \"mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null\"", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 	sprintf( buf, "/usr/bin/env tcsh -f -c \"zip -m %s.igpd.zip %s.igpd-[0-9]*.* >& /dev/null\"", op->root, op->root ); system( buf );
 	sprintf( buf, "/usr/bin/env tcsh -f -c \"mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null\"", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.igpd.results", op->root );
@@ -2499,7 +2499,7 @@ int montecarlo( struct opt_data *op )
 		tprintf( "Randomly sampled parameters saved in %s.mcrnd_param\n", op->root );
 	}
 	sprintf( filename, "%s.mcrnd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "/usr/bin/env tcsh -f -c \"mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null\"", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 	sprintf( buf, "/usr/bin/env tcsh -f -c \"zip -m %s.mcrnd.zip %s.mcrnd-[0-9]*.* >& /dev/null\"", op->root, op->root ); system( buf );
 	sprintf( buf, "/usr/bin/env tcsh -f -c \"mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null\"", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.mcrnd.results", op->root );
