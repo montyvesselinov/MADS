@@ -35,7 +35,7 @@
 
 #define NUMITER 10000
 #define EPSREL 1.E-7
-#define EPSABS 1.E-9
+#define EPSABS 1.E-4
 
 double point_source( double x, double y, double z, double t, void *params );
 double rectangle_source( double x, double y, double z, double t, void *params );
@@ -534,7 +534,7 @@ double box_source_levy_dispersion( double x, double y, double z, double t, void 
 		status = gsl_integration_qags( &F, time - ( p->var[TIME_END] - p->var[TIME_INIT] ), time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
-		printf( "error: %s\n", gsl_strerror( status ) );
+		printf( "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
@@ -577,14 +577,14 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	lambda_y = pow( tv * ay, 1 / alpha );
 	lambda_z = pow( tv * az, 1 / alpha );
 	decay_factor = exp( -tau * lambda );
-	astable_cdf_interp( xe + source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x, &px1 );
-	astable_cdf_interp( xe - source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x, &px2 );
+	symmetric_astable_cdf_interp( xe + source_sizex / 2. - vx * tau, alpha, 0., lambda_x, &px1 );
+	symmetric_astable_cdf_interp( xe - source_sizex / 2. - vx * tau, alpha, 0., lambda_x, &px2 );
 	px = px1 - px2;
-	astable_cdf_interp( ye + source_sizey / 2., alpha, beta, 0., lambda_y, &py1 );
-	astable_cdf_interp( ye - source_sizey / 2., alpha, beta, 0., lambda_y, &py2 );
+	symmetric_astable_cdf_interp( ye + source_sizey / 2., alpha, 0., lambda_y, &py1 );
+	symmetric_astable_cdf_interp( ye - source_sizey / 2., alpha, 0., lambda_y, &py2 );
 	py = py1 - py2;
-	astable_cdf_interp( ze + source_sizez, alpha, beta, 0., lambda_z, &pz1 );
-	astable_cdf_interp( ze, alpha, beta, 0., lambda_z, &pz2 );
+	symmetric_astable_cdf_interp( ze + source_sizez, alpha, 0., lambda_z, &pz1 );
+	symmetric_astable_cdf_interp( ze, alpha, 0., lambda_z, &pz2 );
 	pz = pz1 - pz2;
 	// ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz ) - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz );
 	// if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
