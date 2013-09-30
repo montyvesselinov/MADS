@@ -86,7 +86,7 @@ double point_source( double x, double y, double z, double t, void *params )
 //	printf ("estimated error = % .18f\n", error);
 //	printf ("intervals =  %d\n", (int) w->size);
 	gsl_integration_workspace_free( w );
-	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
 }
 
@@ -156,7 +156,7 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 //	printf ("estimated error = % .18f\n", error);
 //	printf ("intervals =  %d\n", (int) w->size);
 	gsl_integration_workspace_free( w );
-	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) * result );
 }
 
@@ -226,7 +226,7 @@ double box_source( double x, double y, double z, double t, void *params )
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
-	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return( p->var[FLUX] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
 	// return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
 }
@@ -297,7 +297,7 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	if( status != 0 ) result = 0;
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
-	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return( p->var[FLUX] * 1e6 / ( 8. * sqrt( M_PI * p->var[AZ] * p->var[VX] )  * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] ) * result );
 }
 
@@ -358,7 +358,7 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 ) result = 0;
 	gsl_integration_workspace_free( w );
-	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return( p->var[FLUX] * 1e6 * p->var[VZ] / ( 4. * p->var[POROSITY] ) * result );
 }
 
@@ -425,7 +425,7 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 	if( status != 0 ) result = 0;
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
-	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return p->var[FLUX] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2. * ( 2. * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2. * ( 2. * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 4. * p->var[AZ] * p->var[VX] ) );
 }
 
@@ -488,7 +488,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	if( status != 0 ) result = 0;
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
-	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return p->var[FLUX] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2 * ( 2 * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2 * ( 2 * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 2 * ( 2 * p->var[AZ] * p->var[VX] + p->var[SOURCE_DZ] * p->var[SOURCE_DZ] ) ) );
 }
 
@@ -554,7 +554,7 @@ double box_source_levy_dispersion( double x, double y, double z, double t, void 
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
-	// Concentrations are multiplied by 1e6 to convert in ppm!!!!!!!
+	/// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return( p->var[FLUX] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
 	// return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
 }
