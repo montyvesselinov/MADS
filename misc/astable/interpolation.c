@@ -26,6 +26,50 @@ struct interval
 
 struct interpolant_params global_ip[1024];//Global memory! Seriously?!?!?!? Yep!!!!!
 
+void symmetric_astable_cdf_interp( double x, double alpha, double gamma, double lambda, double *val )
+{
+	const int num_interps = 19;
+	static struct interpolant_params ips[18];
+	static int setup = 0;
+	struct interpolant_params *ip;
+	int i;
+	double alpha1, alpha2;
+	double interp1, interp2;
+	if( alpha < 0.1 )
+	{
+		fprintf( stderr, "value of alpha is too small for symmetric_astable_cdf_interp\n" );
+		exit( 1 );
+	}
+	else
+	{
+		if( !setup )
+		{
+			setup = 1;
+			for( i = 0; i < num_interps; i++ )
+			{
+				ip = automate_interpolant( 2. * ( i + 1. ) / ( num_interps + 1. ), 0., 0.0001, 1e-6, INTERP_CDF );
+				ips[i].alpha = alpha;
+				ips[i].beta = 0.;
+				ips[i].acc = ip->acc;
+				ips[i].spline = ip->spline;
+				ips[i].ymax = ip->ymax;
+				ips[i].ymin = ip->ymin;
+				ips[i].size = ip->size;
+				ips[i].limiting_coefficient = ip->limiting_coefficient;
+				ips[i].cdf_or_pdf = ip->cdf_or_pdf;
+			}
+		}
+		i = floor( alpha * ( num_interps + 1. ) / 2. ) - 1;
+		alpha1 = 2. * ( i + 1. ) / ( num_interps + 1. );
+		alpha2 = 2. * ( i + 2. ) / ( num_interps + 1. );
+		interp1 = interpolate( x, gamma, lambda, ips + i );
+		if( alpha2 < 2. - .5 / ( num_interps + 1. ) ) interp2 = interpolate( x, gamma, lambda, ips + i + 1 );
+		else interp2 = astable_cdf( x, 2., 0., gamma, lambda );
+		*val = ( interp1 - interp2 ) * alpha + interp2 * alpha1 - interp1 * alpha2;
+		*val /= ( alpha1 - alpha2 );
+	}
+}
+
 void astable_cdf_interp( double x, double alpha, double beta, double gamma, double lambda, double *val )
 {
 	static int num_in_use = 0;
@@ -53,7 +97,7 @@ void astable_cdf_interp( double x, double alpha, double beta, double gamma, doub
 		}
 		else
 		{
-			ip = automate_interpolant( alpha, beta, 0.00001, 1e-6, INTERP_CDF );
+			ip = automate_interpolant( alpha, beta, 0.0001, 1e-6, INTERP_CDF );
 			global_ip[num_in_use].alpha = alpha;
 			global_ip[num_in_use].beta = beta;
 			global_ip[num_in_use].acc = ip->acc;
