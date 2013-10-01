@@ -60,6 +60,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 double rectangle_source_vz( double x, double y, double z, double t, void *params );
 double box_source( double x, double y, double z, double t, void *params );
 double box_source_levy_dispersion( double x, double y, double z, double t, void *params );
+double box_source_sym_levy_dispersion( double x, double y, double z, double t, void *params );
 int create_mprun_dir( char *dir );
 int delete_mprun_dir( char *dir );
 int mprun( int nJob, void *data );
@@ -746,7 +747,8 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 								break;
 							default:
 							case BOX:
-								if( p->cd->levy ) c1 += box_source_levy_dispersion( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								if( p->cd->levy == FULL_LEVY ) c1 += box_source_levy_dispersion( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
+								else if( p->cd->levy == SYM_LEVY ) c1 += box_source_sym_levy_dispersion( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
 								else c1 += box_source( p->wd->x[i], p->wd->y[i], ( p->wd->z1[i] + p->wd->z2[i] ) / 2, p->wd->obs_time[i][j], ( void * ) p->ad );
 								break;
 						}
@@ -781,10 +783,15 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 								break;
 							default:
 							case BOX:
-								if( p->cd->levy )
+								if( p->cd->levy == FULL_LEVY )
 								{
 									c1 += box_source_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 									c2 += box_source_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+								}
+								else if( p->cd->levy == SYM_LEVY )
+								{
+									c1 += box_source_sym_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+									c2 += box_source_sym_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 								}
 								else
 								{
@@ -1053,7 +1060,8 @@ double func_solver1( double x, double y, double z, double t, void *data ) // Com
 				break;
 			default:
 			case BOX:
-				if( cd->levy ) c += box_source_levy_dispersion( x, y, z, t, ( void * ) &ad );
+				if( cd->levy == FULL_LEVY ) c += box_source_levy_dispersion( x, y, z, t, ( void * ) &ad );
+				else if( cd->levy == SYM_LEVY ) c += box_source_sym_levy_dispersion( x, y, z, t, ( void * ) &ad );
 				else c += box_source( x, y, z, t, ( void * ) &ad );
 				break;
 		}

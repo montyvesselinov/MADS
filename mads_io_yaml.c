@@ -212,7 +212,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 					default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 				}
 			}
-			if( cd->levy == 1 ) tprintf( " | Levy dispersion" );
+			if( cd->levy != NO_LEVY ) tprintf( " | Levy dispersion" );
 			else tprintf( " | Gaussian dispersion" );
 			if( cd->c_background ) tprintf( " | background concentration = %g", cd->c_background );
 			tprintf( "\n" );
@@ -406,7 +406,7 @@ void gnode_tree_parse_classes( GNode *node, gpointer data )
 				default: tprintf( "WARNING! UNDEFINED model type!" ); break;
 			}
 		}
-		if( cd->levy == 1 ) tprintf( " | Levy dispersion" );
+		if( cd->levy != NO_LEVY ) tprintf( " | Levy dispersion" );
 		else tprintf( " | Gaussian dispersion" );
 		if( cd->c_background ) tprintf( " | background concentration = %g", cd->c_background );
 		tprintf( "\n" );

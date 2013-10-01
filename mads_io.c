@@ -214,7 +214,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->problem_type = UNKNOWN;
 	cd->calib_type = SIMPLE;
 	cd->solution_type[0] = EXTERNAL;
-	cd->levy = 0;
+	cd->levy = NO_LEVY;
 	cd->objfunc_type = SSR;
 	cd->check_success = 0;
 	cd->c_background = 0;
@@ -375,7 +375,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "gau", 3 ) ) { w = 1; if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
 		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) ) cd->solution_type[0] = PLANE3D; else cd->solution_type[0] = PLANE; }
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; cd->solution_type[0] = BOX; }
-		if( !strncasecmp( word, "levy", 4 ) ) { w = 1; cd->levy = 1; }
+		if( !strncasecmp( word, "levy", 4 ) ) { w = 1; if( strcasestr( word, "sym" ) ) cd->levy = SYM_LEVY; else cd->levy = FULL_LEVY; }
 		if( !strncasecmp( word, "point_tri", 9 ) ) { w = 1; cd->solution_type[0] = POINT_TRIANGLE_TIME; }
 		if( !strncasecmp( word, "time_step", 9 ) ) { w = 1; cd->time_step = 1; }
 		if( !strncasecmp( word, "obs_int=", 8 ) ) { w = 1; sscanf( word, "obs_int=%d", &cd->obs_int ); if( cd->obs_int > 2 || cd->obs_int < 1 ) cd->obs_int = 2; }

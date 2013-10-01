@@ -46,6 +46,7 @@ double box_source( double x, double y, double z, double t, void *params );
 double gaussian_source_2d( double x, double y, double z, double t, void *params );
 double gaussian_source_3d( double x, double y, double z, double t, void *params );
 double box_source_levy_dispersion( double x, double y, double z, double t, void *params );
+double box_source_sym_levy_dispersion( double x, double y, double z, double t, void *params );
 double int_point_source( double tau, void *params );
 double int_rectangle_source( double tau, void *params );
 double int_rectangle_source_vz( double tau, void *params );
@@ -53,6 +54,7 @@ double int_box_source( double tau, void *params );
 double int_gaussian_source_2d( double tau, void *params );
 double int_gaussian_source_3d( double tau, void *params );
 double int_box_source_levy_dispersion( double tau, void *params );
+double int_box_source_sym_levy_dispersion( double tau, void *params );
 // void handler(const char * reason, const char * file, int line, int gsl_errno);
 // void handler(const char * reason, const char * file, int line, int gsl_errno) { }
 
@@ -578,6 +580,86 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2;
 	alpha = p->var[ALPHA];
 	beta = p->var[BETA];
+	x0 = ( p->xe - p->var[SOURCE_X] );
+	y0 = ( p->ye - p->var[SOURCE_Y] );
+	angle = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
+	rot1 = cos( angle );
+	rot2 = sin( angle );
+	xe = x0 * rot1 - y0 * rot2;
+	ye = x0 * rot2  + y0 * rot1;
+	ze = ( p->ze - source_z );
+	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
+	else tau_d = tau;
+	tv = ( double ) 2 * tau_d * vx;
+	lambda_x = pow( tv * ax, 1 / alpha );
+	lambda_y = pow( tv * ay, 1 / alpha );
+	lambda_z = pow( tv * az, 1 / alpha );
+	decay_factor = exp( -tau * lambda );
+	px1 = astable_cdf( xe + source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x );
+	px2 = astable_cdf( xe - source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x );
+	px = px1 - px2;
+	py1 = astable_cdf( ye + source_sizey / 2., alpha, beta, 0., lambda_y );
+	py2 = astable_cdf( ye - source_sizey / 2., alpha, beta, 0., lambda_y );
+	py = py1 - py2;
+	pz1 = astable_cdf( ze + source_sizez, alpha, beta, 0., lambda_z );
+	pz2 = astable_cdf( ze, alpha, beta, 0., lambda_z );
+	pz = pz1 - pz2;
+	// ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz ) - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz );
+	// if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
+	return( decay_factor * px * py * pz );
+}
+
+double box_source_sym_levy_dispersion( double x, double y, double z, double t, void *params )
+{
+	gsl_integration_workspace *w;
+	gsl_function F;
+	int status;
+	struct anal_data *p = ( struct anal_data * )params;
+	double result, error, time, dt, time_end;
+	if( t <= p->var[TIME_INIT] ) return( 0 );
+	p->xe = x;
+	p->ye = y;
+	p->ze = z;
+	time = t - p->var[TIME_INIT];
+	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	w = gsl_integration_workspace_alloc( NUMITER );
+	F.function = &int_box_source_sym_levy_dispersion;
+	F.params = p;
+	gsl_set_error_handler_off();
+	if( t < time_end )
+		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+	else
+		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
+	if( status != 0 )
+	{
+		printf( "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
+		//result = 0;
+	}
+	gsl_integration_workspace_free( w );
+	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
+	return( p->var[FLUX] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
+	// return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
+}
+
+double int_box_source_sym_levy_dispersion( double tau, void *params )
+{
+	struct anal_data *p = ( struct anal_data * )params;
+	double lambda = ( p->var[LAMBDA] );
+	double vx = ( p->var[VX] );
+	double ax = ( p->var[AX] );
+	double ay = ( p->var[AY] );
+	double az = ( p->var[AZ] );
+	double source_sizex = ( p->var[SOURCE_DX] );
+	double source_sizey = ( p->var[SOURCE_DY] );
+	double source_sizez = ( p->var[SOURCE_DZ] );
+	double source_z = ( p->var[SOURCE_Z] );
+	double alpha;
+	double lambda_x, lambda_y, lambda_z;
+	double tau_d, tv;
+	double angle, rot1, rot2, xe, ye, ze, x0, y0;
+	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2;
+	alpha = p->var[ALPHA];
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
 	angle = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
