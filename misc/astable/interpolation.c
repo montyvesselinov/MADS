@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <pthread.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 
@@ -32,6 +33,7 @@ void symmetric_astable_cdf_interp( double x, double alpha, double gamma, double 
 	static struct interpolant_params ips[18];
 	static int setup = 0;
 	struct interpolant_params *ip;
+	pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 	int i;
 	double alpha1, alpha2;
 	double interp1, interp2;
@@ -44,20 +46,25 @@ void symmetric_astable_cdf_interp( double x, double alpha, double gamma, double 
 	{
 		if( !setup )
 		{
-			setup = 1;
-			for( i = 0; i < num_interps; i++ )
+			pthread_mutex_lock( &mutex );
+			if( !setup )
 			{
-				ip = automate_interpolant( 2. * ( i + 1. ) / ( num_interps + 1. ), 0., 0.0001, 1e-6, INTERP_CDF );
-				ips[i].alpha = alpha;
-				ips[i].beta = 0.;
-				ips[i].acc = ip->acc;
-				ips[i].spline = ip->spline;
-				ips[i].ymax = ip->ymax;
-				ips[i].ymin = ip->ymin;
-				ips[i].size = ip->size;
-				ips[i].limiting_coefficient = ip->limiting_coefficient;
-				ips[i].cdf_or_pdf = ip->cdf_or_pdf;
+				setup = 1;
+				for( i = 0; i < num_interps; i++ )
+				{
+					ip = automate_interpolant( 2. * ( i + 1. ) / ( num_interps + 1. ), 0., 0.0001, 1e-6, INTERP_CDF );
+					ips[i].alpha = alpha;
+					ips[i].beta = 0.;
+					ips[i].acc = ip->acc;
+					ips[i].spline = ip->spline;
+					ips[i].ymax = ip->ymax;
+					ips[i].ymin = ip->ymin;
+					ips[i].size = ip->size;
+					ips[i].limiting_coefficient = ip->limiting_coefficient;
+					ips[i].cdf_or_pdf = ip->cdf_or_pdf;
+				}
 			}
+			pthread_mutex_unlock( &mutex );
 		}
 		i = floor( alpha * ( num_interps + 1. ) / 2. ) - 1;
 		alpha1 = 2. * ( i + 1. ) / ( num_interps + 1. );
