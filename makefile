@@ -67,7 +67,7 @@ endif
 # MADS files
 OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o
-OBJSA = sa/abagus.o sa/postpua.o sa/global.o
+OBJSA = sa/abagus.o sa/postpua.o sa/global.o sa/do_miser.o
 OBJDS = ds/infogap.o ds/glue.o
 OBJSMPUN = mprun/mprun.o mprun/mprun_io.o
 OBJSKDTREE = misc/kdtree-0.5.5/kdtree.o
@@ -122,7 +122,8 @@ pso/Standard_PSO_2006.o: pso/Standard_PSO_2006.c mads.h
 pso/mopso.o: pso/mopso.c pso/mopso.h
 sa/abagus.o: sa/abagus.c mads.h misc/kdtree-0.5.5/kdtree.o
 sa/postpua.o: sa/postpua.c mads.h
-sa/global.o: sa/global.c mads.h
+sa/global.o: sa/global.c mads.h sa/do_miser.o
+sa/do_miser.o: sa/do_miser.c sa/do_miser.h
 ds/infogap.o: ds/infogap.c mads.h
 ds/glue.o: ds/glue.c mads.h
 misc/anasol_contamination.o: misc/anasol_contamination.c mads.h
