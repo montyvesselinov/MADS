@@ -165,8 +165,8 @@ int sa_sobol( struct opt_data *op )
 		f_a[count][0] = phis_full[count] = op->phi;
 		for( j = 1; j < n_obs; j++ )
 		{
-			f_a[count][j] = fhat[j] = op->od->res[j - 1];
-			fhat2[j] = op->od->res[j - 1] * op->od->res[j - 1];
+			fhat[j] += f_a[count][j] = op->od->res[j - 1];
+			fhat2[j] += op->od->res[j - 1] * op->od->res[j - 1];
 		}
 		if( op->cd->mdebug > 1 )
 		{
@@ -199,13 +199,15 @@ int sa_sobol( struct opt_data *op )
 		}
 		Transform( opt_params, op, opt_params );
 		func_global( opt_params, op, op->od->res );
-		gfhat = fhat[0] += op->phi;
-		gfhat2 = fhat2[0] += op->phi * op->phi;
+		fhat[0] += op->phi;
+		gfhat += op->phi;
+		fhat2[0] += op->phi * op->phi;
+		gfhat2 += op->phi * op->phi;
 		f_b[count][0] = phis_full[n_sub + count] = op->phi;
 		for( j = 1; j < n_obs; j++ )
 		{
-			f_b[count][j] = fhat[j] = op->od->res[j - 1];
-			fhat2[j] = op->od->res[j - 1] * op->od->res[j - 1];
+			fhat[j] += f_b[count][j] = op->od->res[j - 1];
+			fhat2[j] += op->od->res[j - 1] * op->od->res[j - 1];
 		}
 		if( op->cd->mdebug > 1 )
 		{
