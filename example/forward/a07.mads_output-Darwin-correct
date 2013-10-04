@@ -3,8 +3,8 @@ MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
-Input file name: a06_yaml.mads
-Problem root name: a06_yaml
+Input file name: a07.mads
+Problem root name: a07
 Number of YAML classes 7
 YAML Classes:
  Problem -> 3 components
@@ -53,7 +53,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130927-115304
+Execution date & time stamp: 20131001-105754
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -87,29 +87,29 @@ Model predictions (forward run; no calibration):
 W-1       (   49):           0 -      1.24133 =     -1.24133 (    -1.24133) success 1 range            0 -           25
 W-2       (   49):           0 -     0.587312 =    -0.587312 (   -0.587312) success 1 range            0 -           10
 W-3       (   49):           0 -      1.23774 =     -1.23774 (    -1.23774) success 1 range            0 -           25
-W-4       (   44):         350 -       5.4075 =      344.593 (     344.593) success 0 range          300 -          700
+W-4       (   44):         350 -      5.40749 =      344.593 (     344.593) success 0 range          300 -          700
 W-4       (   49):         432 -      5.59895 =      426.401 (     426.401) success 0 range          300 -          700
 W-5       (   49):           0 -     0.139327 =    -0.139327 (   -0.139327) success 1 range            0 -           10
-W-6       (   49):           0 -    0.0183357 =   -0.0183357 (  -0.0183357) success 1 range            0 -           10
+W-6       (   49):           0 -    0.0183358 =   -0.0183358 (  -0.0183358) success 1 range            0 -           10
 W-7       (   49):           0 -     0.217068 =    -0.217068 (   -0.217068) success 1 range            0 -           10
 W-8       (   49):           0 -       0.2291 =      -0.2291 (     -0.2291) success 1 range            0 -           10
 W-9       (   49):         981 -      19.8719 =      961.128 (     961.128) success 0 range          600 -         1200
 W-10#1    (   49):         1.1 -      5.01947 =     -3.91947 (    -3.91947) success 0 range            0 -            5
 W-10#2    (   49):         0.1 -      1.80099 =     -1.70099 (    -1.70099) success 1 range            0 -            5
-W-11#1    (   49):          22 -      5.81825 =      16.1817 (     16.1817) success 1 range            3 -           25
-W-11#2    (   49):         0.3 -      1.27789 =    -0.977888 (   -0.977888) success 1 range            0 -            5
-W-12#1    (   49):          15 -      4.51635 =      10.4837 (     10.4837) success 1 range            3 -           25
-W-12#2    (   49):        0.17 -     0.998405 =    -0.828405 (   -0.828405) success 1 range            0 -            5
+W-11#1    (   49):          22 -      5.81825 =      16.1818 (     16.1818) success 1 range            3 -           25
+W-11#2    (   49):         0.3 -      1.27789 =    -0.977889 (   -0.977889) success 1 range            0 -            5
+W-12#1    (   49):          15 -      4.51636 =      10.4836 (     10.4836) success 1 range            3 -           25
+W-12#2    (   49):        0.17 -     0.998406 =    -0.828406 (   -0.828406) success 1 range            0 -            5
 W-13#1    (   50):          72 -      5.69556 =      66.3044 (     66.3044) success 0 range           40 -          100
-W-13#2    (   50):        0.26 -     0.905133 =    -0.645133 (   -0.645133) success 1 range            0 -           20
+W-13#2    (   50):        0.26 -     0.905134 =    -0.645134 (   -0.645134) success 1 range            0 -           20
 W-14a     (   50):           0 -      1.71106 =     -1.71106 (    -1.71106) success 1 range            0 -            5
 W-14b     (   50):          30 -      8.13264 =      21.8674 (     21.8674) success 1 range            0 -           50
 W-14c     (   50):          10 -      15.2609 =     -5.26088 (          -0) success 1 range            0 -           20
 Objective function: 1.2296e+06 Success: 0
 At least one of the predictions is outside acceptable ranges!
-Simulation time = 1 seconds
+Simulation time = 23 seconds
 Functional evaluations = 1
-Functional evaluations per second = 1
-Execution  started  on Fri Sep 27 11:53:04 2013
-Execution completed on Fri Sep 27 11:53:05 2013
-Execution date & time stamp: 20130927-115304
+Functional evaluations per day = 0
+Execution  started  on Tue Oct  1 10:57:54 2013
+Execution completed on Tue Oct  1 10:58:17 2013
+Execution date & time stamp: 20131001-105754

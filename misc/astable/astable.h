@@ -57,6 +57,7 @@ inline double nolan_V( double theta, void *params );
 double bisection_solver( double( *f )( double, void * ), double value, double a, double b, void *params, double tol );
 
 //Defined in interpolation.c
+void symmetric_astable_cdf_interp( double x, double alpha, double gamma, double lambda, double *val );
 void astable_cdf_interp( double x, double alpha, double beta, double gamma, double lambda, double *val );
 struct interpolant_params *automate_interpolant( double alpha, double beta, double percentile, double abserr, int CDF_OR_PDF );
 double interpolate( double x, double gamma, double lambda, struct interpolant_params *ip );
