@@ -160,7 +160,7 @@ examples:
 	@echo "Example 2: DONE"
 	@echo "**************************************************************************************"
 
-verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-parallel verify-forward
+verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-parallel verify-forward verify-sa
 	@echo VERIFICATION DONE
 
 
@@ -448,6 +448,21 @@ verify-forward:
 	@echo "**************************************************************************************"
 	@echo "TEST 9: DONE"
 	@echo ""
+	@echo ""
+
+verify-sa:
+	@echo "**************************************************************************************"
+	@echo " Sensitivity analyses "
+	@echo "**************************************************************************************"
+	@echo "TEST 10: Global and local sensitivity analyses ..."
+	@echo "TEST 10.1: Sobol analysis ... "
+	rm -f example/sa/a01.mads_output example/sa/a01.sobol_sens_index example/sa/a01.sobol_sens_total
+	cd example/sa; ../../mads a01 test=111 gsens dim=8 real=10000 smp=lhs pardomain=0.5 seed=1517604820 > /dev/null
+	@$(CMP) example/sa/a01.sobol_sens_index example/sa/a01.sobol_sens_index-$(OS)-correct
+	@$(CMP) example/sa/a01.sobol_sens_total example/sa/a01.sobol_sens_total-$(OS)-correct
+	@echo ""
+	@echo "TEST 10: DONE"
+	@echo ""
 
 compare-os:
 	./compare-results-os Linux Darwin
@@ -455,6 +470,7 @@ compare-os:
 clean-example:
 	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running example/*/*-rerun.mads example/*/*-error.mads
 	rm -fR example/wells-short_w01parallel*
+	rm -f *.mads_output* *.running *.cmdline *.cmdline_hist
 
 astyle:
 	astyle $(SOURCESTYLE)

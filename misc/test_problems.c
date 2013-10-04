@@ -99,7 +99,7 @@ int set_test_problems( struct opt_data *op )
 	{
 		case 111: // Test
 			printf( "Test" );
-			od->nTObs = 0;
+			od->nTObs = 1;
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
 			break;
@@ -461,6 +461,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 				b = ( fabs( 4 * ( x[d] + .5 ) - 2 ) + a ) / ( 1 + a );
 				f *= b;
 			}
+			o[0] = f;
 		}
 		break;
 		case 1: // Parabola (Sphere)

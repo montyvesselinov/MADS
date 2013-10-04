@@ -1392,7 +1392,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam );
 		if( ( jacobian = ( double * ) malloc( sizeof( double ) * op->pd->nOptParam * op->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	}
-	if( gsl_covar == NULL ) { gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam ); compute_covar = 1; }
+	if( gsl_covar == NULL && op->od->nTObs >= op->pd->nOptParam ) { gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam ); compute_covar = 1; }
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( x_u = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( x_d = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -1498,42 +1498,46 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		if( error_stddev != GSL_SUCCESS ) { tprintf( "Problem computing covariance matrix!\n" ); error_stddev = 1; }
 		else error_stddev = 0;
 	}
-	if( debug )
+	if( gsl_covar != NULL )
 	{
-		if( compute_covar ) tprintf( "\nCovariance matrix\n" ); // Print Jacobian
-		else tprintf( "\nCovariance matrix (provided externally)\n" );
+		if( debug )
+		{
+			if( compute_covar ) tprintf( "\nCovariance matrix\n" ); // Print Jacobian
+			else tprintf( "\nCovariance matrix (provided externally)\n" );
+			for( i = 0; i < op->pd->nOptParam; i++ )
+			{
+				tprintf( "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
+				for( j = 0; j < op->pd->nOptParam; j++ )
+					tprintf( " %7.0e", gsl_matrix_get( gsl_covar, i, j ) );
+				tprintf( "\n" );
+			}
+		}
+		sprintf( filename, "%s", op->root );
+		if( op->label[0] != 0 ) sprintf( filename, "%s.%s", filename, op->label );
+		if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
+		strcat( filename, ".covariance" );
+		out = Fwrite( filename );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			tprintf( "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
+			fprintf( out, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = 0; j < op->pd->nOptParam; j++ )
-				tprintf( " %7.0e", gsl_matrix_get( gsl_covar, i, j ) );
-			tprintf( "\n" );
+				fprintf( out, " %g", gsl_matrix_get( gsl_covar, i, j ) );
+			fprintf( out, "\n" );
+		}
+		fclose( out );
+		tprintf( "Covariance matrix stored (%s)\n", filename );
+		// Compute A optimality
+		aopt = 0;
+		for( i = 0; i < op->pd->nOptParam; i++ )
+			aopt += gsl_matrix_get( gsl_covar, i, i );
+		error_stddev = 0;
+		for( i = 0; i < op->pd->nOptParam; i++ )
+		{
+			stddev[i] = sqrt( gsl_matrix_get( gsl_covar, i, i ) ); // compute standard deviations before the covariance matrix is destroyed by eigen functions
+			if( stddev[i] < DBL_EPSILON ) error_stddev = 1;
 		}
 	}
-	sprintf( filename, "%s", op->root );
-	if( op->label[0] != 0 ) sprintf( filename, "%s.%s", filename, op->label );
-	if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
-	strcat( filename, ".covariance" );
-	out = Fwrite( filename );
-	for( i = 0; i < op->pd->nOptParam; i++ )
-	{
-		fprintf( out, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
-		for( j = 0; j < op->pd->nOptParam; j++ )
-			fprintf( out, " %g", gsl_matrix_get( gsl_covar, i, j ) );
-		fprintf( out, "\n" );
-	}
-	fclose( out );
-	tprintf( "Covariance matrix stored (%s)\n", filename );
-	// Compute A optimality
-	aopt = 0;
-	for( i = 0; i < op->pd->nOptParam; i++ )
-		aopt += gsl_matrix_get( gsl_covar, i, i );
-	error_stddev = 0;
-	for( i = 0; i < op->pd->nOptParam; i++ )
-	{
-		stddev[i] = sqrt( gsl_matrix_get( gsl_covar, i, i ) ); // compute standard deviations before the covariance matrix is destroyed by eigen functions
-		if( stddev[i] < DBL_EPSILON ) error_stddev = 1;
-	}
+	else error_stddev = 1;
 	if( error_stddev == 0 )
 	{
 		if( debug )
