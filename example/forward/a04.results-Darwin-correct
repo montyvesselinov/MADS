@@ -12,9 +12,9 @@ Dispersivity y [L] 1.5
 Dispersivity z [L] 0.1
 
 Model predictions:
-W-1       (   49):           0 -   0.00295056 =  -0.00295056 ( -0.00295056) success 1 range            0 -           25
-W-2       (   49):           0 -  0.000493281 = -0.000493281 (-0.000493281) success 1 range            0 -           25
-W-3       (   49):           0 -      59.2755 =     -59.2755 (    -59.2755) success 0 range            0 -           25
-W-4       (   49):           0 -      89.2004 =     -89.2004 (    -89.2004) success 0 range            0 -           25
+W-1       (  49):           0 -   0.00295056 =  -0.00295056 ( -0.00295056) success 1 range            0 -           25
+W-2       (  49):           0 -  0.000493281 = -0.000493281 (-0.000493281) success 1 range            0 -           25
+W-3       (  49):           0 -      59.2755 =     -59.2755 (    -59.2755) success 0 range            0 -           25
+W-4       (  49):           0 -      89.2004 =     -89.2004 (    -89.2004) success 0 range            0 -           25
 Objective function: 11470.3 Success: 0 (0)
 Number of function evaluations = 1

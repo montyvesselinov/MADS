@@ -949,10 +949,10 @@ int main( int argn, char *argv[] )
 					if( ( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) && ( wd.obs_weight[i][j] > 0.0 ) ) { success_all = 0; success = 0; }
 					else success = 1;
 					if( cd.problem_type != CALIBRATE )
-						tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success, min, max );
+						tprintf( "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success, min, max );
 					else
-						tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err, success, min, max );
-					if( cd.problem_type != CREATE ) fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success );
+						tprintf( "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err, success, min, max );
+					if( cd.problem_type != CREATE ) fprintf( out, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success );
 					else wd.obs_target[i][j] = c; // Save computed values as calibration targets
 					if( cd.problem_type == FORWARD ) fprintf( out2, "%s(%g) %g\n", wd.id[i], wd.obs_time[i][j], c ); // Forward run
 				}
@@ -1775,8 +1775,7 @@ int check( struct opt_data *op )
 	return( 1 );
 }
 
-// Initial guesses -- random
-int igrnd( struct opt_data *op )
+int igrnd( struct opt_data *op ) // Initial guesses -- random
 {
 	int i, k, m, q1, q2, npar, status, phi_global, success_global, count, debug_level = 0, solution_found, no_memory = 0, neval_total, njac_total;
 	int *eval_success, *eval_total;
@@ -2000,30 +1999,31 @@ int igrnd( struct opt_data *op )
 		}
 		fprintf( out, "\n" );
 		fflush( out );
-		if( op->success && op->cd->nreal > 1 && op->cd->save )
-			save_final_results( "igrnd", op, op->gd );
+		if( op->success && op->cd->nreal > 1 && op->cd->save ) save_final_results( "igrnd", op, op->gd );
 		if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 		if( op->cd->ireal != 0 ) break;
+		if( op->success && op->cd->problem_type == INFOGAP ) break;
 	}
 	op->counter = 0;
 	free( var_lhs );
 	op->cd->neval = neval_total; // provide the correct number of total evaluations
 	op->cd->njac = njac_total; // provide the correct number of total evaluations
-	tprintf( "\nTotal number of evaluations = %d\n", neval_total );
-	tprintf( "Total number of jacobians = %d\n", njac_total );
-	if( !solution_found )
-		tprintf( "WARNING: No IGRND solution has been identified matching required criteria!\n" );
 	op->phi = phi_min; // get the best phi
+	fprintf( out, "\nMinimum objective function: %g\n", phi_min );
+	tprintf( "\nMinimum objective function: %g\n", phi_min );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
 	for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
-	fprintf( out, "Minimum objective function: %g\n", phi_min );
-	tprintf( "Minimum objective function: %g\n", phi_min );
-	tprintf( "Repeat the run producing the best results ...\n" );
-	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 1; }
-	Transform( opt_params, op, opt_params );
-	func_global( opt_params, op, op->od->res );
-	if( op->cd->debug ) op->cd->fdebug = debug_level;
+	if( solution_found )
+	{
+		tprintf( "Repeat the run producing the best results ...\n" );
+		if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 1; }
+		Transform( opt_params, op, opt_params );
+		func_global( opt_params, op, op->od->res );
+		if( op->cd->debug ) op->cd->fdebug = debug_level;
+	}
+	else
+		tprintf( "WARNING: No IGRND solution has been identified matching required criteria!\n" );
 	if( op->cd->nreal > 1 )
 	{
 		if( op->cd->phi_cutoff > DBL_EPSILON )
@@ -2808,7 +2808,7 @@ void print_results( struct opt_data *op, int verbosity )
 					max = op->wd->obs_max[i][j];
 					if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
 					else success = 1;
-					tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+					tprintf( "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
 				}
 			if( op->rd->nRegul > 0 )  tprintf( "Model regularization terms:\n" );
 			for( i = op->od->nObs; i < op->od->nTObs; i++ )
@@ -2895,7 +2895,7 @@ void print_results( struct opt_data *op, int verbosity )
 					}
 					if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) success = 0;
 					else success = 1;
-					tprintf( "%-10s(%5g):%12g - %12g = %12g success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, success, min, max );
+					tprintf( "%-10s(%4g):%12g - %12g = %12g success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, success, min, max );
 				}
 		}
 	}
@@ -2914,7 +2914,8 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	if( label[0] == 0 && op->root[i - 4] == '-' && op->root[i - 3] == 'v' )
 	{
 		sscanf( &op->root[i - 2], "%d", &k );
-		tprintf( "Current MADS analysis version: %d\n", k );
+		tprintf( "Current   MADS analysis version: %02d\n", k );
+		tprintf( "Following MADS analysis version: %02d\n", k + 1 );
 		strncpy( filename2, op->root, i - 4 );
 		filename2[i - 4] = 0;
 	}
@@ -3014,8 +3015,8 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 						else if( c > max ) err += c - max;
 						if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
 					}
-					fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
-					fprintf( out2, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+					fprintf( out, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+					fprintf( out2, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
 				}
 		}
 		fclose( out2 );

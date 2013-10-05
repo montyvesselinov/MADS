@@ -88,6 +88,7 @@ int parse_cmd( char *buf, struct calc_data *cd );
 int set_optimized_params( struct opt_data *op );
 int map_obs( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
+int set_predictions( struct opt_data *op );
 char **shellpath( void );
 
 /* Functions elsewhere */
@@ -313,9 +314,9 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	// g_node_children_foreach( gnode_data, G_TRAVERSE_ALL, ( GNodeForeachFunc )gnode_tree_parse_classes, (void *) op );
 	g_node_destroy( gnode_data ); // Destroy GNODE data
 	if( !set_optimized_params( op ) ) return( -1 );
-	if( op->rd->nRegul > 0 ) map_obs( op ); // add regularizations to the observations
 	tprintf( "Number of regularization terms = %d\n", op->rd->nRegul );
-	tprintf( "Number of predictions = %d\n", op->preds->nTObs );
+	if( op->rd->nRegul > 0 ) map_obs( op ); // add regularizations to the observations
+	if( !set_predictions( op ) ) return( -1 );
 	return( ier );
 }
 
@@ -1363,8 +1364,10 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
 		case EIGEN: fprintf( outfile, "eigen" ); break;
 		case MONTECARLO: fprintf( outfile, "montecarlo, real: %d", cd->nreal ); break;
-		case ABAGUS: fprintf( outfile, " abagus, energy: %d", cd->energy ); break;
-		case POSTPUA: fprintf( outfile, " postpua" ); break;
+		case ABAGUS: fprintf( outfile, "abagus, energy: %d", cd->energy ); break;
+		case POSTPUA: fprintf( outfile, "postpua" ); break;
+		case INFOGAP: fprintf( outfile, "infogap" ); break;
+		case GLUE: fprintf( outfile, "glue" ); break;
 	}
 	if( cd->debug > 0 ) fprintf( outfile, ", debug: %d", cd->debug );
 	if( cd->fdebug > 0 ) fprintf( outfile, ", fdebug: %d", cd->fdebug );
@@ -1380,8 +1383,8 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, ", cutoff: %g", cd->phi_cutoff );
 	if( cd->sintrans ) { if( cd->sindx > DBL_EPSILON ) fprintf( outfile, ", sindx: %g", cd->sindx ); }
 	else { if( cd->lindx > DBL_EPSILON ) fprintf( outfile, ", lindx: %g", cd->lindx ); }
-	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, ", pardx: %g", cd->pardx ); TODO when to print pardx?
-	if( cd->check_success ) fprintf( outfile, ", success" );
+	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, ", pardx: %g", cd->pardx ); // TODO when to print this?
+	if( cd->check_success ) fprintf( outfile, ", obsrange" );
 	switch( cd->calib_type )
 	{
 		case SIMPLE: fprintf( outfile, ", single" ); break;
@@ -1403,6 +1406,12 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	if( cd->niter > 0 ) fprintf( outfile, ", iter: %d", cd->niter );
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, ", rnd: %s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fprintf( outfile, ", paran: %s", cd->paran_method );
+	if( cd->pardomain > DBL_EPSILON ) fprintf( outfile, ", pardomain: %g", cd->pardomain );
+	if( cd->problem_type == INFOGAP )
+	{
+		if( cd->obsdomain > DBL_EPSILON ) fprintf( outfile, ", obsdomain: %g", cd->obsdomain );
+		if( fabs( cd->obsstep ) > DBL_EPSILON ) fprintf( outfile, ", obsstep: %g", cd->obsstep );
+	}
 	switch( cd->objfunc_type )
 	{
 		case SSR: fprintf( outfile, ", ssr" ); break;

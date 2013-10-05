@@ -69,6 +69,7 @@ char *str_replace( char *orig, char *rep, char *with ); // replace all string oc
 int set_optimized_params( struct opt_data *op );
 int map_obs( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
+int set_predictions( struct opt_data *op );
 
 /* Functions elsewhere */
 char **char_matrix( int maxCols, int maxRows );
@@ -296,11 +297,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "abagus", 6 ) ) { w = 1; cd->problem_type = ABAGUS; }
 		if( !strncasecmp( word, "infogap", 7 ) ) { w = 1; cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "postpua", 7 ) ) { w = 1; cd->problem_type = POSTPUA; }
-		if( !strncasecmp( word, "single", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-		if( !strncasecmp( word, "simple", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGPD; }
-		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = PPSD; }
-		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGRND; }
+		if( !strncasecmp( word, "single", 6 ) ) { w = 1; cd->calib_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "simple", 6 ) ) { w = 1; cd->calib_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->calib_type = IGPD; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->calib_type = PPSD; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->calib_type = IGRND; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
 		if( !strncasecmp( word, "energy=", 7 ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( !strncasecmp( word, "background=", 11 ) ) { w = 1; sscanf( word, "background=%lf", &cd->c_background ); }
 		if( !strncasecmp( word, "lmfactor=", 9 ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
@@ -1317,77 +1318,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
 	}
 	// ------------------------------------------------------------ Set predictions ----------------------------------------------------------------
-	if( preds->nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
-	{
-		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", preds->nTObs );
-		else tprintf( "Number of predictions = %d\n", preds->nTObs );
-		preds->obs_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_target = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_current = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_best = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_well_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_time_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_id = char_matrix( preds->nTObs, 50 );
-		preds->obs_weight = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_min = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_max = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_log = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->res = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		/*
-				for( c = k = i = 0; i < wd->nW; i++ )
-					for( j = 0; j < wd->nWellObs[i]; j++ )
-					{
-						if( fabs( wd->obs_weight[i][j] ) > DBL_EPSILON ) c++;
-						if( wd->obs_weight[i][j] < -DBL_EPSILON )
-						{
-							preds->obs_index[k] = c - 1;
-							preds->obs_target[k] = wd->obs_target[i][j];
-							preds->obs_weight[k] = 1.0;
-							preds->obs_min[k] = wd->obs_target[i][j];
-							preds->obs_max[k] = wd->obs_target[i][j];
-							preds->obs_log[k] = wd->obs_log[i][j];
-							preds->obs_well_index[k] = i;
-							preds->obs_time_index[k] = j;
-							sprintf( preds->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
-							if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
-							k++;
-						}
-					}
-		*/
-		for( c = k = i = 0; i < od->nTObs; i++ )
-		{
-			if( fabs( od->obs_weight[i] ) > DBL_EPSILON ) c++;
-			if( od->obs_weight[i] < -DBL_EPSILON )
-			{
-				preds->obs_index[k] = c - 1;
-				preds->obs_target[k] = od->obs_target[i];
-				preds->obs_weight[k] = fabs( od->obs_weight[i] );
-				preds->obs_min[k] = od->obs_target[i];
-				preds->obs_max[k] = od->obs_target[i];
-				preds->obs_log[k] = od->obs_log[i];
-				preds->obs_well_index[k] = od->obs_well_index[i];
-				preds->obs_time_index[k] = od->obs_time_index[i];
-				sprintf( preds->obs_id[k], "%s", od->obs_id[i] );
-				if( cd->debug ) tprintf( "%s: %g weight %g\n", preds->obs_id[k], preds->obs_target[k], preds->obs_weight[k] );
-				k++;
-			}
-		}
-	}
-	else
-	{
-		tprintf( "Number of predictions = %d\n", preds->nTObs );
-		if( cd->problem_type == INFOGAP ) // INFOGAP problem
-		{
-			tprintf( "\nERROR: Weight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for Info-gap analysis\n\n" );
-			bad_data = 1;
-		}
-		if( cd->problem_type == GLUE ) // GLUE problem
-		{
-			tprintf( "\nERROR: Weight of at least one observation must be set as a prediction\nby setting weight to -1 for GLUE analysis\n\n" );
-			bad_data = 1;
-		}
-	}
-	if( bad_data ) return( 0 );
+	if( !set_predictions( op ) ) return ( 0 );
 	// ------------------------------------------------------------ Reading external problem ----------------------------------------------------------------
 	if( cd->solution_type[0] == EXTERNAL )
 	{
@@ -1543,8 +1474,10 @@ int save_problem( char *filename, struct opt_data *op )
 		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
 		case EIGEN: fprintf( outfile, "eigen" ); break;
 		case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
-		case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
-		case POSTPUA: fprintf( outfile, " postpua" ); break;
+		case ABAGUS: fprintf( outfile, "abagus energy=%d", cd->energy ); break;
+		case POSTPUA: fprintf( outfile, "postpua" ); break;
+		case INFOGAP: fprintf( outfile, "infogap" ); break;
+		case GLUE: fprintf( outfile, "glue" ); break;
 	}
 	if( cd->debug > 0 ) fprintf( outfile, " debug=%d", cd->debug );
 	if( cd->fdebug > 0 ) fprintf( outfile, " fdebug=%d", cd->fdebug );
@@ -1560,8 +1493,8 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
 	if( cd->sintrans ) { if( cd->sindx > DBL_EPSILON ) fprintf( outfile, " sindx=%g", cd->sindx ); }
 	else { if( cd->lindx > DBL_EPSILON ) fprintf( outfile, " lindx=%g", cd->lindx ); }
-	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, " pardx=%g", cd->pardx ); TODO when to print pardx?
-	if( cd->check_success ) fprintf( outfile, " success" );
+	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, ", pardx: %g", cd->pardx ); // TODO when to print this?
+	if( cd->check_success ) fprintf( outfile, " obsrange" );
 	fprintf( outfile, " " );
 	switch( cd->calib_type )
 	{
@@ -1584,6 +1517,12 @@ int save_problem( char *filename, struct opt_data *op )
 	if( cd->niter > 0 ) fprintf( outfile, " iter=%d", cd->niter );
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, " rnd=%s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fprintf( outfile, " paran=%s", cd->paran_method );
+	if( cd->pardomain > DBL_EPSILON ) fprintf( outfile, " pardomain: %g", cd->pardomain );
+	if( cd->problem_type == INFOGAP )
+	{
+		if( cd->obsdomain > DBL_EPSILON ) fprintf( outfile, " obsdomain: %g", cd->obsdomain );
+		if( fabs( cd->obsstep ) > DBL_EPSILON ) fprintf( outfile, " obsstep: %g", cd->obsstep );
+	}
 	fprintf( outfile, " " );
 	switch( cd->objfunc_type )
 	{
@@ -2237,5 +2176,67 @@ int map_well_obs( struct opt_data *op )
 	}
 	if( cd->debug ) tprintf( "\n" );
 	if( bad_data ) return( -1 );
+	return( 1 );
+}
+
+int set_predictions( struct opt_data *op )
+{
+	int  i, k, c, bad_data = 0;
+	struct calc_data *cd;
+	struct obs_data *od;
+	struct obs_data *preds;
+	cd = op->cd;
+	od = op->od;
+	preds = op->preds;
+	if( preds->nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
+	{
+		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", preds->nTObs );
+		else tprintf( "Number of predictions = %d\n", preds->nTObs );
+		preds->obs_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_target = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_current = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_best = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_well_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_time_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_id = char_matrix( preds->nTObs, 50 );
+		preds->obs_weight = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_min = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_max = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_log = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->res = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		for( c = k = i = 0; i < od->nTObs; i++ )
+		{
+			if( fabs( od->obs_weight[i] ) > DBL_EPSILON ) c++;
+			if( od->obs_weight[i] < -DBL_EPSILON )
+			{
+				preds->obs_index[k] = c - 1;
+				preds->obs_target[k] = od->obs_target[i];
+				preds->obs_weight[k] = fabs( od->obs_weight[i] );
+				preds->obs_min[k] = od->obs_target[i];
+				preds->obs_max[k] = od->obs_target[i];
+				preds->obs_log[k] = od->obs_log[i];
+				preds->obs_well_index[k] = od->obs_well_index[i];
+				preds->obs_time_index[k] = od->obs_time_index[i];
+				sprintf( preds->obs_id[k], "%s", od->obs_id[i] );
+				if( cd->debug ) tprintf( "%s: %g weight %g\n", preds->obs_id[k], preds->obs_target[k], preds->obs_weight[k] );
+				k++;
+			}
+		}
+	}
+	else
+	{
+		tprintf( "Number of predictions = %d\n", preds->nTObs );
+		if( cd->problem_type == INFOGAP ) // INFOGAP problem
+		{
+			tprintf( "\nERROR: Weight of at least one observation must be set as a performance criterion prediction\nby setting weight to -1 for Info-gap analysis\n\n" );
+			bad_data = 1;
+		}
+		if( cd->problem_type == GLUE ) // GLUE problem
+		{
+			tprintf( "\nERROR: Weight of at least one observation must be set as a prediction\nby setting weight to -1 for GLUE analysis\n\n" );
+			bad_data = 1;
+		}
+	}
+	if( bad_data ) return( 0 );
 	return( 1 );
 }

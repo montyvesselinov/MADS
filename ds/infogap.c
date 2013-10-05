@@ -62,11 +62,14 @@ int count_cols( char *filename, int row );
 
 int infogap_obs( struct opt_data *op )
 {
-	int i, j, ig_index, status, count, neval_total, njac_total;
+	int i, j, ig_index, status, success = 0, count, neval_total, njac_total, no_memory = 0;
+	double *opt_params, phi_min = HUGE_VAL;
 	int ( *optimize_func )( struct opt_data * op );
+	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
+	if( no_memory ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	tprintf( "\n\nInfo-gap analysis: observation step %g observation domain %g\nInfo-gap search: ", op->cd->obsstep, op->cd->obsdomain );
-	if( op->cd->obsstep > DBL_EPSILON ) tprintf( "maximum\n" );
-	else tprintf( "minimum\n" );
+	if( op->cd->obsstep > DBL_EPSILON ) tprintf( "maximum\n" ); else tprintf( "minimum\n" );
+	tprintf( "Number of predictions %d\n", op->preds->nTObs );
 	for( i = 0; i < op->preds->nTObs; i++ )
 	{
 		// op->preds->obs_best are updated in mads_func.c
@@ -78,32 +81,39 @@ int infogap_obs( struct opt_data *op )
 	ig_index = op->preds->obs_index[0]; // first prediction is applied only
 	tprintf( "Info-gap observation:\n" );
 	tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[ig_index], op->od->obs_target[ig_index], op->od->obs_weight[ig_index], op->od->obs_min[ig_index], op->od->obs_max[ig_index] );
-	if( op->cd->obsstep > DBL_EPSILON ) { op->od->obs_target[ig_index] = op->od->obs_min[ig_index]; op->od->obs_min[ig_index] -= op->cd->obsstep / 2; } // obsstep is negative
+	if( op->cd->obsstep > DBL_EPSILON ) { op->od->obs_target[ig_index] = op->od->obs_min[ig_index]; op->od->obs_min[ig_index] -= op->cd->obsstep / 2; } // obsstep is positive
 	else { op->od->obs_target[ig_index] = op->od->obs_max[ig_index]; op->od->obs_max[ig_index] -= op->cd->obsstep / 2; } // obsstep is negative
 	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	neval_total = njac_total = count = 0;
 	while( 1 )
 	{
-		tprintf( "\n\nInfo-gap analysis #%d\n", ++count );
+		tprintf( "\nInfo-gap analysis #%d\n", ++count );
 		tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[ig_index], op->od->obs_target[ig_index], op->od->obs_weight[ig_index], op->od->obs_min[ig_index], op->od->obs_max[ig_index] );
 		op->cd->neval = op->cd->njac = 0;
 		if( op->cd->calib_type == IGRND ) status = igrnd( op );
 		else status = optimize_func( op );
-		if( !status ) break;
 		neval_total += op->cd->neval;
 		njac_total += op->cd->njac;
-		tprintf( "\n\nIntermediate info-gap results for model predictions:\n" );
+		if( !status ) break;
+		if( op->success )
+		{
+			for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]];
+			for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+			phi_min = op->phi;
+			success = 1;
+		}
+		tprintf( "Intermediate info-gap results for model predictions:\n" );
 		tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[ig_index], op->od->obs_target[ig_index], op->od->obs_weight[ig_index], op->od->obs_min[ig_index], op->od->obs_max[ig_index] );
 		for( i = 0; i < op->preds->nTObs; i++ )
 		{
 			j = op->preds->obs_index[i];
-			if( op->cd->obsstep > DBL_EPSILON ) tprintf( "%-20s: Current info-gap max %12g Observation step %g Observation domain %g\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain );
-			else                           tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain );
+			if( op->cd->obsstep > DBL_EPSILON ) tprintf( "%-20s: Current info-gap max %12g Observation step %g Observation domain %g Success %d\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain, op->success );
+			else                           tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g Success %d\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain, op->success );
 		}
+		if( !op->success ) break;
 		if( op->cd->debug ) print_results( op, 1 );
 		save_final_results( "infogap", op, op->gd );
-		if( !op->success ) break;
 		op->od->obs_target[ig_index] += op->cd->obsstep;
 		if( op->cd->obsstep > DBL_EPSILON ) // max search
 		{
@@ -130,8 +140,14 @@ int infogap_obs( struct opt_data *op )
 	}
 	op->cd->neval = neval_total; // provide the correct number of total evaluations
 	op->cd->njac = njac_total; // provide the correct number of total evaluations
-	tprintf( "\nTotal number of evaluations = %d\n", neval_total );
-	tprintf( "Total number of jacobians = %d\n", njac_total );
+	if( success )
+	{
+		for( i = 0; i < op->pd->nOptParam; i++ ) op->cd->var[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i] = opt_params[i];
+		for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i];
+		op->phi = phi_min;
+		op->success = success;
+	}
+	else tprintf( "\nWARNING: Info-gap analysis failed to find acceptable solutions!\n" );
 	tprintf( "\nInfo-gap results for model predictions:\n" );
 	for( i = 0; i < op->preds->nTObs; i++ )
 	{
@@ -144,6 +160,7 @@ int infogap_obs( struct opt_data *op )
 		op->od->obs_weight[j] *= -1;
 	}
 	tprintf( "\n" );
+	free( opt_params );
 	print_results( op, 1 );
 	save_final_results( "", op, op->gd );
 	return( 1 );

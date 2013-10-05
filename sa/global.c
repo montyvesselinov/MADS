@@ -360,13 +360,11 @@ double param_pdf_marginal( struct opt_data *op, double *x, int special_index )
 {
 	int i, k;
 	double c = 1.;
-
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
 		if( i != special_index ) c /= ( op->pd->var_max[k] - op->pd->var_min[k] );
 	}
-
 	return c;
 }
 
@@ -374,13 +372,11 @@ double joint_param_pdf( struct opt_data *op )
 {
 	int i, k;
 	double c = 1.;
-
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
 		c /= ( op->pd->var_max[k] - op->pd->var_min[k] );
 	}
-
 	return c;
 }
 
@@ -389,10 +385,8 @@ double param_pdf_cond( struct opt_data *op, int special_index, double special_va
 {
 	int k;
 	double c = 1.;
-
 	k = op->pd->var_index[special_index];
 	c /= ( op->pd->var_max[k] - op->pd->var_min[k] );
-
 	return c;
 }
 
@@ -401,72 +395,63 @@ double joint_param_pdf_cond( struct opt_data *op, int special_index, double spec
 {
 	int i, k;
 	double c = 1.;
-
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
 		if( i != special_index ) c /= ( op->pd->var_max[k] - op->pd->var_min[k] );
 	}
-
 	return c;
 }
 
 double param_pdf( struct saltelli_data *salt )
 {
 	int k;
-
 	k = salt->op->pd->var_index[salt->special_index];
-
 	return 1. / ( salt->op->pd->var_max[k] - salt->op->pd->var_min[k] );
 }
 
-double saltelli_mean( double *x, size_t dim, void * params )
+double saltelli_mean( double *x, size_t dim, void *params )
 {
 	int i, k;
-	do_gsl_monte_miser_params *p = (do_gsl_monte_miser_params *) params;
+	do_gsl_monte_miser_params *p = ( do_gsl_monte_miser_params * ) params;
 	struct saltelli_data *salt = p->func_params;
 	struct opt_data *op = salt->op;
 	double c;
-
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
 		op->cd->var[k] = x[i];
 	}
-
 	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
 	c *= joint_param_pdf( op );
 	return c;
 }
 
-double saltelli_variance( double *x, size_t dim, void * params )
+double saltelli_variance( double *x, size_t dim, void *params )
 {
 	int i, k;
-	do_gsl_monte_miser_params *p = (do_gsl_monte_miser_params *) params;
+	do_gsl_monte_miser_params *p = ( do_gsl_monte_miser_params * ) params;
 	struct saltelli_data *salt = p->func_params;
 	struct opt_data *op = salt->op;
 	double c;
-
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
 		op->cd->var[k] = x[i];
 	}
-
 	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
 	c -= salt->mean;
 	c *= c * joint_param_pdf( op );
 	return c;
 }
 
-double first_order_sensitivity_integrand_integrand( double *x, size_t dim, void * params )
+double first_order_sensitivity_integrand_integrand( double *x, size_t dim, void *params )
 {
 	int i, j, k;
-	do_gsl_monte_miser_params *p = (do_gsl_monte_miser_params *) params;
-	struct saltelli_data *salt = (struct saltelli_data *) p->func_params;
+	do_gsl_monte_miser_params *p = ( do_gsl_monte_miser_params * ) params;
+	struct saltelli_data *salt = ( struct saltelli_data * ) p->func_params;
 	struct opt_data *op = salt->op;
 	double c;
-
 	for( i = 0, j = 0; i < op->pd->nOptParam; i++ )
 	{
 		//need to do an index j here that keeps track of how far along the subindices we are...
@@ -479,7 +464,6 @@ double first_order_sensitivity_integrand_integrand( double *x, size_t dim, void 
 	}
 	k = op->pd->var_index[salt->special_index];
 	op->cd->var[k] = salt->special_value;
-
 	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
 	c *= joint_param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
@@ -487,7 +471,7 @@ double first_order_sensitivity_integrand_integrand( double *x, size_t dim, void 
 
 double first_order_sensitivity_integrand( double x, void *params )
 {
-	struct saltelli_data *salt = (struct saltelli_data *) params;
+	struct saltelli_data *salt = ( struct saltelli_data * ) params;
 	struct opt_data *op = salt->op;
 	double *lower_bounds;
 	double *upper_bounds;
@@ -498,9 +482,8 @@ double first_order_sensitivity_integrand( double x, void *params )
 	do_gsl_monte_miser_params p;
 	int i, j, k;
 	double cond_mean, err;
-
-	lower_bounds = (double *) malloc( ( op->pd->nOptParam - 1 ) * sizeof( double ) );
-	upper_bounds = (double *) malloc( ( op->pd->nOptParam - 1 ) * sizeof( double ) );
+	lower_bounds = ( double * ) malloc( ( op->pd->nOptParam - 1 ) * sizeof( double ) );
+	upper_bounds = ( double * ) malloc( ( op->pd->nOptParam - 1 ) * sizeof( double ) );
 	for( i = 0, j = 0; i < op->pd->nOptParam; i++ )
 	{
 		if( i != salt->special_index )
@@ -511,27 +494,23 @@ double first_order_sensitivity_integrand( double x, void *params )
 			j++;
 		}
 	}
-
 	F.f = &first_order_sensitivity_integrand_integrand;
 	F.dim = op->pd->nOptParam - 1;
 	F.params = &p;
-
 	T = gsl_rng_default;
 	r = gsl_rng_alloc( T );
 	s = do_gsl_monte_miser_alloc( op->pd->nOptParam - 1 );
-	p.func_params = (void *) salt;
+	p.func_params = ( void * ) salt;
 	salt->special_value = x;
 	//compute the mean
 	do_gsl_monte_miser_integrate( &F, lower_bounds, upper_bounds, op->pd->nOptParam - 1, lround( pow( op->cd->nreal, ( op->pd->nOptParam - 1. ) / op->pd->nOptParam ) ), r, s, &cond_mean, &err );
 	do_gsl_monte_miser_free( s );
 	gsl_rng_free( r );
-
 	free( lower_bounds );
 	free( upper_bounds );
-
 	return ( cond_mean - salt->mean ) * ( cond_mean - salt->mean ) * param_pdf( salt );
 }
- 
+
 double first_order_sensitivity( struct saltelli_data *salt )
 {
 	struct opt_data *op = salt->op;
@@ -539,64 +518,52 @@ double first_order_sensitivity( struct saltelli_data *salt )
 	gsl_function F;
 	double si;
 	int i = salt->special_index;
-
 	table = gsl_integration_glfixed_table_alloc( lround( pow( salt->num_evals, 1. / op->pd->nOptParam ) ) );
-
 	F.function = &first_order_sensitivity_integrand;
-	F.params = (void *) salt;
-
+	F.params = ( void * ) salt;
 	si = gsl_integration_glfixed( &F, salt->lower_bounds[i], salt->upper_bounds[i], table );
 	//si -= salt->mean * salt->mean;
 	si /= salt->variance;
-
 	gsl_integration_glfixed_table_free( table );
-
 	return si;
 }
 
 double total_effect_integrand_integrand( double x, void *params )
 {
-	struct saltelli_data *salt = (struct saltelli_data *) params;
+	struct saltelli_data *salt = ( struct saltelli_data * ) params;
 	struct opt_data *op = salt->op;
 	int k;
 	double c;
-
 	k = op->pd->var_index[salt->special_index];
 	op->cd->var[k] = x;
-
 	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
 	c -= salt->cond_mean;
 	c *= c * param_pdf_cond( op, salt->special_index, salt->special_value );
-
 	return c;
 }
 
 double total_effect_integrand_cond_mean( double x, void *params )
 {
-	struct saltelli_data *salt = (struct saltelli_data *) params;
+	struct saltelli_data *salt = ( struct saltelli_data * ) params;
 	struct opt_data *op = salt->op;
 	int k;
 	double c;
-
 	k = op->pd->var_index[salt->special_index];
 	op->cd->var[k] = x;
-
 	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
 	c *= param_pdf_cond( op, salt->special_index, salt->special_value );
-
 	return c;
 }
 
 double total_effect_integrand( double *x, size_t dim, void *params )
 {
-	do_gsl_monte_miser_params *p = (do_gsl_monte_miser_params *) params;
-	struct saltelli_data *salt = (struct saltelli_data *) p->func_params;
+	do_gsl_monte_miser_params *p = ( do_gsl_monte_miser_params * ) params;
+	struct saltelli_data *salt = ( struct saltelli_data * ) p->func_params;
 	struct opt_data *op = salt->op;
 	gsl_integration_glfixed_table *table;
 	gsl_function F;
 	double cond_var;
 	int i, j, k;
-
 	for( i = 0, j = 0; i < op->pd->nOptParam; i++ )
 	{
 		if( i != salt->special_index )
@@ -607,17 +574,13 @@ double total_effect_integrand( double *x, size_t dim, void *params )
 		}
 	}
 	table = gsl_integration_glfixed_table_alloc( lround( pow( salt->num_evals, 1. / op->pd->nOptParam ) ) );
-
-	F.params = (void *) salt;
-
+	F.params = ( void * ) salt;
 	i = salt->special_index;
 	F.function = &total_effect_integrand_cond_mean;
 	salt->cond_mean = gsl_integration_glfixed( &F, salt->lower_bounds[i], salt->upper_bounds[i], table );
 	F.function = &total_effect_integrand_integrand;
 	cond_var = gsl_integration_glfixed( &F, salt->lower_bounds[i], salt->upper_bounds[i], table );
-
 	gsl_integration_glfixed_table_free( table );
-
 	return cond_var * param_pdf_marginal( op, x, salt->special_index );
 }
 
@@ -633,9 +596,8 @@ double total_effect( struct saltelli_data *salt )
 	do_gsl_monte_miser_params p;
 	int i, j, k;
 	double expected_variance, err;
-
-	lower_bounds = (double *) malloc( ( op->pd->nOptParam - 1 ) * sizeof( double ) );
-	upper_bounds = (double *) malloc( ( op->pd->nOptParam - 1 ) * sizeof( double ) );
+	lower_bounds = ( double * ) malloc( ( op->pd->nOptParam - 1 ) * sizeof( double ) );
+	upper_bounds = ( double * ) malloc( ( op->pd->nOptParam - 1 ) * sizeof( double ) );
 	for( i = 0, j = 0; i < op->pd->nOptParam; i++ )
 	{
 		if( i != salt->special_index )
@@ -646,23 +608,19 @@ double total_effect( struct saltelli_data *salt )
 			j++;
 		}
 	}
-
 	F.f = &total_effect_integrand;
 	F.dim = op->pd->nOptParam - 1;
 	F.params = &p;
-
 	T = gsl_rng_default;
 	r = gsl_rng_alloc( T );
 	s = do_gsl_monte_miser_alloc( op->pd->nOptParam - 1 );
-	p.func_params = (void *) salt;
+	p.func_params = ( void * ) salt;
 	//compute the mean
 	do_gsl_monte_miser_integrate( &F, lower_bounds, upper_bounds, op->pd->nOptParam - 1, lround( pow( op->cd->nreal, ( op->pd->nOptParam - 1. ) / op->pd->nOptParam ) ), r, s, &expected_variance, &err );
 	do_gsl_monte_miser_free( s );
 	gsl_rng_free( r );
-
 	free( lower_bounds );
 	free( upper_bounds );
-
 	//printf("cond_mean: %g, param_pdf: %g, sv: %g\n", cond_mean, param_pdf( salt ), salt->special_value );
 	//return cond_mean * cond_mean * param_pdf( salt );
 	return expected_variance / salt->variance;
@@ -682,12 +640,11 @@ int sa_saltelli( struct opt_data *op )
 	double err;
 	double mean, variance;
 	double si, ti;//first order sensitivity and total effect
-
 	salt.op = op;
-	if( salt.op->pd->nOptParam < 2) { fprintf( stderr, "You must have at least 2 \"opt\" params to do saltelli.\n" ); exit( 1 ); }
+	if( salt.op->pd->nOptParam < 2 ) { fprintf( stderr, "You must have at least 2 \"opt\" params to do saltelli.\n" ); exit( 1 ); }
 	salt.num_evals = op->cd->nreal;
-	lower_bounds = (double *) malloc( op->pd->nOptParam * sizeof( double ) );
-	upper_bounds = (double *) malloc( op->pd->nOptParam * sizeof( double ) );
+	lower_bounds = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) );
+	upper_bounds = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) );
 	salt.lower_bounds = lower_bounds;
 	salt.upper_bounds = upper_bounds;
 	for( i = 0; i < op->pd->nOptParam; i++ )
@@ -696,17 +653,14 @@ int sa_saltelli( struct opt_data *op )
 		lower_bounds[i] = op->pd->var_min[k];
 		upper_bounds[i] = op->pd->var_max[k];
 	}
-
 	F.f = &saltelli_mean;
 	F.dim = op->pd->nOptParam;
 	F.params = &p;
-
 	gsl_rng_env_setup();
-
 	T = gsl_rng_default;
 	r = gsl_rng_alloc( T );
 	s = do_gsl_monte_miser_alloc( op->pd->nOptParam );
-	p.func_params = (void *) &salt;
+	p.func_params = ( void * ) &salt;
 	//compute the mean
 	do_gsl_monte_miser_integrate( &F, lower_bounds, upper_bounds, op->pd->nOptParam, op->cd->nreal, r, s, &mean, &err );
 	salt.mean = mean;
@@ -716,7 +670,6 @@ int sa_saltelli( struct opt_data *op )
 	salt.variance = variance;
 	do_gsl_monte_miser_free( s );
 	gsl_rng_free( r );
-
 	tprintf( "mean: %g\nvariance: %g\n", mean, variance );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
@@ -726,10 +679,8 @@ int sa_saltelli( struct opt_data *op )
 		k = op->pd->var_index[i];
 		tprintf( "%-39s: %g (total) %g\n", op->pd->var_name[k], si, ti );
 	}
-
 	free( lower_bounds );
 	free( upper_bounds );
-
 	return 1;
 }
 

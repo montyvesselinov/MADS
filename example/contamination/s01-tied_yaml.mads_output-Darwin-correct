@@ -162,7 +162,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130926-211244
+Execution date & time stamp: 20131005-104110
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -1311,34 +1311,34 @@ Dispersivity y [L] = (ax/10) = 5.40346
 Dispersivity z [L] = (ay/10) = 0.540346
 
 Model calibration targets:
-W-1       (   49):           0 -  6.51272e-13 =  6.51272e-13 ( 6.51272e-13) success 1 range            0 -           25
-W-2       (   49):           0 -   0.00361565 =   0.00361565 (  0.00361565) success 1 range            0 -           10
-W-3       (   49):           0 -  6.43369e-10 =  6.43369e-10 ( 6.43369e-10) success 1 range            0 -           25
-W-4       (   44):         350 -      349.839 =    -0.161018 (   -0.161018) success 1 range          300 -          700
-W-4       (   49):         432 -      432.158 =     0.158106 (    0.158106) success 1 range          300 -          700
-W-5       (   49):           0 -  7.73752e-24 =  7.73752e-24 ( 7.73752e-24) success 1 range            0 -           10
-W-6       (   49):           0 -  1.46635e-47 =  1.46635e-47 ( 1.46635e-47) success 1 range            0 -           10
-W-7       (   49):           0 -  2.46282e-43 =  2.46282e-43 ( 2.46282e-43) success 1 range            0 -           10
-W-8       (   49):           0 -  3.16627e-39 =  3.16627e-39 ( 3.16627e-39) success 1 range            0 -           10
-W-9       (   49):         981 -       980.95 =   -0.0498477 (  -0.0498477) success 1 range          600 -         1200
-W-10#1    (   49):         1.1 -      1.87894 =     0.778938 (    0.778938) success 1 range            0 -            5
-W-10#2    (   49):         0.1 -      0.80001 =      0.70001 (     0.70001) success 1 range            0 -            5
-W-11#1    (   49):          22 -      19.9385 =     -2.06154 (    -2.06154) success 1 range            3 -           25
-W-11#2    (   49):         0.3 -        4.069 =        3.769 (       3.769) success 1 range            0 -            5
-W-12#1    (   49):          15 -      0.25297 =      -14.747 (     -14.747) success 0 range            3 -           25
-W-12#2    (   49):        0.17 -     0.044908 =    -0.125092 (   -0.125092) success 1 range            0 -            5
-W-13#1    (   50):          72 -      70.9608 =     -1.03916 (    -1.03916) success 1 range           40 -          100
-W-13#2    (   50):        0.26 -      8.39239 =      8.13239 (     8.13239) success 1 range            0 -           20
-W-14a     (   50):           0 -  8.94511e-09 =  8.94511e-09 ( 8.94511e-09) success 1 range            0 -            5
-W-14b     (   50):          30 -      29.8858 =    -0.114242 (   -0.114242) success 1 range            0 -           50
+W-1       (  49):           0 -  6.51272e-13 =  6.51272e-13 ( 6.51272e-13) success 1 range            0 -           25
+W-2       (  49):           0 -   0.00361565 =   0.00361565 (  0.00361565) success 1 range            0 -           10
+W-3       (  49):           0 -  6.43369e-10 =  6.43369e-10 ( 6.43369e-10) success 1 range            0 -           25
+W-4       (  44):         350 -      349.839 =    -0.161018 (   -0.161018) success 1 range          300 -          700
+W-4       (  49):         432 -      432.158 =     0.158106 (    0.158106) success 1 range          300 -          700
+W-5       (  49):           0 -  7.73752e-24 =  7.73752e-24 ( 7.73752e-24) success 1 range            0 -           10
+W-6       (  49):           0 -  1.46635e-47 =  1.46635e-47 ( 1.46635e-47) success 1 range            0 -           10
+W-7       (  49):           0 -  2.46282e-43 =  2.46282e-43 ( 2.46282e-43) success 1 range            0 -           10
+W-8       (  49):           0 -  3.16627e-39 =  3.16627e-39 ( 3.16627e-39) success 1 range            0 -           10
+W-9       (  49):         981 -       980.95 =   -0.0498477 (  -0.0498477) success 1 range          600 -         1200
+W-10#1    (  49):         1.1 -      1.87894 =     0.778938 (    0.778938) success 1 range            0 -            5
+W-10#2    (  49):         0.1 -      0.80001 =      0.70001 (     0.70001) success 1 range            0 -            5
+W-11#1    (  49):          22 -      19.9385 =     -2.06154 (    -2.06154) success 1 range            3 -           25
+W-11#2    (  49):         0.3 -        4.069 =        3.769 (       3.769) success 1 range            0 -            5
+W-12#1    (  49):          15 -      0.25297 =      -14.747 (     -14.747) success 0 range            3 -           25
+W-12#2    (  49):        0.17 -     0.044908 =    -0.125092 (   -0.125092) success 1 range            0 -            5
+W-13#1    (  50):          72 -      70.9608 =     -1.03916 (    -1.03916) success 1 range           40 -          100
+W-13#2    (  50):        0.26 -      8.39239 =      8.13239 (     8.13239) success 1 range            0 -           20
+W-14a     (  50):           0 -  8.94511e-09 =  8.94511e-09 ( 8.94511e-09) success 1 range            0 -            5
+W-14b     (  50):          30 -      29.8858 =    -0.114242 (   -0.114242) success 1 range            0 -           50
 Objective function: 304.325 Success: 0 (0)
 
 Model predictions for not calibration targets:
-W-14c     (   50):          10 -      281.575 =     -271.575 success 0 range            0 -           20
+W-14c     (  50):          10 -      281.575 =     -271.575 success 0 range            0 -           20
 Simulation time = 0 seconds
 Functional evaluations = 103
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Sep 26 21:12:44 2013
-Execution completed on Thu Sep 26 21:12:44 2013
-Execution date & time stamp: 20130926-211244
+Execution  started  on Sat Oct  5 10:41:10 2013
+Execution completed on Sat Oct  5 10:41:10 2013
+Execution date & time stamp: 20131005-104110
