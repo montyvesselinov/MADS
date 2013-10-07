@@ -30,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20130918-104529
+Execution date & time stamp: 20131007-120119
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -48,8 +48,6 @@ Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimizati
 Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 52 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
 Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 261 Jacobians: 38 Objective function: 9.9808e-10 Success: 1
 Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 150 Jacobians: 21 Objective function: 8.11842e-07 Success: 1
-Total number of evaluations = 3772
-Total number of jacobians = 552
 Minimum objective function: 9.9808e-10
 Repeat the run producing the best results ...
 Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 9 (out of 10; success ratio 0.9)
@@ -71,10 +69,11 @@ Parameter #2 0.999979
 Parameter #3 0.999957
 Objective function: 9.9808e-10 Success: 1 (1)
 SUCCESS: Objective function is below the predefined cutoff value (9.9808e-10 < 0.001)!
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 3773
 Jacobian evaluations = 552
 Levenberg-Marquardt optimizations = 78
-Execution  started  on Wed Sep 18 10:45:29 2013
-Execution completed on Wed Sep 18 10:45:29 2013
-Execution date & time stamp: 20130918-104529
+Functional evaluations per second = 3773
+Execution  started  on Mon Oct  7 12:01:19 2013
+Execution completed on Mon Oct  7 12:01:20 2013
+Execution date & time stamp: 20131007-120119

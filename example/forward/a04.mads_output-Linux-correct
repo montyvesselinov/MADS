@@ -38,7 +38,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20130918-104623
+Execution date & time stamp: 20131007-120340
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -62,14 +62,14 @@ Dispersivity y [L] 1.5
 Dispersivity z [L] 0.1
 
 Model predictions (forward run; no calibration):
-W-1       (   49):           0 -   0.00295056 =  -0.00295056 ( -0.00295056) success 1 range            0 -           25
-W-2       (   49):           0 -  0.000493281 = -0.000493281 (-0.000493281) success 1 range            0 -           25
-W-3       (   49):           0 -      59.2755 =     -59.2755 (    -59.2755) success 0 range            0 -           25
-W-4       (   49):           0 -      89.2004 =     -89.2004 (    -89.2004) success 0 range            0 -           25
+W-1       (  49):           0 -   0.00295056 =  -0.00295056 ( -0.00295056) success 1 range            0 -           25
+W-2       (  49):           0 -  0.000493281 = -0.000493281 (-0.000493281) success 1 range            0 -           25
+W-3       (  49):           0 -      59.2755 =     -59.2755 (    -59.2755) success 0 range            0 -           25
+W-4       (  49):           0 -      89.2004 =     -89.2004 (    -89.2004) success 0 range            0 -           25
 Objective function: 11470.3 Success: 0
 At least one of the predictions is outside acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Wed Sep 18 10:46:23 2013
-Execution completed on Wed Sep 18 10:46:23 2013
-Execution date & time stamp: 20130918-104623
+Execution  started  on Mon Oct  7 12:03:40 2013
+Execution completed on Mon Oct  7 12:03:40 2013
+Execution date & time stamp: 20131007-120340

@@ -30,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20130926-154658
+Execution date & time stamp: 20131007-120114
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
 No flagged parameters; all optimizable parameters are randomized
@@ -117,8 +117,6 @@ Evaluations: 43 Jacobians: 9 Objective function: 2.57807e-12 Success: 1
 Parameter #1 1
 Parameter #2 0.999999
 
-Total number of evaluations = 43
-Total number of jacobians = 9
 Minimum objective function: 2.57807e-12
 Repeat the run producing the best results ...
 Results are saved in a01.igrnd.results and a01.igrnd-opt=lm_eval=5000_real=1
@@ -132,6 +130,6 @@ Simulation time = 0 seconds
 Functional evaluations = 44
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Sep 26 15:46:58 2013
-Execution completed on Thu Sep 26 15:46:58 2013
-Execution date & time stamp: 20130926-154658
+Execution  started  on Mon Oct  7 12:01:14 2013
+Execution completed on Mon Oct  7 12:01:14 2013
+Execution date & time stamp: 20131007-120114
