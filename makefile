@@ -30,8 +30,8 @@ LDLIBS += -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath -Wl,/home/mo
 endif
 ifeq ($(ND),madsmax)
 $(info Machine -- MadsMax)
-CFLAGS += -I/home/monty/local/include
-LDLIBS += -L/home/monty/local/lib -lgslcblas -lm -llapack -lblas
+CFLAGS += -I/usr/opt/local/include
+LDLIBS += -L/user/opt/local/lib -lgslcblas -lm -llapack -lblas
 YAML = true
 endif
 ifeq ($(ND),well.lanl.gov)
