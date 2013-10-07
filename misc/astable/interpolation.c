@@ -30,13 +30,14 @@ struct interpolant_params global_ip[1024];//Global memory! Seriously?!?!?!? Yep!
 void symmetric_astable_cdf_interp( double x, double alpha, double gamma, double lambda, double *val )
 {
 	const int num_interps = 19;
-	static struct interpolant_params ips[18];
+	static struct interpolant_params ips[19];
 	static int setup = 0;
 	struct interpolant_params *ip;
 	pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 	int i;
 	double alpha1, alpha2;
 	double interp1, interp2;
+
 	if( alpha < 0.1 )
 	{
 		fprintf( stderr, "value of alpha is too small for symmetric_astable_cdf_interp\n" );
