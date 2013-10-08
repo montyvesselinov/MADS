@@ -78,16 +78,16 @@ double standard_astable_pdf( double x, double alpha, double beta )
 	double low;
 	double theta2;
 	status = 0;
-	setup_params( &params, x, alpha, beta );
 	if( alpha == 2. )
 	{
 		return exp( -x * x / 4. ) / sqrt( 4. * M_PI );
 	}
-	if( alpha == 1. && beta == 0. )
+	else if( alpha == 1. && beta == 0. )
 	{
 		return 1. / ( M_PI * ( 1. + x * x ) );
 	}
-	else if( alpha != 1 && fabs( x - params.zeta ) < EPSABS )
+	setup_params( &params, x, alpha, beta );
+	if( alpha != 1 && fabs( x - params.zeta ) < EPSABS )
 	{
 		return exp( lgamma( 1 + 1 / params.alpha ) ) * cos( params.theta0 ) / ( M_PI * pow( 1 + params.zeta * params.zeta, .5 / params.alpha ) );
 	}
@@ -136,7 +136,6 @@ double standard_astable_cdf( double x, double alpha, double beta )
 	double low;
 	double theta2;
 	status = 0;
-	setup_params( &params, x, alpha, beta );
 	if( alpha == 2. )
 	{
 		return .5 * ( 1. + erf( x / 2 ) );
@@ -145,7 +144,8 @@ double standard_astable_cdf( double x, double alpha, double beta )
 	{
 		return 0.5 + atan( x ) / M_PI;
 	}
-	else if( alpha != 1. && fabs( x - params.zeta ) < EPSABS ) return 0.5 - params.theta0 / M_PI;
+	setup_params( &params, x, alpha, beta );
+	if( alpha != 1. && fabs( x - params.zeta ) < EPSABS ) return 0.5 - params.theta0 / M_PI;
 	else if( alpha != 1. && x < params.zeta ) return 1. - standard_astable_cdf( -x, alpha, -beta );
 	else if( alpha == 1. && beta < 0 ) return 1. - standard_astable_cdf( -x, alpha, -beta );
 	else

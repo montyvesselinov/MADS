@@ -35,7 +35,8 @@ YAML = true
 endif
 ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
-LDLIBS += -L/usr/local/lib -lgslcblas -lm -llapack -lblas
+CFLAGS += -I/home/monty/local/include
+LDLIBS += -L/home/monty/local/lib -L/usr/local/lib -lgslcblas -lm -llapack -lblas
 YAML = true
 endif
 else

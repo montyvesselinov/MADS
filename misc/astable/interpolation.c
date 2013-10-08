@@ -37,7 +37,6 @@ void symmetric_astable_cdf_interp( double x, double alpha, double gamma, double 
 	int i;
 	double alpha1, alpha2;
 	double interp1, interp2;
-
 	if( alpha < 0.1 )
 	{
 		fprintf( stderr, "value of alpha is too small for symmetric_astable_cdf_interp\n" );
