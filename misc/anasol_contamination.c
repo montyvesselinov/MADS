@@ -668,6 +668,7 @@ double int_box_source_sym_levy_dispersion( double tau, void *params )
 	xe = x0 * rot1 - y0 * rot2;
 	ye = x0 * rot2  + y0 * rot1;
 	ze = ( p->ze - source_z );
+	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
 	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
 	else tau_d = tau;
 	tv = ( double ) 2 * tau_d * vx;
