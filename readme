@@ -36,7 +36,7 @@ Required libraries:
 	
 	sudo yum install gsl glib2 libyaml libmatheval pkgconfig
 
-	Ubuntu/Debain installation:
+	Ubuntu/Debian installation:
 
 	sudo apt-get install libgsl0-dev libglib2.0-0 libyaml-0-2 libmatheval1 pkg-config
 
@@ -49,4 +49,4 @@ To execute, run 'mads'
 
 Several examples can be found in directory 'example' (check the 'readme' files)
 
-Comparisons with code PEST are available for most examples as well (in subdirectores of 'example', check the 'readme' files)
+Comparisons with code PEST are available for most examples as well (in subdirectories of 'example', check the 'readme' files)
