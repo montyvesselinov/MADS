@@ -32,9 +32,14 @@ Required libraries:
 	
 	sudo port install gsl glib2 libyaml libmatheval pkgconfig
 	
-	MAC RHEL/Centos/Fedora installation:
+	RHEL/CentOS/Fedora installation:
 	
 	sudo yum install gsl glib2 libyaml libmatheval pkgconfig
+
+	Ubuntu/Debian installation:
+
+	sudo apt-get install libgsl0-dev libglib2.0-0 libyaml-0-2 libmatheval1 pkg-config
+
 
 To compile, execute 'make'
 
@@ -44,4 +49,4 @@ To execute, run 'mads'
 
 Several examples can be found in directory 'example' (check the 'readme' files)
 
-Comparisons with code PEST are available for most examples as well (in subdirectores of 'example', check the 'readme' files)
+Comparisons with code PEST are available for most examples as well (in subdirectories of 'example', check the 'readme' files)
