@@ -420,9 +420,9 @@ double saltelli_mean( double *x, size_t dim, void *params )
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
-		op->cd->var[k] = x[i];
+		op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[i]) : x[i] );
 	}
-	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
+	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= joint_param_pdf( op );
 	return c;
 }
@@ -437,9 +437,9 @@ double saltelli_variance( double *x, size_t dim, void *params )
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
-		op->cd->var[k] = x[i];
+		op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[i]) : x[i] );
 	}
-	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
+	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c -= salt->mean;
 	c *= c * joint_param_pdf( op );
 	return c;
@@ -458,13 +458,13 @@ double first_order_sensitivity_integrand_integrand( double *x, size_t dim, void 
 		if( i != salt->special_index )
 		{
 			k = op->pd->var_index[i];
-			op->cd->var[k] = x[j];
+			op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[j]) : x[j] );
 			j++;
 		}
 	}
 	k = op->pd->var_index[salt->special_index];
-	op->cd->var[k] = salt->special_value;
-	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
+	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, salt->special_value) : salt->special_value );
+	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= joint_param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
 }
@@ -535,8 +535,8 @@ double total_effect_integrand_integrand( double x, void *params )
 	int k;
 	double c;
 	k = op->pd->var_index[salt->special_index];
-	op->cd->var[k] = x;
-	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
+	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x) : x );
+	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c -= salt->cond_mean;
 	c *= c * param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
@@ -549,8 +549,8 @@ double total_effect_integrand_cond_mean( double x, void *params )
 	int k;
 	double c;
 	k = op->pd->var_index[salt->special_index];
-	op->cd->var[k] = x;
-	c = func_solver1( op->wd->x[0], op->wd->y[0], op->wd->z1[0], op->wd->obs_time[0][0], op->cd );
+	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x) : x );
+	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
 }
@@ -569,7 +569,7 @@ double total_effect_integrand( double *x, size_t dim, void *params )
 		if( i != salt->special_index )
 		{
 			k = op->pd->var_index[i];
-			op->cd->var[k] = x[j];
+			op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[j]) : x[j] );
 			j++;
 		}
 	}
@@ -636,7 +636,7 @@ int sa_saltelli( struct opt_data *op )
 	gsl_monte_function F;
 	do_gsl_monte_miser_state *s;
 	do_gsl_monte_miser_params p;
-	int i, k;
+	int i, j, k, n;
 	double err;
 	double mean, variance;
 	double si, ti;//first order sensitivity and total effect
@@ -653,7 +653,6 @@ int sa_saltelli( struct opt_data *op )
 		lower_bounds[i] = op->pd->var_min[k];
 		upper_bounds[i] = op->pd->var_max[k];
 	}
-	F.f = &saltelli_mean;
 	F.dim = op->pd->nOptParam;
 	F.params = &p;
 	gsl_rng_env_setup();
@@ -661,24 +660,39 @@ int sa_saltelli( struct opt_data *op )
 	r = gsl_rng_alloc( T );
 	s = do_gsl_monte_miser_alloc( op->pd->nOptParam );
 	p.func_params = ( void * ) &salt;
-	//compute the mean
-	do_gsl_monte_miser_integrate( &F, lower_bounds, upper_bounds, op->pd->nOptParam, op->cd->nreal, r, s, &mean, &err );
-	salt.mean = mean;
-	F.f = &saltelli_variance;
-	//compute the variance
-	do_gsl_monte_miser_integrate( &F, lower_bounds, upper_bounds, op->pd->nOptParam, op->cd->nreal, r, s, &variance, &err );
-	salt.variance = variance;
-	do_gsl_monte_miser_free( s );
-	gsl_rng_free( r );
-	tprintf( "mean: %g\nvariance: %g\n", mean, variance );
-	for( i = 0; i < op->pd->nOptParam; i++ )
+	for( j = 0; j < op->wd->nW; j++ )//loop through the wells
 	{
-		salt.special_index = i;
-		si = first_order_sensitivity( &salt );
-		ti = total_effect( &salt );
-		k = op->pd->var_index[i];
-		tprintf( "%-39s: %g (total) %g\n", op->pd->var_name[k], si, ti );
+		printf("well obs: %d\n", op->wd->nWellObs[j]);
+		for( n = 0; n < op->wd->nWellObs[j]; n++ )//loop through the observations
+		{
+			if( op->wd->obs_weight[j][n] < 0 )//making the weight less than zero is a trick to "flag" the observation
+			{
+				tprintf( "%s at t=%g:\n", op->wd->id[j], op->wd->obs_time[j][n] );
+				salt.well_index = j;
+				salt.obs_index = n;
+				F.f = &saltelli_mean;
+				//compute the mean
+				do_gsl_monte_miser_integrate( &F, lower_bounds, upper_bounds, op->pd->nOptParam, op->cd->nreal, r, s, &mean, &err );
+				salt.mean = mean;
+				F.f = &saltelli_variance;
+				//compute the variance
+				do_gsl_monte_miser_integrate( &F, lower_bounds, upper_bounds, op->pd->nOptParam, op->cd->nreal, r, s, &variance, &err );
+				salt.variance = variance;
+				tprintf( "mean: %g\nvariance: %g\n", mean, variance );
+				for( i = 0; i < op->pd->nOptParam; i++ )
+				{
+					salt.special_index = i;
+					si = first_order_sensitivity( &salt );
+					ti = total_effect( &salt );
+					k = op->pd->var_index[i];
+					tprintf( "%-39s: %g (total) %g\n", op->pd->var_name[k], si, ti );
+				}
+				printf( "\n" );
+			}
+		}
 	}
+	gsl_rng_free( r );
+	do_gsl_monte_miser_free( s );
 	free( lower_bounds );
 	free( upper_bounds );
 	return 1;

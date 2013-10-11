@@ -39,6 +39,8 @@ struct saltelli_data
 	double *upper_bounds;
 	int special_index;//used to denote the subscript for the total effect and first order sensitivity
 	double special_value;//used to denote the special value of the parameter in the first order sensitivity
+	int well_index;
+	int obs_index;
 };
 
 #endif /* SA_GLOBAL_H */
