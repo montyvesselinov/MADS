@@ -17,7 +17,7 @@ $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
 CFLAGS = -Wall -O1 -Winit-self
-LDLIBS = -lgsl -llapack 
+LDLIBS = -lgsl -llapack -lstdc++
 ifeq ($(OS),Linux)
 # Linux
 LDLIBS += -lgfortran 
@@ -73,6 +73,7 @@ OBJSKDTREE = misc/kdtree-0.5.5/kdtree.o
 OBJSLEVMAR = misc/levmar-2.5/lm_m.o misc/levmar-2.5/Axb.o misc/levmar-2.5/misc.o misc/levmar-2.5/lmlec.o misc/levmar-2.5/lmbc.o misc/levmar-2.5/lmblec.o misc/levmar-2.5/lmbleic.o 
 OBJSlEVMARSTYLE = misc/levmar-2.5/lm_m.o misc/levmar-2.5/lm_core_m.o misc/levmar-2.5/Axb.o misc/levmar-2.5/misc.o misc/levmar-2.5/lmlec.o misc/levmar-2.5/lmbc.o misc/levmar-2.5/lmblec.o misc/levmar-2.5/lmbleic.o 
 OBJSASTABLE = misc/astable/astable.o misc/astable/interpolation.o misc/astable/pqueue.o
+OBJSBAYES = bayes/dream.o
 
 ifeq ($(YAML),true)
 $(info YAML Support included)
@@ -87,8 +88,8 @@ CFLAGS += -DMATHEVAL
 LDLIBS += -lmatheval
 endif
 
-SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c)
-SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c)
+SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
+SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
 
 all: $(PROG)
 
@@ -97,10 +98,10 @@ release: $(PROG)
 debug: CFLAGS += -g
 debug: $(PROG)
 
-$(PROG): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE)
+$(PROG): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE) $(OBJSBAYES)
 
 clean:
-	rm -f $(PROG) $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE)
+	rm -f $(PROG) $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE) $(OBJSBAYES)
 
 
 mads.o: mads.c mads.h misc/levmar-2.5/levmar.h
@@ -138,6 +139,8 @@ misc/levmar-2.5/lmbleic.o: misc/levmar-2.5/lmbleic.c misc/levmar-2.5/lmbleic_cor
 misc/astable/astable.o: misc/astable/astable.c misc/astable/astable.h
 misc/astable/interpolation.o: misc/astable/astable.c misc/astable/astable.h misc/astable/interpolation.c misc/astable/pqueue.c misc/astable/pqueue.h
 misc/astable/pqueue.o: misc/astable/pqueue.c misc/astable/pqueue.h
+bayes/dream.o: bayes/dream.cpp bayes/dream.h mads.h
+	g++ $(CFLAGS) -c -o bayes/dream.o bayes/dream.cpp 
 
 examples:
 	@echo "**************************************************************************************"
