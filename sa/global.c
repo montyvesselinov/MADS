@@ -662,7 +662,6 @@ int sa_saltelli( struct opt_data *op )
 	p.func_params = ( void * ) &salt;
 	for( j = 0; j < op->wd->nW; j++ )//loop through the wells
 	{
-		printf("well obs: %d\n", op->wd->nWellObs[j]);
 		for( n = 0; n < op->wd->nWellObs[j]; n++ )//loop through the observations
 		{
 			if( op->wd->obs_weight[j][n] < 0 )//making the weight less than zero is a trick to "flag" the observation

@@ -296,6 +296,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
 		if( !strncasecmp( word, "abagus", 6 ) ) { w = 1; cd->problem_type = ABAGUS; }
 		if( !strncasecmp( word, "infogap", 7 ) ) { w = 1; cd->problem_type = INFOGAP; }
+		if( !strncasecmp( word, "bayes", 5 ) ) { w = 1; cd->problem_type = BAYES; }
 		if( !strncasecmp( word, "postpua", 7 ) ) { w = 1; cd->problem_type = POSTPUA; }
 		if( !strncasecmp( word, "single", 6 ) ) { w = 1; cd->calib_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
 		if( !strncasecmp( word, "simple", 6 ) ) { w = 1; cd->calib_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
@@ -419,6 +420,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		case GLUE: tprintf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
 		case INFOGAP: tprintf( "Info-gap decision analysis" ); break;
 		case POSTPUA: tprintf( "predictive uncertainty analysis of sampling results" ); break;
+		case BAYES: tprintf( "Bayesian parameter sampling" ); break;
 		default: tprintf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
 	tprintf( "\n" );
@@ -1477,6 +1479,7 @@ int save_problem( char *filename, struct opt_data *op )
 		case ABAGUS: fprintf( outfile, "abagus energy=%d", cd->energy ); break;
 		case POSTPUA: fprintf( outfile, "postpua" ); break;
 		case INFOGAP: fprintf( outfile, "infogap" ); break;
+		case BAYES: fprintf( outfile, "bayes" ); break;
 		case GLUE: fprintf( outfile, "glue" ); break;
 	}
 	if( cd->debug > 0 ) fprintf( outfile, " debug=%d", cd->debug );

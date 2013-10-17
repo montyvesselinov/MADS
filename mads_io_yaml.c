@@ -1368,6 +1368,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 		case POSTPUA: fprintf( outfile, "postpua" ); break;
 		case INFOGAP: fprintf( outfile, "infogap" ); break;
 		case GLUE: fprintf( outfile, "glue" ); break;
+		case BAYES: fprintf( outfile, "bayes" ); break;
 	}
 	if( cd->debug > 0 ) fprintf( outfile, ", debug: %d", cd->debug );
 	if( cd->fdebug > 0 ) fprintf( outfile, ", fdebug: %d", cd->fdebug );

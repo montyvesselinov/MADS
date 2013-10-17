@@ -55,6 +55,7 @@
 #include <gsl/gsl_interp.h>
 #include "misc/levmar-2.5/levmar.h"
 #include "mads.h"
+#include "bayes/dream.h"
 #ifdef MATHEVAL
 #include <matheval.h>
 #endif
@@ -637,6 +638,14 @@ int main( int argn, char *argv[] )
 			if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
 			status = infogap( &op );
 		}
+	}
+	// ------------------------------------------------------------------------------------------------ BAYES
+	if( cd.problem_type == BAYES ) // Bayesian parameter sampling
+	{
+		struct MCMC *mcmc;
+		mcmc = get_posterior_parameter_samples( &op );
+		printf( "nzee: %d, m: %d", mcmc->nzee, mcmc->m );
+		free_mcmc( mcmc );
 	}
 	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	// ------------------------------------------------------------------------------------------------ FORWARD

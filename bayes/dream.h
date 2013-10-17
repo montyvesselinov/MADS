@@ -8,6 +8,10 @@
 #ifndef DREAM_H_
 #define DREAM_H_
 
+enum PPCR_TYPE { PPCR_UPDATE };
+enum BOUND_HANDLING_TYPE { BH_REFLECT, BH_BOUND, BH_FOLD };
+enum INIT_POPULATION_TYPE { IP_LHS_BASED };
+
 struct MCMC  //introduce a data structure called MCMC
 {
 	int n;                         // Dimension of the problem (number of parameters to be estimated)
@@ -28,16 +32,19 @@ struct MCMC  //introduce a data structure called MCMC
 	double eps;                    // Perturbation for ergodicity
 	int steps;                     // Number of steps before calculating convergence diagnostics
 	double **CR;
-	string ppCR;
-	string reduced_sample_collection;
-	string BoundHandling;           // boundary handling
-	string save_in_memory;          // save in memory or not
-	string save_in_file;            // save in file or not
-	string InitPopulation;
+	int ppCR;
+	int reduced_sample_collection;
+	int BoundHandling;           // boundary handling
+	int save_in_memory;          // save in memory or not
+	int save_in_file;            // save in file or not
+	int InitPopulation;
 	int verbose;
 	int reduced_seq_interval;
 	int reduced_seq_length;
 	int qcov;
+	//z is double[nzee][np2] containing the sampled parameters and in the last two columns their posterior likelihood and log-likelihood
+	//the number of rows that actually contain samples is m, so use only up to z[m]
+	double **z;
 	//	double qcorr;
 };
 
@@ -62,6 +69,12 @@ struct out
 	int *R_stat_iter;
 	double **R_stat;
 };
-
-
+#ifdef __cplusplus
+extern "C"
+#endif
+struct MCMC *get_posterior_parameter_samples( struct opt_data *od );
+#ifdef __cplusplus
+extern "C"
+#endif
+void free_mcmc( struct MCMC *mcmc );
 #endif /* DREAM_H_ */

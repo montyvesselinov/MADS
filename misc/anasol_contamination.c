@@ -224,7 +224,7 @@ double box_source( double x, double y, double z, double t, void *params )
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
-		printf( "error: %s\n", gsl_strerror( status ) );
+		fprintf(stderr, "error: %s\n", gsl_strerror( status ) );
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
@@ -552,7 +552,7 @@ double box_source_levy_dispersion( double x, double y, double z, double t, void 
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
-		printf( "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
+		fprintf(stderr, "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
@@ -591,9 +591,9 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
 	else tau_d = tau;
 	tv = ( double ) 2 * tau_d * vx;
-	lambda_x = pow( tv * ax, 1 / alpha );
-	lambda_y = pow( tv * ay, 1 / alpha );
-	lambda_z = pow( tv * az, 1 / alpha );
+	lambda_x = sqrt( tv * ax );
+	lambda_y = sqrt( tv * ay );
+	lambda_z = sqrt( tv * az );
 	decay_factor = exp( -tau * lambda );
 	px1 = astable_cdf( xe + source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x );
 	px2 = astable_cdf( xe - source_sizex / 2. - vx * tau, alpha, beta, 0., lambda_x );
@@ -633,7 +633,7 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
-		printf( "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
+		fprintf(stderr, "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
@@ -672,9 +672,9 @@ double int_box_source_sym_levy_dispersion( double tau, void *params )
 	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
 	else tau_d = tau;
 	tv = ( double ) 2 * tau_d * vx;
-	lambda_x = pow( tv * ax, 1 / alpha );
-	lambda_y = pow( tv * ay, 1 / alpha );
-	lambda_z = pow( tv * az, 1 / alpha );
+	lambda_x = sqrt( tv * ax );
+	lambda_y = sqrt( tv * ay );
+	lambda_z = sqrt( tv * az );
 	decay_factor = exp( -tau * lambda );
 	symmetric_astable_cdf_interp( xe + source_sizex / 2. - vx * tau, alpha, 0., lambda_x, &px1 );
 	symmetric_astable_cdf_interp( xe - source_sizex / 2. - vx * tau, alpha, 0., lambda_x, &px2 );
