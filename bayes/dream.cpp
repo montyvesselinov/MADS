@@ -25,18 +25,19 @@ using namespace std;
 #include "../mads.h"
 
 // function headers
+double performance_requirement_satisfied( struct opt_data *od );
 struct MCMC *get_posterior_parameter_samples( struct opt_data *od );
 void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct opt_data *od, int option,
 			   double ***Reduced_Seq, double **Zee, out &output, double **Zinit,
-			   double *ModPred, double *p, double *log_p,
+			   double *ModPred, double *p, double *log_p, double *integrand,
 			   double ***Sequences, double **pCR,
-			   double **xold, double *p_xold, double *log_p_xold,
+			   double **xold, double *p_xold, double *log_p_xold, double *integrand_old,
 			   int *RandArray, double **xnew, double **CRS,
 			   int **DEversion, double *alpha_s, double **Table_JumpRate,
-			   int *accept, double *p_xnew, double *log_p_xnew,
+			   int *accept, double *p_xnew, double *log_p_xnew, double *integrand_new,
 			   double **lCR, double *delta_tot, double *R_stat, double **lCRnew );
 void LHSU( Range ParRange, struct MCMC *MCMCPar, double **Zinit );
-void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, struct opt_data *od, double *ModPred, double *p, double *log_p );
+void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, struct opt_data *od, double *ModPred, double *p, double *log_p, double *integrand );
 void InitVariables( struct MCMC *MCMCPar, int &nEval, int &output_teller, int &reduced_seq_teller,
 					double **Table_JumpRate, double ***Reduced_Seq, out &output,
 					double ***Sequences, double **pCR, double **CRS, double **lCR );
@@ -45,13 +46,13 @@ void GenCR( struct MCMC *MCMCPar, double **lCR, double **pCR, double **CRS );
 void multrnd( int nn, int m, int k, double **lCR, double **Y, double **pCR );
 void Gelman( struct MCMC *MCMCPar, double *R_stat, double ***Sequences, int start_loc, int end_loc );
 void GelmanCum( struct MCMC *MCMCPar, double *R_stat, double **X2 );
-void GetLocation( double **X2, struct MCMC *MCMCPar, double **xold, double *p_xold, double *log_p_xold );
+void GetLocation( double **X2, struct MCMC *MCMCPar, double **xold, double *p_xold, double *log_p_xold, double *integran_old );
 void randsample( int n, int k, int *ro, int verbose );
 void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, double **Table_JumpRate, Range ParRange, double **xnew,
 			double *alpha_s, double **CRS, int **DEversion );
 void DEStrategy( struct MCMC *MCMCPar, int **DEversion );
 void ReflectBounds( double **xnew, int nIndivs, int nDim, Range ParRange );
-void metrop( double **xnew, double *p_xnew, double *log_p_x, double **xold, double *p_xold, double *log_p_xold,
+void metrop( double **xnew, double *p_xnew, double *log_p_x, double *integrand_new, double **xold, double *p_xold, double *log_p_xold, double *integrand_old,
 			 double *alpha_s, Measure Measurement, struct MCMC *MCMCPar, double option, double **newgen, int *accept );
 void CalcDelta( struct MCMC *MCMCPar, double *delta_normX, double **CRS, double *delta_tot );
 void AdaptpCR( struct MCMC *MCMCPar, double *delta_tot, double **lCR, double **pCR );
@@ -63,6 +64,23 @@ int cum_seq_size = 0;
 double **meanseqsum;
 double **meanseqsum2;
 double **varseqsum;
+
+// Returns 1. if the performance requirement is satisfied at all the flagged obs, 0. otherwise.
+// The performance requirement is that the obs_current < obs_max
+double performance_requirement_satisfied( struct opt_data *od )
+{
+	int i;
+
+	for( i = 0; i < od->od->nTObs; i++ )
+	{
+		if( od->od->obs_weight[i] < 0 && od->od->obs_max[i] < od->od->obs_current[i] )
+		{
+			return 0.;
+		}
+	}
+
+	return 1.;
+}
 
 //main rundream code
 extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
@@ -82,7 +100,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	MCMCPar->ndraw = od->cd->nreal;                  // Maximum number of function evaluations
 	MCMCPar->parallelUpdate = 0.9;           // Fraction of parallel direction updates
 	MCMCPar->seq_length = MCMCPar->ndraw;
-	MCMCPar->np2 = MCMCPar->n + 2;
+	MCMCPar->np3 = MCMCPar->n + 3;
 	// Recommended parameter settings
 	MCMCPar->z = NULL;
 	MCMCPar->seq = 5;                        // Number of Markov Chains / sequences
@@ -141,7 +159,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// make ModPred pointer to pass back and forth from functions
 	double *ModPred = new double[Measurement.N];
 	// make Zinit pointer to pass back and forth from functions
-	double **Zinit = double_matrix( MCMCPar->m0 + MCMCPar->seq, MCMCPar->n );;
+	double **Zinit = double_matrix( MCMCPar->m0 + MCMCPar->seq, MCMCPar->n );
 	// make 3dArray Sequences pointer to pass back and forth from functions
 	double ***Sequences = NULL;
 	if( MCMCPar->save_in_memory )
@@ -149,7 +167,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 		Sequences = (double ***) malloc( sizeof( double ** ) * MCMCPar->seq );
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			Sequences[row] = double_matrix( MCMCPar->seq_length, MCMCPar->np2 );
+			Sequences[row] = double_matrix( MCMCPar->seq_length, MCMCPar->np3 );
 		}
 	}
 	// make 3dArray Sequences pointer to pass back and forth from functions
@@ -159,29 +177,31 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 		Reduced_Seq = new double **[MCMCPar->seq];
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			Reduced_Seq[row] = double_matrix( MCMCPar->reduced_seq_length, MCMCPar->np2 );
+			Reduced_Seq[row] = double_matrix( MCMCPar->reduced_seq_length, MCMCPar->np3 );
 		}
 	}
 	// make 2dArray lCR pointer to pass back and forth from functions
-	double **lCR = double_matrix( 1, MCMCPar->nCR );;
+	double **lCR = double_matrix( 1, MCMCPar->nCR );
 	// make 2dArray lCRnew pointer to pass back and forth from functions
-	double **lCRnew = double_matrix( 1, MCMCPar->nCR );;
+	double **lCRnew = double_matrix( 1, MCMCPar->nCR );
 	// make 2dArray log_p pointer to pass back and forth from functions
 	double **pCR = double_matrix( 1, MCMCPar->nCR );
 	// make 1dArray delta_tot pointer to pass back and forth from functions
-	double *delta_tot = new double [MCMCPar->nCR];;
+	double *delta_tot = new double [MCMCPar->nCR];
 	// make 2dArray xnew pointer to pass back and forth from functions
 	double **xnew = double_matrix( MCMCPar->seq, MCMCPar->n );
 	// make 2dArray xold pointer to pass back and forth from functions
 	double **xold = double_matrix( MCMCPar->seq, MCMCPar->n );
 	// make 2dArray p pointer to pass back and forth from functions
-	double *p = new double[MCMCPar->seq];;
+	double *p = new double[MCMCPar->seq];
 	// make 2dArray log_p pointer to pass back and forth from functions
-	double *log_p = new double[MCMCPar->seq];;
+	double *log_p = new double[MCMCPar->seq];
+	double *integrand = new double[MCMCPar->seq];
 	// make 2dArray p_xold pointer to pass back and forth from functions
-	double *p_xold = new double[MCMCPar->seq];;
+	double *p_xold = new double[MCMCPar->seq];
 	// make 2dArray log_p_xold pointer to pass back and forth from functions
 	double *log_p_xold = new double[MCMCPar->seq];
+	double *integrand_old = new double[MCMCPar->seq];
 	// make 1dArray RandArray pointer to pass back and forth from functions
 	int *RandArray = new int [MCMCPar->nzoff]; // MCMCPar->nzoff * MCMCPar->DEpairs * MCMCPar->seq
 	// make 2dArray CRS pointer to pass back and forth from functions
@@ -189,18 +209,19 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// make 2dArray DEversion pointer to pass back and forth from functions
 	int **DEversion = int_matrix( MCMCPar->seq, MCMCPar->DEpairs );
 	// make 1dArray alpha_s pointer to pass back and forth from functions
-	double *alpha_s = new double [MCMCPar->seq];;
+	double *alpha_s = new double [MCMCPar->seq];
 	// make 2dArray xnew pointer to pass back and forth from functions
-	double *p_xnew = new double[MCMCPar->seq];;
+	double *p_xnew = new double[MCMCPar->seq];
 	// make 2dArray log_p_xnew pointer to pass back and forth from functions
-	double *log_p_xnew = new double[MCMCPar->seq];;
+	double *log_p_xnew = new double[MCMCPar->seq];
+	double *integrand_new = new double[MCMCPar->seq];
 	// make 1dArray accept pointer to pass back and forth from functions
 	int *accept = new int [MCMCPar->seq];
 	// make 1dArray R_stat pointer to pass back and forth from functions
 	double *R_stat = new double [MCMCPar->n];
 	// make 2dArray Table_JumpRate pointer to pass back and forth from functions
 	double **Table_JumpRate = double_matrix( MCMCPar->n, MCMCPar->DEpairs );
-	double **Zee= double_matrix( MCMCPar->nzee, MCMCPar->np2 );
+	double **Zee= double_matrix( MCMCPar->nzee, MCMCPar->np3 );
 	// output arrays
 	int outlines = MCMCPar->ndraw / MCMCPar->seq + MCMCPar->seq;
 	output.nEval = new int[ outlines ];
@@ -215,8 +236,8 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 			meanseqsum[row][col] = meanseqsum2[row][col] = varseqsum[row][col] = 0;
 	// Run the distributed DREAM algorithm with sampling from past
 	dream_zs( MCMCPar, ParRange, Measurement, od, option, Reduced_Seq, Zee, output, Zinit,
-			  ModPred, p, log_p, Sequences, pCR, xold, p_xold, log_p_xold, RandArray, xnew, CRS, DEversion, alpha_s, Table_JumpRate,
-			  accept, p_xnew, log_p_xnew, lCR, delta_tot, R_stat, lCRnew );
+			  ModPred, p, log_p, integrand, Sequences, pCR, xold, p_xold, log_p_xold, integrand_old, RandArray, xnew, CRS, DEversion, alpha_s, Table_JumpRate,
+			  accept, p_xnew, log_p_xnew, integrand_new, lCR, delta_tot, R_stat, lCRnew );
 	// There are a lot of frees and deletes that still need to be implemented
 	delete Measurement.MeasData;
 	delete ModPred;
@@ -245,14 +266,17 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	free_matrix( (void **) xold, MCMCPar->seq );
 	delete p;
 	delete log_p;
+	delete integrand;
 	delete p_xold;
 	delete log_p_xold;
+	delete integrand_old;
 	delete RandArray;
 	free_matrix( (void **) CRS, MCMCPar->nCR );
 	free_matrix( (void **) DEversion, MCMCPar->seq );
 	delete alpha_s;
 	delete p_xnew;
 	delete log_p_xnew;
+	delete integrand_new;
 	delete accept;
 	delete R_stat;
 	free_matrix( (void **) Table_JumpRate, MCMCPar->n );
@@ -274,12 +298,12 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 //function DREAM_zs
 void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct opt_data *od, int option,
 			   double ***Reduced_Seq, double **Zee, out &output, double **Zinit,
-			   double *ModPred, double *p, double *log_p,
+			   double *ModPred, double *p, double *log_p, double *integrand,
 			   double ***Sequences, double **pCR,
-			   double **xold, double *p_xold, double *log_p_xold,
+			   double **xold, double *p_xold, double *log_p_xold, double *integrand_old,
 			   int *RandArray, double **xnew, double **CRS,
 			   int **DEversion, double *alpha_s, double **Table_JumpRate,
-			   int *accept, double *p_xnew, double *log_p_xnew,
+			   int *accept, double *p_xnew, double *log_p_xnew, double *integrand_new,
 			   double **lCR, double *delta_tot, double *R_stat, double **lCRnew )
 {
 	ofstream outfile;
@@ -304,17 +328,14 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		}
 	}
 	double **Zoff;
-	Zoff = double_matrix( MCMCPar->nzoff, MCMCPar->np2 );
-	for( int row = MCMCPar->m0; row < MCMCPar->seq; row++ )
-		for( int col = 0; col < MCMCPar->np2; col++ )
-			Zee[row][col] = 0;
+	Zoff = double_matrix( MCMCPar->nzoff, MCMCPar->np3 );
 	// Define initial MCMCPar->m0 rows of Z to be initial sample -- posterior density is not needed and thus not evaluated!!
 	for( int row = 0; row < MCMCPar->m0; row++ )
 		for( int col = 0; col < MCMCPar->n; col++ )
 			Zee[row][col] = Zinit[row][col];
 	// Define initial population from last MCMCPar->seq samples of Zinit
 	double **X2;
-	X2 = double_matrix( MCMCPar->seq, MCMCPar->np2 ); // MCMCPar->np2 = MCMCPar->n or 5+2
+	X2 = double_matrix( MCMCPar->seq, MCMCPar->np3 ); // MCMCPar->np3 = MCMCPar->n or 5+2
 	if( 1 ) // real random case
 	{
 		for( int row = 0; row < MCMCPar->seq; row++ )
@@ -346,19 +367,20 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		free_matrix( ( void ** ) ex, MCMCPar->seq );
 	}
 	// Calculate posterior density associated with each value of X
-	comp_likelihood( X2, MCMCPar, Measurement, od, ModPred, p, log_p );
+	comp_likelihood( X2, MCMCPar, Measurement, od, ModPred, p, log_p, integrand );
 	// Append X with information about posterior density (or transformation thereof) make it into X2
 	for( int row = 0; row < MCMCPar->seq; row++ )
 	{
 		X2[row][MCMCPar->n] = p[row];
 		X2[row][MCMCPar->n + 1] = log_p[row];
+		X2[row][MCMCPar->n + 2] = integrand[row];
 	}
 	if( MCMCPar->verbose > 5 )
 	{
 		cout << "X2 init" << endl;
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			for( int col = 0; col < MCMCPar->np2; col++ )
+			for( int col = 0; col < MCMCPar->np3; col++ )
 				cout << " " << X2[row][col];
 			cout << endl;
 		}
@@ -368,7 +390,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 	{
 		for( int k = 0; k < MCMCPar->seq; k++ )
 		{
-			for( int j = 0; j < MCMCPar->np2; j++ )
+			for( int j = 0; j < MCMCPar->np3; j++ )
 			{
 				//if( Sequences[k][0] == NULL ) printf( "seq null\n" );
 				//printf( "%d, %d\n", k, j );
@@ -422,7 +444,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			if( MCMCPar->reduced_sample_collection ) reduced_seq_teller++;
 			// Define the current locations and associated posterior densities
 			if( MCMCPar->verbose ) cout << "GetLocation ..." << endl;
-			GetLocation( X2, MCMCPar, xold, p_xold, log_p_xold );
+			GetLocation( X2, MCMCPar, xold, p_xold, log_p_xold, integrand_old );
 			if( MCMCPar->verbose > 5 )
 			{
 				printf( "xold\n" );
@@ -476,7 +498,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			offde( xold, Zoff, MCMCPar, Update, Table_JumpRate, ParRange, xnew, alpha_s, CRS, DEversion );
 			// Compute the likelihood of each proposal in each chain
 			if( MCMCPar->verbose ) cout << "comp_likelihood ..." << endl;
-			comp_likelihood( xnew, MCMCPar, Measurement, od, ModPred, p_xnew, log_p_xnew );
+			comp_likelihood( xnew, MCMCPar, Measurement, od, ModPred, p_xnew, log_p_xnew, integrand_new );
 			// Update number of evaluations
 			nEvaluations += MCMCPar->seq;
 			if( MCMCPar->verbose > 5 )
@@ -507,7 +529,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			// p_xnew = p_xnew(:,1); TODO check do we need this ..
 			// Apply the acceptance/rejectance rule
 			if( MCMCPar->verbose ) cout << "metrop ..." << endl;
-			metrop( xnew, p_xnew, log_p_xnew, xold, p_xold, log_p_xold, alpha_s, Measurement, MCMCPar, option, X2, accept );
+			metrop( xnew, p_xnew, log_p_xnew, integrand_new, xold, p_xold, log_p_xold, integrand_old, alpha_s, Measurement, MCMCPar, option, X2, accept );
 			// How many candidate points have been accepted -- for Acceptance Rate
 			int cur_iter_accept = 0;
 			for( int col = 0; col < MCMCPar->seq; col++ )
@@ -518,21 +540,23 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 				cout << "X2 updated" << endl;
 				for( int row = 0; row < MCMCPar->seq; row++ )
 				{
-					for( int col = 0; col < MCMCPar->np2; col++ )
+					for( int col = 0; col < MCMCPar->np3; col++ )
 						cout << " " << X2[row][col];
 					cout << endl;
 				}
 			}
 			// if( strcmp( MCMCPar->save_in_file.c_str(), "No" ) == 0 && strcmp( MCMCPar->reduced_sample_collection.c_str(), "No" ) == 0 )
+			/*
 			if( 1 ) // it should be always done because it is cheap ...
 			{
+
 				GelmanCum( MCMCPar, R_stat, X2 );
-				/*printf( "Evals %6d Acceptance Rate %7.4g Accepted %4d R_stat", nEvaluations, ( double ) cur_iter_accept / MCMCPar->seq, cur_iter_accept );
+				printf( "Evals %6d Acceptance Rate %7.4g Accepted %4d R_stat", nEvaluations, ( double ) cur_iter_accept / MCMCPar->seq, cur_iter_accept );
 				for( int col = 0; col < MCMCPar->n; col++ )
 					printf( " %7.3g", R_stat[col] );
 				printf( "\n" );
-				*/
 			}
+			*/
 			// Check whether to add to sequence or to only store current point
 			if( MCMCPar->save_in_memory )
 			{
@@ -540,7 +564,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 				if( iloc < MCMCPar->seq_length )
 				{
 					if( MCMCPar->verbose ) cout << "Augment Sequences ..." << endl;
-					for( int i = 0; i < MCMCPar->np2; i++ )
+					for( int i = 0; i < MCMCPar->np3; i++ )
 						for( int j = 0; j < MCMCPar->seq; j++ )
 							Sequences[j][iloc][i] = X2[j][i]; // Update the location of the chains
 					if( MCMCPar->verbose > 15 )
@@ -553,7 +577,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 						for( int k = 0; k < MCMCPar->seq; k++ )
 						{
 							cout << "Sequence " << k + 1	 << endl;
-							for( int i = 0; i < MCMCPar->np2; i++ )
+							for( int i = 0; i < MCMCPar->np3; i++ )
 							{
 								cout << "Param " << i + 1;
 								for( int j = 0; j <= iloc; j++ )
@@ -592,7 +616,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 					if( MCMCPar->verbose ) cout << "Augment Reduced Sequences ..." << endl;
 					reduced_seq_teller = 0; // reset new_teller
 					if( iloc_2 < MCMCPar->reduced_seq_length )
-						for( int i = 0; i < MCMCPar->np2; i++ )
+						for( int i = 0; i < MCMCPar->np3; i++ )
 							for( int j = 0; j < MCMCPar->seq; j++ )
 								Reduced_Seq[j][iloc_2][i] = X2[j][i]; // Reduced sample collection
 					else
@@ -651,9 +675,15 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 				// Append X to Z
 				if( MCMCPar->verbose ) cout << "Augment Z ..." << endl;
 				if( MCMCPar->m + MCMCPar->seq <= MCMCPar->nzee )
+				{
 					for( row = 0; row < MCMCPar->seq; row++ )
-						for( col = 0; col < MCMCPar->np2; col++ )
+					{
+						for( col = 0; col < MCMCPar->np3; col++ )
+						{
 							Zee[MCMCPar->m + row][col] = X2[row][col];
+						}
+					}
+				}
 				else
 				{
 					printf( "No memory to save Zee Sequences (%d>%d) Increase MCMCPar->nzee ... \n", MCMCPar->m + MCMCPar->seq, MCMCPar->nzee );
@@ -665,7 +695,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 					printf( "Zee appended\n" );
 					for( row = 0; row < MCMCPar->m; row++ )
 					{
-						for( col = 0; col < MCMCPar->np2; col++ )
+						for( col = 0; col < MCMCPar->np3; col++ )
 							printf( "%g ", Zee[row][col] );
 						printf( "\n" );
 					}
@@ -808,7 +838,7 @@ void LHSU( Range ParRange, struct MCMC *MCMCPar, double **Zinit )
 }
 
 // This function computes the likelihood for each value of x
-void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, struct opt_data *od, double *ModPred, double *p, double *log_p )
+void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, struct opt_data *od, double *ModPred, double *p, double *log_p, double *integrand )
 {
 	int ii, i, k;
 	// Loop over the individual parameter combinations of x
@@ -829,8 +859,9 @@ void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, str
 				log_p[ii] -= od->od->obs_weight[i] * ( Measurement.MeasData[k] - od->od->obs_current[i] ) * ( Measurement.MeasData[k] - od->od->obs_current[i] );
 				k++;
 			}
-			p[ii] = exp( log_p[ii] );
 		}
+		p[ii] = exp( log_p[ii] );
+		integrand[ii] = performance_requirement_satisfied( od );
 	}
 }
 
@@ -881,7 +912,7 @@ void InitVariables( struct MCMC *MCMCPar, int &nEval, int &output_teller, int &r
 		// Initialize Sequences with zeros
 		for( int i = 0; i < MCMCPar->seq; i++ )
 			for( int j = 0; j < MCMCPar->seq_length; j++ )
-				for( int k = 0; k < MCMCPar->np2; k++ )
+				for( int k = 0; k < MCMCPar->np3; k++ )
 					Sequences[i][j][k] = 0;
 	}
 	if( MCMCPar->reduced_sample_collection )
@@ -890,7 +921,7 @@ void InitVariables( struct MCMC *MCMCPar, int &nEval, int &output_teller, int &r
 		reduced_seq_teller = 0; // reduced sequence count
 		for( int i = 0; i < MCMCPar->seq; i++ )
 			for( int j = 0; j < MCMCPar->n; j++ )
-				for( int k = 0; k < MCMCPar->np2; k++ )
+				for( int k = 0; k < MCMCPar->np3; k++ )
 					Reduced_Seq[i][j][k] = 0;
 	}
 	// Generate the Table with JumpRates (dependent on number of dimensions and number of pairs
@@ -958,7 +989,7 @@ void GenCR( struct MCMC *MCMCPar, double **lCR, double **pCR, double **CRS )
 	}
 	// Define start and end
 	int i_start = 0;
-	int i_end = MCMCPar->np2;
+	int i_end = MCMCPar->np3;
 	double CRR[MCMCPar->seq * MCMCPar->steps];
 	// Then generate CR values for each chain
 	for( int zz = 0; zz < MCMCPar->nCR; zz++ )
@@ -976,7 +1007,7 @@ void GenCR( struct MCMC *MCMCPar, double **lCR, double **pCR, double **CRS )
 			CRR[idx[i]] = ( double )( zz + 1 ) / MCMCPar->nCR;
 		// new start and end
 		i_start = i_end;
-		i_end += MCMCPar->np2;
+		i_end += MCMCPar->np3;
 	}
 	// Now reshape CR
 	int counts = 0;
@@ -1282,18 +1313,19 @@ void GelmanCum( struct MCMC *MCMCPar, double *R_stat, double **X2 )
 }
 
 // Extracts the current location and density of the chain
-void GetLocation( double **X2, struct MCMC *MCMCPar, double **xold, double *p_xold, double *log_p_xold )
+void GetLocation( double **X2, struct MCMC *MCMCPar, double **xold, double *p_xold, double *log_p_xold, double *integrand_old )
 {
 	// First get the current location
 	for( int row = 0; row < MCMCPar->seq; row++ )
+	{
+		// Then get the current density
+		// Then get the current log density
+		p_xold[row] = X2[row][MCMCPar->n];
+		log_p_xold[row] = X2[row][MCMCPar->n + 1];
+		integrand_old[row] = X2[row][MCMCPar->n + 2];
 		for( int col = 0; col < MCMCPar->n; col++ )
 			xold[row][col] = X2[row][col];
-	// Then get the current density
-	for( int row = 0; row < MCMCPar->seq; row++ )
-		p_xold[row] = X2[row][MCMCPar->n];
-	// Then get the current log density
-	for( int row = 0; row < MCMCPar->seq; row++ )
-		log_p_xold[row] = X2[row][MCMCPar->n + 1];
+	}
 }
 
 // RANDSAMPLE Random sampling, without replacement
@@ -1707,7 +1739,7 @@ void ReflectBounds( double **xnew, int nIndivs, int nDim, Range ParRange )
 }
 
 // Metropolis rule for acceptance or rejection
-void metrop( double **xnew, double *p_xnew, double *log_p_x, double **xold, double *p_xold, double *log_p_xold,
+void metrop( double **xnew, double *p_xnew, double *log_p_x, double *integrand_new, double **xold, double *p_xold, double *log_p_xold, double *integrand_old,
 			 double *alpha_s, Measure Measurement, struct MCMC *MCMCPar, double option, double **newgen, int *accept )
 {
 	// Calculate the number of Chains
@@ -1722,6 +1754,7 @@ void metrop( double **xnew, double *p_xnew, double *log_p_x, double **xold, doub
 	{
 		newgen[row][MCMCPar->n] = p_xold[row];
 		newgen[row][MCMCPar->n + 1] = log_p_xold[row];
+		newgen[row][MCMCPar->n + 2] = integrand_old[row];
 	}
 	// And initialize accept with zeros
 	for( int i = 0; i < MCMCPar->seq; i++ )
@@ -1777,6 +1810,7 @@ void metrop( double **xnew, double *p_xnew, double *log_p_x, double **xold, doub
 				newgen[row][i] = xnew[row][i];
 			newgen[row][MCMCPar->n] = p_xnew[row];
 			newgen[row][MCMCPar->n + 1] = log_p_x[row];
+			newgen[row][MCMCPar->n + 2] = integrand_new[row];
 			// And indicate that these chains have been accepted
 			accept[row] = 1;
 		}

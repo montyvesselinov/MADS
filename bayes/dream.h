@@ -20,13 +20,13 @@ struct MCMC  //introduce a data structure called MCMC
 	int seq;                       // Number of Markov Chains / sequences
 	int seq_length;                // Sequence length
 	int xx;                        // Z array length
-	int np2;                       // Dimension of the problem (number of parameters to be estimated) + 2
+	int np3;                       // Dimension of the problem (number of parameters to be estimated) + 3
 	int DEpairs;                   // Number of chain pairs to generate candidate points
 	double gamma;                  // Kurtosis parameter Bayesian Inference Scheme
 	int nCR;                       // Number of crossover values used
 	int m0;                        // Initial size of Z
-	int m;
-	int nzee;
+	int m;                         // How many elements are actually stored in z
+	int nzee;                      // Length of the array z
 	int nzoff;
 	int k;                         // Thinning parameter for appending X to Z
 	double eps;                    // Perturbation for ergodicity

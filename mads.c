@@ -643,8 +643,17 @@ int main( int argn, char *argv[] )
 	if( cd.problem_type == BAYES ) // Bayesian parameter sampling
 	{
 		struct MCMC *mcmc;
+		int i;
+		int sum;
 		mcmc = get_posterior_parameter_samples( &op );
-		printf( "nzee: %d, m: %d", mcmc->nzee, mcmc->m );
+		printf( "nzee: %d, m: %d\n", mcmc->nzee, mcmc->m );
+		sum = 0.;
+		for( i = mcmc->m / 2; i < mcmc->m; i++ )
+		{
+			sum += mcmc->z[i][mcmc->n + 2];
+			printf("%g", mcmc->z[i][mcmc->n + 2]);
+		}
+		printf("\nprobability of failure: %g\n", 1. - ( (double) sum ) / ( mcmc->m - mcmc->m / 2 ) );
 		free_mcmc( mcmc );
 	}
 	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
