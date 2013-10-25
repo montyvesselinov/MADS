@@ -242,6 +242,9 @@ struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 	double *obs_weight; // observation weight
 	double *obs_min; // observation min
 	double *obs_max; // observation max
+	double *obs_scale; //gives the scale for the distribution
+	double *obs_location; //gives the location for the distribution
+	double *obs_alpha; //gives the stability index for the distribution
 	double *res; // current residual: res = obs_target - obs_current
 	gsl_vector *obs_current_gsl; // current model predicted observation as GSL vector; NOTE: redundant
 	// predictions
@@ -266,6 +269,9 @@ struct well_data // data structure for well data (INTERNAL PROBLEM)
 	int **obs_log; // log transformation
 	double **obs_min; // observation min
 	double **obs_max; // observation max
+	double **obs_scale; //gives the scale of the distribution
+	double **obs_location; //gives the location of the distribution
+	double **obs_alpha; //gives the stability index for the distribution
 };
 
 struct grid_data // data structure for model predictions along a grid

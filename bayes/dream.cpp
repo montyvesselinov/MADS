@@ -24,6 +24,8 @@ using namespace std;
 #include "dream.h"
 #include "../mads.h"
 
+extern "C" void symmetric_astable_pdf_interp( double x, double alpha, double gamma, double lambda, double *val );
+
 // function headers
 double performance_requirement_satisfied( struct opt_data *od );
 struct MCMC *get_posterior_parameter_samples( struct opt_data *od );
@@ -291,7 +293,6 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	free_matrix( (void **) meanseqsum, MCMCPar->n );
 	free_matrix( (void **) meanseqsum2, MCMCPar->n );
 	free_matrix( (void **) varseqsum, MCMCPar->n );
-	cout << "done." << endl;
 	return MCMCPar;
 }
 
@@ -416,7 +417,6 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 	outfile << output.nEval[0];
 	for( int col = 0; col < MCMCPar->n; col++ )
 		outfile  << " " << output.R_stat[0][col];
-	cout << endl;
 	outfile << endl;
 	if( MCMCPar->save_in_file )
 	{
@@ -787,7 +787,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		output_teller++;
 		total_accept += iter_accept;
 	}
-	printf( "Total Accepted %5d\n", total_accept );
+	//printf( "Total Accepted %5d\n", total_accept );
 	outfile.close();
 }
 
@@ -841,6 +841,7 @@ void LHSU( Range ParRange, struct MCMC *MCMCPar, double **Zinit )
 void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, struct opt_data *od, double *ModPred, double *p, double *log_p, double *integrand )
 {
 	int ii, i, k;
+	double temp;
 	// Loop over the individual parameter combinations of x
 	for( ii = 0; ii < MCMCPar->seq; ii++ )
 	{
@@ -855,8 +856,20 @@ void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, str
 			if( od->od->obs_weight[i] >= 0 )
 			{
 				//TODO: Implement full covariance stuff
-				//In these calculations, the weight is basically 1 / (2 * the variance in the measurement error)
-				log_p[ii] -= od->od->obs_weight[i] * ( Measurement.MeasData[k] - od->od->obs_current[i] ) * ( Measurement.MeasData[k] - od->od->obs_current[i] );
+				if( od->od->obs_alpha[i] == 2. )
+				{
+					temp = od->od->obs_current[i] - Measurement.MeasData[k] - od->od->obs_location[i];
+					log_p[ii] -= temp * temp / ( 4 * od->od->obs_scale[i] * od->od->obs_scale[i] );//multiply by 4 rather than 2, because 2*sigma^2=4*scale^2
+				}
+				else
+				{
+					//double temp2;
+					//printf("going in with x=%g\n", od->od->obs_current[i] - Measurement.MeasData[k]);
+					symmetric_astable_pdf_interp( od->od->obs_current[i] - Measurement.MeasData[k], od->od->obs_alpha[i], od->od->obs_location[i], od->od->obs_scale[i], &temp );
+					log_p[ii] += log( temp );
+					//temp2 = od->od->obs_current[i] - Measurement.MeasData[k] - od->od->obs_location[i];
+					//printf("%g=log(%g), %g, %g\n", log(temp), temp, -temp2 * temp2 / ( 4 * od->od->obs_scale[i] * od->od->obs_scale[i] ) - .5 * log( 4 * M_PI * od->od->obs_scale[i] * od->od->obs_scale[i]), -temp2 * temp2 / ( 4 * od->od->obs_scale[i] * od->od->obs_scale[i] ));
+				}
 				k++;
 			}
 		}
@@ -1716,12 +1729,12 @@ void DEStrategy( struct MCMC *MCMCPar, int **DEversion )
 void ReflectBounds( double **xnew, int nIndivs, int nDim, Range ParRange )
 {
 	int i, qq;
-	// Now check whether points are within bond
+	// Now check whether points are within bounds
 	for( i = 0; i < nDim; i++ )
 		for( qq = 0; qq < nIndivs; qq++ )
 			if( xnew[qq][i] < ParRange.minn[i] ) // TODO this might not be the best apporach
 				xnew[qq][i] = 2 * ParRange.minn[i] - xnew[qq][i]; // reflect in min
-	// Now check whether points are within bond
+	// Now check whether points are within bounds
 	for( i = 0; i < nDim; i++ )
 		for( qq = 0; qq < nIndivs; qq++ )
 			if( xnew[qq][i] > ParRange.maxn[i] )
@@ -1764,8 +1777,12 @@ void metrop( double **xnew, double *p_xnew, double *log_p_x, double *integrand_n
 		for( int row = 0; row < MCMCPar->seq; row++ )
 			alpha[row] = ( p_xnew[row] / p_xold[row] );
 	if( option == 2 || option == 4 ) // Lnp probability evaluation
+	{
 		for( int row = 0; row < MCMCPar->seq; row++ )
+		{
 			alpha[row] = exp( log_p_x[row] - log_p_xold[row] );
+		}
+	}
 	if( option == 3 ) // SSE probability evaluation
 	{
 		alp = ( double ) - Measurement.N * ( MCMCPar->gamma + 1 ) / 2;

@@ -79,6 +79,8 @@ void print_results( struct opt_data *op, int verbosity ); // Print final results
 void save_final_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
 int sort_int( const void *x, const void *y );
 double sort_double( const void *a, const void *b );
+void multiply_obs_scale( struct opt_data *od, double factor );
+void set_obs_alpha( struct opt_data *od, double alpha );
 
 /* Functions elsewhere */
 // Optimization strategies
@@ -643,18 +645,33 @@ int main( int argn, char *argv[] )
 	if( cd.problem_type == BAYES ) // Bayesian parameter sampling
 	{
 		struct MCMC *mcmc;
-		int i;
+		int i, j;
 		int sum;
-		mcmc = get_posterior_parameter_samples( &op );
-		printf( "nzee: %d, m: %d\n", mcmc->nzee, mcmc->m );
-		sum = 0.;
-		for( i = mcmc->m / 2; i < mcmc->m; i++ )
+		FILE *params_file;
+		double pfail;
+		double h = 0.;
+		do
 		{
-			sum += mcmc->z[i][mcmc->n + 2];
-			printf("%g", mcmc->z[i][mcmc->n + 2]);
-		}
-		printf("\nprobability of failure: %g\n", 1. - ( (double) sum ) / ( mcmc->m - mcmc->m / 2 ) );
-		free_mcmc( mcmc );
+			set_obs_alpha( &op, 0.5 + 1.5 / ( 1. + h ) );
+			multiply_obs_scale( &op, 2. );
+			mcmc = get_posterior_parameter_samples( &op );
+			params_file = fopen( "sampled_params.txt", "w" );
+			sum = 0.;
+			for( i = mcmc->m / 2; i < mcmc->m; i++ )
+			{
+				sum += mcmc->z[i][mcmc->n + 2];
+				for( j = 0; j < mcmc->n; j++ )
+				{
+					fprintf( params_file, "%g\t", mcmc->z[i][j] );
+				}
+				fprintf( params_file, "%g\n", mcmc->z[i][mcmc->n + 2] );
+			}
+			fclose( params_file );
+			pfail = 1. - ( (double) sum ) / ( mcmc->m - mcmc->m / 2 );
+			printf("probability of failure at horizon of uncertainty=%g: %g\n", h, pfail );
+			free_mcmc( mcmc );
+			h += 1;
+		} while( pfail < 0.05 && h < 100 );
 	}
 	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	// ------------------------------------------------------------------------------------------------ FORWARD
@@ -1048,6 +1065,38 @@ int main( int argn, char *argv[] )
 	free( op.cd->solution_type );
 	fclose( mads_output );
 	exit( 0 ); // DONE
+}
+
+void multiply_obs_scale( struct opt_data *od, double factor )
+{
+	int i, j, k;
+
+	i = 0;
+	for( j = 0; j < od->wd->nW; j++ )
+	{
+		for( k = 0; k < od->wd->nWellObs[j]; k++ )
+		{
+			od->wd->obs_scale[j][k] *= factor;
+			od->od->obs_scale[i] *= factor;
+			i++;
+		}
+	}
+}
+
+void set_obs_alpha( struct opt_data *od, double alpha )
+{
+	int i, j, k;
+
+	i = 0;
+	for( j = 0; j < od->wd->nW; j++ )
+	{
+		for( k = 0; k < od->wd->nWellObs[j]; k++ )
+		{
+			od->wd->obs_alpha[j][k] = alpha;
+			od->od->obs_alpha[i] = alpha;
+			i++;
+		}
+	}
 }
 
 int optimize_pso( struct opt_data *op )

@@ -139,8 +139,8 @@ misc/levmar-2.5/lmbleic.o: misc/levmar-2.5/lmbleic.c misc/levmar-2.5/lmbleic_cor
 misc/astable/astable.o: misc/astable/astable.c misc/astable/astable.h
 misc/astable/interpolation.o: misc/astable/astable.c misc/astable/astable.h misc/astable/interpolation.c misc/astable/pqueue.c misc/astable/pqueue.h
 misc/astable/pqueue.o: misc/astable/pqueue.c misc/astable/pqueue.h
-bayes/dream.o: bayes/dream.cpp bayes/dream.h mads.h
-	g++ $(CFLAGS) -c -o bayes/dream.o bayes/dream.cpp 
+bayes/dream.o: bayes/dream.cpp bayes/dream.h mads.h misc/astable/interpolation.o
+	g++ $(CFLAGS) -c -o bayes/dream.o bayes/dream.cpp -lmisc/astable/interpolation.o
 
 examples:
 	@echo "**************************************************************************************"

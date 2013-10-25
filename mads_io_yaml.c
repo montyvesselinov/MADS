@@ -821,15 +821,18 @@ int load_yaml_observations( GNode *node, gpointer data )
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
 	od->nObs = g_node_n_children( node );
 	tprintf( "Number of observations = %d\n", od->nObs );
-	od->obs_id = char_matrix( od->nObs, 50 );
-	od->obs_target = ( double * ) malloc( od->nObs * sizeof( double ) );
-	od->obs_weight = ( double * ) malloc( od->nObs * sizeof( double ) );
-	od->obs_min = ( double * ) malloc( od->nObs * sizeof( double ) );
-	od->obs_max = ( double * ) malloc( od->nObs * sizeof( double ) );
-	od->obs_log = ( int * ) malloc( od->nObs * sizeof( int ) );
-	od->obs_current = ( double * ) malloc( od->nObs * sizeof( double ) );
-	od->obs_best = ( double * ) malloc( od->nObs * sizeof( double ) );
-	od->res = ( double * ) malloc( od->nObs * sizeof( double ) );
+	if( ( od->obs_id = char_matrix( od->nObs, 50 ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_target = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_weight = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_min = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_max = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_log = ( int * ) malloc( od->nObs * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_current = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_best = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->res = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_scale = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_location = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( od->obs_alpha = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	preds->nTObs = 0; // TODO INFOGAP and GLUE analysis for external problems
 	for( i = 0; i < od->nObs; i++ )
 	{
@@ -842,7 +845,7 @@ int load_yaml_observations( GNode *node, gpointer data )
 			sscanf( ( char * ) node_value->data, "%lf", &od->obs_target[i] );
 		}
 		else tprintf( "\n" );
-		od->obs_min[i] = -HUGE_VAL; od->obs_max[i] = HUGE_VAL; od->obs_weight[i] = 1; od->obs_log[i] = 0;
+		od->obs_min[i] = -HUGE_VAL; od->obs_max[i] = HUGE_VAL; od->obs_weight[i] = 1; od->obs_log[i] = 0; od->obs_scale[i] = 1.; od->obs_location[i] = 0; od->obs_alpha[i] = 2.;
 		for( k = 0; k < g_node_n_children( node_obs ); k++ )  // Number of regulization components
 		{
 			node_key = g_node_nth_child( node_obs, k );
@@ -857,6 +860,9 @@ int load_yaml_observations( GNode *node, gpointer data )
 			if( !strcasecmp( ( char * ) node_key->data, "log" ) ) if( !strcasecmp( ( char * ) node_value->data, "yes" ) || !strcasecmp( ( char * ) node_value->data, "1" ) ) od->obs_log[i] = 1;
 			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) sscanf( ( char * ) node_value->data, "%lf", &od->obs_max[i] );
 			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) sscanf( ( char * ) node_value->data, "%lf", &od->obs_min[i] );
+			if( !strcasecmp( ( char * ) node_key->data, "scale" ) ) sscanf( ( char * ) node_value->data, "%lf", &od->obs_scale[i] );
+			if( !strcasecmp( ( char * ) node_key->data, "location" ) ) sscanf( ( char * ) node_value->data, "%lf", &od->obs_location[i] );
+			if( !strcasecmp( ( char * ) node_key->data, "alpha" ) ) sscanf( ( char * ) node_value->data, "%lf", &od->obs_alpha[i] );
 		}
 		if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 		if( cd->obsdomain > DBL_EPSILON && &od->obs_weight[i] > 0 ) { od->obs_min[i] = od->obs_target[i] - cd->obsdomain; od->obs_max[i] = od->obs_target[i] + cd->obsdomain; }
@@ -933,6 +939,9 @@ int load_yaml_wells( GNode *node, gpointer data )
 	if( ( wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_scale = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_location = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( wd->obs_alpha = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	od->nObs = preds->nTObs = 0;
 	for( i = 0; i < wd->nW; i++ ) // Number of wells loop
 	{
@@ -963,10 +972,13 @@ int load_yaml_wells( GNode *node, gpointer data )
 					if( ( wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 					if( ( wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 					if( ( wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+					if( ( wd->obs_scale[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+					if( ( wd->obs_location[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+					if( ( wd->obs_alpha[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 					for( j = 0; j < wd->nWellObs[i]; j++ )
 					{
 						node_obs = g_node_nth_child( node_key, j );
-						wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
+						wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0; wd->obs_scale[i][j] = 1.; wd->obs_location[i][j] = 0; wd->obs_alpha[i][j] = 2.;
 						for( m = 0; m < g_node_n_children( node_obs ); m++ )  // Number of well parameters
 						{
 							node_key2 = g_node_nth_child( node_obs, m );
@@ -982,6 +994,9 @@ int load_yaml_wells( GNode *node, gpointer data )
 							if( !strcasecmp( ( char * ) node_key2->data, "log" ) ) if( !strcasecmp( ( char * ) node_value2->data, "yes" ) || !strcasecmp( ( char * ) node_value2->data, "1" ) ) wd->obs_log[i][j] = 1;
 							if( !strcasecmp( ( char * ) node_key2->data, "min" ) ) sscanf( ( char * ) node_value2->data, "%lf", &wd->obs_min[i][j] );
 							if( !strcasecmp( ( char * ) node_key2->data, "max" ) ) sscanf( ( char * ) node_value2->data, "%lf", &wd->obs_max[i][j] );
+							if( !strcasecmp( ( char * ) node_key2->data, "scale" ) ) sscanf( ( char * ) node_value2->data, "%lf", &wd->obs_scale[i][j] );
+							if( !strcasecmp( ( char * ) node_key2->data, "location" ) ) sscanf( ( char * ) node_value2->data, "%lf", &wd->obs_location[i][j] );
+							if( !strcasecmp( ( char * ) node_key2->data, "alpha" ) ) sscanf( ( char * ) node_value2->data, "%lf", &wd->obs_alpha[i][j] );
 						}
 						if( cd->obsdomain > DBL_EPSILON && wd->obs_weight[i][j] > DBL_EPSILON ) { wd->obs_min[i][j] = wd->obs_target[i][j] - cd->obsdomain; wd->obs_max[i][j] = wd->obs_target[i][j] + cd->obsdomain; }
 						if( cd->ologtrans == 1 ) wd->obs_log[i][j] = 1;

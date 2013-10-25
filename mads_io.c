@@ -1080,6 +1080,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_alpha = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_scale = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_location = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		// if( ( od->obs_best = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) tprintf( "***\nNO MEMORY!!!!\n***\n" );
@@ -1089,7 +1092,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		preds->nTObs = 0; // TODO INFOGAP and GLUE analysis for external problems
 		for( i = 0; i < od->nObs; i++ )
 		{
-			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0;
+			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0; od->obs_alpha[i] = 2.; od->obs_scale[i] = 1.; od->obs_location[i] = 0.;
 			fscanf( infile, "%s %lf %lf %d %lf %lf\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i], &od->obs_log[i], &od->obs_min[i], &od->obs_max[i] );
 			if( cd->obsdomain > DBL_EPSILON && &od->obs_weight[i] > 0 ) { od->obs_min[i] = od->obs_target[i] - cd->obsdomain; od->obs_max[i] = od->obs_target[i] + cd->obsdomain; }
 			if( od->obs_max[i] < od->obs_target[i] || od->obs_min[i] > od->obs_target[i] )
@@ -1151,6 +1154,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( ( wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		if( ( wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		if( ( wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_alpha = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_scale = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_location = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		od->nObs = preds->nTObs = 0;
 		if( cd->debug ) tprintf( "\nObservation data:\n" );
 		for( i = 0; i < wd->nW; i++ )
@@ -1165,9 +1171,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( ( wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			if( ( wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			if( ( wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_alpha[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_scale[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_location[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			for( j = 0; j < wd->nWellObs[i]; j++ )
 			{
-				wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
+				wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0; wd->obs_alpha[i][j] = 2.; wd->obs_scale[i][j] = 1.; wd->obs_location[i][j] = 0.;
 				status = fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &wd->obs_time[i][j], &wd->obs_target[i][j], &wd->obs_weight[i][j], &wd->obs_log[i][j], &wd->obs_min[i][j], &wd->obs_max[i][j] );
 				if( status != 6 )
 				{
@@ -2029,6 +2038,9 @@ int map_obs( struct opt_data *op )
 	od2.obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_scale = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_location = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_alpha = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	// od2.obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.res = ( double * ) malloc( od->nTObs * sizeof( double ) );
@@ -2040,6 +2052,9 @@ int map_obs( struct opt_data *op )
 		od2.obs_weight[i] = od->obs_weight[i];
 		od2.obs_min[i] = od->obs_min[i];
 		od2.obs_max[i] = od->obs_max[i];
+		od2.obs_alpha[i] = od->obs_alpha[i];
+		od2.obs_scale[i] = od->obs_scale[i];
+		od2.obs_location[i] = od->obs_location[i];
 		// od2.obs_current[i] = od->obs_current[i];
 		od2.obs_best[i] = od->obs_best[i];
 		od2.res[i] = od->res[i];
@@ -2050,6 +2065,9 @@ int map_obs( struct opt_data *op )
 	free( od->obs_weight );
 	free( od->obs_min );
 	free( od->obs_max );
+	free( od->obs_alpha );
+	free( od->obs_scale );
+	free( od->obs_location );
 	// if( rd->nRegul == 0 ) free( od->obs_current ); // Already freed if there are regularization terms ...
 	free( od->obs_best );
 	free( od->res );
@@ -2145,6 +2163,9 @@ int map_well_obs( struct opt_data *op )
 	od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od->obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od->obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_location = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_scale = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_alpha = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od->res = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od->obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
 	od->obs_well_index = ( int * ) malloc( od->nTObs * sizeof( int ) );
@@ -2157,6 +2178,9 @@ int map_well_obs( struct opt_data *op )
 				od->obs_weight[k] = wd->obs_weight[i][j];
 				od->obs_min[k] = wd->obs_min[i][j];
 				od->obs_max[k] = wd->obs_max[i][j];
+				od->obs_alpha[k] = wd->obs_alpha[i][j];
+				od->obs_scale[k] = wd->obs_scale[i][j];
+				od->obs_location[k] = wd->obs_location[i][j];
 				od->obs_log[k] = wd->obs_log[i][j];
 				od->obs_well_index[k] = i;
 				od->obs_time_index[k] = j;
