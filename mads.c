@@ -649,11 +649,12 @@ int main( int argn, char *argv[] )
 		int sum;
 		FILE *params_file;
 		double pfail;
-		double h = 0.;
+/*		double h = 0.;
 		do
 		{
 			set_obs_alpha( &op, 0.5 + 1.5 / ( 1. + h ) );
 			multiply_obs_scale( &op, 2. );
+*/
 			mcmc = get_posterior_parameter_samples( &op );
 			params_file = fopen( "sampled_params.txt", "w" );
 			sum = 0.;
@@ -668,10 +669,13 @@ int main( int argn, char *argv[] )
 			}
 			fclose( params_file );
 			pfail = 1. - ( (double) sum ) / ( mcmc->m - mcmc->m / 2 );
-			printf("probability of failure at horizon of uncertainty=%g: %g\n", h, pfail );
+//			printf("probability of failure at horizon of uncertainty=%g: %g\n", h, pfail );
+			printf("probability of failure: %g (%d samples used)\n", pfail, ( mcmc->m - mcmc->m / 2 ));
 			free_mcmc( mcmc );
+/*
 			h += 1;
 		} while( pfail < 0.05 && h < 100 );
+*/
 	}
 	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 	// ------------------------------------------------------------------------------------------------ FORWARD
