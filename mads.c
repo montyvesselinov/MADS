@@ -670,7 +670,7 @@ int main( int argn, char *argv[] )
 			fclose( params_file );
 			pfail = 1. - ( (double) sum ) / ( mcmc->m - mcmc->m / 2 );
 //			printf("probability of failure at horizon of uncertainty=%g: %g\n", h, pfail );
-			printf("probability of failure: %g (%d samples used)\n", pfail, ( mcmc->m - mcmc->m / 2 ));
+			tprintf("probability of failure: %g (%d samples used)\n", pfail, ( mcmc->m - mcmc->m / 2 ));
 			free_mcmc( mcmc );
 /*
 			h += 1;
