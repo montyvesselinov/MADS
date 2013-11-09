@@ -67,7 +67,7 @@ void symmetric_astable_pdf_interp( double x, double alpha, double gamma, double 
 				for( i = 0; i < num_interps; i++ )
 				{
 					ip = automate_interpolant( 2. * ( i + 1. ) / ( num_interps + 1. ), 0., DEFAULT_PERCENTILE, DEFAULT_ABSERR, INTERP_PDF );
-					copy_interpolant_params(ip, ips + i);
+					copy_interpolant_params( ip, ips + i );
 				}
 			}
 			pthread_mutex_unlock( &mutex );
@@ -113,7 +113,7 @@ void symmetric_astable_cdf_interp( double x, double alpha, double gamma, double 
 				for( i = 0; i < num_interps; i++ )
 				{
 					ip = automate_interpolant( 2. * ( i + 1. ) / ( num_interps + 1. ), 0., DEFAULT_PERCENTILE, DEFAULT_ABSERR, INTERP_CDF );
-					copy_interpolant_params(ip, ips + i);
+					copy_interpolant_params( ip, ips + i );
 				}
 			}
 			pthread_mutex_unlock( &mutex );
@@ -218,7 +218,6 @@ double interpolate( double x, double gamma, double lambda, struct interpolant_pa
 			retval = ip->ymin * pow( ip->spline->interp->xmin / normalized_x, ip->alpha );
 		}
 	}
-
 	return retval;
 }
 
@@ -263,12 +262,9 @@ void get_sorted_vals( double alpha, double beta, double left, double right, int 
 	PQueue *q;
 	PQueue *q_x;
 	int i;
-
 	if( left > -1 ) left = -1.; //We need the lower end point to be < 0 in order for the limiting behavior code to work.
 	if( right < 1 ) right = 1.; //We need the upper end point to be > 0 in order for the limiting behavior code to work.
-
 	q = pqueue_new( &interval_comp, N );
-
 	worst_interval = ( struct interval * )malloc( sizeof( struct interval ) );
 	worst_interval->left = left;
 	worst_interval->right = right;
@@ -286,14 +282,11 @@ void get_sorted_vals( double alpha, double beta, double left, double right, int 
 		cdf_left = standard_astable_cdf( left, alpha, beta );
 		cdf_right = standard_astable_cdf( right, alpha, beta );
 	}
-
 	worst_interval->func_right = func_right;
 	worst_interval->func_left = func_left;
 	worst_interval->cdf_left = cdf_left;
 	worst_interval->cdf_right = cdf_right;
-
 	pqueue_enqueue( q, worst_interval );
-
 	for( i = 0; i < N - 1; i++ )
 	{
 		worst_interval = ( struct interval * )pqueue_dequeue( q );
@@ -324,7 +317,6 @@ void get_sorted_vals( double alpha, double beta, double left, double right, int 
 		pqueue_enqueue( q, new_interval[1] );
 		free( worst_interval );
 	}
-
 	/* Now sort them in increasing values of the left interval point. */
 	q_x = pqueue_new( &interval_comp_x, N );
 	i = 0;

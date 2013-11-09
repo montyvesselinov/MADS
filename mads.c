@@ -633,33 +633,33 @@ int main( int argn, char *argv[] )
 		int sum;
 		FILE *params_file;
 		double pfail;
-/*		double h = 0.;
-		do
-		{
-			set_obs_alpha( &op, 0.5 + 1.5 / ( 1. + h ) );
-			multiply_obs_scale( &op, 2. );
-*/
-			mcmc = get_posterior_parameter_samples( &op );
-			params_file = fopen( "sampled_params.txt", "w" );
-			sum = 0.;
-			for( i = mcmc->m / 2; i < mcmc->m; i++ )
-			{
-				sum += mcmc->z[i][mcmc->n + 2];
-				for( j = 0; j < mcmc->n; j++ )
+		/*		double h = 0.;
+				do
 				{
-					fprintf( params_file, "%g\t", mcmc->z[i][j] );
-				}
-				fprintf( params_file, "%g\n", mcmc->z[i][mcmc->n + 2] );
+					set_obs_alpha( &op, 0.5 + 1.5 / ( 1. + h ) );
+					multiply_obs_scale( &op, 2. );
+		*/
+		mcmc = get_posterior_parameter_samples( &op );
+		params_file = fopen( "sampled_params.txt", "w" );
+		sum = 0.;
+		for( i = mcmc->m / 2; i < mcmc->m; i++ )
+		{
+			sum += mcmc->z[i][mcmc->n + 2];
+			for( j = 0; j < mcmc->n; j++ )
+			{
+				fprintf( params_file, "%g\t", mcmc->z[i][j] );
 			}
-			fclose( params_file );
-			pfail = 1. - ( (double) sum ) / ( mcmc->m - mcmc->m / 2 );
+			fprintf( params_file, "%g\n", mcmc->z[i][mcmc->n + 2] );
+		}
+		fclose( params_file );
+		pfail = 1. - ( ( double ) sum ) / ( mcmc->m - mcmc->m / 2 );
 //			printf("probability of failure at horizon of uncertainty=%g: %g\n", h, pfail );
-			tprintf("probability of failure: %g (%d samples used)\n", pfail, ( mcmc->m - mcmc->m / 2 ));
-			free_mcmc( mcmc );
-/*
-			h += 1;
-		} while( pfail < 0.05 && h < 100 );
-*/
+		tprintf( "probability of failure: %g (%d samples used)\n", pfail, ( mcmc->m - mcmc->m / 2 ) );
+		free_mcmc( mcmc );
+		/*
+					h += 1;
+				} while( pfail < 0.05 && h < 100 );
+		*/
 	}
 	if( status == 0 ) mads_quits( op.root );
 	// ------------------------------------------------------------------------------------------------ FORWARD
@@ -1058,7 +1058,6 @@ int main( int argn, char *argv[] )
 void multiply_obs_scale( struct opt_data *od, double factor )
 {
 	int i, j, k;
-
 	i = 0;
 	for( j = 0; j < od->wd->nW; j++ )
 	{
@@ -1074,7 +1073,6 @@ void multiply_obs_scale( struct opt_data *od, double factor )
 void set_obs_alpha( struct opt_data *od, double alpha )
 {
 	int i, j, k;
-
 	i = 0;
 	for( j = 0; j < od->wd->nW; j++ )
 	{
@@ -3138,7 +3136,7 @@ void mads_quits( char *root )
 {
 	char buf[100];
 	buf[0] = 0;
-	tprintf( "MADS Quits!");
+	tprintf( "MADS Quits!" );
 	sprintf( buf, "rm -f %s.running", root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 	exit( 1 );
 }

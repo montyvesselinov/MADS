@@ -69,7 +69,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 	op->od->obs_current_gsl = gsl_vector_alloc( op->od->nTObs );
 	opt_gradient = gsl_vector_alloc( op->pd->nOptParam );
 	if( ( x_c = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL )
-	{ printf( "Not enough memory!\n" ); exit( 1 ); }
+	{ printf( "Not enough memory!\n" ); mads_quits( op->root );}
 	f.f = &func_gsl; /* forward run only */
 	if( strstr( op->cd->opt_method, "deriv" ) == NULL )
 	{

@@ -64,7 +64,7 @@ endif
 endif
 endif
 # MADS files
-OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o bayes/dream.o
+OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o
 OBJSA = sa/abagus.o sa/postpua.o sa/global.o sa/do_miser.o
 OBJDS = ds/infogap.o ds/glue.o
@@ -90,6 +90,7 @@ endif
 
 SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
 SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
+SOURCESTYLEDEL = $(OBJSMADS:%.o=%.c.orig) $(OBJSPSO:%.o=%.c.orig) $(OBJSMPUN:%.o=%.c.orig) $(OBJSA:%.o=%.c.orig) $(OBJDS:%.o=%.c.orig) $(OBJSLEVMARSTYLE:%.o=%.c.orig) $(OBJSKDTREE:%.o=%.c.orig) $(OBJSASTABLE:%.o=%.c.orig) $(OBJSBAYES:%.o=%.cpp.orig)
 
 all: $(PROG)
 
@@ -476,7 +477,7 @@ clean-example:
 
 astyle:
 	astyle $(SOURCESTYLE)
-	rm -f $(SOURCESTYLE:%c=%c.orig)
+	rm -f $(SOURCESTYLEDEL)
 
 tar:
 	rm -f mads.git.tgz

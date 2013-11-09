@@ -79,10 +79,10 @@ int func_extrn( double *x, void *data, double *f )
 		if( mprun( 1, data ) < 0 ) // Perform one (1) run in parallel
 		{
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
-			exit( 1 );
+			mads_quits( p->root );
 		}
 		bad_data = func_extrn_read( p->cd->neval, data, f ); // p->cd->eval was already incremented in mprun
-		if( bad_data ) exit( -1 );
+		if( bad_data ) mads_quits( p->root );
 		return GSL_SUCCESS; // DONE
 	}
 	p->cd->neval++;
@@ -108,7 +108,7 @@ int func_extrn( double *x, void *data, double *f )
 		}
 #else
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( p->root );
 #endif
 	}
 	if( p->cd->fdebug >= 3 )
@@ -137,7 +137,7 @@ int func_extrn( double *x, void *data, double *f )
 	}
 	for( i = 0; i < p->ed->ntpl; i++ )
 		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug ) == -1 )
-			exit( -1 );
+			mads_quits( p->root );
 	sprintf( buf, "%s \"rm -f ", SHELL );
 	for( i = 0; i < p->ed->nins; i++ )
 	{
@@ -154,7 +154,7 @@ int func_extrn( double *x, void *data, double *f )
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	for( i = 0; i < p->ed->nins; i++ )
 		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug ) == -1 )
-			exit( -1 );
+			mads_quits( p->root );
 	for( i = 0; i < p->od->nObs; i++ )
 	{
 		if( p->od->res[i] < 0 )
@@ -169,7 +169,7 @@ int func_extrn( double *x, void *data, double *f )
 			p->od->obs_current[i] /= p->od->res[i];
 		}
 	}
-	if( bad_data ) exit( -1 );
+	if( bad_data ) mads_quits( p->root );
 #ifdef MATHEVAL
 	// for( k = 0; k < p->rd->regul_nMap; k++ ) { tprintf( "%s %g\n", p->rd->regul_map_id[k], p->rd->regul_map_val[k] ); }
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
@@ -178,7 +178,7 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->od->nObs < p->od->nTObs )
 	{
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( p->root );
 	}
 #endif
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
@@ -277,7 +277,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		}
 #else
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( p->root );
 #endif
 	}
 	if( p->cd->fdebug >= 3 )
@@ -320,7 +320,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
 		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
-			exit( -1 );
+			mads_quits( p->root );
 	}
 	// Update model input files in zip restart files
 	if( p->cd->restart )
@@ -430,7 +430,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
 		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
-			exit( -1 );
+			mads_quits( p->root );
 	}
 	bad_data = 0;
 	for( i = 0; i < p->od->nObs; i++ )
@@ -462,7 +462,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	if( p->od->nObs < p->od->nTObs )
 	{
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( p->root );
 	}
 #endif
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions (model run = %d):\n", ieval );
@@ -570,7 +570,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		}
 #else
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( p->root );
 #endif
 	}
 	if( p->cd->fdebug >= 3 )
@@ -653,7 +653,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	else
 	{
-		for( p1 = p->cd->num_source_params *p->cd->num_sources, p2 = p->cd->num_source_params; p1 < p->pd->nAnalParam; p1++, p2++ )
+		for( p1 = p->cd->num_source_params * p->cd->num_sources, p2 = p->cd->num_source_params; p1 < p->pd->nAnalParam; p1++, p2++ )
 			p->ad->var[p2] = p->cd->var[p1];
 		if( p->cd->disp_tied && p->cd->disp_scaled == 0 ) // Tied dispersivities
 		{
@@ -684,7 +684,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				c = evaluator_evaluate( p->rd->regul_expression[k - p->od->nObs], p->rd->regul_nMap, p->rd->regul_map_id, p->rd->regul_map_val );
 #else
 				tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-				exit( 0 );
+				mads_quits( p->root );
 #endif
 			}
 			else
@@ -903,7 +903,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	struct opt_data *p = ( struct opt_data * )data;
 	double *jacobian;
 	int i, j, k;
-	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); exit( 1 ); }
+	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); mads_quits( p->root ); }
 	func_dx( x, f, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
 		for( i = 0; i < p->od->nTObs; i++, k++ )
@@ -941,7 +941,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		if( mprun( p->pd->nOptParam + compute_center, data ) < 0 ) // Perform all the runs in parallel
 		{
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
-			exit( 1 );
+			mads_quits( p->root );
 		}
 		system( "sleep 0" ); // TODO investigate how much sleep is needed
 		ieval -= ( p->pd->nOptParam + compute_center );
@@ -949,7 +949,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			bad_data = func_extrn_read( ++ieval, data, f_xpdx );
-			if( bad_data ) exit( -1 );
+			if( bad_data ) mads_quits( p->root );
 			if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
