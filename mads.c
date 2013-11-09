@@ -299,14 +299,13 @@ int main( int argn, char *argv[] )
 				else save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
-			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			exit( 0 );
+			mads_quits( op.root );
 		}
 		if( cd.opt_method[0] == 0 ) { strcpy( cd.opt_method, "lm" ); cd.calib_type = SIMPLE; cd.problem_type = CALIBRATE; }
 		cd.solution_type[0] = EXTERNAL; func_global = func_extrn;
 		buf[0] = 0;
 		for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-		if( parse_cmd( buf, &cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+		if( parse_cmd( buf, &cd ) == -1 ) mads_quits( op.root );
 	}
 	else // MADS Problem
 	{
@@ -317,14 +316,14 @@ int main( int argn, char *argv[] )
 #ifdef YAML
 			ier = load_yaml_problem( filename, argn, argv, &op );
 #else
-			tprintf( "\nMADS quits! YAML format is not supported in the compiled version of MADS. Recompile with YAML libraries.\n" );
-			exit( 0 );
+			tprintf( "\nERROR: YAML format is not supported in the compiled version of MADS. Recompile with YAML libraries.\n" );
+			mads_quits( op.root );
 #endif
 		}
 		else ier = load_problem( filename, argn, argv, &op ); // MADS plain text format or "NO FILE"
 		if( ier <= 0 )
 		{
-			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
+			tprintf( "\nERROR: Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
@@ -332,8 +331,7 @@ int main( int argn, char *argv[] )
 				else save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
-			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			exit( 0 );
+			mads_quits( op.root );
 		}
 		if( cd.solution_type[0] == EXTERNAL ) func_global = func_extrn;
 		else func_global = func_intrn;
@@ -429,12 +427,7 @@ int main( int argn, char *argv[] )
 	{
 		if( ed.ntpl <= 0 ) { tprintf( "ERROR: No template file(s)!\n" ); bad_data = 1; }
 		else tprintf( "Checking the template files for errors ...\n" );
-		if( bad_data )
-		{
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 0 );
-		}
+		if( bad_data ) mads_quits( op.root );
 		bad_data = 0;
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
@@ -453,12 +446,7 @@ int main( int argn, char *argv[] )
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
 		if( ed.nins <= 0 ) { tprintf( "ERROR: No instruction file(s)!\n" ); bad_data = 1; }
 		else tprintf( "Checking the instruction files for errors ...\n" );
-		if( bad_data )
-		{
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 0 );
-		}
+		if( bad_data ) mads_quits( op.root );
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
 			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
@@ -474,12 +462,7 @@ int main( int argn, char *argv[] )
 				tprintf( "WARNING: Observation \'%s\' is defined more than once (%d times) in the instruction file(s)! Arithmetic average will be computed!\n", od.obs_id[i], ( int ) od.obs_current[i] );
 		}
 		if( !bad_data ) tprintf( "Instruction files are ok.\n" );
-		if( bad_data )
-		{
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 0 );
-		}
+		if( bad_data ) mads_quits( op.root );
 		if( cd.sintrans ) { if( cd.sindx < DBL_EPSILON ) cd.sindx = 0.1; else if( cd.sindx < 1e-3 ) tprintf( "WARNING: sindx (%g) is potentially too small for external problems; consider increasing sindx (add sindx=1e-2)\n", cd.sindx ); }
 		else { if( cd.lindx < DBL_EPSILON ) cd.lindx = 0.01; }
 	}
@@ -602,13 +585,13 @@ int main( int argn, char *argv[] )
 		else optimize_func = optimize_pso; // Define optimization method: PSO
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = pd.var[i]; // Set all the initial values
 		success = optimize_func( &op ); // Optimize
-		if( success == 0 ) { tprintf( "ERROR: Optimization did not start!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+		if( success == 0 ) { tprintf( "ERROR: Optimization did not start!\n" ); mads_quits( op.root ); }
 		if( cd.debug == 0 ) tprintf( "\n" );
 		print_results( &op, 1 );
 		save_final_results( "", &op, &gd );
 		predict = 0;
 	}
-	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+	if( status == 0 ) mads_quits( op.root );
 	strcpy( op.label, "" ); // No labels needed below
 	// ------------------------------------------------------------------------------------------------ EIGEN || LOCALSENS
 	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS )
@@ -678,7 +661,7 @@ int main( int argn, char *argv[] )
 		} while( pfail < 0.05 && h < 100 );
 */
 	}
-	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+	if( status == 0 ) mads_quits( op.root );
 	// ------------------------------------------------------------------------------------------------ FORWARD
 	if( cd.problem_type == FORWARD ) // Forward run
 	{
@@ -898,8 +881,8 @@ int main( int argn, char *argv[] )
 			}
 			else
 			{
-				tprintf( "\nNo model predictions!\n" );
-				exit( 1 );
+				tprintf( "\nERROR: No model predictions!\n" );
+				mads_quits( op.root );
 			}
 		}
 	}
@@ -2830,7 +2813,7 @@ void print_results( struct opt_data *op, int verbosity )
 	if( op->pd->nExpParam > 0 )
 	{
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( op->root );
 	}
 #endif
 	if( verbosity == 0 ) return;
@@ -3031,7 +3014,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	{
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
 		fprintf( out, "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( op->root );
 	}
 #endif
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
@@ -3149,4 +3132,13 @@ int sort_int( const void *x, const void *y )
 double sort_double( const void *x, const void *y )
 {
 	return ( *( double * ) x - * ( double * ) y );
+}
+
+void mads_quits( char *root )
+{
+	char buf[100];
+	buf[0] = 0;
+	tprintf( "MADS Quits!");
+	sprintf( buf, "rm -f %s.running", root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+	exit( 1 );
 }

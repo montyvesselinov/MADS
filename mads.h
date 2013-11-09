@@ -345,7 +345,6 @@ struct class_data
 	char **class_id;
 };
 
-
 // mads.c
 int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
 int optimize_pso( struct opt_data *op ); // PSO optimization
@@ -357,6 +356,7 @@ void var_sorted( double data[], double datb[], int n, double ave, double ep, dou
 void ave_sorted( double data[], int n, double *ave, double *ep );
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
+void mads_quits( char *root );
 // mads_func.c
 int func_extrn( double *x, void *data, double *f );
 int func_extrn_write( int ieval, double *x, void *data );
