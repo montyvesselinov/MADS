@@ -50,6 +50,7 @@ int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op, int flag );
 void init_params( struct opt_data *op );
 int parse_cmd_debug( char *buf );
+int parse_cmd_init( int argn, char *argv[], struct calc_data *cd );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
@@ -200,6 +201,23 @@ int parse_cmd_debug( char *buf )
 	return( debug );
 }
 
+int parse_cmd_init( int argn, char *argv[], struct calc_data *cd )
+{
+	int i, r = 0;
+	cd->debug = 0;
+	quiet = 0; // Global variable
+	for( i = 2; i < argn; i++ )
+	{
+		if( !strncasecmp( argv[i], "debug", 5 ) ) { if( sscanf( argv[i], "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
+		if( !strncasecmp( argv[i], "quiet", 5 ) ) { quiet = 1; } // No output
+		if( !strncasecmp( argv[i], "q", 1 ) ) { quiet = 1; } // No output
+		if( !strncasecmp( argv[i], "force", 5 ) ) { r = 1; } // Force running
+		if( !strncasecmp( argv[i], "f", 1 ) ) { r = 1; } // Force running
+	}
+	return( r );
+}
+
+
 int parse_cmd( char *buf, struct calc_data *cd )
 {
 	int w;
@@ -275,12 +293,14 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	cd->obs_int = 2;
 	cd->time_step = 0;
-	quiet = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
+		if( !strncasecmp( word, "quiet", 5 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "q", 1 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "force", 5 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "f", 1 ) ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "yaml", 5 ) ) { w = 1; cd->yaml = 1; }
-		if( !strncasecmp( word, "quiet", 5 ) ) { w = 1; quiet = 1; }
 		if( !strncasecmp( word, "check", 5 ) ) { w = 1; cd->problem_type = CHECK; }
 		if( !strncasecmp( word, "create", 6 ) ) { w = 1; cd->problem_type = CREATE; }
 		if( !strncasecmp( word, "forward", 7 ) ) { w = 1; cd->problem_type = FORWARD; }

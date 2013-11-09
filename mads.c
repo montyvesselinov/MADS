@@ -102,6 +102,7 @@ void mads_info();
 int check_mads_problem( char *filename );
 char *datestamp(); // create date stamp
 int parse_cmd_debug( char *buf );
+int parse_cmd_init( int argn, char *argv[], struct calc_data *cd );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
@@ -159,7 +160,7 @@ int glue( struct opt_data *op );
 int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
-	int i, j, k, ier, status, success, success_all, count,  predict = 0, compare, bad_data = 0;
+	int i, j, k, ier, status, success, success_all, count,  predict = 0, compare, bad_data = 0, ignore_running = 0;
 	double c, err, min, max, dx, phi, *opt_params;
 	struct calc_data cd;
 	struct param_data pd;
@@ -173,7 +174,7 @@ int main( int argn, char *argv[] )
 	struct anal_data ad;
 	struct source_data sd;
 	struct aquifer_data qd;
-	char filename[255], filename2[255], root[255], extension[255], buf[1000], *dot, *cwd;
+	char filename[255], filename2[255], root[255], extension[255], buf[1000], *root_dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
 	FILE *in, *out, *out2;
@@ -183,9 +184,56 @@ int main( int argn, char *argv[] )
 	struct tm *ptr_ts;
 	time_start = time( NULL );
 	op.datetime_stamp = datestamp(); // create execution date stamp
+	if( argn < 2 )
+	{
+		printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+		printf( "---------------------------------------------------\n" );
+		mads_info(); // print short mads help manual
+		exit( 1 );
+	}
+	strcpy( root, argv[1] ); // Defined problem name (root)
+	root_dot = strrchr( root, '.' );
+	if( root_dot != NULL && root_dot[1] != '/' )
+	{
+		strcpy( filename, argv[1] );
+		strcpy( extension, &root_dot[1] );
+		root_dot[0] = 0;
+	}
+	else
+	{
+		sprintf( filename, "%s.mads", argv[1] );
+		extension[0] = 0;
+	}
+	op.root = root;
+	op.filename = filename;
+	op.counter = 0;
+	ignore_running = parse_cmd_init( argn, argv, &cd );
+	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
+	if( Ftest( buf ) == 0 ) // If file already exists quit ...
+	{
+		if( ignore_running )
+		{
+			// printf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
+			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+		}
+		else
+		{
+			printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+			printf( "---------------------------------------------------\n" );
+			printf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
+			printf( "Delete %s to execute or run mads with argument \"f\")!\n", buf );
+			exit( 0 );
+		}
+	}
+	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
+	sprintf( filename2, "%s.mads_output", op.root );
+	if( Ftest( filename2 ) == 0 ) // If file already exists quit ...
+	{
+		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
+		system( buf );
+	}
+	mads_output = Fwrite( filename2 );
 	buf[0] = 0;
-	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-	cd.debug = parse_cmd_debug( buf );
 	op.pd = &pd; // create opt_data structures ...
 	op.rd = &rd;
 	op.od = &od;
@@ -207,81 +255,34 @@ int main( int argn, char *argv[] )
 	op.phi = HUGE_VAL;
 	op.success = op.global_success = 0;
 	op.f_ofe = NULL;
-	printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
-	printf( "---------------------------------------------------\n" );
-	if( argn < 2 )
-	{
-		mads_info(); // print short mads help manual
-		exit( 1 );
-	}
-	else
-		printf( "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
 	op.label = ( char * ) malloc( 10 * sizeof( char ) ); op.label[0] = 0;
-	if( cd.debug ) printf( "Argument[1]: %s\n", argv[1] );
-	else
-	{
-		if( cd.debug > 1 && argn > 2 )
-			for( i = 2; i < argn; i++ )
-				printf( "Argument[%d]: %s\n", i, argv[i] );
-	}
+	tprintf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+	tprintf( "---------------------------------------------------\n" );
+	tprintf( "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
+	if( cd.debug > 1 )
+		for( i = 1; i < argn; i++ )
+			tprintf( "Argument[%d]: %s\n", i, argv[i] );
+	tprintf( "Input file name: %s\n", filename );
+	tprintf( "Problem root name: %s\n", root );
+	if( extension[0] != 0 )	tprintf( " Extension: %s", extension );
 	strcpy( root, argv[1] ); // Defined problem name (root)
-	dot = strrchr( root, '.' );
-	if( dot != NULL && dot[1] != '/' )
-	{
-		strcpy( filename, argv[1] );
-		strcpy( extension, &dot[1] );
-		dot[0] = 0;
-	}
-	else
-	{
-		sprintf( filename, "%s.mads", argv[1] );
-		extension[0] = 0;
-	}
-	printf( "Input file name: %s ", filename );
 	if( strcasestr( filename, "yaml" ) || strcasestr( filename, "yml" ) )
 	{
-		printf( "(YAML format expected)\n" );
+		tprintf( " (YAML format expected)\n" );
 		cd.yaml = 1; // YAML format
 	}
 	else if( strcasecmp( extension, "pst" ) == 0 )
 	{
-		printf( "(PEST format expected)\n" );
+		tprintf( " (PEST format expected)\n" );
 		cd.yaml = 0; // PEST format
 	}
 	else
 	{
-		printf( "\n" );
+		tprintf( "\n" );
 		cd.yaml = 0; // MADS plain text format expected; it can be still YAML format
 	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
-	printf( "Problem root name: %s", root );
-	if( extension[0] != 0 )	printf( " Extension: %s\n", extension );
-	else printf( "\n" );
-	op.root = root;
-	op.filename = filename;
-	op.counter = 0;
-	sprintf( filename2, "%s.mads_output", op.root );
-	if( Ftest( filename2 ) == 0 ) // If file already exists quit ...
-	{
-		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
-		system( buf );
-	}
-	mads_output = Fwrite( filename2 );
-	fprintf( mads_output, "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
-	fprintf( mads_output, "---------------------------------------------------\n" );
-	fprintf( mads_output, "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
-	fprintf( mads_output, "Input file name: %s\n", filename );
-	fprintf( mads_output, "Problem root name: %s\n", root );
-	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
-	if( Ftest( buf ) == 0 ) // If file already exists quit ...
-	{
-		tprintf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-		// tprintf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-		// tprintf( "Delete %s to execute (sorry for the inconvenience)!\n", buf );
-		// exit( 0 );
-	}
-	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
 	/*
 	 *  Read input data
 	 */
@@ -415,8 +416,8 @@ int main( int argn, char *argv[] )
 	{
 		pid = getpid();
 		if( cd.debug ) tprintf( "Parent ID [%d]\n", pid );
-		cwd = getenv( "PWD" ); dot = strrchr( cwd, '/' );
-		cd.mydir = &dot[1];
+		cwd = getenv( "PWD" ); root_dot = strrchr( cwd, '/' );
+		cd.mydir = &root_dot[1];
 		if( cd.debug ) tprintf( "Working directory: %s (%s)\n", cwd, cd.mydir );
 		cd.mydir_hosts = dir_hosts( &op, op.datetime_stamp ); // Directories for parallel execution have unique name based on the execution time
 	}

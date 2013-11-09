@@ -45,6 +45,8 @@ Debug/*
 *.btc-peak
 *.btc2
 *.out
+*.sobol_sens_index
+*.sobol_sens_total
 *output
 *.wells
 # Genereal files
