@@ -12,7 +12,9 @@ else
 endif
 rm -f $mask.mads_output_* >& /dev/null
 rm -f $mask.igrnd_*.results >& /dev/null
-rm -f $mask.sobol* >& /dev/null
+rm -f $mask.igpd-* >& /dev/null
+rm -f $mask.sobol_sens_index >& /dev/null
+rm -f $mask.sobol_sens_total >& /dev/null
 rm -f $mask.igrnd-opt=* >& /dev/null
 rm -f $mask-error.mads >& /dev/null
 rm -f $mask-rerun.mads >& /dev/null
@@ -21,3 +23,8 @@ rm -f $mask.covar* >& /dev/null
 rm -f $mask.corr* >& /dev/null
 rm -f $mask.jacob* >& /dev/null
 rm -f $mask.eigen >& /dev/null
+rm -f $mask.phi >& /dev/null
+rm -f $mask.forward >& /dev/null
+rm -f $mask.residuals >& /dev/null
+rm -f $mask.restart_info >& /dev/null
+rm -f $mask.restart*zip >& /dev/null

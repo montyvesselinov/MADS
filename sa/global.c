@@ -420,7 +420,7 @@ double saltelli_mean( double *x, size_t dim, void *params )
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
-		op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[i]) : x[i] );
+		op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[i] ) : x[i] );
 	}
 	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= joint_param_pdf( op );
@@ -437,7 +437,7 @@ double saltelli_variance( double *x, size_t dim, void *params )
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
-		op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[i]) : x[i] );
+		op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[i] ) : x[i] );
 	}
 	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c -= salt->mean;
@@ -458,12 +458,12 @@ double first_order_sensitivity_integrand_integrand( double *x, size_t dim, void 
 		if( i != salt->special_index )
 		{
 			k = op->pd->var_index[i];
-			op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[j]) : x[j] );
+			op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[j] ) : x[j] );
 			j++;
 		}
 	}
 	k = op->pd->var_index[salt->special_index];
-	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, salt->special_value) : salt->special_value );
+	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, salt->special_value ) : salt->special_value );
 	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= joint_param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
@@ -535,7 +535,7 @@ double total_effect_integrand_integrand( double x, void *params )
 	int k;
 	double c;
 	k = op->pd->var_index[salt->special_index];
-	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x) : x );
+	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x ) : x );
 	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c -= salt->cond_mean;
 	c *= c * param_pdf_cond( op, salt->special_index, salt->special_value );
@@ -549,7 +549,7 @@ double total_effect_integrand_cond_mean( double x, void *params )
 	int k;
 	double c;
 	k = op->pd->var_index[salt->special_index];
-	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x) : x );
+	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x ) : x );
 	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
@@ -569,7 +569,7 @@ double total_effect_integrand( double *x, size_t dim, void *params )
 		if( i != salt->special_index )
 		{
 			k = op->pd->var_index[i];
-			op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[j]) : x[j] );
+			op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[j] ) : x[j] );
 			j++;
 		}
 	}
@@ -641,7 +641,7 @@ int sa_saltelli( struct opt_data *op )
 	double mean, variance;
 	double si, ti;//first order sensitivity and total effect
 	salt.op = op;
-	if( salt.op->pd->nOptParam < 2 ) { fprintf( stderr, "You must have at least 2 \"opt\" params to do saltelli.\n" ); exit( 1 ); }
+	if( salt.op->pd->nOptParam < 2 ) { fprintf( stderr, "You must have at least 2 \"opt\" params to do saltelli.\n" ); mads_quits( op->root ); }
 	salt.num_evals = op->cd->nreal;
 	lower_bounds = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) );
 	upper_bounds = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) );

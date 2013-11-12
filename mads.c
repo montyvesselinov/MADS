@@ -102,6 +102,7 @@ void mads_info();
 int check_mads_problem( char *filename );
 char *datestamp(); // create date stamp
 int parse_cmd_debug( char *buf );
+int parse_cmd_init( int argn, char *argv[], struct calc_data *cd );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
@@ -159,7 +160,7 @@ int glue( struct opt_data *op );
 int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
-	int i, j, k, ier, status, success, success_all, count,  predict = 0, compare, bad_data = 0;
+	int i, j, k, ier, status, success, success_all, count,  predict = 0, compare, bad_data = 0, ignore_running = 0;
 	double c, err, min, max, dx, phi, *opt_params;
 	struct calc_data cd;
 	struct param_data pd;
@@ -173,7 +174,7 @@ int main( int argn, char *argv[] )
 	struct anal_data ad;
 	struct source_data sd;
 	struct aquifer_data qd;
-	char filename[255], filename2[255], root[255], extension[255], buf[1000], *dot, *cwd;
+	char filename[255], filename2[255], root[255], extension[255], buf[1000], *root_dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
 	FILE *in, *out, *out2;
@@ -183,9 +184,56 @@ int main( int argn, char *argv[] )
 	struct tm *ptr_ts;
 	time_start = time( NULL );
 	op.datetime_stamp = datestamp(); // create execution date stamp
+	if( argn < 2 )
+	{
+		printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+		printf( "---------------------------------------------------\n" );
+		mads_info(); // print short mads help manual
+		exit( 1 );
+	}
+	strcpy( root, argv[1] ); // Defined problem name (root)
+	root_dot = strrchr( root, '.' );
+	if( root_dot != NULL && root_dot[1] != '/' )
+	{
+		strcpy( filename, argv[1] );
+		strcpy( extension, &root_dot[1] );
+		root_dot[0] = 0;
+	}
+	else
+	{
+		sprintf( filename, "%s.mads", argv[1] );
+		extension[0] = 0;
+	}
+	op.root = root;
+	op.filename = filename;
+	op.counter = 0;
+	ignore_running = parse_cmd_init( argn, argv, &cd );
+	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
+	if( Ftest( buf ) == 0 ) // If file already exists quit ...
+	{
+		if( ignore_running )
+		{
+			// printf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
+			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+		}
+		else
+		{
+			printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+			printf( "---------------------------------------------------\n" );
+			printf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
+			printf( "Delete %s to execute or run mads with argument \"f\")!\n", buf );
+			exit( 0 );
+		}
+	}
+	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
+	sprintf( filename2, "%s.mads_output", op.root );
+	if( Ftest( filename2 ) == 0 ) // If file already exists quit ...
+	{
+		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
+		system( buf );
+	}
+	mads_output = Fwrite( filename2 );
 	buf[0] = 0;
-	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-	cd.debug = parse_cmd_debug( buf );
 	op.pd = &pd; // create opt_data structures ...
 	op.rd = &rd;
 	op.od = &od;
@@ -207,81 +255,34 @@ int main( int argn, char *argv[] )
 	op.phi = HUGE_VAL;
 	op.success = op.global_success = 0;
 	op.f_ofe = NULL;
-	printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
-	printf( "---------------------------------------------------\n" );
-	if( argn < 2 )
-	{
-		mads_info(); // print short mads help manual
-		exit( 1 );
-	}
-	else
-		printf( "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
 	op.label = ( char * ) malloc( 10 * sizeof( char ) ); op.label[0] = 0;
-	if( cd.debug ) printf( "Argument[1]: %s\n", argv[1] );
-	else
-	{
-		if( cd.debug > 1 && argn > 2 )
-			for( i = 2; i < argn; i++ )
-				printf( "Argument[%d]: %s\n", i, argv[i] );
-	}
+	tprintf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+	tprintf( "---------------------------------------------------\n" );
+	tprintf( "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
+	if( cd.debug > 1 )
+		for( i = 1; i < argn; i++ )
+			tprintf( "Argument[%d]: %s\n", i, argv[i] );
+	tprintf( "Input file name: %s\n", filename );
+	tprintf( "Problem root name: %s\n", root );
+	if( extension[0] != 0 )	tprintf( " Extension: %s", extension );
 	strcpy( root, argv[1] ); // Defined problem name (root)
-	dot = strrchr( root, '.' );
-	if( dot != NULL && dot[1] != '/' )
-	{
-		strcpy( filename, argv[1] );
-		strcpy( extension, &dot[1] );
-		dot[0] = 0;
-	}
-	else
-	{
-		sprintf( filename, "%s.mads", argv[1] );
-		extension[0] = 0;
-	}
-	printf( "Input file name: %s ", filename );
 	if( strcasestr( filename, "yaml" ) || strcasestr( filename, "yml" ) )
 	{
-		printf( "(YAML format expected)\n" );
+		tprintf( " (YAML format expected)\n" );
 		cd.yaml = 1; // YAML format
 	}
 	else if( strcasecmp( extension, "pst" ) == 0 )
 	{
-		printf( "(PEST format expected)\n" );
+		tprintf( " (PEST format expected)\n" );
 		cd.yaml = 0; // PEST format
 	}
 	else
 	{
-		printf( "\n" );
+		tprintf( "\n" );
 		cd.yaml = 0; // MADS plain text format expected; it can be still YAML format
 	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
-	printf( "Problem root name: %s", root );
-	if( extension[0] != 0 )	printf( " Extension: %s\n", extension );
-	else printf( "\n" );
-	op.root = root;
-	op.filename = filename;
-	op.counter = 0;
-	sprintf( filename2, "%s.mads_output", op.root );
-	if( Ftest( filename2 ) == 0 ) // If file already exists quit ...
-	{
-		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
-		system( buf );
-	}
-	mads_output = Fwrite( filename2 );
-	fprintf( mads_output, "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
-	fprintf( mads_output, "---------------------------------------------------\n" );
-	fprintf( mads_output, "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
-	fprintf( mads_output, "Input file name: %s\n", filename );
-	fprintf( mads_output, "Problem root name: %s\n", root );
-	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
-	if( Ftest( buf ) == 0 ) // If file already exists quit ...
-	{
-		tprintf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-		// tprintf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-		// tprintf( "Delete %s to execute (sorry for the inconvenience)!\n", buf );
-		// exit( 0 );
-	}
-	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
 	/*
 	 *  Read input data
 	 */
@@ -298,14 +299,13 @@ int main( int argn, char *argv[] )
 				else save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
-			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			exit( 0 );
+			mads_quits( op.root );
 		}
 		if( cd.opt_method[0] == 0 ) { strcpy( cd.opt_method, "lm" ); cd.calib_type = SIMPLE; cd.problem_type = CALIBRATE; }
 		cd.solution_type[0] = EXTERNAL; func_global = func_extrn;
 		buf[0] = 0;
 		for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-		if( parse_cmd( buf, &cd ) == -1 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+		if( parse_cmd( buf, &cd ) == -1 ) mads_quits( op.root );
 	}
 	else // MADS Problem
 	{
@@ -316,14 +316,14 @@ int main( int argn, char *argv[] )
 #ifdef YAML
 			ier = load_yaml_problem( filename, argn, argv, &op );
 #else
-			tprintf( "\nMADS quits! YAML format is not supported in the compiled version of MADS. Recompile with YAML libraries.\n" );
-			exit( 0 );
+			tprintf( "\nERROR: YAML format is not supported in the compiled version of MADS. Recompile with YAML libraries.\n" );
+			mads_quits( op.root );
 #endif
 		}
 		else ier = load_problem( filename, argn, argv, &op ); // MADS plain text format or "NO FILE"
 		if( ier <= 0 )
 		{
-			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
+			tprintf( "\nERROR: Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
@@ -331,8 +331,7 @@ int main( int argn, char *argv[] )
 				else save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
-			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			exit( 0 );
+			mads_quits( op.root );
 		}
 		if( cd.solution_type[0] == EXTERNAL ) func_global = func_extrn;
 		else func_global = func_intrn;
@@ -415,8 +414,8 @@ int main( int argn, char *argv[] )
 	{
 		pid = getpid();
 		if( cd.debug ) tprintf( "Parent ID [%d]\n", pid );
-		cwd = getenv( "PWD" ); dot = strrchr( cwd, '/' );
-		cd.mydir = &dot[1];
+		cwd = getenv( "PWD" ); root_dot = strrchr( cwd, '/' );
+		cd.mydir = &root_dot[1];
 		if( cd.debug ) tprintf( "Working directory: %s (%s)\n", cwd, cd.mydir );
 		cd.mydir_hosts = dir_hosts( &op, op.datetime_stamp ); // Directories for parallel execution have unique name based on the execution time
 	}
@@ -428,12 +427,7 @@ int main( int argn, char *argv[] )
 	{
 		if( ed.ntpl <= 0 ) { tprintf( "ERROR: No template file(s)!\n" ); bad_data = 1; }
 		else tprintf( "Checking the template files for errors ...\n" );
-		if( bad_data )
-		{
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 0 );
-		}
+		if( bad_data ) mads_quits( op.root );
 		bad_data = 0;
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
@@ -452,12 +446,7 @@ int main( int argn, char *argv[] )
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
 		if( ed.nins <= 0 ) { tprintf( "ERROR: No instruction file(s)!\n" ); bad_data = 1; }
 		else tprintf( "Checking the instruction files for errors ...\n" );
-		if( bad_data )
-		{
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 0 );
-		}
+		if( bad_data ) mads_quits( op.root );
 		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.nins; i++ )
 			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
@@ -473,12 +462,7 @@ int main( int argn, char *argv[] )
 				tprintf( "WARNING: Observation \'%s\' is defined more than once (%d times) in the instruction file(s)! Arithmetic average will be computed!\n", od.obs_id[i], ( int ) od.obs_current[i] );
 		}
 		if( !bad_data ) tprintf( "Instruction files are ok.\n" );
-		if( bad_data )
-		{
-			sprintf( buf, "rm -f %s.running", op.root ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-			system( buf );
-			exit( 0 );
-		}
+		if( bad_data ) mads_quits( op.root );
 		if( cd.sintrans ) { if( cd.sindx < DBL_EPSILON ) cd.sindx = 0.1; else if( cd.sindx < 1e-3 ) tprintf( "WARNING: sindx (%g) is potentially too small for external problems; consider increasing sindx (add sindx=1e-2)\n", cd.sindx ); }
 		else { if( cd.lindx < DBL_EPSILON ) cd.lindx = 0.01; }
 	}
@@ -601,13 +585,13 @@ int main( int argn, char *argv[] )
 		else optimize_func = optimize_pso; // Define optimization method: PSO
 		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = pd.var[i]; // Set all the initial values
 		success = optimize_func( &op ); // Optimize
-		if( success == 0 ) { tprintf( "ERROR: Optimization did not start!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+		if( success == 0 ) { tprintf( "ERROR: Optimization did not start!\n" ); mads_quits( op.root ); }
 		if( cd.debug == 0 ) tprintf( "\n" );
 		print_results( &op, 1 );
 		save_final_results( "", &op, &gd );
 		predict = 0;
 	}
-	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+	if( status == 0 ) mads_quits( op.root );
 	strcpy( op.label, "" ); // No labels needed below
 	// ------------------------------------------------------------------------------------------------ EIGEN || LOCALSENS
 	if( cd.problem_type == EIGEN || cd.problem_type == LOCALSENS )
@@ -649,35 +633,35 @@ int main( int argn, char *argv[] )
 		int sum;
 		FILE *params_file;
 		double pfail;
-/*		double h = 0.;
-		do
-		{
-			set_obs_alpha( &op, 0.5 + 1.5 / ( 1. + h ) );
-			multiply_obs_scale( &op, 2. );
-*/
-			mcmc = get_posterior_parameter_samples( &op );
-			params_file = fopen( "sampled_params.txt", "w" );
-			sum = 0.;
-			for( i = mcmc->m / 2; i < mcmc->m; i++ )
-			{
-				sum += mcmc->z[i][mcmc->n + 2];
-				for( j = 0; j < mcmc->n; j++ )
+		/*		double h = 0.;
+				do
 				{
-					fprintf( params_file, "%g\t", mcmc->z[i][j] );
-				}
-				fprintf( params_file, "%g\n", mcmc->z[i][mcmc->n + 2] );
+					set_obs_alpha( &op, 0.5 + 1.5 / ( 1. + h ) );
+					multiply_obs_scale( &op, 2. );
+		*/
+		mcmc = get_posterior_parameter_samples( &op );
+		params_file = fopen( "sampled_params.txt", "w" );
+		sum = 0.;
+		for( i = mcmc->m / 2; i < mcmc->m; i++ )
+		{
+			sum += mcmc->z[i][mcmc->n + 2];
+			for( j = 0; j < mcmc->n; j++ )
+			{
+				fprintf( params_file, "%g\t", mcmc->z[i][j] );
 			}
-			fclose( params_file );
-			pfail = 1. - ( (double) sum ) / ( mcmc->m - mcmc->m / 2 );
+			fprintf( params_file, "%g\n", mcmc->z[i][mcmc->n + 2] );
+		}
+		fclose( params_file );
+		pfail = 1. - ( ( double ) sum ) / ( mcmc->m - mcmc->m / 2 );
 //			printf("probability of failure at horizon of uncertainty=%g: %g\n", h, pfail );
-			tprintf("probability of failure: %g (%d samples used)\n", pfail, ( mcmc->m - mcmc->m / 2 ));
-			free_mcmc( mcmc );
-/*
-			h += 1;
-		} while( pfail < 0.05 && h < 100 );
-*/
+		tprintf( "probability of failure: %g (%d samples used)\n", pfail, ( mcmc->m - mcmc->m / 2 ) );
+		free_mcmc( mcmc );
+		/*
+					h += 1;
+				} while( pfail < 0.05 && h < 100 );
+		*/
 	}
-	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
+	if( status == 0 ) mads_quits( op.root );
 	// ------------------------------------------------------------------------------------------------ FORWARD
 	if( cd.problem_type == FORWARD ) // Forward run
 	{
@@ -897,8 +881,8 @@ int main( int argn, char *argv[] )
 			}
 			else
 			{
-				tprintf( "\nNo model predictions!\n" );
-				exit( 1 );
+				tprintf( "\nERROR: No model predictions!\n" );
+				mads_quits( op.root );
 			}
 		}
 	}
@@ -1074,7 +1058,6 @@ int main( int argn, char *argv[] )
 void multiply_obs_scale( struct opt_data *od, double factor )
 {
 	int i, j, k;
-
 	i = 0;
 	for( j = 0; j < od->wd->nW; j++ )
 	{
@@ -1090,7 +1073,6 @@ void multiply_obs_scale( struct opt_data *od, double factor )
 void set_obs_alpha( struct opt_data *od, double alpha )
 {
 	int i, j, k;
-
 	i = 0;
 	for( j = 0; j < od->wd->nW; j++ )
 	{
@@ -2829,7 +2811,7 @@ void print_results( struct opt_data *op, int verbosity )
 	if( op->pd->nExpParam > 0 )
 	{
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( op->root );
 	}
 #endif
 	if( verbosity == 0 ) return;
@@ -3030,7 +3012,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	{
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
 		fprintf( out, "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		exit( 0 );
+		mads_quits( op->root );
 	}
 #endif
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
@@ -3148,4 +3130,13 @@ int sort_int( const void *x, const void *y )
 double sort_double( const void *x, const void *y )
 {
 	return ( *( double * ) x - * ( double * ) y );
+}
+
+void mads_quits( char *root )
+{
+	char buf[100];
+	buf[0] = 0;
+	tprintf( "MADS Quits!" );
+	sprintf( buf, "rm -f %s.running", root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+	exit( 1 );
 }

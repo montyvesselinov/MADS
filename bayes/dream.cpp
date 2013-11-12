@@ -72,7 +72,6 @@ double **varseqsum;
 double performance_requirement_satisfied( struct opt_data *od )
 {
 	int i;
-
 	for( i = 0; i < od->od->nTObs; i++ )
 	{
 		if( od->od->obs_weight[i] < 0 && od->od->obs_max[i] < od->od->obs_current[i] )
@@ -80,7 +79,6 @@ double performance_requirement_satisfied( struct opt_data *od )
 			return 0.;
 		}
 	}
-
 	return 1.;
 }
 
@@ -97,7 +95,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	srand( time( 0 ) ); // initialize seed "randomly"
 	// srand( 1 );
 	// Problem specific parameter settings
-	MCMCPar = (struct MCMC *) malloc( sizeof( struct MCMC ) );
+	MCMCPar = ( struct MCMC * ) malloc( sizeof( struct MCMC ) );
 	MCMCPar->n = od->pd->nOptParam;
 	MCMCPar->ndraw = od->cd->nreal;                  // Maximum number of function evaluations
 	MCMCPar->parallelUpdate = 0.9;           // Fraction of parallel direction updates
@@ -116,7 +114,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	MCMCPar->k = 10;                         // Thinning parameter for appending X to Z
 	MCMCPar->eps = 0.05;                     // Perturbation for ergodicity
 	MCMCPar->nzee = MCMCPar->m0 + ( MCMCPar->seq * ( MCMCPar->ndraw - MCMCPar->m0 ) ) / ( MCMCPar->seq * MCMCPar->k ) + 2 * MCMCPar->seq;
-	MCMCPar->nzoff = 2 * MCMCPar->DEpairs * MCMCPar->seq;
+	MCMCPar->nzoff = 2 * MCMCPar->DEpairs *MCMCPar->seq;
 	// -----------------------------------------------------------------------------------------------------------------------
 	MCMCPar->ppCR = PPCR_UPDATE;                   // Adaptive tuning of crossover values
 	// -----------------------------------------------------------------------------------------------------------------------
@@ -163,17 +161,17 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// make Zinit pointer to pass back and forth from functions
 	double **Zinit = double_matrix( MCMCPar->m0 + MCMCPar->seq, MCMCPar->n );
 	// make 3dArray Sequences pointer to pass back and forth from functions
-	double ***Sequences = NULL;
+	double ** *Sequences = NULL;
 	if( MCMCPar->save_in_memory )
 	{
-		Sequences = (double ***) malloc( sizeof( double ** ) * MCMCPar->seq );
+		Sequences = ( double ** * ) malloc( sizeof( double ** ) * MCMCPar->seq );
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
 			Sequences[row] = double_matrix( MCMCPar->seq_length, MCMCPar->np3 );
 		}
 	}
 	// make 3dArray Sequences pointer to pass back and forth from functions
-	double ***Reduced_Seq = NULL;
+	double ** *Reduced_Seq = NULL;
 	if( MCMCPar->reduced_sample_collection )
 	{
 		Reduced_Seq = new double **[MCMCPar->seq];
@@ -223,7 +221,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	double *R_stat = new double [MCMCPar->n];
 	// make 2dArray Table_JumpRate pointer to pass back and forth from functions
 	double **Table_JumpRate = double_matrix( MCMCPar->n, MCMCPar->DEpairs );
-	double **Zee= double_matrix( MCMCPar->nzee, MCMCPar->np3 );
+	double **Zee = double_matrix( MCMCPar->nzee, MCMCPar->np3 );
 	// output arrays
 	int outlines = MCMCPar->ndraw / MCMCPar->seq + MCMCPar->seq;
 	output.nEval = new int[ outlines ];
@@ -243,12 +241,12 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// There are a lot of frees and deletes that still need to be implemented
 	delete Measurement.MeasData;
 	delete ModPred;
-	free_matrix( (void **) Zinit, MCMCPar->m0 + MCMCPar->seq );
+	free_matrix( ( void ** ) Zinit, MCMCPar->m0 + MCMCPar->seq );
 	if( MCMCPar->save_in_memory )
 	{
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			free_matrix( (void **) Sequences[row], MCMCPar->seq_length );
+			free_matrix( ( void ** ) Sequences[row], MCMCPar->seq_length );
 		}
 		free( Sequences );
 	}
@@ -256,16 +254,16 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	{
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			free_matrix( (void **) Reduced_Seq[row], MCMCPar->reduced_seq_length );
+			free_matrix( ( void ** ) Reduced_Seq[row], MCMCPar->reduced_seq_length );
 		}
 		delete Reduced_Seq;
 	}
-	free_matrix( (void **) lCR, 1 );
-	free_matrix( (void **) lCRnew, 1);
-	free_matrix( (void **) pCR, 1 );
+	free_matrix( ( void ** ) lCR, 1 );
+	free_matrix( ( void ** ) lCRnew, 1 );
+	free_matrix( ( void ** ) pCR, 1 );
 	delete delta_tot;
-	free_matrix( (void **) xnew, MCMCPar->seq );
-	free_matrix( (void **) xold, MCMCPar->seq );
+	free_matrix( ( void ** ) xnew, MCMCPar->seq );
+	free_matrix( ( void ** ) xold, MCMCPar->seq );
 	delete p;
 	delete log_p;
 	delete integrand;
@@ -273,26 +271,26 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	delete log_p_xold;
 	delete integrand_old;
 	delete RandArray;
-	free_matrix( (void **) CRS, MCMCPar->nCR );
-	free_matrix( (void **) DEversion, MCMCPar->seq );
+	free_matrix( ( void ** ) CRS, MCMCPar->nCR );
+	free_matrix( ( void ** ) DEversion, MCMCPar->seq );
 	delete alpha_s;
 	delete p_xnew;
 	delete log_p_xnew;
 	delete integrand_new;
 	delete accept;
 	delete R_stat;
-	free_matrix( (void **) Table_JumpRate, MCMCPar->n );
+	free_matrix( ( void ** ) Table_JumpRate, MCMCPar->n );
 	//don't free Zee, because we're sending it back to the calling function
 	MCMCPar->z = Zee;//this is how we send the samples back to the caller
 	free( ParRange.minn );
 	free( ParRange.maxn );
 	delete output.nEval;
 	delete output.Acceptance_Rate;
-	free_matrix( (void **) output.CR, MCMCPar->nCR );
-	free_matrix( (void **) output.R_stat, MCMCPar->n );
-	free_matrix( (void **) meanseqsum, MCMCPar->n );
-	free_matrix( (void **) meanseqsum2, MCMCPar->n );
-	free_matrix( (void **) varseqsum, MCMCPar->n );
+	free_matrix( ( void ** ) output.CR, MCMCPar->nCR );
+	free_matrix( ( void ** ) output.R_stat, MCMCPar->n );
+	free_matrix( ( void ** ) meanseqsum, MCMCPar->n );
+	free_matrix( ( void ** ) meanseqsum2, MCMCPar->n );
+	free_matrix( ( void ** ) varseqsum, MCMCPar->n );
 	return MCMCPar;
 }
 
@@ -1887,11 +1885,11 @@ double **double_matrix( int maxRows, int maxCols )
 {
 	double **matrix;
 	//matrix = new double* [maxRows];
-	matrix = (double **) malloc( sizeof( double * ) * maxRows );
+	matrix = ( double ** ) malloc( sizeof( double * ) * maxRows );
 	for( int row = 0; row < maxRows; row++ )
 	{
 		//matrix[row] = new double[maxCols];
-		matrix[row] = (double *) malloc( sizeof( double ) * maxCols );
+		matrix[row] = ( double * ) malloc( sizeof( double ) * maxCols );
 	}
 	return( matrix );
 }
@@ -1900,11 +1898,11 @@ int **int_matrix( int maxRows, int maxCols )
 {
 	int **matrix;
 	//matrix = new int* [maxRows];
-	matrix = (int **) malloc( sizeof( int * ) * maxRows );
+	matrix = ( int ** ) malloc( sizeof( int * ) * maxRows );
 	for( int row = 0; row < maxRows; row++ )
 	{
 		//matrix[row] = new int[maxCols];
-		matrix[row] = (int *) malloc( sizeof( int ) * maxCols );
+		matrix[row] = ( int * ) malloc( sizeof( int ) * maxCols );
 	}
 	return( matrix );
 }
@@ -1919,7 +1917,7 @@ void free_matrix( void **matrix, int maxCols )
 
 extern "C" void free_mcmc( struct MCMC *mcmc )
 {
-	free_matrix( (void **) mcmc->z, mcmc->nzee );
-	free_matrix( (void **) mcmc->CR, mcmc->DEpairs );
+	free_matrix( ( void ** ) mcmc->z, mcmc->nzee );
+	free_matrix( ( void ** ) mcmc->CR, mcmc->DEpairs );
 	free( mcmc );
 }

@@ -157,7 +157,8 @@ void mads_info()
 	printf( "   nobs=[integer]     - number of observations for the test problem (fixed for some of the problems) [default=2]\n" );
 	printf( "   pardomain=[float]  - parameter space domain size [default pardomain=100]\n" );
 	printf( "\ndebugging / verbose levels:\n" );
-	printf( "   quiet              - no screen output (all the output is saved in a file with extension mads_output\n" );
+	printf( "   force | f          - enforce running even if a file *.running exists (the file *.running is to prevent overlapping executions)\n" );
+	printf( "   quiet | q          - no screen output (all the screen output is saved in a file with extension mads_output\n" );
 	printf( "   debug=[0-5]        - general debugging [default debug=0]\n" );
 	printf( "   fdebug=[0-5]       - model evaluation debugging [default fdebug=0]\n" );
 	printf( "   ldebug=[0-3]       - Levenberg-Marquardt optimization debugging [default ldebug=0]\n" );

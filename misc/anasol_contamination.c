@@ -224,7 +224,7 @@ double box_source( double x, double y, double z, double t, void *params )
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
-		fprintf(stderr, "error: %s\n", gsl_strerror( status ) );
+		fprintf( stderr, "error: %s\n", gsl_strerror( status ) );
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
@@ -552,7 +552,7 @@ double box_source_levy_dispersion( double x, double y, double z, double t, void 
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
-		fprintf(stderr, "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
+		fprintf( stderr, "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
@@ -633,7 +633,7 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	if( status != 0 )
 	{
-		fprintf(stderr, "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
+		fprintf( stderr, "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
 		//result = 0;
 	}
 	gsl_integration_workspace_free( w );
