@@ -1614,12 +1614,17 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 			double D = 0;
 			for( int i = 0; i < MCMCPar->n; i++ )
 				D += Fnew[qq][i];
+			D = max(D, 1e-300);
 			// Orthogonally project of zR1 and zR2 onto F
 			for( int col = 0; col < MCMCPar->n; col++ )
+			{
 				zP[qq][col] = F[qq][col] * ( zR1[col] - zR2[col] * F[qq][col] ) / D;
+			}
 			// And define the jump
 			for( int i = 0; i < MCMCPar->n; i++ )
+			{
 				xjump[qq][i] = Gamma * zP[qq][i];
+			}
 			// Update CR because we only consider full dimensional updates
 			CRS[qq][1] = 1;
 		}
@@ -1627,8 +1632,12 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 	}
 	// Now propose new x
 	for( int qq = 0; qq < MCMCPar->seq; qq++ )
+	{
 		for( int j = 0; j < MCMCPar->n; j++ )
+		{
 			xnew[qq][j] = xold[qq][j] + xjump[qq][j];
+		}
+	}
 	if( MCMCPar->verbose > 5 )
 	{
 		printf( "xjump offde\n" );
