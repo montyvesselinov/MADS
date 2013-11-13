@@ -265,7 +265,6 @@ int main( int argn, char *argv[] )
 	tprintf( "Input file name: %s\n", filename );
 	tprintf( "Problem root name: %s\n", root );
 	if( extension[0] != 0 )	tprintf( " Extension: %s", extension );
-	strcpy( root, argv[1] ); // Defined problem name (root)
 	if( strcasestr( filename, "yaml" ) || strcasestr( filename, "yml" ) )
 	{
 		tprintf( " (YAML format expected)\n" );
