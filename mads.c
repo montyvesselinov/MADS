@@ -101,12 +101,11 @@ void mads_info();
 // IO
 int check_mads_problem( char *filename );
 char *datestamp(); // create date stamp
-int parse_cmd_debug( char *buf );
 int parse_cmd_init( int argn, char *argv[], struct calc_data *cd );
 int parse_cmd( char *buf, struct calc_data *cd );
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-int load_pst( char *filename, struct opt_data *op );
+int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
+int load_pst( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 int Ftest( char *filename );
@@ -127,7 +126,6 @@ int get_seed( );
 // YAML
 #ifdef YAML
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-int save_problem_yaml( char *filename, struct opt_data *op );
 #endif
 // Memory
 char *white_trim( char *x );
@@ -177,6 +175,7 @@ int main( int argn, char *argv[] )
 	char filename[255], filename2[255], root[255], extension[255], buf[1000], *root_dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
+	strcpy( version_id, "1.1.14" );
 	FILE *in, *out, *out2;
 	out2 = NULL;
 	time_t time_start, time_end, time_elapsed;
@@ -186,7 +185,7 @@ int main( int argn, char *argv[] )
 	op.datetime_stamp = datestamp(); // create execution date stamp
 	if( argn < 2 )
 	{
-		printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+		printf( "MADS: Model Analyses & Decision Support (v.%s) 2013\n", version_id );
 		printf( "---------------------------------------------------\n" );
 		mads_info(); // print short mads help manual
 		exit( 1 );
@@ -207,8 +206,8 @@ int main( int argn, char *argv[] )
 	op.root = root;
 	op.filename = filename;
 	op.counter = 0;
+	cd.solution_type = ( int * ) malloc( sizeof( int ) );
 	ignore_running = parse_cmd_init( argn, argv, &cd );
-	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
 	if( Ftest( buf ) == 0 ) // If file already exists quit ...
 	{
 		if( ignore_running )
@@ -218,16 +217,24 @@ int main( int argn, char *argv[] )
 		}
 		else
 		{
-			printf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+			printf( "MADS: Model Analyses & Decision Support (v.%s) 2013\n", version_id );
 			printf( "---------------------------------------------------\n" );
 			printf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
 			printf( "Delete %s to execute or run mads with argument \"f\")!\n", buf );
 			exit( 0 );
 		}
 	}
+	if( Ftest( filename ) && cd.solution_type[0] != TEST )
+	{
+		printf( "MADS: Model Analyses & Decision Support (v.%s) 2013\n", version_id );
+		printf( "---------------------------------------------------\n" );
+		printf( "ERROR: MADS input file \'%s\' does not exist.\n", filename );
+		exit( 0 );
+	}
+	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
 	sprintf( filename2, "%s.mads_output", op.root );
-	if( Ftest( filename2 ) == 0 ) // If file already exists quit ...
+	if( Ftest( filename2 ) == 0 ) // If file already exists rename the output file ...
 	{
 		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
 		system( buf );
@@ -256,29 +263,29 @@ int main( int argn, char *argv[] )
 	op.success = op.global_success = 0;
 	op.f_ofe = NULL;
 	op.label = ( char * ) malloc( 10 * sizeof( char ) ); op.label[0] = 0;
-	tprintf( "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+	tprintf( "MADS: Model Analyses & Decision Support (v.%s) 2013\n", version_id );
 	tprintf( "---------------------------------------------------\n" );
-	tprintf( "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
+	tprintf( "Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
 	if( cd.debug > 1 )
 		for( i = 1; i < argn; i++ )
 			tprintf( "Argument[%d]: %s\n", i, argv[i] );
 	tprintf( "Input file name: %s\n", filename );
-	tprintf( "Problem root name: %s\n", root );
+	tprintf( "Problem root name: %s", root );
 	if( extension[0] != 0 )	tprintf( " Extension: %s", extension );
 	if( strcasestr( filename, "yaml" ) || strcasestr( filename, "yml" ) )
 	{
 		tprintf( " (YAML format expected)\n" );
-		cd.yaml = 1; // YAML format
+		cd.ioml = IO_YAML; // YAML format
 	}
 	else if( strcasecmp( extension, "pst" ) == 0 )
 	{
 		tprintf( " (PEST format expected)\n" );
-		cd.yaml = 0; // PEST format
+		cd.ioml = IO_TEXT; // PEST format
 	}
 	else
 	{
 		tprintf( "\n" );
-		cd.yaml = 0; // MADS plain text format expected; it can be still YAML format
+		cd.ioml = IO_TEXT; // MADS plain text format expected; it can be still YAML format
 	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
@@ -294,8 +301,7 @@ int main( int argn, char *argv[] )
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
-				if( cd.yaml ) save_problem_yaml( filename, &op );
-				else save_problem( filename, &op );
+				save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			mads_quits( op.root );
@@ -308,9 +314,9 @@ int main( int argn, char *argv[] )
 	}
 	else // MADS Problem
 	{
-		if( check_mads_problem( filename ) == 1 ) cd.yaml = 1;
-		else cd.yaml = 0;
-		if( cd.yaml ) // YAML format
+		if( check_mads_problem( filename ) == 1 ) cd.ioml = IO_YAML;
+		else cd.ioml = IO_TEXT;
+		if( cd.ioml == IO_YAML ) // YAML format
 		{
 #ifdef YAML
 			ier = load_yaml_problem( filename, argn, argv, &op );
@@ -319,15 +325,15 @@ int main( int argn, char *argv[] )
 			mads_quits( op.root );
 #endif
 		}
-		else ier = load_problem( filename, argn, argv, &op ); // MADS plain text format or "NO FILE"
+		else if( cd.ioml == IO_XML ) {} // XML format
+		else ier = load_problem_text( filename, argn, argv, &op ); // MADS plain text format or "NO FILE"
 		if( ier <= 0 )
 		{
 			tprintf( "\nERROR: Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
-				if( cd.yaml ) save_problem_yaml( filename, &op );
-				else save_problem( filename, &op );
+				save_problem( filename, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			mads_quits( op.root );
@@ -1015,8 +1021,7 @@ int main( int argn, char *argv[] )
 	{
 		cd.problem_type = CALIBRATE;
 		sprintf( filename, "%s-truth.mads", op.root );
-		if( cd.yaml ) save_problem_yaml( filename, &op );
-		else save_problem( filename, &op );
+		save_problem( filename, &op );
 		tprintf( "\nMADS problem file named %s-truth.mads is created; modify the file if needed\n\n", op.root );
 		cd.problem_type = CREATE;
 	}
@@ -1970,8 +1975,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 				{
 					sprintf( filename, "%s-igrnd.%d.mads", op->root, count + 1 );
 					op->cd->calib_type = SIMPLE;
-					if( op->cd->yaml ) save_problem_yaml( filename, op );
-					else save_problem( filename, op );
+					save_problem( filename, op );
 					op->cd->calib_type = IGRND;
 					continue;
 				}
@@ -2397,9 +2401,7 @@ int ppsd( struct opt_data *op )
 					{
 						sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
 						op->cd->calib_type = SIMPLE;
-						if( op->cd->yaml ) save_problem_yaml( filename, op );
-						else save_problem( filename, op );
-						op->cd->calib_type = PPSD;
+						save_problem( filename, op );
 						for( i = 0; i < op->pd->nParam; i++ )
 							if( orig_opt[i] == 2 )
 							{
@@ -2464,9 +2466,7 @@ int ppsd( struct opt_data *op )
 			{
 				op->cd->calib_type = SIMPLE;
 				sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
-				if( op->cd->yaml ) save_problem_yaml( filename, op );
-				else save_problem( filename, op );
-				op->cd->calib_type = PPSD;
+				save_problem( filename, op );
 				save_final_results( "ppsd", op, op->gd );
 			}
 			if( op->cd->ireal != 0 ) break;
@@ -2979,11 +2979,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	// Save MADS rerun file
 	if( k == -1 ) sprintf( filename, "%s-rerun.mads", filename );
 	else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file
-	if( op->cd->solution_type[0] != TEST )
-	{
-		if( op->cd->yaml ) save_problem_yaml( filename, op );
-		else save_problem( filename, op );
-	}
+	if( op->cd->solution_type[0] != TEST ) save_problem( filename, op );
 	// Save results file
 	strcpy( filename, fileroot );
 	strcat( filename, ".results" );
@@ -3135,7 +3131,7 @@ void mads_quits( char *root )
 {
 	char buf[100];
 	buf[0] = 0;
-	tprintf( "MADS Quits!" );
+	tprintf( "MADS Quits!\n" );
 	sprintf( buf, "rm -f %s.running", root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 	exit( 1 );
 }

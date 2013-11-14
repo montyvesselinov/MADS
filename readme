@@ -16,7 +16,17 @@ USAGE: mads problem_name [ keywords | options ]       OR
 
 For additional information:
        web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
-       email: Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+       email: Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+       
+Download:
+	http://github.com:montyvesselinov/MADS
+	http://bitbucket.org:monty_vesselinov/mads
+	http://gitlab.com:Monty/mads
+	
+Clone GIT repositories:
+	git clone git@github.com:montyvesselinov/MADS.git
+	git clone git@bitbucket.org:monty_vesselinov/mads.git
+	git clone git@gitlab.com:Monty/mads.git       
 
 Required libraries:
 
@@ -24,8 +34,8 @@ Required libraries:
 	LAPACK:     http://www.netlib.org/lapack/
 	BLAS:       http://www.netlib.org/blas/
 	MATHEVAL:   http://www.gnu.org/software/libmatheval/
-	YAML:       http://www.yaml.org/spec/1.2/spec.html
-	GLIB:       http://developer.gnome.org/glib/2.36/glib-N-ary-Trees.html
+	YAML:       http://www.yaml.org
+	GLIB:       http://developer.gnome.org/glib/
 	PKG-CONFIG: http://www.freedesktop.org/wiki/Software/pkg-config/
 
 	MAC OS X installation:
@@ -47,6 +57,6 @@ To verify the code, run 'make verify'; TCSH shell is needed to run verification 
 
 To execute, run 'mads'
 
-Several examples can be found in directory 'example' (check the 'readme' files)
+Several examples can be found in directory 'example' (check the 'readme' files in directory 'example')
 
-Comparisons with code PEST are available for most examples as well (in subdirectories of 'example', check the 'readme' files)
+Comparisons with the code PEST are available as well (in subdirectories of 'example', check the 'readme' files)

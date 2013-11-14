@@ -64,7 +64,7 @@ endif
 endif
 endif
 # MADS files
-OBJSMADS = mads.o mads_io.o mads_io_external.o mads_func.o mads_mem.o mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o
+OBJSMADS = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o
 OBJSA = sa/abagus.o sa/postpua.o sa/global.o sa/do_miser.o
 OBJDS = ds/infogap.o ds/glue.o
@@ -77,7 +77,7 @@ OBJSBAYES = bayes/dream.o
 
 ifeq ($(YAML),true)
 $(info YAML Support included)
-OBJSMADS += mads_io_yaml.o
+OBJSMADS += ./mads_io_yaml.o
 CFLAGS += -DYAML `pkg-config --cflags glib-2.0`
 LDLIBS += -lyaml `pkg-config --libs glib-2.0`
 endif

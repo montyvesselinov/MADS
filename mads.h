@@ -35,6 +35,8 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 
+
+enum IO_TYPE {IO_TEXT = 0, IO_YAML, IO_XML };
 enum PROBLEM_TYPE {UNKNOWN = -3, CHECK, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, INFOGAP, POSTPUA, GLUE, BAYES };
 enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
 enum GSA_TYPE {SOBOL, SALTELLI, MOAT};
@@ -52,6 +54,7 @@ int (*func_global)( double *x, void *data, double *f ); // global pointer to the
 void tprintf( char const *fmt, ... );
 FILE *mads_output;
 int quiet;
+char version_id[80];
 
 #define COMPARE_EPSILON pow( FLT_EPSILON, (double) 1/2 ) // EPSILON FOR BOUND COMPARISON
 
@@ -84,7 +87,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 {
 	int problem_type; // problem type: forward, calibration, ...
 	int calib_type; // calibration type: simple, igpd, ...
-	int yaml; // input / output format
+	int ioml; // YAML/XML input / output format
 	int gsa_type; // global sensitivity analysis type: sobol, saltelli, moat, ...
 	int paranoid; // paranoid calibration
 	int num_sources; // number of contaminant sources (internal solutions)
@@ -382,8 +385,8 @@ char *white_trim( char *x );
 void white_skip( char **s );
 // mads_io.c
 int parse_cmd( char *buf, struct calc_data *cd );
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-int save_problem( char *filename, struct opt_data *op );
+int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op );
+int save_problem_text( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 void compute_btc( char *filename, struct opt_data *op );

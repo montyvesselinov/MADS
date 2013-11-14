@@ -1,6 +1,6 @@
 MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
-Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: p01squads.mads
@@ -30,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20131005-104109
+Execution date & time stamp: 20131114-163954
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -73,6 +73,6 @@ Simulation time = 0 seconds
 Functional evaluations = 3773
 Jacobian evaluations = 552
 Levenberg-Marquardt optimizations = 78
-Execution  started  on Sat Oct  5 10:41:09 2013
-Execution completed on Sat Oct  5 10:41:09 2013
-Execution date & time stamp: 20131005-104109
+Execution  started  on Thu Nov 14 16:39:54 2013
+Execution completed on Thu Nov 14 16:39:54 2013
+Execution date & time stamp: 20131114-163954

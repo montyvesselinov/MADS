@@ -52,8 +52,11 @@ void init_params( struct opt_data *op );
 int parse_cmd_debug( char *buf );
 int parse_cmd_init( int argn, char *argv[], struct calc_data *cd );
 int parse_cmd( char *buf, struct calc_data *cd );
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
+int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op );
+int load_problem_xml( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
+int save_problem_text( char *filename, struct opt_data *op );
+int save_problem_xml( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 void compute_btc( char *filename, struct opt_data *op );
@@ -83,6 +86,9 @@ FILE *Fread( char *filename );
 void removeChars( char *str, char *garbage );
 char *white_trim( char *x );
 void white_skip( char **s );
+#ifdef YAML
+int save_problem_yaml( char *filename, struct opt_data *op );
+#endif
 
 int check_mads_problem( char *filename )
 {
@@ -213,6 +219,7 @@ int parse_cmd_init( int argn, char *argv[], struct calc_data *cd )
 		if( !strncasecmp( argv[i], "q", 1 ) ) { quiet = 1; } // No output
 		if( !strncasecmp( argv[i], "force", 5 ) ) { r = 1; } // Force running
 		if( !strncasecmp( argv[i], "f", 1 ) ) { r = 1; } // Force running
+		if( !strncasecmp( argv[i], "test", 4 ) ) { cd->test_func = 1; cd->solution_type[0] = TEST; }
 	}
 	return( r );
 }
@@ -300,7 +307,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "q", 1 ) ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "force", 5 ) ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "f", 1 ) ) { w = 1; }; // processed in parse_cmd_init
-		if( !strncasecmp( word, "yaml", 5 ) ) { w = 1; cd->yaml = 1; }
+		if( !strncasecmp( word, "text", 4 ) ) { w = 1; cd->ioml = IO_TEXT; }
+		if( !strncasecmp( word, "yaml", 4 ) ) { w = 1; cd->ioml = IO_YAML; }
+		if( !strncasecmp( word, "xml", 3 ) ) { w = 1; cd->ioml = IO_XML; }
 		if( !strncasecmp( word, "check", 5 ) ) { w = 1; cd->problem_type = CHECK; }
 		if( !strncasecmp( word, "create", 6 ) ) { w = 1; cd->problem_type = CREATE; }
 		if( !strncasecmp( word, "forward", 7 ) ) { w = 1; cd->problem_type = FORWARD; }
@@ -590,7 +599,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	return( 1 );
 }
 
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
+int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op )
 {
 	FILE *infile, *infile2;
 	//	FILE *infileb;
@@ -644,7 +653,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else buf[0] = 0;
 	// Add commands provided as arguments
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-	cd->solution_type = ( int * ) malloc( sizeof( int ) );
 	if( parse_cmd( buf, cd ) == -1 ) return( -1 );
 	od->include_predictions = 1;
 	if( cd->problem_type == INFOGAP ) od->include_predictions = 0;
@@ -1459,7 +1467,38 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	return( 1 );
 }
 
+int load_problem_xml( char *filename, int argn, char *argv[], struct opt_data *op )
+{
+	tprintf( "ERROR: XML files cannot be loaded yet!\n" );
+	mads_quits( op->root );
+	return( 1 );
+}
+
 int save_problem( char *filename, struct opt_data *op )
+{
+	if( op->cd->ioml == IO_YAML )
+	{
+#ifdef YAML
+		save_problem_yaml( filename, op );
+#else
+		tprintf( "WARNING: YAML files cannot be saved! YAML libraries are not available.\n" );
+		tprintf( "WARNING: Outputs will be saved in TEXT format files cannot be saved!\n" );
+		save_problem_text( filename, op );
+#endif
+	}
+	else if( op->cd->ioml == IO_XML ) save_problem_xml( filename, op );
+	else save_problem_text( filename, op );
+	return( 1 );
+}
+
+int save_problem_xml( char *filename, struct opt_data *op )
+{
+	tprintf( "ERROR: XML files cannot be saved yet!\n" );
+	mads_quits( op->root );
+	return( 1 );
+}
+
+int save_problem_text( char *filename, struct opt_data *op )
 {
 	struct calc_data *cd;
 	struct param_data *pd;
@@ -1748,7 +1787,6 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 			op->pd->var[i] = pow( 10, op->pd->var[i] );
 	i = ( op->cd->num_sources - 1 ) * NUM_ANAL_PARAMS_SOURCE;
 	v = sqrt( op->pd->var[i + VX] * op->pd->var[i + VX] + op->pd->var[i + VY] * op->pd->var[i + VY] + op->pd->var[i + VZ] * op->pd->var[i + VZ] ); // Flow velocity
-	// tprintf( "Flow velocity pointers = (%d %d %d)\n", i+VX, i+VY, i+VZ );
 	tprintf( "Flow velocity = %g (%g %g %g)\n", v, op->pd->var[i + VX], op->pd->var[i + VY], op->pd->var[i + VZ] );
 	for( i = 0; i < op->wd->nW; i++ )
 	{

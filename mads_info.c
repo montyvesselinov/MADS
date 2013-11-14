@@ -169,7 +169,8 @@ void mads_info()
 	printf( "   insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]\n" );
 	printf( "   pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]\n" );
 	printf( "\npre-/post-processing:\n" );
-	printf( "   yaml               - Convert MADS text files into YAML format\n" );
+	printf( "   yaml               - Reads/writes/converts MADS files in YAML format\n" );
+	printf( "   xml                - Reads/writes/converts MADS files in XML format\n" );
 	printf( "   resultsfile        - Post process results saved in resultsfile\n" );
 	printf( "   resultscase        - Post process specific case saved in resultsfile (if resultscase<0, first abs(resultscase) cases)\n" );
 	printf( "   cutoff=[real]      - Post process all cases saved in resultsfile with objective function below the cutoff value\n" );
@@ -208,5 +209,5 @@ void mads_info()
 	printf( "               (for w01 comparison, code WELLS can be obtained at http://wells.lanl.gov)\n" );
 	printf( "\nFor additional information:\n" );
 	printf( "   web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n" );
-	printf( "   email: Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\n" );
+	printf( "   email: Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\n" );
 }

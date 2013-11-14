@@ -1,10 +1,10 @@
 MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
-Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: example/contamination/s01-regul_yaml.mads
-Problem root name: example/contamination/s01-regul_yaml
+Problem root name: example/contamination/s01-regul_yaml (YAML format expected)
 Number of YAML classes 8
 YAML Classes:
  Problem -> 3 components
@@ -167,7 +167,7 @@ Number of regularization terms = 3
 Number of predictions = 0
 
 
-Execution date & time stamp: 20131005-104110
+Execution date & time stamp: 20131114-163955
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -881,6 +881,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sat Oct  5 10:41:10 2013
-Execution completed on Sat Oct  5 10:41:10 2013
-Execution date & time stamp: 20131005-104110
+Execution  started  on Thu Nov 14 16:39:55 2013
+Execution completed on Thu Nov 14 16:39:55 2013
+Execution date & time stamp: 20131114-163955

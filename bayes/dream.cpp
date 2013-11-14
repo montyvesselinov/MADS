@@ -1614,7 +1614,7 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 			double D = 0;
 			for( int i = 0; i < MCMCPar->n; i++ )
 				D += Fnew[qq][i];
-			D = max(D, 1e-300);
+			D = max( D, 1e-300 );
 			// Orthogonally project of zR1 and zR2 onto F
 			for( int col = 0; col < MCMCPar->n; col++ )
 			{
