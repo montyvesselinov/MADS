@@ -206,6 +206,8 @@ int main( int argn, char *argv[] )
 	op.root = root;
 	op.filename = filename;
 	op.counter = 0;
+	ed.ntpl = ed.nins = 0;
+	pd.var_id = pd.var_name = od.obs_id = NULL;
 	cd.solution_type = ( int * ) malloc( sizeof( int ) );
 	ignore_running = parse_cmd_init( argn, argv, &cd );
 	if( Ftest( buf ) == 0 ) // If file already exists quit ...
@@ -1053,8 +1055,19 @@ int main( int argn, char *argv[] )
 	tprintf( "Execution date & time stamp: %s\n", op.datetime_stamp );
 	sprintf( buf, "rm -f %s.running", op.root ); system( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
-	free( op.cd->solution_id );
-	free( op.cd->solution_type );
+	free( cd.solution_id );
+	free( cd.solution_type );
+	free( cd.datetime_infile );
+	if( op.datetime_stamp != NULL ) free( op.datetime_stamp );
+	if( pd.var_name != NULL ) free_matrix( ( void ** ) pd.var_name, pd.nParam );
+	if( cd.solution_type[0] == EXTERNAL && pd.var_id != NULL ) free_matrix( ( void ** ) pd.var_id, pd.nParam );
+	if( od.obs_id != NULL ) free_matrix( ( void ** ) od.obs_id, od.nTObs );
+	if( wd.nW > 0 ) free_matrix( ( void ** ) wd.id, wd.nW );
+	if( rd.nRegul > 0 ) free_matrix( ( void ** ) rd.regul_id, rd.nRegul );
+	if( ed.ntpl > 0 ) { free_matrix( ( void ** ) ed.fn_tpl, ed.ntpl ); free_matrix( ( void ** ) ed.fn_out, ed.ntpl ); }
+	if( ed.nins > 0 ) { free_matrix( ( void ** ) ed.fn_ins, ed.nins ); free_matrix( ( void ** ) ed.fn_obs, ed.nins ); }
+	if( cd.num_source_params > 0 ) { free( ad.var ); free_matrix( ( void ** ) sd.param_id, cd.num_source_params ); free_matrix( ( void ** ) sd.param_name, cd.num_source_params ); }
+	if( cd.num_aquifer_params > 0 ) { free_matrix( ( void ** ) qd.param_id, cd.num_aquifer_params ); free_matrix( ( void ** ) qd.param_name, cd.num_aquifer_params ); }
 	fclose( mads_output );
 	exit( 0 ); // DONE
 }

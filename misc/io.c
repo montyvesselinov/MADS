@@ -112,13 +112,14 @@ time_t Fdatetime_t( char *filename, int debug )
 	struct tm *ptr_ts;
 	struct stat b;
 	char *datetime;
-	datetime = ( char * ) malloc( 16 * sizeof( char ) );
 	if( Ftest( filename ) != 0 ) { if( debug ) tprintf( "File %s: does not exist\n", filename ); return ( 0 ); }
 	else if( !stat( filename, &b ) )
 	{
 		ptr_ts = localtime( &b.st_mtime );
+		datetime = ( char * ) malloc( 16 * sizeof( char ) );
 		sprintf( datetime, "%4d%02d%02d-%02d%02d%02d", ptr_ts->tm_year + 1900, ptr_ts->tm_mon + 1, ptr_ts->tm_mday, ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
 		if( debug )	tprintf( "File %s: last modified at %s\n", filename, datetime );
+		free( datetime );
 		return( b.st_mtime );
 	}
 	else { if( debug ) printf( "File %s: cannot display the time\n", filename ); return( 0 ); }

@@ -118,7 +118,9 @@ int mprun( int nJob, void *data )
 			tprintf( "None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 			free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
 			free( skip_job );
-			free_matrix( ( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
+			free_matrix( ( void ** ) kiddir, nProc );
+			free_matrix( ( void ** ) rerundir, nProc );
+			if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -312,7 +314,9 @@ int mprun( int nJob, void *data )
 	tprintf( "Done.\n" );
 	free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
 	free( skip_job );
-	free_matrix( ( void ** ) rerundir, nProc ); if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
+	free_matrix( ( void ** ) kiddir, nProc );
+	free_matrix( ( void ** ) rerundir, nProc );
+	if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }

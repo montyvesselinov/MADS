@@ -33,7 +33,7 @@
 #define MAXPART 100
 #define MAXTRIBE 60 //Maximum number of tribes
 #define MAXVALUES 11 // Maximum number of acceptable values on a dimension
-#define MAXARCHIVE 100 // Maximum number of archived positions in the case of multiobjective optimization
+#define MAXARCHIVE 100 // Maximum number of archived positions in the case of multi-objective optimization
 
 int pso_tribes( struct opt_data *op );
 // Specific to multiobjective
@@ -336,6 +336,7 @@ void free_swarm( struct swarm *S )
 	free_position( &S->best );
 	free_objfunc( &S->fBestPrev );
 	free_objfunc( &S->fBestStag );
+	free( S->trib );
 }
 
 void copy_tribe( struct tribe *ps, struct tribe *pd )
@@ -364,6 +365,7 @@ void free_tribe( struct tribe *T )
 	int i;
 	for( i = 0; i < MAXPART; i++ )
 		free_particle( &T->part[i] );
+	free( T->part );
 	free_objfunc( &T->fBestPrev );
 }
 
@@ -421,7 +423,7 @@ void set_position( struct problem *pb, struct position *pos )
 
 void free_objfunc( struct objfunc *phi )
 {
-	free( phi-> f );
+	free( phi->f );
 }
 
 void set_objfunc( struct problem *pb, struct objfunc *phi )

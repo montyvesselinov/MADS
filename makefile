@@ -1,5 +1,11 @@
 PROG = mads
 CMP = ./compare-results # MADS testing
+OUTPUT = > /dev/null
+# OUTPUT = mads-debug-output
+# OUTPUT =
+DBG = valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
+DBG = gdb
+DBG =
 # CMP = cp -f # Save current results for future testing DANGEROUS!
 
 # MathEval required to evaluate expression for tied parameters and regularization terms
@@ -163,7 +169,7 @@ examples:
 	@echo "Example 2: DONE"
 	@echo "**************************************************************************************"
 
-verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-parallel verify-forward verify-sa
+verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-external-short verify-parallel verify-forward verify-sa
 	@echo VERIFICATION DONE
 
 
@@ -174,23 +180,23 @@ verify-internal:
 	@echo "TEST 1: Rosenbrock problem using different optimization techniques ..."
 	@echo "TEST 1.1: Levenberg-Marquardt ... "
 	rm -f example/rosenbrock/a01.mads_output example/rosenbrock/a01.results example/rosenbrock/a01.running
-	cd example/rosenbrock; ../../mads a01 test=3 opt=lm lmeigen igrnd real=1 seed=2096575428 > /dev/null
+	cd example/rosenbrock; $(DBG) ../../mads a01 test=3 opt=lm lmeigen igrnd real=1 seed=2096575428 $(OUTPUT)
 	@$(CMP) example/rosenbrock/a01.mads_output example/rosenbrock/a01.mads_output-lm-$(OS)-correct
 	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-$(OS)-correct
 	@echo ""
 	@echo "TEST 1.2: Particle-Swarm ..."
 	rm -f example/rosenbrock/a01.results example/rosenbrock/a01.running
-	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1 seed=2096575428 > /dev/null
+	cd example/rosenbrock; $(DBG) ../../mads a01 test=3 opt=pso igrnd real=1 seed=2096575428 $(OUTPUT)
 	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-pso-$(OS)-correct
 	@echo ""
 	@echo "TEST 1.3: TRIBES ..."
 	rm -f example/rosenbrock/a01.results example/rosenbrock/a01.running
-	cd example/rosenbrock; ../../mads a01 test=3 opt=tribes igrnd real=1 seed=2096575428 > /dev/null
+	cd example/rosenbrock; $(DBG) ../../mads a01 test=3 opt=tribes igrnd real=1 seed=2096575428 $(OUTPUT)
 	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-tribes-$(OS)-correct
 	@echo ""
 	@echo "TEST 1.4: SQUADS ..."
 	rm -f example/rosenbrock/a01.results example/rosenbrock/a01.running
-	cd example/rosenbrock; ../../mads a01 test=3 opt=squads igrnd real=1 seed=2096575428 > /dev/null
+	cd example/rosenbrock; $(DBG) ../../mads a01 test=3 opt=squads igrnd real=1 seed=2096575428 $(OUTPUT)
 	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 1: DONE"
@@ -204,13 +210,13 @@ verify-multistart1:
 	@echo "TEST 2: Rosenbrock problem using different optimization techniques ..."
 	@echo "TEST 2.1: Levenberg-Marquardt ... "
 	rm -f example/rosenbrock/p01lm.mads_output example/rosenbrock/p01lm.results example/rosenbrock/p01lm.running
-	cd example/rosenbrock; ../../mads p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet > /dev/null
+	cd example/rosenbrock; $(DBG) ../../mads p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet $(OUTPUT)
 	@$(CMP) example/rosenbrock/p01lm.mads_output example/rosenbrock/p01lm.mads_output-multistart-lm-$(OS)-correct
 	@$(CMP) example/rosenbrock/p01lm.results example/rosenbrock/p01lm.results-multistart-lm-$(OS)-correct
 	@echo ""
 	@echo "TEST 2.2: SQUADS ..."
 	rm -f example/rosenbrock/p01squads.mads_output example/rosenbrock/p01squads.results example/rosenbrock/p01squads.running
-	cd example/rosenbrock; ../../mads p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet > /dev/null
+	cd example/rosenbrock; $(DBG) ../../mads p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet $(OUTPUT)
 	@$(CMP) example/rosenbrock/p01squads.mads_output example/rosenbrock/p01squads.mads_output-multistart-squads-$(OS)-correct
 	@$(CMP) example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-$(OS)-correct
 	@echo ""
@@ -226,53 +232,53 @@ verify-contaminant:
 	@echo "TEST 3: Internal contaminant transport problems using different dispersivities ..."
 	@echo "TEST 3.1.a: Problem example/contamination/s01 with independent dispersivities (MADS text input format) ..."
 	rm -f example/contamination/s01.mads_output example/contamination/s01.results example/contamination/s01.running
-	./mads example/contamination/s01 obs_int=2 lmeigen > /dev/null
+	./mads example/contamination/s01 obs_int=2 lmeigen $(OUTPUT)
 	@$(CMP) example/contamination/s01.mads_output example/contamination/s01.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01.results example/contamination/s01.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.1.b: Problem example/contamination/s01 with independent dispersivities (YAML input format) ..."
 	rm -f example/contamination/s01_yaml.mads_output example/contamination/s01_yaml.results example/contamination/s01_yaml.running
-	./mads example/contamination/s01_yaml obs_int=2 lmeigen > /dev/null
+	./mads example/contamination/s01_yaml obs_int=2 lmeigen $(OUTPUT)
 	@$(CMP) example/contamination/s01_yaml.mads_output example/contamination/s01_yaml.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01_yaml.results example/contamination/s01_yaml.results-$(OS)-correct
 	@$(CMP) example/contamination/s01_yaml.results example/contamination/s01.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.2: Problem example/contamination/s01 with tied dispersivities ..."
 	rm -f example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.running
-	./mads example/contamination/s01-tied_dispersivities obs_int=2 > /dev/null
+	./mads example/contamination/s01-tied_dispersivities obs_int=2 $(OUTPUT)
 	@$(CMP) example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.3: Problem example/contamination/s01 with scaled dispersivities ..."
 	rm -f example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.running
-	./mads example/contamination/s01-scaled_dispersivities obs_int=2 > /dev/null
+	./mads example/contamination/s01-scaled_dispersivities obs_int=2 $(OUTPUT)
 	@$(CMP) example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
 	rm -f example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.running
-	./mads example/contamination/s01-scaled+tied_dispersivities obs_int=2 > /dev/null
+	$(DBG) ./mads example/contamination/s01-scaled+tied_dispersivities obs_int=2 $(OUTPUT)
 	@$(CMP) example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.5: Problem example/contamination/s01 with coupled (tied) parameters based on mathematical expressions  ..."
 	rm -f example/contamination/s01-tied.results example/contamination/s01-tied.running
-	./mads example/contamination/s01-tied obs_int=2 > /dev/null
+	$(DBG) ./mads example/contamination/s01-tied obs_int=2 $(OUTPUT)
 	@$(CMP) example/contamination/s01-tied.results example/contamination/s01-tied.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.6: Problem example/contamination/s01_yaml with coupled (tied) parameters based on mathematical expressions (YAML input format) ..."
 	rm -f example/contamination/s01-tied_yaml.results example/contamination/s01-tied_yaml.running
-	./mads example/contamination/s01-tied_yaml obs_int=2 > /dev/null
+	$(DBG) ./mads example/contamination/s01-tied_yaml obs_int=2 $(OUTPUT)
 	@$(CMP) example/contamination/s01-tied_yaml.mads_output example/contamination/s01-tied_yaml.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01-tied_yaml.results example/contamination/s01-tied.results-$(OS)-correct
 	@$(CMP) example/contamination/s01-tied_yaml.results example/contamination/s01-tied_yaml.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.7: Problem example/contamination/s01 with regularization terms for optimized model parameters ..."
 	rm -f example/contamination/s01-regul.results example/contamination/s01-regul.running
-	./mads example/contamination/s01-regul obs_int=2 > /dev/null
+	$(DBG) ./mads example/contamination/s01-regul obs_int=2 $(OUTPUT)
 	@$(CMP) example/contamination/s01-regul.mads_output example/contamination/s01-regul.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01-regul.results example/contamination/s01-regul.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 3.8: Problem example/contamination/s01_yaml with regularization terms for optimized model parameters (YAML input format) ..."
 	rm -f example/contamination/s01-regul_yaml.results example/contamination/s01-regul_yaml.running
-	./mads example/contamination/s01-regul_yaml obs_int=2 > /dev/null
+	$(DBG) ./mads example/contamination/s01-regul_yaml obs_int=2 $(OUTPUT)
 	@$(CMP) example/contamination/s01-regul_yaml.mads_output example/contamination/s01-regul_yaml.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul.results-$(OS)-correct
 	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul_yaml.results-$(OS)-correct
@@ -280,7 +286,7 @@ verify-contaminant:
 	@echo ""
 	@echo "TEST 3.9: Problem example/contamination/s01-multi_source with multiple source and tied model parameters (YAML input format) ..."
 	rm -f example/contamination/s01-multi_source.results example/contamination/s01-multi_source.running
-	./mads example/contamination/s01-multi_source obs_int=2 > /dev/null
+	$(DBG) ./mads example/contamination/s01-multi_source obs_int=2 $(OUTPUT)
 	@$(CMP) example/contamination/s01-multi_source.mads_output example/contamination/s01-multi_source.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01-multi_source.results example/contamination/s01-multi_source.results-$(OS)-correct
 	@echo "**************************************************************************************"
@@ -295,25 +301,25 @@ verify-multistart2:
 	@echo "TEST 4: Internal contaminant transport problems using different optimization techniques ..."
 	@echo "TEST 4.1: Problem example/contamination/s01 IGRND ..."
 	rm -f example/contamination/s01-igrnd.results example/contamination/s01-igrnd.igrnd.results example/contamination/s01-igrnd.running
-	./mads example/contamination/s01-igrnd seed=2096575428 > /dev/null
+	$(DBG) ./mads example/contamination/s01-igrnd seed=2096575428 $(OUTPUT)
 	@$(CMP) example/contamination/s01-igrnd.results example/contamination/s01-igrnd.results-$(OS)-correct
 	@$(CMP) example/contamination/s01-igrnd.igrnd.results example/contamination/s01-igrnd.igrnd.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 4.2: Problem example/contamination/s01 PPSD ..."
 	rm -f example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.ppsd.results example/contamination/s01-ppsd.running
-	./mads example/contamination/s01-ppsd seed=2096575428 > /dev/null
+	$(DBG) ./mads example/contamination/s01-ppsd seed=2096575428 $(OUTPUT)
 	@$(CMP) example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01-ppsd.ppsd.results example/contamination/s01-ppsd.ppsd.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 4.3: Problem example/contamination/s01 IGPD ..."
 	rm -f example/contamination/s01-igpd.results example/contamination/s01-igpd.igpd.results example/contamination/s01-igpd.running
-	./mads example/contamination/s01-igpd seed=2096575428 > /dev/null
+	$(DBG) ./mads example/contamination/s01-igpd seed=2096575428 $(OUTPUT)
 	@$(CMP) example/contamination/s01-igpd.results example/contamination/s01-igpd.results-$(OS)-correct
 	@$(CMP) example/contamination/s01-igpd.igpd.results example/contamination/s01-igpd.igpd.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 4.4: Problem example/contamination/s01 Multi-Start LM  ..."
 	rm -f example/contamination/s01-mslm.results example/contamination/s01-mslm.running
-	./mads example/contamination/s01-mslm seed=2096575428 > /dev/null
+	$(DBG) ./mads example/contamination/s01-mslm seed=2096575428 $(OUTPUT)
 	@$(CMP) example/contamination/s01-mslm.results example/contamination/s01-mslm.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 4: DONE"
@@ -326,35 +332,37 @@ verify-external:
 	@echo "**************************************************************************************"
 	@echo "TEST 5: Problem example/wells/w01 ..."
 	rm -f example/wells/w01.mads_output example/wells/w01.results example/wells/w01.running
-	cd example/wells; ../../mads w01 lmeigen > /dev/null
+	cd example/wells; $(DBG) ../../mads w01 lmeigen $(OUTPUT)
 	@$(CMP) example/wells/w01.mads_output example/wells/w01.mads_output-$(OS)-correct
 	@$(CMP) example/wells/w01.results example/wells/w01.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 5: DONE"
 	@echo ""
 	@echo ""
+
+verify-external-short:
 	@echo "**************************************************************************************"
 	@echo " External problems "
 	@echo "**************************************************************************************"
 	@echo "TEST 6: Problem example/wells-short/w01 using different instruction formats ..."
 	@echo "TEST 6.1: Instruction file example/wells-short/w01-v1.inst ..."
 	rm -f example/wells-short/w01.results example/wells-short/w01.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01 > /dev/null
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
 	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 6.2: Instruction file example/wells-short/w01-v2.inst ..."
 	rm -f example/wells-short/w01.results example/wells-short/w01.running
-	cd example/wells-short; ln -sf w01-v2.inst w01.inst; ../../mads w01 > /dev/null
+	cd example/wells-short; ln -sf w01-v2.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
 	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 6.3: Instruction file example/wells-short/w01-v3.inst ..."
 	rm -f example/wells-short/w01.results example/wells-short/w01.running
-	cd example/wells-short; ln -sf w01-v3.inst w01.inst; ../../mads w01 > /dev/null
+	cd example/wells-short; ln -sf w01-v3.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
 	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 6.4: Instruction file example/wells-short/w01-v4.inst ..."
 	rm -f example/wells-short/w01.results example/wells-short/w01.running
-	cd example/wells-short; ln -sf w01-v4.inst w01.inst; ../../mads w01 > /dev/null
+	cd example/wells-short; ln -sf w01-v4.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
 	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 6: DONE"
@@ -366,17 +374,17 @@ verify-external:
 	@echo "TEST 7: Problem example/wells-short/w01 using coupled parameters and regularization terms ..."
 	@echo "TEST 7.1: Problem example/wells-short/w01 with coupled (tied) parameters based on mathematical expressions  ..."
 	rm -f example/wells-short/w01tied.results example/wells-short/w01tied.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01tied > /dev/null
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01tied $(OUTPUT)
 	@$(CMP) example/wells-short/w01tied.results example/wells-short/w01tied.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 7.2: Problem example/wells-short/w01 with regularization terms for optimized model parameters (MADS text input format) ..."
 	rm -f example/wells-short/w01regul.results example/wells-short/w01regul.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01regul > /dev/null
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01regul $(OUTPUT)
 	@$(CMP) example/wells-short/w01regul.results example/wells-short/w01regul.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 7.3: Problem example/wells-short/w01 with regularization terms for optimized model parameters (YAML input format) ..."
 	rm -f example/wells-short/w01regul.results example/wells-short/w01regul.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; ../../mads w01regul_yaml > /dev/null
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01regul_yaml $(OUTPUT)
 	@$(CMP) example/wells-short/w01regul_yaml.results example/wells-short/w01regul_yaml.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 7: DONE"
@@ -390,12 +398,12 @@ verify-parallel:
 	@echo "TEST 8: Parallel execution of example/wells-short/w01parallel ..."
 	@echo "TEST 8.1: Initial parallel execution of example/wells-short/w01parallel ..."
 	rm -f example/wells-short/w01parallel.results example/wells-short/w01parallel.restart_info example/wells-short/w01parallel.restart_*.zip example/wells-short/w01parallel.running
-	cd example/wells-short; ../../mads w01parallel np=2 eval=10 restart=0 > /dev/null
+	cd example/wells-short; $(DBG) ../../mads w01parallel np=2 eval=10 restart=0 $(OUTPUT)
 	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 8.2: Rerun using saved results from prior parallel execution of example/wells-short/w01parallel ..."
 	rm -f example/wells/w01parallel.results example/wells/w01parallel.running
-	cd example/wells-short; ../../mads w01parallel np=2 eval=10 > /dev/null
+	cd example/wells-short; $(DBG) ../../mads w01parallel np=2 eval=10 $(OUTPUT)
 	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 8: DONE"
@@ -409,43 +417,43 @@ verify-forward:
 	@echo "TEST 9: Analytical contaminant concentrations with various sources ..."
 	@echo "TEST 9.1: Point source ... "
 	rm -f example/forward/a01.mads_output example/forward/a01.results example/forward/a01.running
-	cd example/forward; ../../mads a01 > /dev/null
+	cd example/forward; $(DBG) ../../mads a01 $(OUTPUT)
 	@$(CMP) example/forward/a01.mads_output example/forward/a01.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a01.results example/forward/a01.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 9.2: Rectangular source ... "
 	rm -f example/forward/a02.mads_output example/forward/a02.results example/forward/a02.running
-	cd example/forward; ../../mads a02 > /dev/null
+	cd example/forward; $(DBG) ../../mads a02 $(OUTPUT)
 	@$(CMP) example/forward/a02.mads_output example/forward/a02.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a02.results example/forward/a02.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 9.3: Planar gaussian source ... "
 	rm -f example/forward/a03.mads_output example/forward/a03.results example/forward/a03.running
-	cd example/forward; ../../mads a03 > /dev/null
+	cd example/forward; $(DBG) ../../mads a03 $(OUTPUT)
 	@$(CMP) example/forward/a03.mads_output example/forward/a03.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a03.results example/forward/a03.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 9.4: Gaussian source ... "
 	rm -f example/forward/a04.mads_output example/forward/a04.results example/forward/a04.running
-	cd example/forward; ../../mads a04 > /dev/null
+	cd example/forward; $(DBG) ../../mads a04 $(OUTPUT)
 	@$(CMP) example/forward/a04.mads_output example/forward/a04.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a04.results example/forward/a04.results-$(OS)-correct
 	@echo "" 
 	@echo "TEST 9.5: Box source ... "
 	rm -f example/forward/a05.mads_output example/forward/a05.results example/forward/a05.running
-	cd example/forward; ../../mads a05 > /dev/null
+	cd example/forward; $(DBG) ../../mads a05 $(OUTPUT)
 	@$(CMP) example/forward/a05.mads_output example/forward/a05.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a05.results example/forward/a05.results-$(OS)-correct
 	@echo "" 
 	@echo "TEST 9.6: Box source | Levy ... "
 	rm -f example/forward/a06_yaml.mads_output example/forward/a06_yaml.results example/forward/a06_yaml.running
-	cd example/forward; ../../mads a06_yaml > /dev/null
+	cd example/forward; $(DBG) ../../mads a06_yaml $(OUTPUT)
 	@$(CMP) example/forward/a06_yaml.mads_output example/forward/a06_yaml.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a06_yaml.results example/forward/a06_yaml.results-$(OS)-correct
 	@echo "" 
 	@echo "TEST 9.7: Box source | Symmetric Levy ... "
 	rm -f example/forward/a07.mads_output example/forward/a07.results example/forward/a07.running
-	cd example/forward; ../../mads a07 > /dev/null
+	cd example/forward; $(DBG) ../../mads a07 $(OUTPUT)
 	@$(CMP) example/forward/a07.mads_output example/forward/a07.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a07.results example/forward/a07.results-$(OS)-correct
 	@echo "**************************************************************************************"
@@ -460,7 +468,7 @@ verify-sa:
 	@echo "TEST 10: Global and local sensitivity analyses ..."
 	@echo "TEST 10.1: Sobol analysis ... "
 	rm -f example/sa/a01.mads_output example/sa/a01.sobol_sens_index example/sa/a01.sobol_sens_total example/sa/a01.running
-	cd example/sa; ../../mads a01 test=111 gsens dim=8 real=10000 smp=lhs pardomain=0.5 seed=1517604820 > /dev/null
+	cd example/sa; $(DBG) ../../mads a01 test=111 gsens dim=8 real=10000 smp=lhs pardomain=0.5 seed=1517604820 $(OUTPUT)
 	@$(CMP) example/sa/a01.sobol_sens_index example/sa/a01.sobol_sens_index-$(OS)-correct
 	@$(CMP) example/sa/a01.sobol_sens_total example/sa/a01.sobol_sens_total-$(OS)-correct
 	@echo ""
