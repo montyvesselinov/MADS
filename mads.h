@@ -1,6 +1,7 @@
 // MADS: Model Analyses & Decision Support (v1.1) 2011
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
 // Dylan Harp, dharp@lanl.gov
 //
 // http://mads.lanl.gov

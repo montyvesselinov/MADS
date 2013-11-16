@@ -1,8 +1,10 @@
 // MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
 // Dylan Harp, dharp@lanl.gov
 //
+// http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
 //
 // LA-CC-10-055; LA-CC-11-035
@@ -49,7 +51,6 @@ int check_mads_problem( char *filename );
 int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op, int flag );
 void init_params( struct opt_data *op );
-int parse_cmd_debug( char *buf );
 int parse_cmd_init( int argn, char *argv[], struct calc_data *cd );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op );
@@ -194,17 +195,6 @@ void init_params( struct opt_data *op )
 	pd->var_dx[k + ALPHA] = 0.1; pd->var_dx[k + BETA] = 0.1; pd->var_dx[k + NLC0] = 0.1; pd->var_dx[k + NLC1] = 1.;
 	pd->var_min[k + ALPHA] = 0.5; pd->var_min[k + BETA] = -1.; pd->var_min[k + NLC0] = -1.; pd->var_min[k + NLC1] = 0.1;
 	pd->var_max[k + ALPHA] = 2; pd->var_max[k + BETA] = 1.; pd->var_max[k + NLC0] = 1.; pd->var_max[k + NLC1] = 10.;
-}
-
-int parse_cmd_debug( char *buf )
-{
-	int debug;
-	char *sep = " \t\n", *word;
-	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
-	{
-		if( !strncasecmp( word, "debug", 5 ) ) { if( sscanf( word, "debug=%d", &debug ) == 0 || debug == 0 ) debug = 1; } // Global debug
-	}
-	return( debug );
 }
 
 int parse_cmd_init( int argn, char *argv[], struct calc_data *cd )
