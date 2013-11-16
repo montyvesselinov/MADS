@@ -1,6 +1,6 @@
 MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
-Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a05.mads
@@ -38,7 +38,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20131007-120340
+Execution date & time stamp: 20131116-160804
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -70,6 +70,6 @@ Objective function: 11470.3 Success: 0
 At least one of the predictions is outside acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Mon Oct  7 12:03:40 2013
-Execution completed on Mon Oct  7 12:03:40 2013
-Execution date & time stamp: 20131007-120340
+Execution  started  on Sat Nov 16 16:08:04 2013
+Execution completed on Sat Nov 16 16:08:04 2013
+Execution date & time stamp: 20131116-160804

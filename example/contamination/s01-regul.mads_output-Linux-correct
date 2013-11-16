@@ -1,6 +1,6 @@
 MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 ---------------------------------------------------
-Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: example/contamination/s01-regul.mads
@@ -190,7 +190,7 @@ Grid Maximums: 500200 539400 0.1
 Breakthrough-curve time window: 0 0 1 number of time steps: 1
 
 
-Execution date & time stamp: 20131007-120130
+Execution date & time stamp: 20131116-160654
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -904,6 +904,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Mon Oct  7 12:01:30 2013
-Execution completed on Mon Oct  7 12:01:30 2013
-Execution date & time stamp: 20131007-120130
+Execution  started  on Sat Nov 16 16:06:54 2013
+Execution completed on Sat Nov 16 16:06:54 2013
+Execution date & time stamp: 20131116-160654
