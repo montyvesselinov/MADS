@@ -9,6 +9,8 @@ alternative algorithms to perform each type of model analyses. The code allows
 for coupled model parameters and regularization terms that are internally
 computed based on user-defined mathematical expressions.
 
+For more information check out he MADS website at http://mads.lanl.gov
+
 USAGE: mads problem_name [ keywords | options ]       OR
        mads MADS_input_file [ keywords | options ]    OR
        mads PEST_input_file [ keywords | options ]       
@@ -49,18 +51,30 @@ Ubuntu/Debian installation of required libraries:
 Compilation:
 	make
 
-Verification:
-	make verify (TCSH shell is needed to run verification scripts executed by 'make verify')
+Verification (TCSH shell is needed to run verification scripts):
+	make verify (all test problems listed below)
+	make verify-internal (internal test functions)
+	make verify-forward (forward contaminant transport simulations)
+	make verify-contaminant (inverse contaminant transport analyses)
+	make verify-multistart1 verify-multistart2 (multi-start inverse problems using random initial parameter guesses)
+	make verify-external verify-external-short (inverse problems using the code WELLS; http://wells.lanl.gov)
+	make verify-parallel (parallel inverse analysis)
+	make verify-sa (global sensitivity analysis)
 
 Examples:
-	Several examples can be found in directory 'example' (check the 'readme' files in directory 'example')
+	make examples (the code WELLS is needed; http://wells.lanl.gov)
+	In addition, several examples can be found in directory 'example' (check the 'readme' files in the directory 'example')
+	See also http://mads.lanl.gov/#examples and http://mads.lanl.gov/#demos
 
 Comparisons:
 	Comparisons with the code PEST are available as well (in subdirectories of 'example', check the 'readme' files)
+	See also http://mads.lanl.gov/#comparisons
+	
+Manual:
+	http://mads.lanl.gov/#manual
 
 Additional information:
 	http://mads.lanl.gov
 	http://www.ees.lanl.gov/staff/monty/codes/mads
 	email: Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
-       
 	
