@@ -32,6 +32,7 @@
 #endif
 
 #include "mads.h"
+#include "netcdf.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -446,6 +447,8 @@ void set_param_arrays( int num_param, struct opt_data *op )
 		pd->var_name[i][0] = pd->var_id[i][0] = 0;
 	pd->var = ( double * ) malloc( num_param * sizeof( double ) );
 	cd->var = ( double * ) malloc( num_param * sizeof( double ) );
+	// Chris Jeffery mod: 10/30/13; add memory for phi_eval
+	cd->phi_eval = ( double * ) malloc( NUM_PHI_EVALUATIONS * sizeof( double ) );
 	pd->var_opt = ( int * ) malloc( num_param * sizeof( int ) );
 	pd->var_log = ( int * ) malloc( num_param * sizeof( int ) );
 	pd->var_dx = ( double * ) malloc( num_param * sizeof( double ) );
@@ -912,6 +915,9 @@ int load_yaml_wells( GNode *node, gpointer data )
 	struct calc_data *cd;
 	struct obs_data *od, *preds;
 	GNode *node_key, *node_value, *node_well, *node_key2, *node_value2, *node_obs;
+	char filename[50] ;
+	int ncid, varid ;
+	size_t start2[2], count2[2] ;
 	wd = op->wd;
 	cd = op->cd;
 	od = op->od;
@@ -1028,6 +1034,26 @@ int load_yaml_wells( GNode *node, gpointer data )
 		{ tprintf( "\nERROR: Number of calibration targets is equal to zero!\n\n" ); bad_data = 1; }
 		else tprintf( "\nWARNING: Number of calibration targets is equal to zero!\n\n" );
 	}
+
+	sprintf( filename, "%s-truth.mads.nc", op->root );
+	nc_open(filename, NC_NOWRITE, &ncid) ;
+	nc_inq_varid(ncid,"obs_target", &varid) ;
+
+	for( i = 0; i < wd->nW; i++ ) // Number of wells loop
+	  {
+	    for( j = 0; j < wd->nWellObs[i]; j++ )
+	      {
+		start2[0] = j ;
+		start2[1] = i ;
+		count2[0] = 1 ;
+		count2[1] = 1 ;
+
+		nc_get_vara_double(ncid,varid,start2,count2,&wd->obs_target[i][j]) ;
+	      }
+	  }
+
+	nc_close(ncid) ;
+
 	if( bad_data ) return( 0 );
 	if( cd->debug ) tprintf( "\n" );
 	return( 1 );

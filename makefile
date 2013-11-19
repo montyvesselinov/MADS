@@ -16,8 +16,8 @@ ND = $(shell uname -n)
 $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
-CFLAGS = -Wall -O1 -Winit-self
-LDLIBS = -lgsl -llapack 
+CFLAGS = -Wall -O1 -Winit-self -I/u/cjeffery/include
+LDLIBS = -lgsl -L/usr/lib64/atlas -lcblas -llapack -lnetcdf -L/u/cjeffery/lib
 ifeq ($(OS),Linux)
 # Linux
 LDLIBS += -lgfortran 
@@ -27,12 +27,6 @@ $(info Machine -- AQUIFER)
 YAML = true
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
-endif
-ifeq ($(ND),madsmax)
-$(info Machine -- MadsMax)
-CFLAGS += -I/home/monty/local/include
-LDLIBS += -L/home/monty/local/lib -lgslcblas -lm -llapack -lblas
-YAML = true
 endif
 ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
@@ -272,13 +266,6 @@ verify-contaminant:
 	@$(CMP) example/contamination/s01-regul_yaml.mads_output example/contamination/s01-regul_yaml.mads_output-$(OS)-correct
 	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul.results-$(OS)-correct
 	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul_yaml.results-$(OS)-correct
-	@echo "**************************************************************************************"
-	@echo ""
-	@echo "TEST 3.9: Problem example/contamination/s01-multi_source with multiple source and tied model parameters (YAML input format) ..."
-	rm -f example/contamination/s01-multi_source.results
-	./mads example/contamination/s01-multi_source obs_int=2 > /dev/null
-	@$(CMP) example/contamination/s01-multi_source.mads_output example/contamination/s01-multi_source.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s01-multi_source.results example/contamination/s01-multi_source.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
 	@echo ""

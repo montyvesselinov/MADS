@@ -30,6 +30,7 @@
 #endif
 
 #include "mads.h"
+#include "netcdf.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -52,9 +53,10 @@ void init_params( struct opt_data *op );
 int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-int save_problem( char *filename, struct opt_data *op );
+int save_problem( struct io_output_object *output_obj, struct opt_data *op );
+int write_problem( struct io_output_object *output_obj, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
-void compute_btc2( char *filename, char *filename2, struct opt_data *op );
+void compute_btc2( struct io_output_object *output_obj, struct opt_data *op, int ireal );
 void compute_btc( char *filename, struct opt_data *op );
 static char *strsave( const char *s, const char *lim );
 char **shellpath( void );
@@ -69,6 +71,12 @@ char *str_replace( char *orig, char *rep, char *with ); // replace all string oc
 int set_optimized_params( struct opt_data *op );
 int map_obs( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
+
+void add_att_double( int i, struct io_output_object *output_obj, struct param_data *pd );
+void add_well_data( struct io_output_object *output_obj, struct well_data *wd);
+void add_btc_vars( struct io_output_object *output_obj, struct opt_data *op );
+void add_btc_data(int i, int j, struct io_output_object *output_obj, double con, int ireal);
+void add_btc_peak_data(int i, struct io_output_object *output_obj, double con, double con_time, int ireal);
 
 /* Functions elsewhere */
 char **char_matrix( int maxCols, int maxRows );
@@ -1497,7 +1505,29 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	return( 1 );
 }
 
-int save_problem( char *filename, struct opt_data *op )
+int save_problem( struct io_output_object *output_obj, struct opt_data *op )
+{
+        int intout ;
+
+	if( ( output_obj->outfile = fopen( output_obj->filename, "w" ) ) == NULL )
+	{
+		tprintf( "File \'%s\' cannot be opened to save the problem information!\n", output_obj->filename );
+		return( 0 );
+	}
+	if( output_obj->use_netcdf )
+	  create_cdf_file(output_obj, op->wd) ;
+
+	intout = write_problem(output_obj, op) ;
+
+	fclose( output_obj->outfile );
+
+	if( output_obj->use_netcdf )
+	  close_cdf_file( output_obj ) ;
+
+	return(intout) ;
+}  
+
+int write_problem( struct io_output_object *output_obj, struct opt_data *op )
 {
 	struct calc_data *cd;
 	struct param_data *pd;
@@ -1513,15 +1543,10 @@ int save_problem( char *filename, struct opt_data *op )
 	wd = op->wd;
 	gd = op->gd;
 	ed = op->ed;
-	FILE *outfile;
-	//	FILE *outfileb;
+	//	FILE *output_obj->outfileb;
 	//	char buf[100];
-	int  i, j;
-	if( ( outfile = fopen( filename, "w" ) ) == NULL )
-	{
-		tprintf( "File \'%s\' cannot be opened to save the problem information!\n", filename );
-		return( 0 );
-	}
+	int  i, j ;
+	    
 	/*
 		sprintf( buf, "%s.bin", filename );
 		if ( ( outfileb = fopen( buf, "wb" ) ) == NULL )
@@ -1533,125 +1558,131 @@ int save_problem( char *filename, struct opt_data *op )
 		}
 	 */
 	i = 0;
-	fprintf( outfile, "Problem: " );
+	fprintf( output_obj->outfile, "Problem: " );
 	switch( cd->problem_type )
 	{
-		case CREATE: fprintf( outfile, "create" ); break;
-		case FORWARD: fprintf( outfile, "forward" ); break;
-		case CALIBRATE: fprintf( outfile, "calibration" ); break;
-		case LOCALSENS: fprintf( outfile, "lsens" ); break;
-		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
-		case EIGEN: fprintf( outfile, "eigen" ); break;
-		case MONTECARLO: fprintf( outfile, "montecarlo real=%d", cd->nreal ); break;
-		case ABAGUS: fprintf( outfile, " abagus energy=%d", cd->energy ); break;
-		case POSTPUA: fprintf( outfile, " postpua" ); break;
+		case CREATE: fprintf( output_obj->outfile, "create" ); break;
+		case FORWARD: fprintf( output_obj->outfile, "forward" ); break;
+		case CALIBRATE: fprintf( output_obj->outfile, "calibration" ); break;
+		case LOCALSENS: fprintf( output_obj->outfile, "lsens" ); break;
+		case GLOBALSENS: fprintf( output_obj->outfile, "gsens" ); break;
+		case EIGEN: fprintf( output_obj->outfile, "eigen" ); break;
+		case MONTECARLO: fglobalprintf( output_obj, "montecarlo real=%d", cd->nreal ); break;
+		case ABAGUS: fglobalprintf( output_obj, " abagus energy=%d", cd->energy ); break;
+		case POSTPUA: fprintf( output_obj->outfile, " postpua" ); break;
 	}
-	if( cd->debug > 0 ) fprintf( outfile, " debug=%d", cd->debug );
-	if( cd->fdebug > 0 ) fprintf( outfile, " fdebug=%d", cd->fdebug );
-	if( cd->ldebug > 0 ) fprintf( outfile, " ldebug=%d", cd->ldebug );
-	if( cd->pdebug > 0 ) fprintf( outfile, " pdebug=%d", cd->pdebug );
-	if( cd->mdebug > 0 ) fprintf( outfile, " mdebug=%d", cd->mdebug );
-	if( cd->odebug > 0 ) fprintf( outfile, " odebug=%d", cd->odebug );
-	if( cd->insdebug > 0 ) fprintf( outfile, " insdebug=%d", cd->insdebug );
-	if( cd->tpldebug > 0 ) fprintf( outfile, " tpldebug=%d", cd->tpldebug );
-	if( cd->pardebug > 0 ) fprintf( outfile, " pardebug=%d", cd->pardebug );
-	if( cd->test_func >= 0 ) fprintf( outfile, " test=%d", cd->test_func );
-	if( cd->test_func_dim > 2 ) fprintf( outfile, " dim=%d", cd->test_func_dim );
-	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
-	if( cd->sintrans ) { if( cd->sindx > DBL_EPSILON ) fprintf( outfile, " sindx=%g", cd->sindx ); }
-	else { if( cd->lindx > DBL_EPSILON ) fprintf( outfile, " lindx=%g", cd->lindx ); }
-	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, " pardx=%g", cd->pardx ); TODO when to print pardx?
-	if( cd->check_success ) fprintf( outfile, " success" );
-	fprintf( outfile, " " );
+	if( cd->debug > 0 ) fglobalprintf( output_obj, " debug=%d", cd->debug );
+	if( cd->fdebug > 0 ) fglobalprintf( output_obj, " fdebug=%d", cd->fdebug );
+	if( cd->ldebug > 0 ) fglobalprintf( output_obj, " ldebug=%d", cd->ldebug );
+	if( cd->pdebug > 0 ) fglobalprintf( output_obj, " pdebug=%d", cd->pdebug );
+	if( cd->mdebug > 0 ) fglobalprintf( output_obj, " mdebug=%d", cd->mdebug );
+	if( cd->odebug > 0 ) fglobalprintf( output_obj, " odebug=%d", cd->odebug );
+	if( cd->insdebug > 0 ) fglobalprintf( output_obj, " insdebug=%d", cd->insdebug );
+	if( cd->tpldebug > 0 ) fglobalprintf( output_obj, " tpldebug=%d", cd->tpldebug );
+	if( cd->pardebug > 0 ) fglobalprintf( output_obj, " pardebug=%d", cd->pardebug );
+	if( cd->test_func >= 0 ) fglobalprintf( output_obj, " test=%d", cd->test_func );
+	if( cd->test_func_dim > 2 ) fglobalprintf( output_obj, " dim=%d", cd->test_func_dim );
+	if( cd->phi_cutoff > 0 ) fglobalprintf( output_obj, " cutoff=%g", cd->phi_cutoff );
+	if( cd->sintrans ) { if( cd->sindx > DBL_EPSILON ) fglobalprintf( output_obj, " sindx=%g", cd->sindx ); }
+	else { if( cd->lindx > DBL_EPSILON ) fglobalprintf( output_obj, " lindx=%g", cd->lindx ); }
+	// if( cd->pardx > DBL_EPSILON ) fglobalprintf( output_obj, " pardx=%g", cd->pardx ); TODO when to print pardx?
+	if( cd->check_success ) fprintf( output_obj->outfile, " success" );
+	fprintf( output_obj->outfile, " " );
 	switch( cd->calib_type )
 	{
-		case SIMPLE: fprintf( outfile, "single" ); break;
-		case PPSD: fprintf( outfile, "ppsd" ); break;
-		case IGRND: fprintf( outfile, "igrnd real=%d", cd->nreal ); break;
-		case IGPD: fprintf( outfile, "igpd" ); break;
+		case SIMPLE: fprintf( output_obj->outfile, "single" ); break;
+		case PPSD: fprintf( output_obj->outfile, "ppsd" ); break;
+		case IGRND: fglobalprintf( output_obj, "igrnd real=%d", cd->nreal ); break;
+		case IGPD: fprintf( output_obj->outfile, "igpd" ); break;
 	}
-	fprintf( outfile, " eval=%d", cd->maxeval );
-	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
-	if( cd->c_background > 0 ) fprintf( outfile, " background=%g", cd->c_background );
-	if( cd->disp_tied ) fprintf( outfile, " disp_tied" );
-	if( cd->disp_scaled ) fprintf( outfile, " disp_scaled" );
-	if( cd->save ) fprintf( outfile, " save" );
-	if( cd->seed_init < 0 ) fprintf( outfile, " seed=%d", cd->seed_init * -1 );
-	if( cd->nretries > 0 ) fprintf( outfile, " retry=%d", cd->nretries );
-	if( cd->init_particles > 1 ) fprintf( outfile, " particles=%d", cd->init_particles );
-	else if( cd->init_particles < 0 ) fprintf( outfile, " particles" );
-	if( cd->lm_eigen ) fprintf( outfile, " lmeigen=%d", cd->lm_eigen );
-	if( cd->niter > 0 ) fprintf( outfile, " iter=%d", cd->niter );
-	if( cd->smp_method[0] != 0 ) fprintf( outfile, " rnd=%s", cd->smp_method );
-	if( cd->paran_method[0] != 0 ) fprintf( outfile, " paran=%s", cd->paran_method );
-	fprintf( outfile, " " );
+	fglobalprintf( output_obj, " eval=%d", cd->maxeval );
+	if( cd->opt_method[0] != 0 ) fglobalprintf( output_obj, " opt=%s", cd->opt_method );
+	if( cd->c_background > 0 ) fglobalprintf( output_obj, " background=%g", cd->c_background );
+	if( cd->disp_tied ) fprintf( output_obj->outfile, " disp_tied" );
+	if( cd->disp_scaled ) fprintf( output_obj->outfile, " disp_scaled" );
+	if( cd->save ) fprintf( output_obj->outfile, " save" );
+	if( cd->seed_init < 0 ) fglobalprintf( output_obj, " seed=%d", cd->seed_init * -1 );
+	if( cd->nretries > 0 ) fglobalprintf( output_obj, " retry=%d", cd->nretries );
+	if( cd->init_particles > 1 ) fglobalprintf( output_obj, " particles=%d", cd->init_particles );
+	else if( cd->init_particles < 0 ) fprintf( output_obj->outfile, " particles" );
+	if( cd->lm_eigen ) fglobalprintf( output_obj, " lmeigen=%d", cd->lm_eigen );
+	if( cd->niter > 0 ) fglobalprintf( output_obj, " iter=%d", cd->niter );
+	if( cd->smp_method[0] != 0 ) fglobalprintf( output_obj, " rnd=%s", cd->smp_method );
+	if( cd->paran_method[0] != 0 ) fglobalprintf( output_obj, " paran=%s", cd->paran_method );
+	fprintf( output_obj->outfile, " " );
 	switch( cd->objfunc_type )
 	{
-		case SSR: fprintf( outfile, "ssr" ); break;
-		case SSDR: fprintf( outfile, "ssdr" ); break;
-		case SSD0: fprintf( outfile, "ssd0" ); break;
-		case SSDX: fprintf( outfile, "ssdx" ); break;
-		case SSDA: fprintf( outfile, "ssda" ); break;
+		case SSR: fprintf( output_obj->outfile, "ssr" ); break;
+		case SSDR: fprintf( output_obj->outfile, "ssdr" ); break;
+		case SSD0: fprintf( output_obj->outfile, "ssd0" ); break;
+		case SSDX: fprintf( output_obj->outfile, "ssdx" ); break;
+		case SSDA: fprintf( output_obj->outfile, "ssda" ); break;
 	}
-	fprintf( outfile, "\n" );
-	fprintf( outfile, "Solution: %s\n", cd->solution_id );
-	fprintf( outfile, "Number of parameters: %i\n", pd->nParam );
+	fprintf( output_obj->outfile, "\n" );
+	fglobalprintf( output_obj, "Solution=%s\n", cd->solution_id );
+	fglobalprintf( output_obj, "Solution Type=%i\n", cd->solution_type[0] );
+	fglobalprintf( output_obj, "Number of parameters=%i\n", pd->nParam );
 	for( i = j = 0; i < pd->nParam; i++ )
 	{
 		if( pd->var_opt[i] == -1 ) // tied parameter
 #ifdef MATHEVAL
-			fprintf( outfile, "%s= %s\n", pd->var_name[i], evaluator_get_string( pd->param_expression[j++] ) );
+			fprintf( output_obj->outfile, "%s= %s\n", pd->var_name[i], evaluator_get_string( pd->param_expression[j++] ) );
 #else
-			fprintf( outfile, "%s= MathEval is not installed; expressions cannot be evaluated\n", pd->var_name[i] );
+			fprintf( output_obj->outfile, "%s= MathEval is not installed; expressions cannot be evaluated\n", pd->var_name[i] );
 #endif
 		else if( pd->var_opt[i] >= 1 && pd->var_log[i] == 1 ) // optimized log transformed parameter
-			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pow( 10, pd->var[i] ), pd->var_opt[i], pd->var_log[i], pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );
+			fprintf( output_obj->outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pow( 10, pd->var[i] ), pd->var_opt[i], pd->var_log[i], pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );
 		else // fixed or not log-transformed parameter
-			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pd->var[i], pd->var_opt[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+			fprintf( output_obj->outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pd->var[i], pd->var_opt[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+
+		if( output_obj->use_netcdf )
+		  add_att_double(i,output_obj, pd) ;
 	}
 	if( cd->solution_type[0] != EXTERNAL )
 	{
-		fprintf( outfile, "Number of wells: %i\n", wd->nW );
+		fglobalprintf( output_obj, "Number of wells=%i\n", wd->nW );
 		for( i = 0; i < wd->nW; i++ )
 		{
-			fprintf( outfile, "%s %.15g %.15g %g %g %i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
-			if( wd->nWellObs[i] > 1 ) { fprintf( outfile, "\n" ); }
+			fprintf( output_obj->outfile, "%s %.15g %.15g %g %g %i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
+			if( wd->nWellObs[i] > 1 ) { fprintf( output_obj->outfile, "\n" ); }
 			for( j = 0; j < wd->nWellObs[i]; j++ )
-				fprintf( outfile, "%g %g %g %i %g %g\n", wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+				fprintf( output_obj->outfile, "%g %g %g %i %g %g\n", wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
 		}
+
+		if( output_obj->use_netcdf )
+		  add_well_data(output_obj, wd) ;
 	}
 	else
 	{
-		fprintf( outfile, "Number of observations: %i\n", od->nTObs );
+		fprintf( output_obj->outfile, "Number of observations: %i\n", od->nTObs );
 		for( i = 0; i < od->nTObs; i++ )
-			fprintf( outfile, "%s %g %g %d %g %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
-		fprintf( outfile, "Execution command: %s\n", ed->cmdline );
-		fprintf( outfile, "Number of execution templates: %d\n", ed->ntpl );
+			fprintf( output_obj->outfile, "%s %g %g %d %g %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
+		fprintf( output_obj->outfile, "Execution command: %s\n", ed->cmdline );
+		fprintf( output_obj->outfile, "Number of execution templates: %d\n", ed->ntpl );
 		for( i = 0; i < ed->ntpl; i++ )
-			fprintf( outfile, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
-		fprintf( outfile, "Number of execution instructions: %d\n", ed->nins );
+			fprintf( output_obj->outfile, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
+		fprintf( output_obj->outfile, "Number of execution instructions: %d\n", ed->nins );
 		for( i = 0; i < ed->nins; i++ )
-			fprintf( outfile, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );
+			fprintf( output_obj->outfile, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );
 	}
 	if( rd->nRegul > 0 )
 	{
-		fprintf( outfile, "Number of regularization terms: %d\n", rd->nRegul );
+		fprintf( output_obj->outfile, "Number of regularization terms: %d\n", rd->nRegul );
 		for( i = 0; i < rd->nRegul; i++ )
 #ifdef MATHEVAL
-			fprintf( outfile, "%s = %g %g %i %g %g\n", evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+			fprintf( output_obj->outfile, "%s = %g %g %i %g %g\n", evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
 #else
-			fprintf( outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+			fprintf( output_obj->outfile, "Regularization term #%d = %g %g %i %g %g\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
 #endif
 	}
 	if( cd->solution_type[0] != EXTERNAL )
 	{
-		fprintf( outfile, "Grid Time: %g\n", gd->time );
-		fprintf( outfile, "Grid lines: %i %i %i\n", gd->nx, gd->ny, gd->nz );
-		fprintf( outfile, "Grid Minimums: %g %g %g\n", gd->min_x, gd->min_y, gd->min_z );
-		fprintf( outfile, "Grid Maximums: %g %g %g\n", gd->max_x, gd->max_y, gd->max_z );
-		fprintf( outfile, "Time Window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
+		fprintf( output_obj->outfile, "Grid Time: %g\n", gd->time );
+		fprintf( output_obj->outfile, "Grid lines: %i %i %i\n", gd->nx, gd->ny, gd->nz );
+		fprintf( output_obj->outfile, "Grid Minimums: %g %g %g\n", gd->min_x, gd->min_y, gd->min_z );
+		fprintf( output_obj->outfile, "Grid Maximums: %g %g %g\n", gd->max_x, gd->max_y, gd->max_z );
+		fprintf( output_obj->outfile, "Time Window: %g %g %g\n", gd->min_t, gd->max_t, gd->dt );
 	}
-	fclose( outfile );
 	return( 1 );
 }
 
@@ -1717,7 +1748,7 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 	tprintf( "Spatial concentration data saved in %s.\n", filename );
 }
 
-void compute_btc2( char *filename, char *filename2, struct opt_data *op )
+void compute_btc2( struct io_output_object *output_obj, struct opt_data *op, int ireal )
 {
 	FILE *outfile;
 	double time, time_expected, c, max_source_conc, max_source_time, max_source_x, max_source_y, *max_conc, *max_time, d, x0, y0, alpha, beta, xe, ye, v, v_apparent;
@@ -1725,11 +1756,15 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 	struct grid_data *gd;
 	gd = op->gd;
 	if( gd->min_t <= 0 ) return;
-	if( ( outfile = fopen( filename, "w" ) ) == NULL )
+	if( ( outfile = fopen( output_obj->filename, "w" ) ) == NULL )
 	{
-		tprintf( "Output file %s cannot be opened!\n", filename );
+		tprintf( "Output file %s cannot be opened!\n", output_obj->filename );
 		return;
 	}
+
+	if( (output_obj->use_netcdf) && (ireal<0) )
+	  add_btc_vars( output_obj, op ) ;
+
 	tprintf( "\n" );
 	max_time = ( double * ) malloc( op->wd->nW * sizeof( double ) );
 	max_conc = ( double * ) malloc( op->wd->nW * sizeof( double ) );
@@ -1754,6 +1789,8 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 			c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], time, ( void * ) op->cd );
 			fprintf( outfile, " %g", c );
 			if( max_conc[i] < c ) { max_conc[i] = c; max_time[i] = time; }
+
+			add_btc_data(k, i, output_obj, c, ireal) ;
 		}
 		for( s = 0; s < op->cd->num_sources; s++ )
 		{
@@ -1765,11 +1802,11 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		fprintf( outfile, "\n" );
 	}
 	fclose( outfile );
-	tprintf( "Concentration breakthrough data saved in %s\n", filename );
+	tprintf( "Concentration breakthrough data saved in %s\n", output_obj->filename );
 	tprintf( "\nPeak source concentration (x = %g, y = %g, t = %g) = %g\n", max_source_x, max_source_y, max_source_time, max_source_conc );
-	if( ( outfile = fopen( filename2, "w" ) ) == NULL )
+	if( ( outfile = fopen( output_obj->filename2, "w" ) ) == NULL )
 	{
-		tprintf( "Output file %s cannot be opened!\n", filename );
+		tprintf( "Output file %s cannot be opened!\n", output_obj->filename2 );
 		return;
 	}
 	for( i = 0; i < op->pd->nParam; i++ ) // IMPORTANT: Take care of log transformed variable
@@ -1795,9 +1832,11 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op )
 		if( v > DBL_EPSILON ) time_expected = d / v; else time_expected = -1;
 		tprintf( "%s\tPeak Concentration  = %12g (%12g) @ time %12g (%12g expected %12g) velocity = %12g (%12g) distance = %12g\n", op->wd->id[i], max_conc[i], c, max_time[i], time, time_expected, v_apparent, v, d );
 		fprintf( outfile, "%s\tPeak Conc = %12g (%12g) @ time %12g (%12g expected %12g) velocity = %12g (%12g) distance = %12g\n", op->wd->id[i], max_conc[i], c, max_time[i], time, time_expected, v_apparent, v, d );
+
+		add_btc_peak_data(i, output_obj, max_conc[i], max_time[i], ireal) ;
 	}
 	fclose( outfile );
-	tprintf( "Concentration peak data saved in %s\n", filename2 );
+	tprintf( "Concentration peak data saved in %s\n", output_obj->filename2 );
 	for( i = 0; i < op->pd->nParam; i++ ) // IMPORTANT: Take care of log transformed variable
 		if( op->pd->var_opt[i] >= 1 && op->pd->var_log[i] == 1 )
 			op->pd->var[i] = log10( op->pd->var[i] );
@@ -2005,9 +2044,819 @@ void tprintf( char const *fmt, ... )
 		fflush( stdout );
 	}
 	va_start( ap, fmt );
-	vfprintf( mads_output, fmt, ap );
+	vfprintf( mads_output_obj.outfile, fmt, ap );
 	va_end( ap );
-	fflush( mads_output );
+	fflush( mads_output_obj.outfile );
+}
+
+void close_cdf_file( struct io_output_object *output_obj)
+{
+  if( output_obj->use_netcdf )
+    nc_close( output_obj->wr_ncid ) ;
+}
+
+void create_cdf_file( struct io_output_object *output_obj, struct well_data *wd)
+{
+  int dimlist[10] ;
+
+  if( ( ncerr = nc_create( strcat(output_obj->filename,".nc"), NC_NETCDF4, &output_obj->wr_ncid ) ) != NC_NOERR )
+    {
+      tprintf( "File \'%s\' cannot be opened\n", output_obj->filename );
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  // Add dimensions
+
+  ncerr = nc_def_dim(output_obj->wr_ncid, "wells", wd->nW, &output_obj->well_dimID ) ;
+
+  ncerr = nc_def_dim(output_obj->wr_ncid, "observations", NC_UNLIMITED, &output_obj->obs_dimID ) ;
+
+  ncerr = nc_def_dim(output_obj->wr_ncid, "TWO", 2, &output_obj->two_dimID ) ;
+  
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error adding cdf dimensions.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  // Add well variables
+
+  // 1D variables
+  dimlist[0] = output_obj->well_dimID ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "x", NC_DOUBLE, 1, dimlist, &output_obj->x_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "y", NC_DOUBLE, 1, dimlist, &output_obj->y_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "id", NC_STRING, 1, dimlist, &output_obj->id_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "n_observations", NC_INT, 1, dimlist, &output_obj->nobs_varID ) ;
+
+  // 2D variables
+  dimlist[1] = output_obj->two_dimID ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "z", NC_DOUBLE, 2, dimlist, &output_obj->z_varID ) ;
+
+  // 1D wells + 1D observation variables
+
+  dimlist[0] = output_obj->obs_dimID ;
+  dimlist[1] = output_obj->well_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_time", NC_DOUBLE, 2, dimlist, &output_obj->obs_time_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_target", NC_DOUBLE, 2, dimlist, &output_obj->obs_target_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_weight", NC_DOUBLE, 2, dimlist, &output_obj->obs_weight_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_log", NC_INT, 2, dimlist, &output_obj->obs_log_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_min", NC_DOUBLE, 2, dimlist, &output_obj->obs_min_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_max", NC_DOUBLE, 2, dimlist, &output_obj->obs_max_varID ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error adding variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  ncerr = nc_enddef(output_obj->wr_ncid) ;
+
+}
+
+void add_btc_vars( struct io_output_object *output_obj, struct opt_data *op )
+{
+  int k, dimlist[10] ;
+  double *hold_time ;
+  size_t start1[1], count1[1] ;
+
+  hold_time = ( double * ) malloc( op->gd->nt * sizeof( double ) ) ;
+
+  nc_redef(output_obj->wr_ncid) ;
+
+  // Add dimensions
+
+  ncerr = nc_def_dim(output_obj->wr_ncid, "btc_times", op->gd->nt, &output_obj->btc_dimID ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error adding btc dimensions.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  // 1D nwell
+
+  dimlist[0] = output_obj->well_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "peak_concentration", NC_DOUBLE, 1, dimlist, &output_obj->cpeak_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "peak_con_time", NC_DOUBLE, 1, dimlist, &output_obj->cpeak_time_varID ) ;
+  
+  // 1D btc
+
+  dimlist[0] = output_obj->btc_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "btc_time", NC_DOUBLE, 1, dimlist, &output_obj->btc_time_varID ) ;
+
+  // 2D 
+
+  dimlist[0] = output_obj->well_dimID ;
+  dimlist[1] = output_obj->btc_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "bt_concentration", NC_DOUBLE, 2, dimlist, &output_obj->bt_con_varID ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error adding igrnd variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  ncerr = nc_enddef(output_obj->wr_ncid) ;
+
+  for( k = 0; k < op->gd->nt; k++ )
+    {
+      hold_time[k] = op->gd->min_t + op->gd->dt * k;
+    }
+
+  start1[0] = 0 ;
+  count1[0] = op->gd->nt ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->btc_time_varID, (const size_t*) start1,
+			     (const size_t*) count1, hold_time ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing btc time variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  free( hold_time ) ;
+
+}
+
+void add_btc_data(int i, int j, struct io_output_object *output_obj, double con, int ireal)
+{
+  size_t start2[2], count2[2] ;
+  size_t start3[3], count3[3] ;
+
+  if(ireal<0)
+    {
+      start2[0] = j ;
+      start2[1] = i ;
+      
+      count2[0] = 1 ;
+      count2[1] = 1 ;
+      
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->bt_con_varID, (const size_t*) start2,
+				 (const size_t*) count2, &con ) ;
+
+    }
+  else
+    {
+      start3[0] = ireal ;
+      start3[1] = j ;
+      start3[2] = i ;
+      
+      count3[0] = 1 ;
+      count3[1] = 1 ;
+      count3[2] = 1 ;
+      
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->bt_con_varID, (const size_t*) start3,
+				 (const size_t*) count3, &con ) ;
+    }
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing btc variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+}
+
+void add_btc_peak_data(int i, struct io_output_object *output_obj, double peak_con, double peak_con_time, int ireal)
+{
+  size_t start1[1], count1[1] ;
+  size_t start2[2], count2[2] ;
+
+  if(ireal<0)
+    {
+      start1[0] = i ;
+      count1[0] = 1 ;
+
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->cpeak_varID, (const size_t*) start1,
+				 (const size_t*) count1, &peak_con ) ;
+
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->cpeak_time_varID, (const size_t*) start1,
+				 (const size_t*) count1, &peak_con_time ) ;
+
+    }
+  else
+    {
+      start2[0] = ireal ;
+      start2[1] = i ;
+
+      count2[0] = 1 ;
+      count2[1] = 1 ;
+
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->cpeak_varID, (const size_t*) start2,
+				 (const size_t*) count2, &peak_con ) ;
+
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->cpeak_time_varID, (const size_t*) start2,
+				 (const size_t*) count2, &peak_con_time ) ;
+    }
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing btc peak variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+}
+
+void add_igrnd_vars( struct io_output_object *output_obj, struct opt_data *op )
+{
+  int i, j, k, l, m, s, dimlist[10], solution_type ;
+  size_t start1[1], count1[1] ;
+  char **name_hold ;
+  double *hold_time, t0, t1, te, To, gfunc ;
+  char filename[50] ;
+  int ncid ;
+
+  name_hold = char_matrix(op->pd->nOptParam,50) ;
+  hold_time = ( double * ) malloc( op->gd->nt * sizeof( double ) ) ;
+
+  nc_redef(output_obj->wr_ncid) ;
+
+  // Add dimensions
+
+  ncerr = nc_def_dim(output_obj->wr_ncid, "nreal", op->cd->nreal, &output_obj->nreal_dimID ) ;
+
+  ncerr = nc_def_dim(output_obj->wr_ncid, "nOptParam", op->pd->nOptParam, &output_obj->nOptParam_dimID ) ;
+  
+  ncerr = nc_def_dim(output_obj->wr_ncid, "btc_times", op->gd->nt, &output_obj->btc_dimID ) ;
+
+  ncerr = nc_def_dim(output_obj->wr_ncid, "max_evaluations", NUM_PHI_EVALUATIONS, &output_obj->maxeval_dimID ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error adding igrnd dimensions.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  // 1D nreal
+
+  dimlist[0] = output_obj->nreal_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "objective_func", NC_DOUBLE, 1, dimlist, &output_obj->phi_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "success", NC_INT, 1, dimlist, &output_obj->success_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "num_eval", NC_INT, 1, dimlist, &output_obj->neval_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "num_phi_eval", NC_INT, 1, dimlist, &output_obj->nphieval_varID ) ;
+
+  dimlist[0] = output_obj->nOptParam_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "var_truth", NC_DOUBLE, 1, dimlist, &output_obj->var_truth_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "var_name", NC_STRING, 1, dimlist, &output_obj->var_name_varID ) ;
+
+  // 1D btc
+
+  dimlist[0] = output_obj->btc_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "btc_time", NC_DOUBLE, 1, dimlist, &output_obj->btc_time_varID ) ;
+
+  // 2D evaluations x nreal
+
+  dimlist[0] = output_obj->nreal_dimID ;
+  dimlist[1] = output_obj->maxeval_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "phi_eval", NC_DOUBLE, 2, dimlist, &output_obj->phi_eval_varID ) ;
+
+  // 2D params x nreal
+
+  dimlist[0] = output_obj->nreal_dimID ;
+  dimlist[1] = output_obj->nOptParam_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "var_opt", NC_DOUBLE, 2, dimlist, &output_obj->var_opt_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "var_orig", NC_DOUBLE, 2, dimlist, &output_obj->var_orig_varID ) ;
+
+  // 2D nwell x nreal
+
+  dimlist[0] = output_obj->nreal_dimID ;
+  dimlist[1] = output_obj->well_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "peak_concentration", NC_DOUBLE, 2, dimlist, &output_obj->cpeak_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "peak_con_time", NC_DOUBLE, 2, dimlist, &output_obj->cpeak_time_varID ) ;
+  
+  // 3D btc x nwell x nreal
+
+  dimlist[0] = output_obj->nreal_dimID ;
+  dimlist[1] = output_obj->well_dimID ;
+  dimlist[2] = output_obj->btc_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "bt_concentration", NC_DOUBLE, 3, dimlist, &output_obj->bt_con_varID ) ;
+
+  dimlist[0] = output_obj->obs_dimID ;
+  dimlist[1] = output_obj->nreal_dimID ;
+  dimlist[2] = output_obj->well_dimID ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_orig", NC_DOUBLE, 3, dimlist, &output_obj->obs_orig_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_opt", NC_DOUBLE, 3, dimlist, &output_obj->obs_opt_varID ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error adding igrnd variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  ncerr = nc_enddef(output_obj->wr_ncid) ;
+
+  // Add some vars now
+
+  for( l = 0; l < op->pd->nOptParam; l++ )
+    {
+      op->pd->var_best[l] = op->pd->var[op->pd->var_index[l]];
+      name_hold[l] = op->pd->var_name[op->pd->var_index[l]];
+
+      for( s = 0; s < op->cd->num_sources; s++ )
+	{
+	  k = op->cd->num_source_params * ( s + 1 );
+	  j = 0;
+	  for( i = op->cd->num_source_params * s; i < k; i++, j++ )
+	    {
+	      if(i==op->pd->var_index[l])
+		{
+		  if( (op->cd->num_sources>1) && (j==FLUX) )
+		    {
+		      // OK.. This is a flux from mulitple sources, I may need to recompute
+
+		      	sprintf( filename, "%s-truth.mads.nc", op->root );
+			nc_open(filename, NC_NOWRITE, &ncid) ;
+
+			nc_get_att_int(ncid, NC_GLOBAL, "Solution_Type", &solution_type) ;
+
+			// I need to recompute because truth is triangle
+			if(solution_type==POINT_TRIANGLE_TIME)
+			  {
+
+			    for( m = op->cd->num_source_params * (s); 
+				 m < op->cd->num_source_params * ( s + 1); m++)
+			      {
+				if( (m - op->cd->num_source_params*(s)) == TIME_INIT )
+				  t0 = op->pd->var[m] ;
+				
+				if( (m - op->cd->num_source_params*(s)) == TIME_END )
+				  t1 = op->pd->var[m] ;
+			      }
+
+			    te = (t1+t0)/2. ;
+
+			    for( m = 0; m < op->cd->num_source_params * ( 1 ); m++)
+			      {
+				if(m == TIME_INIT)
+				  t0 = op->pd->var[m] ;
+			      }
+
+			    for( m = op->cd->num_source_params * (op->cd->num_sources-1); 
+				 m < op->cd->num_source_params * (op->cd->num_sources); m++)
+			      {
+				if( (m - op->cd->num_source_params*(op->cd->num_sources-1)) == TIME_END )
+				  t1 = op->pd->var[m] ;
+			      }
+
+			    To = (t1-t0)/2. ;
+
+			    // This is the triangle chase
+			    if((te<t0)||(te>t1))
+			      gfunc = 0. ;
+			    else if((te-t0)<To)
+			      gfunc = (te-t0)/To ;
+			    else
+			      gfunc = 2. - (te-t0)/To ;
+			    
+			    // now we modify var_best
+			    op->pd->var_best[l] = op->pd->var_best[l]*gfunc ;
+
+			  }
+			else if(solution_type!=POINT)
+			  {
+			    printf("Problem with setup.  Aborting...\n") ;
+			    exit(-1) ;
+			  }
+
+			nc_close(ncid) ;
+		    }
+		}
+	    }
+	}
+    }
+  
+  start1[0] = 0 ;
+  count1[0] = op->pd->nOptParam ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->var_truth_varID, (const size_t*) start1,
+			     (const size_t*) count1, op->pd->var_best ) ;
+
+  ncerr = nc_put_vara_string(output_obj->wr_ncid, output_obj->var_name_varID, (const size_t*) start1,
+			     (const size_t*) count1, (const char**) name_hold ) ;
+
+
+  for( k = 0; k < op->gd->nt; k++ )
+    {
+      hold_time[k] = op->gd->min_t + op->gd->dt * k;
+    }
+
+  start1[0] = 0 ;
+  count1[0] = op->gd->nt ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->btc_time_varID, (const size_t*) start1,
+			     (const size_t*) count1, hold_time ) ;
+  
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing var_truth variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  free( name_hold ) ;
+  free( hold_time ) ;
+
+}
+
+void add_igrnd_orig_obs(int ireal, struct io_output_object *output_obj, struct opt_data *op )
+{
+  int i, j, k ;
+  double c ;
+  size_t start3[3], count3[3] ;
+
+  for( k = 0, i = 0; i < op->wd->nW; i++ )
+    for( j = 0; j < op->wd->nWellObs[i]; j++ )
+      {
+	start3[0] = j ;
+	start3[1] = ireal ;
+	start3[2] = i ;
+      
+	count3[0] = 1 ;
+	count3[1] = 1 ;
+	count3[2] = 1 ;
+
+	c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
+
+	ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_orig_varID, (const size_t*) start3,
+				   (const size_t*) count3, &c ) ;
+      }
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing igrnd_orig_obs variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+}
+
+
+void add_igrnd_stat(int ireal, struct io_output_object *output_obj, struct opt_data *op )
+{
+  int i, j, k, nphi ;
+  size_t start1[1], count1[1] ;
+  size_t start2[2], count2[2] ;
+  size_t start3[3], count3[3] ;
+
+  start1[0] = ireal ;
+  count1[0] = 1 ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->phi_varID, (const size_t*) start1,
+			     (const size_t*) count1, &op->phi ) ;
+
+  ncerr = nc_put_vara_int(output_obj->wr_ncid, output_obj->success_varID, (const size_t*) start1,
+			     (const size_t*) count1, &op->success ) ;
+
+  ncerr = nc_put_vara_int(output_obj->wr_ncid, output_obj->neval_varID, (const size_t*) start1,
+			     (const size_t*) count1, &op->cd->neval ) ;
+
+  nphi = op->cd->njac + 2 ;
+
+  ncerr = nc_put_vara_int(output_obj->wr_ncid, output_obj->nphieval_varID, (const size_t*) start1,
+			     (const size_t*) count1, &nphi ) ;
+
+  start2[0] = ireal ;
+  start2[1] = 0 ;
+
+  count2[0] = 1 ;
+  // Just to make sure I get them all
+  count2[1] = nphi + 1 ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->phi_eval_varID, (const size_t*) start2,
+			     (const size_t*) count2, op->cd->phi_eval ) ;
+
+  for( k = 0, i = 0; i < op->wd->nW; i++ )
+    for( j = 0; j < op->wd->nWellObs[i]; j++ )
+      {
+	start3[0] = j ;
+	start3[1] = ireal ;
+	start3[2] = i ;
+      
+	count3[0] = 1 ;
+	count3[1] = 1 ;
+	count3[2] = 1 ;
+
+	ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_opt_varID, (const size_t*) start3,
+				   (const size_t*) count3, &op->od->obs_current[k++] ) ;
+      }
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing igrnd_stat variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+}
+
+void add_igrnd_orig_var(int i, int j, struct io_output_object *output_obj, double var_orig)
+{
+  size_t start2[2], count2[2] ;
+
+  start2[0] = j ;
+  start2[1] = i ;
+
+  count2[0] = 1 ;
+  count2[1] = 1 ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->var_orig_varID, (const size_t*) start2,
+			     (const size_t*) count2, &var_orig ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing igrnd_orig variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+}
+
+void add_igrnd_opt_var(int i, int j, struct io_output_object *output_obj, double var_opt)
+{
+  size_t start2[2], count2[2] ;
+
+  start2[0] = j ;
+  start2[1] = i ;
+
+  count2[0] = 1 ;
+  count2[1] = 1 ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->var_opt_varID, (const size_t*) start2,
+			     (const size_t*) count2, &var_opt ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing igrnd_opt variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+}
+
+void add_residual_vars( struct io_output_object *output_obj)
+{
+  int dimlist[10] ;
+
+  // 1D wells + 1D observation variables
+
+  dimlist[0] = output_obj->obs_dimID ;
+  dimlist[1] = output_obj->well_dimID ;
+
+  nc_redef(output_obj->wr_ncid) ;
+
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_current", NC_DOUBLE, 2, dimlist, &output_obj->obs_curr_varID ) ;
+  ncerr = nc_def_var(output_obj->wr_ncid, "obs_residuals", NC_DOUBLE, 2, dimlist, &output_obj->obs_resids_varID ) ;
+  
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error adding residual variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+  ncerr = nc_enddef(output_obj->wr_ncid) ;
+
+}
+
+void add_residual_data(int i, int j, struct io_output_object *output_obj, double c, double err)
+{
+  size_t start2[2], count2[2] ;
+
+  start2[0] = j ;
+  start2[1] = i ;
+
+  count2[0] = 1 ;
+  count2[1] = 1 ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_curr_varID, (const size_t*) start2,
+			     (const size_t*) count2, &c ) ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_resids_varID, (const size_t*) start2,
+			     (const size_t*) count2, &err ) ;
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing residual variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+}
+
+void add_well_data( struct io_output_object *output_obj, struct well_data *wd)
+{
+  int i ;
+  size_t start2[2], count2[2] ;
+
+  ncerr = nc_put_var_int(output_obj->wr_ncid, output_obj->nobs_varID, wd->nWellObs) ;
+
+  ncerr = nc_put_var_double(output_obj->wr_ncid, output_obj->x_varID, wd->x) ;
+  ncerr = nc_put_var_double(output_obj->wr_ncid, output_obj->y_varID, wd->y) ;
+  ncerr = nc_put_var_string(output_obj->wr_ncid, output_obj->id_varID, (const char**) wd->id) ;
+
+  // because there are two z values, I need to input as a hyperslab
+  start2[0] = 0 ;
+  start2[1] = 0 ;
+
+  count2[0] = wd->nW ;
+  count2[1] = 1 ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->z_varID, (const size_t*) start2,
+			     (const size_t*) count2, wd->z1) ;
+
+  // z2 starts at index=1
+  start2[1] = 1 ;
+
+  ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->z_varID, (const size_t*) start2,
+			     (const size_t*) count2, wd->z2) ;
+
+  for( i = 0; i < wd->nW; i++ )
+    {
+      start2[0] = 0 ;
+      start2[1] = i ;
+
+      count2[0] = wd->nWellObs[i] ;
+      count2[1] = 1 ;
+
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_time_varID, (const size_t*) start2,
+				 (const size_t*) count2, (const double*) &wd->obs_time[i][0]) ;
+      
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_target_varID, (const size_t*) start2,
+				 (const size_t*) count2, (const double*) &wd->obs_target[i][0]) ;
+      
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_weight_varID, (const size_t*) start2,
+				 (const size_t*) count2, (const double*) &wd->obs_weight[i][0]) ;
+      
+      ncerr = nc_put_vara_int(output_obj->wr_ncid, output_obj->obs_log_varID, (const size_t*) start2,
+			      (const size_t*) count2, (const int*) &wd->obs_log[i][0]) ;
+
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_min_varID, (const size_t*) start2,
+				 (const size_t*) count2, (const double*) &wd->obs_min[i][0]) ;
+
+      ncerr = nc_put_vara_double(output_obj->wr_ncid, output_obj->obs_max_varID, (const size_t*) start2,
+				 (const size_t*) count2, (const double*) &wd->obs_max[i][0]) ;
+
+    }
+
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing well variables.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(-1) ;
+    }
+
+}
+
+void add_att_double( int i, struct io_output_object *output_obj, struct param_data *pd )
+{
+  int j,k,attname_len ;
+  double hold_att_val ;
+  char hold_attname[500] ;
+  char *char_ptr = hold_attname ;
+
+  // Don't output parameters that are tied
+  for( j = 0; j < pd->nExpParam; j++ )
+    {
+      k = pd->param_expressions_index[j];
+      if(i==k) return ;
+    }
+
+  attname_len = strlen(pd->var_name[i]) ;
+
+  strcpy(char_ptr,pd->var_name[i]) ;
+
+  // look for / sign
+  for(j = 0; j<attname_len; ++j)
+    {
+      if(*char_ptr=='/')
+	{
+	  hold_attname[j] = 'p' ;
+	  hold_attname[j+1] = 'e' ;
+	  hold_attname[j+2] = 'r' ;
+
+	  for(k = j+3; k< attname_len+3; ++k)
+	    hold_attname[k] = pd->var_name[i][k-2] ;
+	  
+	  break ;
+	}
+
+      if(*char_ptr==' ')
+	*char_ptr = '_' ;
+
+      char_ptr++ ;
+    }
+  
+  nc_redef(output_obj->wr_ncid) ;
+
+  if( pd->var_opt[i] >= 1 && pd->var_log[i] == 1 ) // optimized log transformed parameter
+    {
+      hold_att_val = pow( 10, pd->var[i] ) ;
+
+      ncerr = nc_put_att_double(output_obj->wr_ncid, NC_GLOBAL, hold_attname, NC_DOUBLE, 1,
+				&hold_att_val) ;
+    }
+  else // fixed or not log-transformed parameter
+    ncerr = nc_put_att_double(output_obj->wr_ncid, NC_GLOBAL, hold_attname, NC_DOUBLE, 1, &pd->var[i]) ;
+  
+  if(ncerr != NC_NOERR )
+    {
+      printf("%d Error writing global attribute.  Aborting...\n",ncerr) ;
+      fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+      exit(1) ;
+    }
+  
+  nc_enddef(output_obj->wr_ncid) ;
+
+}
+
+void fglobalprintf( struct io_output_object *output_obj, char const *fmt, ... )
+{
+  va_list ap;
+  int ncerr,intout;
+  double doubleout;
+  char hold_attname[500],hold_att[500] ;
+  char *att_ptr = hold_attname ;
+  char *char_ptr = hold_attname ;
+
+  strcpy(att_ptr,fmt) ;
+
+  va_start( ap, fmt );
+  vfprintf( output_obj -> outfile, fmt, ap ) ;
+  va_end( ap );
+
+  if( output_obj->use_netcdf )
+    {
+      // remove leading blank spaces
+      while(*att_ptr==' ')
+	att_ptr++ ;
+
+      // look for equal sign
+      while(*char_ptr!='=')
+	{
+	  if(*char_ptr==' ')
+	    *char_ptr = '_' ;
+
+	  char_ptr++ ;
+	}
+
+      *char_ptr = '\0' ;
+
+      // determine type of output
+      char_ptr++ ;
+      char_ptr++ ;
+      
+      if((*char_ptr=='d')|(*char_ptr=='i'))
+	{
+	  va_start( ap, fmt );
+	  intout = va_arg(ap, int) ;
+
+	  ncerr = nc_put_att_int(output_obj->wr_ncid, NC_GLOBAL, att_ptr, NC_INT, 1, &intout) ;
+	}
+      else if(*char_ptr=='s')
+	{
+	  va_start( ap, fmt );
+	  vsprintf(hold_att,"%s",ap) ;
+
+	  ncerr = nc_put_att_text(output_obj->wr_ncid, NC_GLOBAL, att_ptr, strlen(hold_att), hold_att) ;
+	}
+      else if(*char_ptr=='g')
+	{
+	  va_start( ap, fmt );
+	  doubleout = va_arg(ap, double) ;
+
+	  ncerr = nc_put_att_double(output_obj->wr_ncid, NC_GLOBAL, att_ptr, NC_DOUBLE, 1, &doubleout) ;
+	}
+      else
+	{
+	  printf("Output %c is unknown format. Aborting...", *char_ptr) ;
+	  exit(1) ;
+	}
+	  
+      va_end( ap );
+
+      if(ncerr != NC_NOERR )
+	{
+	  printf("%d Error writing fglobalprintf attribute.  Aborting...\n",ncerr) ;
+	  fprintf(stderr, "%s\n", nc_strerror(ncerr)) ;
+	  exit(1) ;
+	}
+    }
 }
 
 int set_optimized_params( struct opt_data *op )

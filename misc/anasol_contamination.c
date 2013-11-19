@@ -137,6 +137,8 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 	p->xe = x;
 	p->ye = y;
 	p->ze = z;
+	// Need to add this to keep track of current time
+	p->te = t;
 	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
 		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
 	w = gsl_integration_workspace_alloc( NUMITER );
@@ -169,8 +171,20 @@ double int_point_source_triangle_time( double tau, void *params )
 	double ay = ( p->var[AY] );
 	double az = ( p->var[AZ] );
 	double source_z = ( p->var[SOURCE_Z] );
+	double time = ( p->te - p->var[TIME_INIT] );
 	double rx, ry, rz, e1, ez, tau_d, tv, ts, tx, tz1, tz2;
-	double d, alpha, beta, xe, ye, ze, x0, y0;
+	double d, alpha, beta, xe, ye, ze, x0, y0, gfunc;
+	// **** Here is my triangle ****
+	// To is half the width of the triangle
+	double To = ( p->var[TIME_END] - p->var[TIME_INIT] )/2. ;
+	// This is the triangle chase
+	if((time-tau)<To)
+	  gfunc = (time-tau)/To ;
+	else
+	  gfunc = 2. - (time-tau)/To ;
+	// This is a normalization to give area unity
+	//	gfunc = gfunc/To ;
+
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
 	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
@@ -193,7 +207,7 @@ double int_point_source_triangle_time( double tau, void *params )
 	tz2 = ze + 2. * source_z;
 	ez = exp( -tz1 * tz1 / rz ) + exp( -tz2 * tz2 / rz );
 //	printf("tau %g %g %g %g\n",tau,ez,e1,ze);
-	return( e1 * ez * ts );
+	return( gfunc * e1 * ez * ts );
 }
 
 

@@ -52,7 +52,7 @@
 #include "../mads.h"
 
 /* Functions here */
-int infogap_obs( struct opt_data *op );
+int infogap_obs( struct io_output_object *output_obj, struct opt_data *op );
 int infogap( struct opt_data *op );
 
 /* Functions elsewhere */
@@ -60,7 +60,7 @@ int igrnd( struct opt_data *op );
 int count_lines( char *filename );
 int count_cols( char *filename, int row );
 
-int infogap_obs( struct opt_data *op )
+int infogap_obs( struct io_output_object *output_obj, struct opt_data *op )
 {
 	int i, j, ig_index, status, count, neval_total, njac_total;
 	int ( *optimize_func )( struct opt_data * op );
@@ -102,7 +102,8 @@ int infogap_obs( struct opt_data *op )
 			else                           tprintf( "%-20s: Current info-gap min %12g Observation step %g Observation domain %g\n", op->od->obs_id[j], op->preds->obs_best[i], op->cd->obsstep, op->cd->obsdomain );
 		}
 		if( op->cd->debug ) print_results( op, 1 );
-		save_final_results( "infogap", op, op->gd );
+		output_obj->filename = "infogap" ;
+		save_final_results( output_obj, op, op->gd );
 		if( !op->success ) break;
 		op->od->obs_target[ig_index] += op->cd->obsstep;
 		if( op->cd->obsstep > DBL_EPSILON ) // max search
@@ -145,7 +146,8 @@ int infogap_obs( struct opt_data *op )
 	}
 	tprintf( "\n" );
 	print_results( op, 1 );
-	save_final_results( "", op, op->gd );
+	output_obj->filename = "" ;
+	save_final_results( output_obj, op, op->gd );
 	return( 1 );
 }
 

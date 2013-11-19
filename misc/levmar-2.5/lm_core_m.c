@@ -259,6 +259,8 @@ int LEVMAR_DER2(
 	computejac = 0;
 	kmax = itmax * 100;
 	phi1c = phi2c = 0;
+	// Chris Jeffery mod: 10/30/13
+	op->cd->phi_eval[op->cd->njac + phi1c] = p_eL2;
 	if( op->cd->ldebug > 2 )
 	{
 		DeTransform( p, op, jac_min );
@@ -307,6 +309,8 @@ int LEVMAR_DER2(
 			phi2c = 0;
 			p_eL2_old = p_eL2;
 			phi1[phi1c++] = p_eL2;
+			// Chris Jeffery Mod: 10/30/13, store in op
+			op->cd->phi_eval[op->cd->njac + phi1c] = p_eL2;
 			if( phi1c > op->cd->lm_njacof )
 			{
 				tmp = HUGE_VAL;

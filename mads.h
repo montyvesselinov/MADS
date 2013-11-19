@@ -43,13 +43,14 @@ enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2,
 #define NUM_ANAL_PARAMS_SOURCE 9
 enum SOURCE_PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, FLUX, TIME_INIT, TIME_END };
 #define NUM_ANAL_PARAMS_AQUIFER 17
+#define NUM_PHI_EVALUATIONS 150
 enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, RF, LAMBDA, FLOW_ANGLE, VX, VY, VZ, AX, AY, AZ, TSCALE_DISP, TSCALE_ADV, TSCALE_REACT, ALPHA, BETA, NLC0, NLC1 };
 
 #define SHELL "/usr/bin/env tcsh -f -c"
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
-FILE *mads_output;
+struct io_output_object mads_output_obj;
 int quiet;
 
 #define COMPARE_EPSILON pow( FLT_EPSILON, (double) 1/2 ) // EPSILON FOR BOUND COMPARISON
@@ -84,6 +85,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int problem_type; // problem type: forward, calibration, ...
 	int calib_type; // calibration type: simple, igpd, ...
 	int yaml; // input / output format
+        int netcdf; // flag to use netcdf output
 	int gsa_type; // global sensitivity analysis type: sobol, saltelli, moat, ...
 	int paranoid; // paranoid calibration
 	int num_sources; // number of contaminant sources (internal solutions)
@@ -99,6 +101,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int init_particles; // number of tribes (squads, tribes)
 	int niter; // number of iterations
 	int neval; // current number of evaluations (can be applied as termination criteria)
+        double *phi_eval; // stores phi for each evaluation
 	int njac; // current number of jacobian evaluations
 	int maxeval; // maximum number of evaluations (termination criteria)
 	int lmstandalone; // flag standalone LM run (yes/no)
@@ -115,7 +118,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int energy; // starting energy for pssa particles
 	int disp_tied;
 	int disp_scaled;
-	int time_step; // 1 => End time == Time step
+ 	int time_step; // 1 => End time == Time step 
 	int save;
 	int pargen;
 	int obs_int;
@@ -299,12 +302,29 @@ struct extrn_data // data structure for external problem
 	char **fn_obs; // model output filename associated with the instruction file
 };
 
+struct gsa_data // global sensitivity analysis data structure
+{
+	double **var_a_lhs;	// sample a for global sensitivity analysis
+	double **var_b_lhs;	// sample b for global sensitivity analysis
+	double f_hat_0;		// total output mean
+	double f_hat_a;		// Sample A output mean
+	double f_hat_b;		// Sample B output mean
+	double *f_a;		// sample a phis
+	double *f_b;		// sample b phis
+	double **fmat_a;	// matrix of phis - rows \theta_i^a; column \theta_{~i}^b
+	double **fmat_b;	// matrix of phis - rows \theta_i^b; column \theta_{~i}^a
+	double D_hat_t;		// total output variance
+	double *D_hat_a;    // component output variance (\hat{D}_i)
+	double *D_hat_b; 	// not component output variance (\hat{D}_{~i})
+	double ep;          // absolute first moment
+};
+
 struct anal_data
 {
 	int num_param;
 	int debug;
 	int scaling_dispersion;
-	int time_step;
+	int time_step;  
 	double xe; // x coordinate; needed only for the functions during integration (can be a subclass)
 	double ye; // y coordinate; needed only for the functions during integration (can be a subclass)
 	double ze; // z coordinate; needed only for the functions during integration (can be a subclass)
@@ -338,6 +358,34 @@ struct class_data
 	char **class_id;
 };
 
+struct io_output_object
+{
+  int wr_ncid ;
+  char *filename, *filename2 ;
+  int use_netcdf ;
+
+  // Dimesion IDs
+  int well_dimID,obs_dimID,two_dimID,nreal_dimID,nOptParam_dimID,btc_dimID,maxeval_dimID ;
+
+  // Variable IDs
+  int x_varID,y_varID,z_varID,id_varID,nobs_varID,obs_time_varID,obs_target_varID,obs_weight_varID,obs_log_varID,
+    obs_min_varID,obs_max_varID,obs_curr_varID,obs_resids_varID,var_opt_varID,var_orig_varID ;
+  int phi_varID,success_varID,neval_varID,var_truth_varID,var_name_varID,cpeak_varID,btc_time_varID,bt_con_varID,
+    cpeak_time_varID,obs_opt_varID,obs_orig_varID,phi_eval_varID,nphieval_varID ;
+
+  FILE *outfile;
+};  
+
+void fglobalprintf( struct io_output_object *output_obj, char const *fmt, ... );
+void create_cdf_file( struct io_output_object *output_obj, struct well_data *wd);
+void close_cdf_file( struct io_output_object *output_obj );
+void add_residual_vars( struct io_output_object *output_obj );
+void add_igrnd_vars( struct io_output_object *output_obj, struct opt_data *op );
+void add_residual_data(int i, int j, struct io_output_object *output_obj, double c, double err);
+void add_igrnd_orig_var(int i, int j, struct io_output_object *output_obj, double var_orig);
+void add_igrnd_orig_obs(int i, struct io_output_object *output_obj, struct opt_data *op) ;
+void add_igrnd_opt_var(int i, int j, struct io_output_object *output_obj, double var_orig);
+void add_igrnd_stat(int i, struct io_output_object *output_obj, struct opt_data *op) ;
 
 // mads.c
 int optimize_lm( struct opt_data *op ); // LM (Levenberg-Marquardt) optimization
@@ -345,7 +393,7 @@ int optimize_pso( struct opt_data *op ); // PSO optimization
 int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar ); // Eigen analysis
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op, int verbosity ); // Print final results
-void save_final_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
+void save_final_results( struct io_output_object *output_obj, struct opt_data *op, struct grid_data *gd ); // Save final results
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
 void ave_sorted( double data[], int n, double *ave, double *ep );
 char *timestamp(); // create time stamp
@@ -376,9 +424,10 @@ void white_skip( char **s );
 // mads_io.c
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-int save_problem( char *filename, struct opt_data *op );
+int save_problem( struct io_output_object *output_obj, struct opt_data *op );
+int write_problem( struct io_output_object *output_obj, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
-void compute_btc2( char *filename, char *filename2, struct opt_data *op );
+void compute_btc2( struct io_output_object *output_obj, struct opt_data *op, int nreal );
 void compute_btc( char *filename, struct opt_data *op );
 // mads_io_external.c
 int load_pst( char *filename, struct opt_data *op );

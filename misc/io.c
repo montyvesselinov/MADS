@@ -31,12 +31,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+#include "../mads.h"
 
 /* Functions here */
 int Ftest( char *filename );
 int Ftestread( char *filename );
 FILE *Fread( char *filename );
-FILE *Fwrite( char *filename );
+void Fwrite( struct io_output_object *output_obj, struct opt_data *op );
 FILE *Fappend( char *filename );
 char *Fdatetime( char *filename, int debug );
 time_t Fdatetime_t( char *filename, int debug );
@@ -68,15 +69,45 @@ FILE *Fread( char *filename )
 	return( in );
 }
 
-FILE *Fwrite( char *filename )
+void Fwrite( struct io_output_object *output_obj, struct opt_data *op )
 {
-	FILE *out;
-	if( ( out = fopen( filename, "w" ) ) == NULL )
+        FILE *hold_file_ptr;
+
+	if( ( output_obj->outfile = fopen( output_obj->filename, "w" ) ) == NULL )
 	{
-		tprintf( "ERROR: The file %s could not opened to write!\n", filename );
+		tprintf( "ERROR: The file %s could not opened to write!\n", output_obj->filename );
 		exit( 0 );
 	}
-	return( out );
+
+	// Test to see if pointers have been initialized
+ 	if(op->wd->x)
+	  output_obj->use_netcdf = 1 ;
+	else
+	  output_obj->use_netcdf = 0 ;
+
+	if( output_obj->use_netcdf )
+	  {
+	    create_cdf_file(output_obj, op->wd) ;
+	    // I want to call write_problem but not output to the text file
+	    
+	    hold_file_ptr = output_obj->outfile ;
+
+	    // This directions text output to nowhere
+	    output_obj->outfile = fopen("/dev/null","w") ;
+
+	    write_problem(output_obj, op) ;
+
+	    output_obj->outfile = hold_file_ptr ;
+	  }
+}
+
+void Fclose( struct io_output_object *output_obj )
+{
+  fclose( output_obj->outfile ) ;
+
+  if( output_obj->use_netcdf )
+    close_cdf_file(output_obj) ;
+		      
 }
 
 FILE *Fappend( char *filename )

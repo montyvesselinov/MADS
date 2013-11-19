@@ -75,7 +75,7 @@ int montecarlo( struct opt_data *op );
 //
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op, int verbosity ); // Print final results
-void save_final_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
+void save_final_results( struct io_output_object *output_obj, struct opt_data *op, struct grid_data *gd ); // Save final results
 int sort_int( const void *x, const void *y );
 double sort_double( const void *a, const void *b );
 
@@ -102,12 +102,13 @@ int parse_cmd_debug( char *buf );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
-int save_problem( char *filename, struct opt_data *op );
+int save_problem( struct io_output_object *output_obj, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
-void compute_btc2( char *filename, char *filename2, struct opt_data *op );
+void compute_btc2( struct io_output_object *output_obj, struct opt_data *op, int nreal );
 int Ftest( char *filename );
 FILE *Fread( char *filename );
-FILE *Fwrite( char *filename );
+void Fwrite( struct io_output_object *output_obj, struct opt_data *op );
+void Fclose( struct io_output_object *output_obj );
 FILE *Fappend( char *filename );
 char *Fdatetime( char *filename, int debug );
 time_t Fdatetime_t( char *filename, int debug );
@@ -148,7 +149,7 @@ int sa_sobol( struct opt_data *op );
 int sa_saltelli( struct opt_data *op );
 int sa_moat( struct opt_data *op );
 int abagus( struct opt_data *op );
-int infogap_obs( struct opt_data *op );
+int infogap_obs( struct io_output_object *output_obj, struct opt_data *op );
 int infogap( struct opt_data *op );
 int postpua( struct opt_data *op );
 int glue( struct opt_data *op );
@@ -163,24 +164,28 @@ int main( int argn, char *argv[] )
 	struct regul_data rd;
 	struct obs_data od;
 	struct obs_data preds;
-	struct well_data wd;
+	struct well_data wd = {0} ;
 	struct extrn_data ed;
 	struct grid_data gd;
-	struct opt_data op;
+	struct opt_data op = {0} ;
+	struct io_output_object output_obj, output_obj2;
 	struct anal_data ad;
 	struct source_data sd;
 	struct aquifer_data qd;
 	char filename[255], filename2[255], root[255], extension[255], buf[1000], *dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
-	FILE *in, *out, *out2;
-	out2 = NULL;
+	FILE *out, *in;
 	time_t time_start, time_end, time_elapsed;
 	pid_t pid;
 	struct tm *ptr_ts;
 	time_start = time( NULL );
 	op.datetime_stamp = datestamp(); // create execution date stamp
 	buf[0] = 0;
+	// output netcdf
+	output_obj.use_netcdf = 1 ;
+	output_obj2.use_netcdf = 1 ;
+	mads_output_obj.use_netcdf = 1 ;
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
 	cd.debug = parse_cmd_debug( buf );
 	op.pd = &pd; // create opt_data structures ...
@@ -252,6 +257,8 @@ int main( int argn, char *argv[] )
 	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
+	// Select netcdf output
+	cd.netcdf = 1; // netcdf output
 	printf( "Problem root name: %s", root );
 	if( extension[0] != 0 )	printf( " Extension: %s\n", extension );
 	else printf( "\n" );
@@ -261,15 +268,16 @@ int main( int argn, char *argv[] )
 	sprintf( filename2, "%s.mads_output", op.root );
 	if( Ftest( filename2 ) == 0 ) // If file already exists quit ...
 	{
-		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
+		sprintf( buf, "mv %s.mads_output %s.mads_output_%s >& /dev/null", op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
 		system( buf );
 	}
-	mads_output = Fwrite( filename2 );
-	fprintf( mads_output, "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
-	fprintf( mads_output, "---------------------------------------------------\n" );
-	fprintf( mads_output, "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
-	fprintf( mads_output, "Input file name: %s\n", filename );
-	fprintf( mads_output, "Problem root name: %s\n", root );
+	mads_output_obj.filename = filename2 ;
+	Fwrite( &mads_output_obj, &op );
+	fprintf( mads_output_obj.outfile, "MADS: Model Analyses & Decision Support (v.1.1.14) 2013\n" );
+	fprintf( mads_output_obj.outfile, "---------------------------------------------------\n" );
+	fprintf( mads_output_obj.outfile, "Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
+	fprintf( mads_output_obj.outfile, "Input file name: %s\n", filename );
+	fprintf( mads_output_obj.outfile, "Problem root name: %s\n", root );
 	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
 	if( Ftest( buf ) == 0 ) // If file already exists quit ...
 	{
@@ -291,8 +299,9 @@ int main( int argn, char *argv[] )
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
+				output_obj.filename = filename ;
 				if( cd.yaml ) save_problem_yaml( filename, &op );
-				else save_problem( filename, &op );
+				else save_problem( &output_obj, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
@@ -318,14 +327,18 @@ int main( int argn, char *argv[] )
 #endif
 		}
 		else ier = load_problem( filename, argn, argv, &op ); // MADS plain text format or "NO FILE"
+		// Chris Jeffery addition 9/20: force save_problem for netcdf output
+		if(cd.netcdf)
+		  cd.yaml = 0;
 		if( ier <= 0 )
 		{
 			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
 			if( ier == 0 )
 			{
 				sprintf( filename, "%s-error.mads", op.root );
+				output_obj.filename = filename ;
 				if( cd.yaml ) save_problem_yaml( filename, &op );
-				else save_problem( filename, &op );
+				else save_problem( &output_obj, &op );
 				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
@@ -396,15 +409,13 @@ int main( int argn, char *argv[] )
 		tprintf( "\nLocal parallel execution is requested using %d processors (np=%d)\n", cd.num_proc, cd.num_proc );
 		cwd = getenv( "OSTYPE" ); tprintf( "OS type: %s\n", cwd );
 		if( strncasecmp( cwd, "darwin", 6 ) == 0 )
-			sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", SHELL );  // MAC OS
+			system( "\\rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc" ); // MAC OS
 		else
-			sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", SHELL ); // LINUX
-		system( buf );
+			system( "\\rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc" ); // LINUX
 		in = Fread( "num_proc" );
 		fscanf( in, "%d", &k );
 		fclose( in );
-		sprintf( buf, "%s \"rm -f num_proc >& /dev/null\"", SHELL );
-		system( buf );
+		system( "\\rm -f num_proc >& /dev/null" );
 		tprintf( "Number of local processors available for parallel execution: %i\n", k );
 		if( k < cd.num_proc ) tprintf( "WARNING: Number of requested processors exceeds the available resources!\n" );
 	}
@@ -518,7 +529,7 @@ int main( int argn, char *argv[] )
 			sprintf( filename, "%s.results", op.root ); if( Ftest( filename ) != 0 ) tprintf( "MADS results file \'%40s\' last modified on %s\n", filename, Fdatetime( filename, 0 ) );
 			tprintf( "MADS restart file \'%40s\' last modified on %s\n", cd.restart_zip_file, Fdatetime( cd.restart_zip_file, 0 ) );
 			tprintf( "ZIP file (%s) with restart information is unzipped ... \n", cd.restart_zip_file );
-			sprintf( buf, "%s \"rm -fR ../%s* %s.restart_info; unzip -o -u -: %s >& /dev/null\"", SHELL, cd.mydir_hosts, op.root, cd.restart_zip_file ); // the input file name was temporarily in buf; not any more ...
+			sprintf( buf, "rm -fR ../%s* %s.restart_info; unzip -o -u -: %s >& /dev/null", cd.mydir_hosts, op.root, cd.restart_zip_file ); // the input file name was temporarily in buf; not any more ...
 			system( buf );
 			sprintf( filename, "%s.restart_info", op.root );
 			in = Fread( filename );
@@ -532,20 +543,21 @@ int main( int argn, char *argv[] )
 		if( Ftest( cd.restart_zip_file ) == 0 )
 		{
 			if( cd.pardebug ) tprintf( "Previous restart file (%s) exists!\n", cd.restart_zip_file );
-			if( cd.restart ) sprintf( buf, "%s \"cp %s %s.restart_%s_%s.zip >& /dev/null\"", SHELL, cd.restart_zip_file, op.root, cd.datetime_infile, Fdatetime( cd.restart_zip_file, 0 ) );  // Copy if restart
-			else sprintf( buf, "%s \"mv %s %s.restart_%s_%s.zip >& /dev/null\"", SHELL, cd.restart_zip_file, op.root, cd.datetime_infile, Fdatetime( cd.restart_zip_file, 0 ) );  // Move if no restart
+			if( cd.restart ) sprintf( buf, "cp %s %s.restart_%s_%s.zip >& /dev/null", cd.restart_zip_file, op.root, cd.datetime_infile, Fdatetime( cd.restart_zip_file, 0 ) );  // Copy if restart
+			else sprintf( buf, "mv %s %s.restart_%s_%s.zip >& /dev/null", cd.restart_zip_file, op.root, cd.datetime_infile, Fdatetime( cd.restart_zip_file, 0 ) );  // Move if no restart
 			system( buf );
 		}
 		if( cd.restart == 0 )
 		{
 			sprintf( filename, "%s.restart_info", op.root );
-			out = Fwrite( filename );
-			fprintf( out, "%s\n", op.datetime_stamp );
+			output_obj.filename = filename ;
+			Fwrite( &output_obj, &op );
+			fprintf( output_obj.outfile, "%s\n", op.datetime_stamp );
 			for( i = 0; i < argn; i++ )
-				fprintf( out, "%s ", argv[i] );
-			fprintf( out, "\n" );
-			fclose( out );
-			sprintf( buf, "%s \"zip %s %s.restart_info >& /dev/null\"", SHELL, cd.restart_zip_file, op.root );
+				fprintf( output_obj.outfile, "%s ", argv[i] );
+			fprintf( output_obj.outfile, "\n" );
+			Fclose( &output_obj );
+			sprintf( buf, "zip %s %s.restart_info >& /dev/null", cd.restart_zip_file, op.root );
 			system( buf );
 		}
 	}
@@ -601,7 +613,8 @@ int main( int argn, char *argv[] )
 		if( success == 0 ) { tprintf( "ERROR: Optimization did not start!\n" ); sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
 		if( cd.debug == 0 ) tprintf( "\n" );
 		print_results( &op, 1 );
-		save_final_results( "", &op, &gd );
+		output_obj.filename = "" ;
+		save_final_results( &output_obj, &op, &gd );
 		predict = 0;
 	}
 	if( status == 0 ) { sprintf( buf, "rm -f %s.running", op.root ); system( buf ); exit( 0 ); }
@@ -631,7 +644,7 @@ int main( int argn, char *argv[] )
 	if( cd.problem_type == INFOGAP ) // Info-gap decision analysis
 	{
 		if( fabs( cd.obsstep ) > DBL_EPSILON )
-			status = infogap_obs( &op );
+		  status = infogap_obs( &output_obj, &op );
 		else
 		{
 			if( cd.pardx < DBL_EPSILON ) cd.pardx = 0.1;
@@ -821,7 +834,8 @@ int main( int argn, char *argv[] )
 						print_results( &op, 1 );
 					}
 					sprintf( filename, "%d", caseid );
-					save_final_results( filename, &op, &gd );
+					output_obj.filename = filename ;
+					save_final_results( &output_obj, &op, &gd );
 				}
 				tprintf( "\n" );
 			}
@@ -834,26 +848,28 @@ int main( int argn, char *argv[] )
 		{
 			if( cd.resultscase ) sprintf( filename, "%s.%d.results", op.root, cd.resultscase );
 			else sprintf( filename, "%s.results", op.root );
-			out = Fwrite( filename );
+			output_obj.filename = filename ;
+			Fwrite( &output_obj, &op );
 			tprintf( "\nModel parameter values:\n" );
-			fprintf( out, "Model parameter values:\n" );
+			fprintf( output_obj.outfile, "Model parameter values:\n" );
 			for( i = 0; i < pd.nParam; i++ )
 			{
 				if( pd.var_name[i][0] == 0 ) continue;
 				if( pd.var_opt[i] && pd.var_log[i] ) cd.var[i] = pow( 10, pd.var[i] );
 				else cd.var[i] = pd.var[i];
 				tprintf( "%s %g\n", pd.var_name[i], cd.var[i] );
-				fprintf( out, "%s %g\n", pd.var_name[i], cd.var[i] );
+				fprintf( output_obj.outfile, "%s %g\n", pd.var_name[i], cd.var[i] );
 			}
-			fflush( out );
+			fflush( output_obj.outfile );
 			if( od.nTObs > 0 || wd.nW > 0 )
 			{
 				tprintf( "\nModel predictions (forward run; no calibration):\n" );
-				fprintf( out, "\nModel predictions (forward run; no calibration):\n" );
-				fflush( out );
+				fprintf( output_obj.outfile, "\nModel predictions (forward run; no calibration):\n" );
+				fflush( output_obj.outfile );
 				if( cd.resultscase ) sprintf( filename, "%s.%d.forward", op.root, cd.resultscase );
 				else sprintf( filename, "%s.forward", op.root );
-				out2 = Fwrite( filename );
+				output_obj2.filename = filename ;
+				Fwrite( &output_obj2, &op);
 				predict = 1;
 			}
 			else
@@ -917,7 +933,7 @@ int main( int argn, char *argv[] )
 				else success = 1;
 				if( od.nTObs < 50 || ( i < 20 || i > od.nTObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, min, max );
 				if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" );
-				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, min, max );
+				if( cd.problem_type != CREATE ) fprintf( output_obj.outfile, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, min, max );
 				else od.obs_target[i] = c; // Save computed values as calibration targets
 			}
 		}
@@ -952,49 +968,58 @@ int main( int argn, char *argv[] )
 						tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success, min, max );
 					else
 						tprintf( "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err, success, min, max );
-					if( cd.problem_type != CREATE ) fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success );
+					if( cd.problem_type != CREATE ) fprintf( output_obj.outfile, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success );
 					else wd.obs_target[i][j] = c; // Save computed values as calibration targets
-					if( cd.problem_type == FORWARD ) fprintf( out2, "%s(%g) %g\n", wd.id[i], wd.obs_time[i][j], c ); // Forward run
+					if( cd.problem_type == FORWARD ) fprintf( output_obj2.outfile, "%s(%g) %g\n", wd.id[i], wd.obs_time[i][j], c ); // Forward run
 				}
-		if( cd.problem_type == FORWARD && cd.resultscase >= 0 && ( od.nTObs > 0 || wd.nW > 0 ) ) fclose( out2 );
+		if( cd.problem_type == FORWARD && cd.resultscase >= 0 && ( od.nTObs > 0 || wd.nW > 0 ) ) Fclose( &output_obj2 );
 		cd.neval++;
 		if( compare )
 		{
 			op.phi = phi;
 			tprintf( "Objective function: %g Success: %d\n", op.phi, success_all );
-			if( cd.problem_type != CREATE ) fprintf( out, "Objective function = %g Success: %d\n", op.phi, success_all );
+			if( cd.problem_type != CREATE ) fprintf( output_obj.outfile, "Objective function = %g Success: %d\n", op.phi, success_all );
 			if( success_all )
 			{
 				tprintf( "All the predictions are within acceptable ranges!\n" );
-				if( cd.problem_type != CREATE ) fprintf( out, "All the predictions are within acceptable ranges!\n" );
+				if( cd.problem_type != CREATE ) fprintf( output_obj.outfile, "All the predictions are within acceptable ranges!\n" );
 			}
 			else
 			{
 				tprintf( "At least one of the predictions is outside acceptable ranges!\n" );
-				if( cd.problem_type != CREATE ) fprintf( out, "At least one of the predictions is outside acceptable ranges!\n" );
+				if( cd.problem_type != CREATE ) fprintf( output_obj.outfile, "At least one of the predictions is outside acceptable ranges!\n" );
 			}
 		}
 		else    tprintf( "No calibration targets!\n" );
-		if( cd.problem_type != CREATE ) fclose( out );
+		if( cd.problem_type != CREATE ) Fclose( &output_obj );
 	}
-	if( predict && cd.problem_type == FORWARD ) save_final_results( "", &op, &gd );
+	if( predict && cd.problem_type == FORWARD )
+	  {
+	    output_obj.filename = "" ;
+	    save_final_results( &output_obj, &op, &gd );
+	  }
 	if( predict ) // Write phi in a separate file
 	{
 		if( od.nTObs > 0 )
 		{
 			if( cd.problem_type == FORWARD && cd.resultscase > 0 ) sprintf( filename, "%s.%d.phi", op.root, cd.resultscase );
 			else sprintf( filename, "%s.phi", op.root );
-			out2 = Fwrite( filename );
-			fprintf( out2, "%g\n", op.phi );
-			fclose( out2 );
+			output_obj2.filename = filename ;
+			Fwrite( &output_obj2, &op);
+			fprintf( output_obj2.outfile, "%g\n", op.phi );
+			Fclose( &output_obj2 );
 		}
 	}
 	if( cd.problem_type == CREATE ) /* Create a file with calibration targets equal to the model predictions */
 	{
+	  // Chris Jeffery addition 9/20.  Force save_problem for netcdf output
+		if(cd.netcdf)
+		  cd.yaml = 0;
 		cd.problem_type = CALIBRATE;
 		sprintf( filename, "%s-truth.mads", op.root );
+		output_obj.filename = filename ;
 		if( cd.yaml ) save_problem_yaml( filename, &op );
-		else save_problem( filename, &op );
+		else save_problem( &output_obj, &op );
 		tprintf( "\nMADS problem file named %s-truth.mads is created; modify the file if needed\n\n", op.root );
 		cd.problem_type = CREATE;
 	}
@@ -1028,7 +1053,7 @@ int main( int argn, char *argv[] )
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
 	free( op.cd->solution_id );
 	free( op.cd->solution_type );
-	fclose( mads_output );
+	fclose( mads_output_obj.outfile );
 	exit( 0 ); // DONE
 }
 
@@ -1368,7 +1393,7 @@ int optimize_lm( struct opt_data *op )
 
 int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matrix *gsl_covar )
 {
-	FILE *out;
+        struct io_output_object output_obj;
 	double phi, stddev_scale, gf;
 	double *opt_params, *x_u, *x_d, *stddev, *jacobian;
 	double aopt, copt, eopt, dopt, aic, bic, cic, kic, ln_det_v, ln_det_weight, sml, tt;
@@ -1477,19 +1502,20 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	if( op->label[0] != 0 ) sprintf( filename, "%s.%s", filename, op->label );
 	if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
 	strcat( filename, ".jacobian" );
-	out = Fwrite( filename );
-	fprintf( out, "%-27s:", "Parameters" );
+	output_obj.filename = filename ;
+	Fwrite( &output_obj, op );
+	fprintf( output_obj.outfile, "%-27s:", "Parameters" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
-		fprintf( out, " \"%s\"", op->pd->var_name[op->pd->var_index[i]] );
-	fprintf( out, "\n" );
+		fprintf( output_obj.outfile, " \"%s\"", op->pd->var_name[op->pd->var_index[i]] );
+	fprintf( output_obj.outfile, "\n" );
 	for( j = 0; j < op->od->nTObs; j++ )
 	{
-		fprintf( out, "%-27s:", op->od->obs_id[j] );
+		fprintf( output_obj.outfile, "%-27s:", op->od->obs_id[j] );
 		for( i = 0; i < op->pd->nOptParam; i++ )
-			fprintf( out, " %g", gsl_matrix_get( gsl_jacobian, j, i ) );
-		fprintf( out, "\n" );
+			fprintf( output_obj.outfile, " %g", gsl_matrix_get( gsl_jacobian, j, i ) );
+		fprintf( output_obj.outfile, "\n" );
 	}
-	fclose( out );
+	Fclose( &output_obj );
 	tprintf( "Jacobian matrix stored (%s)\n", filename );
 	if( compute_covar ) // Standalone eigen analysis
 	{
@@ -1514,15 +1540,16 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	if( op->label[0] != 0 ) sprintf( filename, "%s.%s", filename, op->label );
 	if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
 	strcat( filename, ".covariance" );
-	out = Fwrite( filename );
+	output_obj.filename = filename ;
+	Fwrite( &output_obj, op );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
-		fprintf( out, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
+		fprintf( output_obj.outfile, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 		for( j = 0; j < op->pd->nOptParam; j++ )
-			fprintf( out, " %g", gsl_matrix_get( gsl_covar, i, j ) );
-		fprintf( out, "\n" );
+			fprintf( output_obj.outfile, " %g", gsl_matrix_get( gsl_covar, i, j ) );
+		fprintf( output_obj.outfile, "\n" );
 	}
-	fclose( out );
+	Fclose( &output_obj );
 	tprintf( "Covariance matrix stored (%s)\n", filename );
 	// Compute A optimality
 	aopt = 0;
@@ -1551,15 +1578,16 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		if( op->label[0] != 0 ) sprintf( filename, "%s.%s", filename, op->label );
 		if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
 		strcat( filename, ".correlation" );
-		out = Fwrite( filename );
+		output_obj.filename = filename ;
+		Fwrite( &output_obj, op );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			fprintf( out, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
+			fprintf( output_obj.outfile, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = 0; j < op->pd->nOptParam; j++ )
-				fprintf( out, " %g", gsl_matrix_get( gsl_covar, i, j ) / ( stddev[i] * stddev[j] ) );
-			fprintf( out, "\n" );
+				fprintf( output_obj.outfile, " %g", gsl_matrix_get( gsl_covar, i, j ) / ( stddev[i] * stddev[j] ) );
+			fprintf( output_obj.outfile, "\n" );
 		}
-		fclose( out );
+		Fclose( &output_obj );
 		tprintf( "Correlation matrix stored (%s)\n", filename );
 		// GSL_COVAR is destroyed during eigen computation
 		gsl_eigen_symmv( gsl_covar, eigenval, eigenvec, eigenwork );
@@ -1597,19 +1625,20 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		if( op->label[0] != 0 ) sprintf( filename, "%s.%s", filename, op->label );
 		if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
 		strcat( filename, ".eigen" );
-		out = Fwrite( filename );
+		output_obj.filename = filename ;
+		Fwrite( &output_obj, op );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
-			fprintf( out, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
+			fprintf( output_obj.outfile, "%-27s:", op->pd->var_name[op->pd->var_index[i]] );
 			for( j = op->pd->nOptParam - 1; j >= 0; j-- )
-				fprintf( out, " %g", gsl_matrix_get( eigenvec, i, j ) );
-			fprintf( out, "\n" );
+				fprintf( output_obj.outfile, " %g", gsl_matrix_get( eigenvec, i, j ) );
+			fprintf( output_obj.outfile, "\n" );
 		}
-		fprintf( out, "%-27s:", "Eigenvalues" );
+		fprintf( output_obj.outfile, "%-27s:", "Eigenvalues" );
 		for( j = 0; j < op->pd->nOptParam; j++ )
-			fprintf( out, " %g", gsl_vector_get( eigenval, j ) );
-		fprintf( out, "\n" );
-		fclose( out );
+			fprintf( output_obj.outfile, " %g", gsl_vector_get( eigenval, j ) );
+		fprintf( output_obj.outfile, "\n" );
+		Fclose( &output_obj );
 		tprintf( "Eigen vactors and eigen values stored (%s)\n", filename );
 		// compute performance metrics
 		copt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) ) / fabs( gsl_vector_get( eigenval, 0 ) );
@@ -1782,10 +1811,12 @@ int igrnd( struct opt_data *op )
 		   *var_lhs, v;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
-	FILE *out, *out2;
+	struct io_output_object output_obj, output_obj2;
 	opt_params_min = opt_params_max = opt_params_avg = sel_params_min = sel_params_max = sel_params_avg = NULL;
 	char ESC = 27; // Escape
 	strcpy( op->label, "igrnd" );
+	// output netcdf
+	output_obj.use_netcdf = 1 ;
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 	if( no_memory ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -1834,30 +1865,32 @@ int igrnd( struct opt_data *op )
 	if( op->cd->mdebug )
 	{
 		sprintf( filename, "%s.igrnd_set", op->root );
-		out = Fwrite( filename );
+		output_obj.filename = filename ;
+		Fwrite( &output_obj, op );
 		for( count = 0; count < op->cd->nreal; count ++ )
 		{
 			for( k = 0; k < npar; k++ )
-				fprintf( out, "%.15g ", var_lhs[k + count * npar] );
-			fprintf( out, "\n" );
+				fprintf( output_obj.outfile, "%.15g ", var_lhs[k + count * npar] );
+			fprintf( output_obj.outfile, "\n" );
 		}
-		fclose( out );
+		Fclose( &output_obj );
 		tprintf( "Random sampling set saved in %s.igrnd_set\n", op->root );
 		sprintf( filename, "%s.igrnd_param", op->root );
-		out = Fwrite( filename );
+		output_obj.filename = filename ;
+		Fwrite( &output_obj, op );
 		for( count = 0; count < op->cd->nreal; count ++ )
 		{
 			for( k = i = 0; i < op->pd->nParam; i++ )
 				if( op->pd->var_opt[i] == 2 || ( op->pd->var_opt[i] == 1 && op->pd->nFlgParam == 0 ) )
 				{
 					v = var_lhs[k + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
-					if( op->pd->var_log[i] == 0 ) fprintf( out, "%.15g ", v );
-					else fprintf( out, "%.15g ", pow( 10, v ) );
+					if( op->pd->var_log[i] == 0 ) fprintf( output_obj.outfile, "%.15g ", v );
+					else fprintf( output_obj.outfile, "%.15g ", pow( 10, v ) );
 					k++;
 				}
-			fprintf( out, "\n" );
+			fprintf( output_obj.outfile, "\n" );
 		}
-		fclose( out );
+		Fclose( &output_obj );
 		tprintf( "Randomly sampled parameters saved in %s.mcrnd_param\n", op->root );
 	}
 	for( i = 0; i < op->pd->nParam; i++ )
@@ -1866,14 +1899,20 @@ int igrnd( struct opt_data *op )
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	// File management
 	sprintf( filename, "%s.igrnd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	sprintf( buf, "%s \"zip -m %s.igrnd.zip %s.igrnd-[0-9]*.* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-	sprintf( buf, "%s \"mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "zip -m %s.igrnd.zip %s.igrnd-[0-9]*.* >& /dev/null", op->root, op->root ); system( buf );
+	sprintf( buf, "mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.igrnd.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.igrnd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	out = Fwrite( filename );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.igrnd_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	output_obj.filename = filename ;
+	Fwrite( &output_obj, op );
+
+	if( output_obj.use_netcdf )
+	  add_igrnd_vars( &output_obj, op ) ;
+
 	sprintf( filename, "%s.igrnd-opt=%s_eval=%d_real=%d", op->root, op->cd->opt_method, op->cd->maxeval, op->cd->nreal );
-	out2 = Fwrite( filename );
+	output_obj2.filename = filename ;
+	Fwrite( &output_obj2, op);
 	if( op->pd->nOptParam == 0 )
 		tprintf( "WARNING: No parameters to optimize! Forward runs performed instead (ie Monte Carlo analysis)\n" );
 	phi_min = HUGE_VAL;
@@ -1886,7 +1925,7 @@ int igrnd( struct opt_data *op )
 	for( count = k; count < op->cd->nreal; count++ )
 	{
 		op->cd->neval = op->cd->njac = 0;
-		fprintf( out, "%d : init var", count + 1 );
+		fprintf( output_obj.outfile, "%d : init var\n", count + 1 );
 		tprintf( "\nRandom set #%d: ", count + 1 );
 		if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "\n" );
 		op->counter = count + 1;
@@ -1897,16 +1936,22 @@ int igrnd( struct opt_data *op )
 				if( op->pd->var_log[i] )
 				{
 					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_name[i], pow( 10, op->pd->var[i] ) );
-					fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
+					fprintf( output_obj.outfile, " %.15g", pow( 10, op->pd->var[i] ) );
+					add_igrnd_orig_var(k,count,&output_obj, pow( 10, op->pd->var[i] )) ;
+
 				}
 				else
 				{
 					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_name[i], op->pd->var[i] );
-					fprintf( out, " %.15g", op->pd->var[i] );
+					fprintf( output_obj.outfile, " %.15g", op->pd->var[i] );
+					add_igrnd_orig_var(k,count,&output_obj, op->pd->var[i] ) ;
 				}
 				k++;
 			}
 			else op->pd->var[i] = orig_params[i];
+		// Chris Jeffery mod, 10/30/13
+		add_igrnd_orig_obs(count, &output_obj, op) ;
+
 		if( op->pd->nOptParam > 0 )
 		{
 			if( op->cd->pargen )
@@ -1914,9 +1959,10 @@ int igrnd( struct opt_data *op )
 				if( op->cd->solution_type[0] != TEST && op->cd->solution_type[0] != EXTERNAL )
 				{
 					sprintf( filename, "%s-igrnd.%d.mads", op->root, count + 1 );
+					output_obj.filename = filename ;
 					op->cd->calib_type = SIMPLE;
 					if( op->cd->yaml ) save_problem_yaml( filename, op );
-					else save_problem( filename, op );
+					else save_problem( &output_obj, op );
 					op->cd->calib_type = IGRND;
 					continue;
 				}
@@ -1985,19 +2031,38 @@ int igrnd( struct opt_data *op )
 			}
 		}
 		if( op->cd->pdebug || op->cd->ldebug ) tprintf( "\n" ); // extra new line if the optimization process is debugged
-		fprintf( out2, "%g %d %d\n", op->phi, op->success, op->cd->neval );
-		fflush( out2 );
-		fprintf( out, " : OF %g success %d : final var", op->phi, op->success );
+		fprintf( output_obj2.outfile, "%g %d %d\n", op->phi, op->success, op->cd->neval );
+		fflush( output_obj2.outfile );
+		fprintf( output_obj.outfile, " : OF \n%g success %d : final var\n", op->phi, op->success );
+
+		add_igrnd_stat(count, &output_obj, op) ;
+
+		// Set the text output to null
+		output_obj.filename = "/dev/null" ;
+		output_obj.filename2 = "/dev/null" ;
+		compute_btc2( &output_obj, op, count );
+
 		for( i = 0; i < op->pd->nOptParam; i++ ) // Print only optimized parameters (including flagged); ignore fixed parameters
 		{
 			k = op->pd->var_index[i];
-			if( op->pd->var_log[k] ) fprintf( out, " %.15g", pow( 10, op->pd->var[k] ) );
-			else fprintf( out, " %.15g", op->pd->var[k] );
+			if( op->pd->var_log[k] )
+			  {
+			    fprintf( output_obj.outfile, " %.15g", pow( 10, op->pd->var[k] ) );
+			    add_igrnd_opt_var(i,count,&output_obj, pow( 10, op->pd->var[k] )) ;
+			  }
+			else
+			  {
+			    fprintf( output_obj.outfile, " %.15g", op->pd->var[k] );
+			    add_igrnd_opt_var(i,count,&output_obj, op->pd->var[k] ) ;
+			  }
 		}
-		fprintf( out, "\n" );
-		fflush( out );
+		fprintf( output_obj.outfile, "\n" );
+		fflush( output_obj.outfile );
 		if( op->success && op->cd->nreal > 1 && op->cd->save )
-			save_final_results( "igrnd", op, op->gd );
+		  {
+		    output_obj.filename = "igrnd" ;
+		    save_final_results( &output_obj, op, op->gd );
+		  }
 		if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 		if( op->cd->ireal != 0 ) break;
 	}
@@ -2013,7 +2078,7 @@ int igrnd( struct opt_data *op )
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
 	for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
-	fprintf( out, "Minimum objective function: %g\n", phi_min );
+	fprintf( output_obj.outfile, "Minimum objective function: %g\n", phi_min );
 	tprintf( "Minimum objective function: %g\n", phi_min );
 	tprintf( "Repeat the run producing the best results ...\n" );
 	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 1; }
@@ -2045,45 +2110,45 @@ int igrnd( struct opt_data *op )
 		if( success_global > 0 )
 		{
 			tprintf( "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
-			fprintf( out2, "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
+			fprintf( output_obj2.outfile, "Statistics of successful number of evaluations : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_success[0], eval_success[q1], ESC, eval_success[m], ESC, eval_success[q2], eval_success[success_global - 1], success_global );
 		}
 		q1 = ( int )( ( double ) op->cd->nreal / 4 - 0.25 );
 		m = ( int )( ( double ) op->cd->nreal / 2 - 0.5 );
 		q2 = ( int )( ( double ) op->cd->nreal * 3 / 4 - 0.25 );
 		tprintf( "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[op->cd->nreal - 1], op->cd->nreal );
-		fprintf( out2, "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[op->cd->nreal - 1], op->cd->nreal );
+		fprintf( output_obj2.outfile, "Statistics of total number of evaluations      : %d - %d %c[1m%d%c[0m %d - %d : %d\n", eval_total[0], eval_total[q1], ESC, eval_total[m], ESC, eval_total[q2], eval_total[op->cd->nreal - 1], op->cd->nreal );
 		tprintf( "Statistics of all the model parameter estimates:\n" );
-		fprintf( out2, "Statistics of all the model parameter estimates:\n" );
+		fprintf( output_obj2.outfile, "Statistics of all the model parameter estimates:\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ ) // Posterior parameter statistics for all simulations
 		{
 			tprintf( "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
-			fprintf( out2, "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
+			fprintf( output_obj2.outfile, "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], opt_params_avg[i] / op->cd->nreal, opt_params_min[i], opt_params_max[i] );
 		}
 		if( success_global > 0 || phi_global > 0 )
 		{
 			tprintf( "Statistics of all the successful model parameter estimates:\n" );
-			fprintf( out2, "Statistics of all the successful model parameter estimates:\n" );
+			fprintf( output_obj2.outfile, "Statistics of all the successful model parameter estimates:\n" );
 			k = success_global + phi_global;
 			for( i = 0; i < op->pd->nOptParam; i++ ) // Posterior parameter statistics for all simulations
 			{
 				tprintf( "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
-				fprintf( out2, "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
+				fprintf( output_obj2.outfile, "%-35s : average %12g min %12g max %12g\n", op->pd->var_name[op->pd->var_index[i]], sel_params_avg[i] / k, sel_params_min[i], sel_params_max[i] );
 			}
 		}
 	}
-	fprintf( out, "Total number of evaluations = %d\n", neval_total );
+	fprintf( output_obj.outfile, "Total number of evaluations = %d\n", neval_total );
 	if( op->cd->nreal > 1 )
 	{
-		if( op->cd->phi_cutoff > DBL_EPSILON ) fprintf( out, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
+		if( op->cd->phi_cutoff > DBL_EPSILON ) fprintf( output_obj.outfile, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
 		if( op->cd->obsrange > DBL_EPSILON || op->cd->obserror > DBL_EPSILON )
-			fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
+			fprintf( output_obj.outfile, "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
 		if( op->cd->parerror > DBL_EPSILON )
-			fprintf( out, "Number of the sequential calibration runs producing acceptable model parameters = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
+			fprintf( output_obj.outfile, "Number of the sequential calibration runs producing acceptable model parameters = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
 	}
-	fprintf( out2, "OF min: %g\n", phi_min );
-	fprintf( out2, "Total number of evaluations: %d\n", neval_total );
-	fprintf( out2, "Success rate %g\n", ( double ) success_global / op->cd->nreal );
-	fclose( out ); fclose( out2 );
+	fprintf( output_obj2.outfile, "OF min: %g\n", phi_min );
+	fprintf( output_obj2.outfile, "Total number of evaluations: %d\n", neval_total );
+	fprintf( output_obj2.outfile, "Success rate %g\n", ( double ) success_global / op->cd->nreal );
+	Fclose( &output_obj ); Fclose( &output_obj2 );
 	tprintf( "Results are saved in %s.igrnd.results and %s.igrnd-opt=%s_eval=%d_real=%d\n", op->root, op->root, op->cd->opt_method, op->cd->maxeval, op->cd->nreal );
 	tprintf( "\nFinal results:\n" );
 	print_results( op, 1 );
@@ -2093,7 +2158,8 @@ int igrnd( struct opt_data *op )
 		free( opt_params_min ); free( opt_params_max ); free( opt_params_avg );
 		if( op->cd->phi_cutoff > DBL_EPSILON || op->cd->check_success ) { free( sel_params_min ); free( sel_params_max ); free( sel_params_avg ); }
 	}
-	save_final_results( "", op, op->gd );
+	output_obj.filename = "" ;
+	save_final_results( &output_obj, op, op->gd );
 	if( solution_found ) return( 1 );
 	else return( 0 );
 }
@@ -2105,7 +2171,7 @@ int igpd( struct opt_data *op )
 	double phi_min, *orig_params, *opt_params;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
-	FILE *out, *out2;
+	struct io_output_object output_obj, output_obj2;
 	strcpy( op->label, "igpd" );
 	if( ( orig_params = ( double * ) malloc( op->pd->nParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) no_memory = 1;
@@ -2120,12 +2186,13 @@ int igpd( struct opt_data *op )
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	// File management
 	sprintf( filename, "%s.igpd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	sprintf( buf, "%s \"zip -m %s.igpd.zip %s.igpd-[0-9]*.* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-	sprintf( buf, "%s \"mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "zip -m %s.igpd.zip %s.igpd-[0-9]*.* >& /dev/null", op->root, op->root ); system( buf );
+	sprintf( buf, "mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.igpd.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.igpd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	out = Fwrite( filename );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.igpd_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	output_obj.filename = filename ;
+	Fwrite( &output_obj, op );
 	k = 1;
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 )
@@ -2137,7 +2204,8 @@ int igpd( struct opt_data *op )
 	tprintf( "Total number of sequential calibrations will be %i\n", k );
 	op->cd->nreal = k;
 	sprintf( filename, "%s.igpd-opt=%s_eval=%d_real=%d", op->root, op->cd->opt_method, op->cd->maxeval, op->cd->nreal );
-	out2 = Fwrite( filename );
+	output_obj2.filename = filename ;
+	Fwrite( &output_obj2, op);
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 )
 			orig_params[i] = op->pd->var_min[i];
@@ -2150,7 +2218,7 @@ int igpd( struct opt_data *op )
 		count++;
 		if( op->cd->ireal == 0 || op->cd->ireal == count )
 		{
-			fprintf( out, "%d : init var", count ); // counter
+			fprintf( output_obj.outfile, "%d : init var", count ); // counter
 			tprintf( "SEQUENTIAL CALIBRATIONS #%d: ", count );
 			op->counter = count;
 			if( op->cd->debug == 0 ) tprintf( "\n" );
@@ -2160,8 +2228,8 @@ int igpd( struct opt_data *op )
 				if( op->pd->var_opt[i] == 2 ) // Print flagged parameters
 				{
 					tprintf( "%s %g\n", op->pd->var_name[i], orig_params[i] );
-					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, orig_params[i] ) );
-					else fprintf( out, " %.15g", orig_params[i] );
+					if( op->pd->var_log[i] ) fprintf( output_obj.outfile, " %.15g", pow( 10, orig_params[i] ) );
+					else fprintf( output_obj.outfile, " %.15g", orig_params[i] );
 				}
 			}
 			if( op->pd->nOptParam > 0 && op->pd->nFlgParam > 0 )
@@ -2191,18 +2259,21 @@ int igpd( struct opt_data *op )
 				for( i = 0; i < op->pd->nOptParam; i++ ) op->pd->var_best[i] = op->pd->var[op->pd->var_index[i]];
 				for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
 			}
-			fprintf( out, " : OF %g success %d : final var ", op->phi, op->success );
+			fprintf( output_obj.outfile, " : OF %g success %d : final var ", op->phi, op->success );
 			for( i = 0; i < op->pd->nParam; i++ )
 				if( op->pd->var_opt[i] >= 1 ) // Print only optimized parameters (including flagged); ignore fixed parameters
 				{
-					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
-					else fprintf( out, " %.15g", op->pd->var[i] );
+					if( op->pd->var_log[i] ) fprintf( output_obj.outfile, " %.15g", pow( 10, op->pd->var[i] ) );
+					else fprintf( output_obj.outfile, " %.15g", op->pd->var[i] );
 				}
-			fprintf( out, "\n" );
-			fflush( out );
+			fprintf( output_obj.outfile, "\n" );
+			fflush( output_obj.outfile );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			if( op->success && op->cd->nreal > 1 && op->cd->save )
-				save_final_results( "igpd", op, op->gd );
+			  {
+			    output_obj.filename = "igpd" ;
+			    save_final_results( &output_obj, op, op->gd );
+			  }
 			if( op->cd->ireal != 0 ) break;
 		}
 		if( op->pd->nFlgParam == 0 || op->pd->nOptParam == 0 ) break;
@@ -2235,7 +2306,7 @@ int igpd( struct opt_data *op )
 	func_global( opt_params, op, op->od->res );
 	if( op->cd->debug ) op->cd->fdebug = debug_level;
 	print_results( op, 1 );
-	fprintf( out, "Minimum objective function: %g\n", phi_min );
+	fprintf( output_obj.outfile, "Minimum objective function: %g\n", phi_min );
 	if( op->cd->nreal > 1 )
 	{
 		if( success_global == 0 ) tprintf( "None of the %d sequential calibration runs produced predictions within calibration ranges!\n", op->cd->nreal );
@@ -2246,19 +2317,20 @@ int igpd( struct opt_data *op )
 			else tprintf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
 		}
 	}
-	fprintf( out, "Number of evaluations = %d\n", neval_total );
+	fprintf( output_obj.outfile, "Number of evaluations = %d\n", neval_total );
 	if( op->cd->nreal > 1 )
 	{
-		fprintf( out, "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
-		if( op->cd->phi_cutoff > DBL_EPSILON ) fprintf( out, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
+		fprintf( output_obj.outfile, "Number of the sequential calibration runs producing predictions within calibration ranges = %d (out of %d; success ratio %g)\n", success_global, op->cd->nreal, ( double ) success_global / op->cd->nreal );
+		if( op->cd->phi_cutoff > DBL_EPSILON ) fprintf( output_obj.outfile, "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
 	}
-	fprintf( out2, "OF min %g\n", phi_min );
-	fprintf( out2, "eval %d\n", neval_total );
-	fprintf( out2, "success %d\n", success_global );
-	fclose( out ); fclose( out2 );
+	fprintf( output_obj2.outfile, "OF min %g\n", phi_min );
+	fprintf( output_obj2.outfile, "eval %d\n", neval_total );
+	fprintf( output_obj2.outfile, "success %d\n", success_global );
+	Fclose( &output_obj ); Fclose( &output_obj2 );
 	tprintf( "Results are saved in %s.igpd.results\n", op->root );
 	free( opt_params ); free( orig_params );
-	save_final_results( "", op, op->gd );
+	output_obj.filename = "" ;
+	save_final_results( &output_obj, op, op->gd );
 	return( 1 );
 }
 
@@ -2270,7 +2342,7 @@ int ppsd( struct opt_data *op )
 	int *orig_opt;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
-	FILE *out;
+	struct io_output_object output_obj;
 	orig_opt = NULL;
 	strcpy( op->label, "ppsd" );
 	op->cd->lmstandalone = 1;
@@ -2285,12 +2357,13 @@ int ppsd( struct opt_data *op )
 	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	sprintf( filename, "%s.ppsd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.ppsd.zip %s.ppsd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	sprintf( buf, "%s \"zip -m %s.ppsd.zip %s.ppsd-[0-9]*.* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-	sprintf( buf, "%s \"mv %s.ppsd.zip %s.ppsd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.ppsd.zip %s.ppsd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "zip -m %s.ppsd.zip %s.ppsd-[0-9]*.* >& /dev/null", op->root, op->root ); system( buf );
+	sprintf( buf, "mv %s.ppsd.zip %s.ppsd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.ppsd.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.ppsd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	out = Fwrite( filename );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.ppsd_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	output_obj.filename = filename ;
+	Fwrite( &output_obj, op );
 	k = 1;
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 )
@@ -2320,7 +2393,7 @@ int ppsd( struct opt_data *op )
 		count++;
 		if( op->cd->ireal == 0 || op->cd->ireal == count )
 		{
-			fprintf( out, "%d : ", count );
+			fprintf( output_obj.outfile, "%d : ", count );
 			tprintf( "\nSEQUENTIAL RUN #%d:\n", count );
 			op->counter = count;
 			tprintf( "Discretized parameters:\n" );
@@ -2330,7 +2403,7 @@ int ppsd( struct opt_data *op )
 				if( op->pd->var_opt[i] == 2 ) // Print only flagged parameters
 				{
 					tprintf( "%s %g\n", op->pd->var_name[i], op->cd->var[i] );
-					fprintf( out, "%g ", op->cd->var[i] );
+					fprintf( output_obj.outfile, "%g ", op->cd->var[i] );
 				}
 			}
 			if( op->pd->nOptParam > 0 )
@@ -2341,14 +2414,15 @@ int ppsd( struct opt_data *op )
 					{
 						sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
 						op->cd->calib_type = SIMPLE;
+						output_obj.filename = filename ;
 						if( op->cd->yaml ) save_problem_yaml( filename, op );
-						else save_problem( filename, op );
+						else save_problem( &output_obj, op );
 						op->cd->calib_type = PPSD;
 						for( i = 0; i < op->pd->nParam; i++ )
 							if( orig_opt[i] == 2 )
 							{
 								tprintf( "%s %g\n", op->pd->var_name[i], op->cd->var[i] );
-								fprintf( out, "%g ", op->cd->var[i] );
+								fprintf( output_obj.outfile, "%g ", op->cd->var[i] );
 								if( orig_params[i] < op->pd->var_max[i] )
 								{
 									orig_params[i] += op->pd->var_dx[i];
@@ -2391,27 +2465,29 @@ int ppsd( struct opt_data *op )
 			}
 			if( op->pd->nOptParam > 0 )
 			{
-				fprintf( out, " : OF %g Success %d : final var", op->phi, op->success );
+				fprintf( output_obj.outfile, " : OF %g Success %d : final var", op->phi, op->success );
 				for( i = 0; i < op->pd->nParam; i++ )
 					if( op->pd->var_opt[i] == 1 ) // Print only optimized parameters; ignore fixed and flagged parameters
 					{
-						if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
-						else fprintf( out, " %.15g", op->pd->var[i] );
+						if( op->pd->var_log[i] ) fprintf( output_obj.outfile, " %.15g", pow( 10, op->pd->var[i] ) );
+						else fprintf( output_obj.outfile, " %.15g", op->pd->var[i] );
 					}
-				fprintf( out, "\n" );
+				fprintf( output_obj.outfile, "\n" );
 			}
 			else
-				fprintf( out, " : OF %g Success %d\n", op->phi, op->success );
-			fflush( out );
+				fprintf( output_obj.outfile, " : OF %g Success %d\n", op->phi, op->success );
+			fflush( output_obj.outfile );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			if( op->success && op->cd->save )
 			{
 				op->cd->calib_type = SIMPLE;
 				sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
+				output_obj.filename = filename ;
 				if( op->cd->yaml ) save_problem_yaml( filename, op );
-				else save_problem( filename, op );
+				else save_problem( &output_obj, op );
 				op->cd->calib_type = PPSD;
-				save_final_results( "ppsd", op, op->gd );
+				output_obj.filename = "ppsd" ;
+				save_final_results( &output_obj, op, op->gd );
 			}
 			if( op->cd->ireal != 0 ) break;
 		}
@@ -2429,7 +2505,7 @@ int ppsd( struct opt_data *op )
 		if( i == op->pd->nParam ) break;
 	}
 	while( 1 );
-	fclose( out );
+	Fclose( &output_obj );
 	if( op->cd->pargen )
 	{
 		for( i = 0; i < op->pd->nParam; i++ )
@@ -2458,7 +2534,7 @@ int montecarlo( struct opt_data *op )
 	int i, j, k, npar, phi_global, success_global, success_all, count, debug_level = 0, bad_data = 0;
 	double phi_min, *opt_params, *var_lhs, v;
 	char filename[255], buf[255];
-	FILE *out;
+	struct io_output_object output_obj;
 	strcpy( op->label, "mcrnd" );
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -2475,38 +2551,41 @@ int montecarlo( struct opt_data *op )
 	if( op->cd->mdebug )
 	{
 		sprintf( filename, "%s.mcrnd_set", op->root );
-		out = Fwrite( filename );
+		output_obj.filename = filename ;
+		Fwrite( &output_obj, op );
 		for( count = 0; count < op->cd->nreal; count ++ )
 		{
 			for( k = 0; k < npar; k++ )
-				fprintf( out, "%.15g ", var_lhs[k + count * npar] );
-			fprintf( out, "\n" );
+				fprintf( output_obj.outfile, "%.15g ", var_lhs[k + count * npar] );
+			fprintf( output_obj.outfile, "\n" );
 		}
-		fclose( out );
+		Fclose( &output_obj );
 		tprintf( "Random sampling set saved in %s.mcrnd_set\n", op->root );
 		sprintf( filename, "%s.mcrnd_param", op->root );
-		out = Fwrite( filename );
+		output_obj.filename = filename ;
+		Fwrite( &output_obj, op );
 		for( count = 0; count < op->cd->nreal; count ++ )
 		{
 			for( i = 0; i < npar; i++ )
 			{
 				k = op->pd->var_index[i];
 				v = var_lhs[i + count * npar] * op->pd->var_range[k] + op->pd->var_min[k];
-				if( op->pd->var_log[k] == 0 ) fprintf( out, "%.15g ", v );
-				else fprintf( out, "%.15g ", pow( 10, v ) );
+				if( op->pd->var_log[k] == 0 ) fprintf( output_obj.outfile, "%.15g ", v );
+				else fprintf( output_obj.outfile, "%.15g ", pow( 10, v ) );
 			}
-			fprintf( out, "\n" );
+			fprintf( output_obj.outfile, "\n" );
 		}
-		fclose( out );
+		Fclose( &output_obj );
 		tprintf( "Randomly sampled parameters saved in %s.mcrnd_param\n", op->root );
 	}
 	sprintf( filename, "%s.mcrnd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	sprintf( buf, "%s \"zip -m %s.mcrnd.zip %s.mcrnd-[0-9]*.* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-	sprintf( buf, "%s \"mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "zip -m %s.mcrnd.zip %s.mcrnd-[0-9]*.* >& /dev/null", op->root, op->root ); system( buf );
+	sprintf( buf, "mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null", op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.mcrnd.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.mcrnd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	out = Fwrite( filename );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "mv %s %s.mcrnd_%s.results >& /dev/null", filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	output_obj.filename = filename ;
+	Fwrite( &output_obj, op );
 	phi_global = success_global = success_all = 0;
 	phi_min = HUGE_VAL;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1;
@@ -2517,7 +2596,7 @@ int montecarlo( struct opt_data *op )
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
 		for( count = 0; count < op->cd->nreal; count ++ ) // Write all the files
 		{
-			fprintf( out, "%d : ", count + 1 ); // counter
+			fprintf( output_obj.outfile, "%d : ", count + 1 ); // counter
 			if( op->cd->mdebug ) tprintf( "\n" );
 			tprintf( "Random set #%d: ", count + 1 );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -2540,12 +2619,12 @@ int montecarlo( struct opt_data *op )
 			for( i = 0; i < op->pd->nParam; i++ )
 				if( op->pd->var_opt[i] >= 1 )
 				{
-					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
-					else fprintf( out, " %.15g", op->pd->var[i] );
+					if( op->pd->var_log[i] ) fprintf( output_obj.outfile, " %.15g", pow( 10, op->pd->var[i] ) );
+					else fprintf( output_obj.outfile, " %.15g", op->pd->var[i] );
 				}
-			fprintf( out, "\n" );
+			fprintf( output_obj.outfile, "\n" );
 		}
-		fclose( out );
+		Fclose( &output_obj );
 		if( op->cd->pardebug > 4 )
 		{
 			for( count = 0; count < op->cd->nreal; count ++ ) // Perform all the runs in serial model (for testing)
@@ -2560,12 +2639,13 @@ int montecarlo( struct opt_data *op )
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			return( 0 );
 		}
-		out = Fwrite( filename ); // rewrite results file including the results
+		output_obj.filename = filename ;
+		Fwrite( &output_obj, op ); // rewrite results file including the results
 		for( count = 0; count < op->cd->nreal; count ++ ) // Read all the files
 		{
 			if( op->cd->debug || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
 			op->counter = count + 1;
-			fprintf( out, "%d : ", op->counter ); // counter
+			fprintf( output_obj.outfile, "%d : ", op->counter ); // counter
 			for( i = 0; i < op->pd->nOptParam; i++ ) // re
 			{
 				k = op->pd->var_index[i];
@@ -2598,14 +2678,17 @@ int montecarlo( struct opt_data *op )
 			for( i = 0; i < op->pd->nParam; i++ )
 				if( op->pd->var_opt[i] >= 1 )
 				{
-					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
-					else fprintf( out, " %.15g", op->pd->var[i] );
+					if( op->pd->var_log[i] ) fprintf( output_obj.outfile, " %.15g", pow( 10, op->pd->var[i] ) );
+					else fprintf( output_obj.outfile, " %.15g", op->pd->var[i] );
 				}
-			if( op->od->nTObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
-			else fprintf( out, "\n" );
-			fflush( out );
+			if( op->od->nTObs > 0 ) fprintf( output_obj.outfile, " OF %g success %d\n", op->phi, success_all );
+			else fprintf( output_obj.outfile, "\n" );
+			fflush( output_obj.outfile );
 			if( ( success_all || op->od->nTObs == 0 ) && op->cd->save )
-				save_final_results( "mcrnd", op, op->gd );
+			  {
+			    output_obj.filename = "mcrnd" ;
+			    save_final_results( &output_obj, op, op->gd );
+			  }
 		}
 	}
 	else // Serial job
@@ -2613,7 +2696,7 @@ int montecarlo( struct opt_data *op )
 		for( count = k; count < op->cd->nreal; count ++ )
 		{
 			op->counter = count + 1;
-			fprintf( out, "%d : ", count + 1 ); // counter
+			fprintf( output_obj.outfile, "%d : ", count + 1 ); // counter
 			if( op->cd->mdebug ) tprintf( "\n" );
 			tprintf( "Random set #%d: ", count + 1 );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -2657,21 +2740,24 @@ int montecarlo( struct opt_data *op )
 			for( i = 0; i < op->pd->nParam; i++ )
 				if( op->pd->var_opt[i] >= 1 )
 				{
-					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
-					else fprintf( out, " %.15g", op->pd->var[i] );
+					if( op->pd->var_log[i] ) fprintf( output_obj.outfile, " %.15g", pow( 10, op->pd->var[i] ) );
+					else fprintf( output_obj.outfile, " %.15g", op->pd->var[i] );
 				}
-			if( op->od->nTObs > 0 ) fprintf( out, " OF %g success %d\n", op->phi, success_all );
-			else fprintf( out, "\n" );
-			fflush( out );
+			if( op->od->nTObs > 0 ) fprintf( output_obj.outfile, " OF %g success %d\n", op->phi, success_all );
+			else fprintf( output_obj.outfile, "\n" );
+			fflush( output_obj.outfile );
 			if( ( success_all || op->od->nTObs == 0 ) && op->cd->save )
-				save_final_results( "mcrnd", op, op->gd );
+			  {
+			    output_obj.filename = "mcrnd" ;
+			    save_final_results( &output_obj, op, op->gd );
+			  }
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			if( op->cd->ireal != 0 ) break;
 		}
 	}
 	op->counter = 0;
 	free( var_lhs );
-	fclose( out );
+	Fclose( &output_obj );
 	op->phi = phi_min; // get the best phi
 	for( i = 0; i < op->pd->nOptParam; i++ ) opt_params[i] = op->pd->var[op->pd->var_index[i]] = op->pd->var_current[i] = op->pd->var_best[i]; // get the best estimate
 	for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_current[i] = op->od->obs_best[i] ; // get the best observations
@@ -2692,7 +2778,8 @@ int montecarlo( struct opt_data *op )
 		else tprintf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
 	}
 	free( opt_params );
-	save_final_results( "", op, op->gd );
+	output_obj.filename = "" ;
+	save_final_results( &output_obj, op, op->gd );
 	return( 1 );
 }
 
@@ -2897,13 +2984,17 @@ void print_results( struct opt_data *op, int verbosity )
 	}
 }
 
-void save_final_results( char *label, struct opt_data *op, struct grid_data *gd )
+void save_final_results( struct io_output_object *label_obj, struct opt_data *op, struct grid_data *gd )
 {
-	FILE *out, *out2;
+	struct io_output_object output_obj, output_obj2;
 	int i, j, k, success, success_all;
 	double c, err, min, max, dx;
-	char filename[255], filename2[255], fileroot[255];
+	char filename[255], filename2[255], fileroot[255], *label;
+	label = label_obj->filename ;
 	success_all = 1;
+	// output netcdf
+	output_obj.use_netcdf = 1 ;
+	output_obj2.use_netcdf = 1 ;
 	// Generate general filename
 	i = strlen( op->root ); // check for previous version number in the root name
 	k = -1;
@@ -2923,47 +3014,57 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	if( k == -1 ) sprintf( filename, "%s-rerun.mads", filename );
 	else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file
 	if( op->cd->solution_type[0] != TEST )
-	{
-		if( op->cd->yaml ) save_problem_yaml( filename, op );
-		else save_problem( filename, op );
-	}
+	  {
+	    output_obj.filename = filename ;
+	    if( op->cd->yaml ) save_problem_yaml( filename, op );
+	    else save_problem( &output_obj, op );
+	  }
 	// Save results file
 	strcpy( filename, fileroot );
 	strcat( filename, ".results" );
-	out = Fwrite( filename );
-	fprintf( out, "Model parameters:\n" );
+	output_obj.filename = filename ;
+	Fwrite( &output_obj, op );
+	fprintf( output_obj.outfile, "Model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
 		if( op->pd->var_log[k] == 0 ) op->cd->var[k] = op->pd->var[k];
 		else op->cd->var[k] = pow( 10, op->pd->var[k] );
-		fprintf( out, "%s %g\n", op->pd->var_name[k], op->cd->var[k] );
+		fprintf( output_obj.outfile, "%s %g\n", op->pd->var_name[k], op->cd->var[k] );
 	}
-	if( op->pd->nExpParam > 0 ) fprintf( out, "Tied model parameters:\n" );
+	if( op->pd->nExpParam > 0 ) fprintf( output_obj.outfile, "Tied model parameters:\n" );
 #ifdef MATHEVAL
 	for( i = 0; i < op->pd->nExpParam; i++ )
 	{
 		k = op->pd->param_expressions_index[i];
-		fprintf( out, "%s = ", op->pd->var_name[k] );
-		fprintf( out, "%s", evaluator_get_string( op->pd->param_expression[i] ) );
+		fprintf( output_obj.outfile, "%s = ", op->pd->var_name[k] );
+		fprintf( output_obj.outfile, "%s", evaluator_get_string( op->pd->param_expression[i] ) );
 		op->pd->var[k] = evaluator_evaluate( op->pd->param_expression[i], op->pd->nParam, op->pd->var_id, op->cd->var );
-		fprintf( out, " = %g\n", op->pd->var[k] );
+		fprintf( output_obj.outfile, " = %g\n", op->pd->var[k] );
 	}
 #else
 	if( op->pd->nExpParam > 0 )
 	{
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		fprintf( out, "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
+		fprintf( output_obj.outfile, "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
 		exit( 0 );
 	}
 #endif
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
 	{
-		fprintf( out, "\nModel predictions:\n" );
+		fprintf( output_obj.outfile, "\nModel predictions:\n" );
 		// Save residuals file
 		strcpy( filename, fileroot );
 		strcat( filename, ".residuals" );
-		out2 = Fwrite( filename );
+		output_obj2.filename = filename ;
+		Fwrite( &output_obj2, op);
+
+		if( output_obj.use_netcdf )
+		  add_residual_vars( &output_obj ) ;
+
+		if( output_obj2.use_netcdf )
+		  add_residual_vars( &output_obj2 ) ;
+
 		if( op->cd->solution_type[0] == EXTERNAL )
 			for( i = 0; i < op->od->nTObs; i++ )
 			{
@@ -2974,8 +3075,8 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 				max = op->od->obs_max[i];
 				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { if( op->od->obs_weight[i] != 0 ) success_all = 0; success = 0; }
 				else success = 1;
-				fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
-				fprintf( out2, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
+				fprintf( output_obj.outfile, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
+				fprintf( output_obj2.outfile, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
 			}
 		else
 		{
@@ -3010,11 +3111,13 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 						else if( c > max ) err += c - max;
 						if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
 					}
-					fprintf( out, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
-					fprintf( out2, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+					fprintf( output_obj.outfile, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+					fprintf( output_obj2.outfile, "%-10s(%5g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+					add_residual_data(i,j,&output_obj,c,err) ;
+					add_residual_data(i,j,&output_obj2,c,err) ;
 				}
 		}
-		fclose( out2 );
+		Fclose( &output_obj2 );
 	}
 	else
 	{
@@ -3025,34 +3128,35 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		}
 	}
 	if( op->phi < op->cd->phi_cutoff ) success_all = 1;
-	fprintf( out, "Objective function: %g Success: %d (%d)\n", op->phi, op->success, success_all );
+	fprintf( output_obj.outfile, "Objective function: %g Success: %d (%d)\n", op->phi, op->success, success_all );
 	if( op->cd->check_success > 0 && op->cd->obserror < 0 && op->cd->parerror < 0 )
 	{
-		if( op->success ) fprintf( out, "SUCCESS: All the model predictions are within calibration ranges!\n" );
-		else fprintf( out, "At least one of the model predictions is outside calibration ranges!\n" );
+		if( op->success ) fprintf( output_obj.outfile, "SUCCESS: All the model predictions are within calibration ranges!\n" );
+		else fprintf( output_obj.outfile, "At least one of the model predictions is outside calibration ranges!\n" );
 	}
 	if( op->cd->check_success > 0 && op->cd->obserror > 0 )
 	{
-		if( op->success ) fprintf( out, "SUCCESS: All the model predictions are within a predefined absolute error %g!\n", op->cd->obserror );
-		else fprintf( out, "At least one of the model predictions has an absolute error greater than %g!\n", op->cd->obserror );
+		if( op->success ) fprintf( output_obj.outfile, "SUCCESS: All the model predictions are within a predefined absolute error %g!\n", op->cd->obserror );
+		else fprintf( output_obj.outfile, "At least one of the model predictions has an absolute error greater than %g!\n", op->cd->obserror );
 	}
 	if( op->cd->check_success > 0 && op->cd->parerror > 0 )
 	{
-		if( op->success ) fprintf( out, "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
-		else fprintf( out, "At least one of the estimated model parameters has an absolute error from the true parameters greater than %g!\n", op->cd->parerror );
+		if( op->success ) fprintf( output_obj.outfile, "SUCCESS: All the estimated model parameters have an absolute error from the true parameters less than %g!\n", op->cd->parerror );
+		else fprintf( output_obj.outfile, "At least one of the estimated model parameters has an absolute error from the true parameters greater than %g!\n", op->cd->parerror );
 	}
 	if( op->cd->phi_cutoff > DBL_EPSILON && op->phi < op->cd->phi_cutoff )
-		fprintf( out, "SUCCESS: Objective function is below the predefined cutoff value (%g < %g)!\n", op->phi, op->cd->phi_cutoff );
-	fprintf( out, "Number of function evaluations = %d\n", op->cd->neval );
-	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed_init );
-	fclose( out );
+		fprintf( output_obj.outfile, "SUCCESS: Objective function is below the predefined cutoff value (%g < %g)!\n", op->phi, op->cd->phi_cutoff );
+	fprintf( output_obj.outfile, "Number of function evaluations = %d\n", op->cd->neval );
+	if( op->cd->seed > 0 ) fprintf( output_obj.outfile, "Seed = %d\n", op->cd->seed_init );
 	// Save breakthrough files
 	if( gd->min_t > 0 && op->cd->solution_type[0] != TEST )
 	{
 		tprintf( "\nCompute breakthrough curves at all the wells ..." );
 		sprintf( filename, "%s.btc", fileroot );
 		sprintf( filename2, "%s.btc-peak", fileroot );
-		compute_btc2( filename, filename2, op );
+		output_obj.filename = filename ;
+		output_obj.filename2 = filename2 ;
+		compute_btc2( &output_obj, op, -1 );
 		//			compute_btc( filename, &op, &gd );
 	}
 	// Save grid files (VTK)
@@ -3062,6 +3166,7 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 		sprintf( filename, "%s.vtk", fileroot );
 		compute_grid( filename, op->cd, gd );
 	}
+	Fclose( &output_obj );
 }
 
 int sort_int( const void *x, const void *y )
