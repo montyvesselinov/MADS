@@ -31,7 +31,7 @@ Clone GIT repositories:
 	git clone git@bitbucket.org:monty_vesselinov/mads.git
 
 Required libraries:
-	GSL:        http://www.gnu.org/s/gsl
+	GSL:        http://www.gnu.org/s/gsl (version 1.16 or later)
 	LAPACK:     http://www.netlib.org/lapack/
 	BLAS:       http://www.netlib.org/blas/
 	ATLAS:      (of LAPACK or BLAS are not available) http://www.netlib.org/atlas
