@@ -54,10 +54,10 @@ ifeq ($(OS),Darwin)
 # Mac
 $(info MAC OS X)
 CFLAGS += -I/opt/local/include
-LDLIBS += -lgfortran -latlas -L/opt/local/lib
+LDLIBS += -lgfortran -lblas -L/opt/local/lib
 YAML = true
-ifeq ($(ND),pn1246281)
-LDLIBS += -lblas
+ifeq ($(ND),bored.lanl.gov)
+LDLIBS += -latlas
 endif
 ifeq ($(ND),dazed.local)
 $(info Machine -- Dazed)

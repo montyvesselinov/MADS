@@ -34,19 +34,20 @@ Required libraries:
 	GSL:        http://www.gnu.org/s/gsl
 	LAPACK:     http://www.netlib.org/lapack/
 	BLAS:       http://www.netlib.org/blas/
+	ATLAS:      (of LAPACK or BLAS are not available) http://www.netlib.org/atlas
 	MATHEVAL:   http://www.gnu.org/software/libmatheval/
 	YAML:       http://pyyaml.org/wiki/LibYAML; http://www.yaml.org
 	GLIB:       http://developer.gnome.org/glib/
 	PKG-CONFIG: http://www.freedesktop.org/wiki/Software/pkg-config/
 
 MAC OS X installation of required libraries:
-	sudo port install gsl glib2 libyaml libmatheval pkgconfig
+	sudo port install gsl glib2 libyaml libmatheval atlas pkgconfig
 	
 RHEL/CentOS/Fedora installation of required libraries:	
-	sudo yum install gsl glib2 libyaml libmatheval pkgconfig
+	sudo yum install gsl glib2 libyaml libmatheval atlas pkgconfig
 
 Ubuntu/Debian installation of required libraries:
-	sudo apt-get install libgsl0-dev libglib2.0-0 libyaml-0-2 libmatheval1 pkg-config
+	sudo apt-get install libgsl0-dev libglib2.0-0 libyaml-0-2 libmatheval1 atlas pkg-config
 
 Compilation:
 	make
