@@ -965,7 +965,7 @@ int load_yaml_wells( GNode *node, gpointer data )
 			if( !strcasecmp( ( char * ) node_key->data, "obs" ) )
 			{
 				wd->nWellObs[i] = g_node_n_children( node_key );
-				if( cd->debug ) tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %2i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
+				if( cd->debug ) tprintf( "Well %-6s nObs %3i ", wd->id[i], wd->nWellObs[i] );
 				if( wd->nWellObs[i] > 0 )
 				{
 					if( ( wd->obs_time[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -1022,9 +1022,33 @@ int load_yaml_wells( GNode *node, gpointer data )
 						}
 						if( wd->obs_weight[i][j] > DBL_EPSILON ) od->nObs++;
 						if( wd->obs_weight[i][j] < -DBL_EPSILON ) { preds->nTObs++; if( od->include_predictions ) od->nObs++; } // Predictions have negative weights
-						if( j + 1 < wd->nWellObs[i] ) if( cd->debug ) tprintf( "\t\t\t\t\t\t\t      " );
+						if( cd->debug && j + 1 < wd->nWellObs[i] ) tprintf( "\t\t     " );
 					}
 				}
+			}
+		}
+	}
+	if( cd->debug )
+	{
+		for( i = 0; i < wd->nW; i++ ) // Number of wells loop
+		{
+			tprintf( "Well %-6s x %8g y %8g z0 %6g z1 %6g nObs %3i ", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i], wd->nWellObs[i] );
+			for( j = 0; j < wd->nWellObs[i]; j++ )
+			{
+				tprintf( "t %5g c %5g weight %7g log %1d acceptable range: min %5g max %5g\n", wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+				if( wd->obs_max[i][j] < wd->obs_target[i][j] || wd->obs_min[i][j] > wd->obs_target[i][j] )
+				{
+					tprintf( "ERROR: Observation target is outside the specified min/max range! " );
+					tprintf( "Observation %s(%g): %g min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+					bad_data = 1;
+				}
+				if( wd->obs_max[i][j] <= wd->obs_min[i][j] )
+				{
+					tprintf( "ERROR: Calibration range is not correctly specified! " );
+					tprintf( "Observation %s(%g): min %g max %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+					bad_data = 1;
+				}
+				if( j + 1 < wd->nWellObs[i] ) tprintf( "\t\t\t\t\t\t\t       " );
 			}
 		}
 	}
