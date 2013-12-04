@@ -1,0 +1,115 @@
+MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+---------------------------------------------------
+Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: a07.mads
+Problem root name: a07
+Number of YAML classes 7
+YAML Classes:
+ Problem -> 3 components
+ Solution -> 1 components
+ Sources -> 1 components
+ Parameters -> 16 components
+ Wells -> 20 components
+ Grid -> 10 components
+ Time -> 3 components
+Process YAML Classes ...
+Process Problem ... 
+
+Problem type: forward run (no calibration)
+
+Optimization method: opt=lm --- Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 5000
+2: Objective function cutoff value: NOT implemented (ADD keyword cutoff=[value] to implement)
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: sum of squared residuals
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Process Solution ... Number of solution components: 1
+
+Process Sources ... Number of sources: 1
+Source #1 type: box ... Number of parameters: 9
+Model: internal box contaminant source | Levy dispersion
+Process Parameters ... Number of parameters: 16
+WARNING: The number of provided parameters (16) is different than the number of expected parameters (17)
+Process Wells ... Number of wells: 20
+Number of calibration targets = 20
+WARNING: Regularization class not found!
+Process Grid ... Number of grid components: 10
+Process Time ... Number of time components: 3
+Number of optimized parameters = 1
+Number of flagged parameters = 0
+Number of fixed parameters = 25
+Number of parameters with computational expressions (coupled or tied parameters) = 0
+Number of regularization terms = 0
+Number of predictions = 0
+
+
+Execution date & time stamp: 20131116-160805
+
+Model parameter values:
+Source x coordinate [L] 1124
+Source y coordinate [L] 1393
+Source z coordinate [L] 0
+Source x dimension [L] 258
+Source y dimension [L] 273
+Source z dimension [L] 1
+Contaminant flux [M/T] 16
+Start Time [T] 0
+End Time [T] 100
+Porosity [L3/L3] 0.1
+Retardation Factor [-] 1
+Half-life decay [1/T] 0
+Flow Angle [degrees] 3
+Pore x velocity [L/T] 5
+Pore y velocity [L/T] 0
+Pore z velocity [L/T] 0
+Dispersivity x [L] 70
+Dispersivity y [L] 15
+Dispersivity z [L] 0.3
+Time Scale Dispersivity [-] 1
+Time Scale Advection [-] 1
+Time Scale Reaction [-] 1
+Levy alpha [-] 1.5
+Levy beta [-] 0
+NLC 0 [T] 1
+NLC 1 [T] 1
+
+Model predictions (forward run; no calibration):
+W-1       (  49):           0 -     0.405815 =    -0.405815 (   -0.405815) success 1 range            0 -           25
+W-2       (  49):           0 -    0.0893401 =   -0.0893401 (  -0.0893401) success 1 range            0 -           10
+W-3       (  49):           0 -    0.0382842 =   -0.0382842 (  -0.0382842) success 1 range            0 -           25
+W-4       (  44):         350 -      19.4894 =      330.511 (     330.511) success 0 range          300 -          700
+W-4       (  49):         432 -      22.6899 =       409.31 (      409.31) success 0 range          300 -          700
+W-5       (  49):           0 -  0.000601367 = -0.000601367 (-0.000601367) success 1 range            0 -           10
+W-6       (  49):           0 -   5.9722e-05 =  -5.9722e-05 ( -5.9722e-05) success 1 range            0 -           10
+W-7       (  49):           0 -   0.00374584 =  -0.00374584 ( -0.00374584) success 1 range            0 -           10
+W-8       (  49):           0 -   0.00226629 =  -0.00226629 ( -0.00226629) success 1 range            0 -           10
+W-9       (  49):         981 -       54.872 =      926.128 (     926.128) success 0 range          600 -         1200
+W-10#1    (  49):         1.1 -      1.39293 =    -0.292927 (   -0.292927) success 1 range            0 -            5
+W-10#2    (  49):         0.1 -     0.269517 =    -0.169517 (   -0.169517) success 1 range            0 -            5
+W-11#1    (  49):          22 -      5.92322 =      16.0768 (     16.0768) success 1 range            3 -           25
+W-11#2    (  49):         0.3 -     0.545239 =    -0.245239 (   -0.245239) success 1 range            0 -            5
+W-12#1    (  49):          15 -      2.83697 =       12.163 (      12.163) success 0 range            3 -           25
+W-12#2    (  49):        0.17 -     0.243889 =   -0.0738894 (  -0.0738894) success 1 range            0 -            5
+W-13#1    (  50):          72 -      8.09351 =      63.9065 (     63.9065) success 0 range           40 -          100
+W-13#2    (  50):        0.26 -     0.489585 =    -0.229585 (   -0.229585) success 1 range            0 -           20
+W-14a     (  50):           0 -     0.421922 =    -0.421922 (   -0.421922) success 1 range            0 -            5
+W-14b     (  50):          30 -      6.51604 =       23.484 (      23.484) success 1 range            0 -           50
+W-14c     (  50):          10 -      21.3978 =     -11.3978 (          -0) success 1 range            0 -           20
+Objective function: 1.13953e+06 Success: 0
+At least one of the predictions is outside acceptable ranges!
+Simulation time = 1.43333 minutes
+Functional evaluations = 1
+Functional evaluations per day = 0
+Execution  started  on Sat Nov 16 16:08:05 2013
+Execution completed on Sat Nov 16 16:09:31 2013
+Execution date & time stamp: 20131116-160805

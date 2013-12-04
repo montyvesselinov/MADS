@@ -1,6 +1,7 @@
 // MADS: Model Analyses & Decision Support (v1.1) 2011
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
 // Dylan Harp, dharp@lanl.gov
 //
 // http://mads.lanl.gov
@@ -35,11 +36,14 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 
-enum PROBLEM_TYPE {UNKNOWN = -3, CHECK, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, INFOGAP, POSTPUA, GLUE };
+
+enum IO_TYPE {IO_TEXT = 0, IO_YAML, IO_XML };
+enum PROBLEM_TYPE {UNKNOWN = -3, CHECK, CREATE, FORWARD, CALIBRATE, LOCALSENS, EIGEN, MONTECARLO, GLOBALSENS, ABAGUS, INFOGAP, POSTPUA, GLUE, BAYES };
 enum CALIBRATION_TYPE {SIMPLE, PPSD, IGPD, IGRND};
 enum GSA_TYPE {SOBOL, SALTELLI, MOAT};
 enum OBJFUNC_TYPE {SSR = 0, SSDR, SSD0, SSDX, SSDA, SCR };
 enum SOLUTION_TYPE {TEST = -2, EXTERNAL = -1, POINT = 0, PLANE = 1, PLANE3D = 2, BOX = 3, GAUSSIAN2D = 4, GAUSSIAN3D = 5, POINT_TRIANGLE_TIME = 6 };
+enum LEVY_TYPE {NO_LEVY = 0, FULL_LEVY = 1, SYM_LEVY = 2};
 #define NUM_ANAL_PARAMS_SOURCE 9
 enum SOURCE_PARAM_TAGS {SOURCE_X = 0, SOURCE_Y, SOURCE_Z, SOURCE_DX, SOURCE_DY, SOURCE_DZ, FLUX, TIME_INIT, TIME_END };
 #define NUM_ANAL_PARAMS_AQUIFER 17
@@ -50,8 +54,8 @@ enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, RF, LAMBDA, FLOW_AN
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
-struct io_output_object mads_output_obj;
 int quiet;
+char version_id[80];
 
 #define COMPARE_EPSILON pow( FLT_EPSILON, (double) 1/2 ) // EPSILON FOR BOUND COMPARISON
 
@@ -84,7 +88,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 {
 	int problem_type; // problem type: forward, calibration, ...
 	int calib_type; // calibration type: simple, igpd, ...
-	int yaml; // input / output format
+  	int ioml; // YAML/XML input / output format
         int netcdf; // flag to use netcdf output
 	int gsa_type; // global sensitivity analysis type: sobol, saltelli, moat, ...
 	int paranoid; // paranoid calibration
@@ -244,6 +248,9 @@ struct obs_data // data structure for observation data (EXTERNAL PROBLEM)
 	double *obs_weight; // observation weight
 	double *obs_min; // observation min
 	double *obs_max; // observation max
+	double *obs_scale; //gives the scale for the distribution
+	double *obs_location; //gives the location for the distribution
+	double *obs_alpha; //gives the stability index for the distribution
 	double *res; // current residual: res = obs_target - obs_current
 	gsl_vector *obs_current_gsl; // current model predicted observation as GSL vector; NOTE: redundant
 	// predictions
@@ -268,6 +275,9 @@ struct well_data // data structure for well data (INTERNAL PROBLEM)
 	int **obs_log; // log transformation
 	double **obs_min; // observation min
 	double **obs_max; // observation max
+	double **obs_scale; //gives the scale of the distribution
+	double **obs_location; //gives the location of the distribution
+	double **obs_alpha; //gives the stability index for the distribution
 };
 
 struct grid_data // data structure for model predictions along a grid
@@ -376,6 +386,8 @@ struct io_output_object
   FILE *outfile;
 };  
 
+struct io_output_object mads_output_obj;
+
 void fglobalprintf( struct io_output_object *output_obj, char const *fmt, ... );
 void create_cdf_file( struct io_output_object *output_obj, struct well_data *wd);
 void close_cdf_file( struct io_output_object *output_obj );
@@ -398,6 +410,7 @@ void var_sorted( double data[], double datb[], int n, double ave, double ep, dou
 void ave_sorted( double data[], int n, double *ave, double *ep );
 char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
+void mads_quits( char *root );
 // mads_func.c
 int func_extrn( double *x, void *data, double *f );
 int func_extrn_write( int ieval, double *x, void *data );
@@ -425,7 +438,9 @@ void white_skip( char **s );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( struct io_output_object *output_obj, struct opt_data *op );
-int write_problem( struct io_output_object *output_obj, struct opt_data *op );
+int save_problem_text( struct io_output_object *output_obj, struct opt_data *op );
+int write_problem_text( struct io_output_object *output_obj, struct opt_data *op );
+int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( struct io_output_object *output_obj, struct opt_data *op, int nreal );
 void compute_btc( char *filename, struct opt_data *op );

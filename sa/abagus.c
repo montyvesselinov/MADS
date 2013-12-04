@@ -1,8 +1,10 @@
 // MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
 // Dylan Harp, dharp@lanl.gov
 //
+// http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
 //
 // LA-CC-10-055; LA-CC-11-035
@@ -234,12 +236,12 @@ int abagus( struct opt_data *op )
 	int iter = 0;
 	op->cd->compute_phi = 1;
 	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); mads_quits( op->root ); }
 	eval_max = op->cd->maxeval; // Max number of evaluations for each run
 	if( ( finv = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); mads_quits( op->root ); }
 	if( ( finvbad = ( double * ) malloc( eval_max * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
+	{ tprintf( "Not enough memory!\n" ); mads_quits( op->root ); }
 	irand_seed = &op->cd->seed;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
 	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
@@ -311,7 +313,7 @@ int abagus( struct opt_data *op )
 	// Write accepted locations from input file to output file
 	// Open output file
 	sprintf( filename, "%s.abagus", op->root ); // TODO rename pssa to abagus to avoid confusion
-	if( ( f_run = fopen( filename, "w" ) ) == NULL ) { tprintf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+	if( ( f_run = fopen( filename, "w" ) ) == NULL ) { tprintf( "ERROR: File %s cannot be opened to write results!\n", filename ); mads_quits( op->root ); }
 	fprintf( f_run, "Number OF parameters...\n" ); // Write header
 	for( d = 0; d < D; d++ ) G.x[d] = xmin[d] + 0.5 * ( xmax[d] - xmin[d] ); // Determine center parameter space for search
 	if( op->cd->infile[0] != 0 )
@@ -612,11 +614,11 @@ loop:
 	if( op->cd->pdebug == 10 )
 	{
 		sprintf( filename, "%s-%08d.collected", op->root, iter );
-		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { tprintf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { tprintf( "ERROR: File %s cannot be opened to write results!\n", filename ); mads_quits( op->root ); }
 		print_collected( kd, &eps, &dmax, &dxmin, f_out );
 		fclose( f_out );
 		sprintf( filename, "%s-%08d.particles", op->root, iter );
-		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { tprintf( "File %s cannot be opened to write results!\n", filename ); exit( 0 ); }
+		if( ( f_out = fopen( filename, "w" ) ) == NULL ) { tprintf( "ERROR: File %s cannot be opened to write results!\n", filename ); mads_quits( op->root ); }
 		print_particles( X, f_out );
 		fclose( f_out );
 	}

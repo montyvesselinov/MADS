@@ -1,8 +1,10 @@
 // MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
 // Dylan Harp, dharp@lanl.gov
 //
+// http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
 //
 // LA-CC-10-055; LA-CC-11-035
@@ -50,11 +52,14 @@ int check_mads_problem( char *filename );
 int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op, int flag );
 void init_params( struct opt_data *op );
-int parse_cmd_debug( char *buf );
+int parse_cmd_init( int argn, char *argv[], struct calc_data *cd );
 int parse_cmd( char *buf, struct calc_data *cd );
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op );
+int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op );
+int load_problem_xml( char *filename, int argn, char *argv[], struct opt_data *op );
 int save_problem( struct io_output_object *output_obj, struct opt_data *op );
-int write_problem( struct io_output_object *output_obj, struct opt_data *op );
+int write_problem_text( struct io_output_object *output_obj, struct opt_data *op );
+int save_problem_text( struct io_output_object *output_obj, struct opt_data *op );
+int save_problem_xml( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( struct io_output_object *output_obj, struct opt_data *op, int ireal );
 void compute_btc( char *filename, struct opt_data *op );
@@ -71,6 +76,7 @@ char *str_replace( char *orig, char *rep, char *with ); // replace all string oc
 int set_optimized_params( struct opt_data *op );
 int map_obs( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
+int set_predictions( struct opt_data *op );
 
 void add_att_double( int i, struct io_output_object *output_obj, struct param_data *pd );
 void add_well_data( struct io_output_object *output_obj, struct well_data *wd);
@@ -89,6 +95,9 @@ FILE *Fread( char *filename );
 void removeChars( char *str, char *garbage );
 char *white_trim( char *x );
 void white_skip( char **s );
+#ifdef YAML
+int save_problem_yaml( char *filename, struct opt_data *op );
+#endif
 
 int check_mads_problem( char *filename )
 {
@@ -196,16 +205,23 @@ void init_params( struct opt_data *op )
 	pd->var_max[k + ALPHA] = 2; pd->var_max[k + BETA] = 1.; pd->var_max[k + NLC0] = 1.; pd->var_max[k + NLC1] = 10.;
 }
 
-int parse_cmd_debug( char *buf )
+int parse_cmd_init( int argn, char *argv[], struct calc_data *cd )
 {
-	int debug;
-	char *sep = " \t\n", *word;
-	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
+	int i, r = 0;
+	cd->debug = 0;
+	quiet = 0; // Global variable
+	for( i = 2; i < argn; i++ )
 	{
-		if( !strncasecmp( word, "debug", 5 ) ) { if( sscanf( word, "debug=%d", &debug ) == 0 || debug == 0 ) debug = 1; } // Global debug
+		if( !strncasecmp( argv[i], "debug", 5 ) ) { if( sscanf( argv[i], "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
+		if( !strncasecmp( argv[i], "quiet", 5 ) ) { quiet = 1; } // No output
+		if( !strncasecmp( argv[i], "q", 1 ) ) { quiet = 1; } // No output
+		if( !strncasecmp( argv[i], "force", 5 ) ) { r = 1; } // Force running
+		if( !strncasecmp( argv[i], "f", 1 ) ) { r = 1; } // Force running
+		if( !strncasecmp( argv[i], "test", 4 ) ) { cd->test_func = 1; cd->solution_type[0] = TEST; }
 	}
-	return( debug );
+	return( r );
 }
+
 
 int parse_cmd( char *buf, struct calc_data *cd )
 {
@@ -222,7 +238,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->problem_type = UNKNOWN;
 	cd->calib_type = SIMPLE;
 	cd->solution_type[0] = EXTERNAL;
-	cd->levy = 0;
+	cd->levy = NO_LEVY;
 	cd->objfunc_type = SSR;
 	cd->check_success = 0;
 	cd->c_background = 0;
@@ -282,12 +298,16 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->test_func_npar = cd->test_func_nobs = 0;
 	cd->obs_int = 2;
 	cd->time_step = 0;
-	quiet = 0;
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
-		if( !strncasecmp( word, "yaml", 5 ) ) { w = 1; cd->yaml = 1; }
-		if( !strncasecmp( word, "quiet", 5 ) ) { w = 1; quiet = 1; }
+		if( !strncasecmp( word, "quiet", 5 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "q", 1 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "force", 5 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "f", 1 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "text", 4 ) ) { w = 1; cd->ioml = IO_TEXT; }
+		if( !strncasecmp( word, "yaml", 4 ) ) { w = 1; cd->ioml = IO_YAML; }
+		if( !strncasecmp( word, "xml", 3 ) ) { w = 1; cd->ioml = IO_XML; }
 		if( !strncasecmp( word, "check", 5 ) ) { w = 1; cd->problem_type = CHECK; }
 		if( !strncasecmp( word, "create", 6 ) ) { w = 1; cd->problem_type = CREATE; }
 		if( !strncasecmp( word, "forward", 7 ) ) { w = 1; cd->problem_type = FORWARD; }
@@ -303,12 +323,13 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "glue", 4 ) ) { w = 1; cd->problem_type = GLUE; }
 		if( !strncasecmp( word, "abagus", 6 ) ) { w = 1; cd->problem_type = ABAGUS; }
 		if( !strncasecmp( word, "infogap", 7 ) ) { w = 1; cd->problem_type = INFOGAP; }
+		if( !strncasecmp( word, "bayes", 5 ) ) { w = 1; cd->problem_type = BAYES; }
 		if( !strncasecmp( word, "postpua", 7 ) ) { w = 1; cd->problem_type = POSTPUA; }
-		if( !strncasecmp( word, "single", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-		if( !strncasecmp( word, "simple", 6 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGPD; }
-		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = PPSD; }
-		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->problem_type = CALIBRATE; cd->calib_type = IGRND; }
+		if( !strncasecmp( word, "single", 6 ) ) { w = 1; cd->calib_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "simple", 6 ) ) { w = 1; cd->calib_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->calib_type = IGPD; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->calib_type = PPSD; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->calib_type = IGRND; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
 		if( !strncasecmp( word, "energy=", 7 ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( !strncasecmp( word, "background=", 11 ) ) { w = 1; sscanf( word, "background=%lf", &cd->c_background ); }
 		if( !strncasecmp( word, "lmfactor=", 9 ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
@@ -383,7 +404,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "gau", 3 ) ) { w = 1; if( strcasestr( word, "2" ) ) cd->solution_type[0] = GAUSSIAN2D; else cd->solution_type[0] = GAUSSIAN3D; }
 		if( !strncasecmp( word, "rec", 3 ) ) { w = 1; if( strcasestr( word, "ver" ) ) cd->solution_type[0] = PLANE3D; else cd->solution_type[0] = PLANE; }
 		if( !strncasecmp( word, "box", 3 ) ) { w = 1; cd->solution_type[0] = BOX; }
-		if( !strncasecmp( word, "levy", 4 ) ) { w = 1; cd->levy = 1; }
+		if( !strncasecmp( word, "levy", 4 ) ) { w = 1; if( strcasestr( word, "sym" ) ) cd->levy = SYM_LEVY; else cd->levy = FULL_LEVY; }
 		if( !strncasecmp( word, "point_tri", 9 ) ) { w = 1; cd->solution_type[0] = POINT_TRIANGLE_TIME; }
 		if( !strncasecmp( word, "time_step", 9 ) ) { w = 1; cd->time_step = 1; }
 		if( !strncasecmp( word, "obs_int=", 8 ) ) { w = 1; sscanf( word, "obs_int=%d", &cd->obs_int ); if( cd->obs_int > 2 || cd->obs_int < 1 ) cd->obs_int = 2; }
@@ -426,6 +447,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		case GLUE: tprintf( "glue: Generalized Likelihood Uncertainty Estimation: GLUE runs currently postprocess ABAGUS results" ); break;
 		case INFOGAP: tprintf( "Info-gap decision analysis" ); break;
 		case POSTPUA: tprintf( "predictive uncertainty analysis of sampling results" ); break;
+		case BAYES: tprintf( "Bayesian parameter sampling" ); break;
 		default: tprintf( "WARNING: unknown problem type; calibration assumed" ); cd->problem_type = CALIBRATE; break;
 	}
 	tprintf( "\n" );
@@ -575,7 +597,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	return( 1 );
 }
 
-int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
+int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op )
 {
 	FILE *infile, *infile2;
 	//	FILE *infileb;
@@ -629,7 +651,6 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	else buf[0] = 0;
 	// Add commands provided as arguments
 	for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
-	cd->solution_type = ( int * ) malloc( sizeof( int ) );
 	if( parse_cmd( buf, cd ) == -1 ) return( -1 );
 	od->include_predictions = 1;
 	if( cd->problem_type == INFOGAP ) od->include_predictions = 0;
@@ -1085,6 +1106,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_alpha = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_scale = ( double * ) malloc( od->nTObs * sizeof( double ) );
+		od->obs_location = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		od->obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
 		// if( ( od->obs_best = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) tprintf( "***\nNO MEMORY!!!!\n***\n" );
@@ -1094,7 +1118,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		preds->nTObs = 0; // TODO INFOGAP and GLUE analysis for external problems
 		for( i = 0; i < od->nObs; i++ )
 		{
-			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0;
+			od->obs_min[i] = -1e6; od->obs_max[i] = 1e6; od->obs_weight[i] = 1; od->obs_log[i] = 0; od->obs_alpha[i] = 2.; od->obs_scale[i] = 1.; od->obs_location[i] = 0.;
 			fscanf( infile, "%s %lf %lf %d %lf %lf\n", od->obs_id[i], &od->obs_target[i], &od->obs_weight[i], &od->obs_log[i], &od->obs_min[i], &od->obs_max[i] );
 			if( cd->obsdomain > DBL_EPSILON && &od->obs_weight[i] > 0 ) { od->obs_min[i] = od->obs_target[i] - cd->obsdomain; od->obs_max[i] = od->obs_target[i] + cd->obsdomain; }
 			if( od->obs_max[i] < od->obs_target[i] || od->obs_min[i] > od->obs_target[i] )
@@ -1156,6 +1180,9 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 		if( ( wd->obs_log = ( int ** ) malloc( wd->nW * sizeof( int * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		if( ( wd->obs_min = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		if( ( wd->obs_max = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_alpha = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_scale = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( wd->obs_location = ( double ** ) malloc( wd->nW * sizeof( double * ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		od->nObs = preds->nTObs = 0;
 		if( cd->debug ) tprintf( "\nObservation data:\n" );
 		for( i = 0; i < wd->nW; i++ )
@@ -1170,9 +1197,12 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 			if( ( wd->obs_log[i] = ( int * ) malloc( wd->nWellObs[i] * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			if( ( wd->obs_min[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			if( ( wd->obs_max[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_alpha[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_scale[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( wd->obs_location[i] = ( double * ) malloc( wd->nWellObs[i] * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			for( j = 0; j < wd->nWellObs[i]; j++ )
 			{
-				wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0;
+				wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0; wd->obs_alpha[i][j] = 2.; wd->obs_scale[i][j] = 1.; wd->obs_location[i][j] = 0.;
 				status = fscanf( infile, "%lf %lf %lf %i %lf %lf\n", &wd->obs_time[i][j], &wd->obs_target[i][j], &wd->obs_weight[i][j], &wd->obs_log[i][j], &wd->obs_min[i][j], &wd->obs_max[i][j] );
 				if( status != 6 )
 				{
@@ -1325,77 +1355,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 				tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
 	}
 	// ------------------------------------------------------------ Set predictions ----------------------------------------------------------------
-	if( preds->nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
-	{
-		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", preds->nTObs );
-		else tprintf( "Number of predictions = %d\n", preds->nTObs );
-		preds->obs_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_target = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_current = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_best = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_well_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_time_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->obs_id = char_matrix( preds->nTObs, 50 );
-		preds->obs_weight = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_min = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_max = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		preds->obs_log = ( int * ) malloc( preds->nTObs * sizeof( int ) );
-		preds->res = ( double * ) malloc( preds->nTObs * sizeof( double ) );
-		/*
-				for( c = k = i = 0; i < wd->nW; i++ )
-					for( j = 0; j < wd->nWellObs[i]; j++ )
-					{
-						if( fabs( wd->obs_weight[i][j] ) > DBL_EPSILON ) c++;
-						if( wd->obs_weight[i][j] < -DBL_EPSILON )
-						{
-							preds->obs_index[k] = c - 1;
-							preds->obs_target[k] = wd->obs_target[i][j];
-							preds->obs_weight[k] = 1.0;
-							preds->obs_min[k] = wd->obs_target[i][j];
-							preds->obs_max[k] = wd->obs_target[i][j];
-							preds->obs_log[k] = wd->obs_log[i][j];
-							preds->obs_well_index[k] = i;
-							preds->obs_time_index[k] = j;
-							sprintf( preds->obs_id[k], "%s(%g)", wd->id[i], wd->obs_time[i][j] );
-							if( cd->debug ) tprintf( "%s(%g): %g weight %g\n", wd->id[i], wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j] );
-							k++;
-						}
-					}
-		*/
-		for( c = k = i = 0; i < od->nTObs; i++ )
-		{
-			if( fabs( od->obs_weight[i] ) > DBL_EPSILON ) c++;
-			if( od->obs_weight[i] < -DBL_EPSILON )
-			{
-				preds->obs_index[k] = c - 1;
-				preds->obs_target[k] = od->obs_target[i];
-				preds->obs_weight[k] = fabs( od->obs_weight[i] );
-				preds->obs_min[k] = od->obs_target[i];
-				preds->obs_max[k] = od->obs_target[i];
-				preds->obs_log[k] = od->obs_log[i];
-				preds->obs_well_index[k] = od->obs_well_index[i];
-				preds->obs_time_index[k] = od->obs_time_index[i];
-				sprintf( preds->obs_id[k], "%s", od->obs_id[i] );
-				if( cd->debug ) tprintf( "%s: %g weight %g\n", preds->obs_id[k], preds->obs_target[k], preds->obs_weight[k] );
-				k++;
-			}
-		}
-	}
-	else
-	{
-		tprintf( "Number of predictions = %d\n", preds->nTObs );
-		if( cd->problem_type == INFOGAP ) // INFOGAP problem
-		{
-			tprintf( "\nERROR: Weight of at least one observation must be set as performance criterion prediction\nby setting weight to -1 for Info-gap analysis\n\n" );
-			bad_data = 1;
-		}
-		if( cd->problem_type == GLUE ) // GLUE problem
-		{
-			tprintf( "\nERROR: Weight of at least one observation must be set as a prediction\nby setting weight to -1 for GLUE analysis\n\n" );
-			bad_data = 1;
-		}
-	}
-	if( bad_data ) return( 0 );
+	if( !set_predictions( op ) ) return ( 0 );
 	// ------------------------------------------------------------ Reading external problem ----------------------------------------------------------------
 	if( cd->solution_type[0] == EXTERNAL )
 	{
@@ -1505,7 +1465,7 @@ int load_problem( char *filename, int argn, char *argv[], struct opt_data *op )
 	return( 1 );
 }
 
-int save_problem( struct io_output_object *output_obj, struct opt_data *op )
+int save_problem_text( struct io_output_object *output_obj, struct opt_data *op )
 {
         int intout ;
 
@@ -1517,7 +1477,7 @@ int save_problem( struct io_output_object *output_obj, struct opt_data *op )
 	if( output_obj->use_netcdf )
 	  create_cdf_file(output_obj, op->wd) ;
 
-	intout = write_problem(output_obj, op) ;
+	intout = write_problem_text(output_obj, op) ;
 
 	fclose( output_obj->outfile );
 
@@ -1527,7 +1487,42 @@ int save_problem( struct io_output_object *output_obj, struct opt_data *op )
 	return(intout) ;
 }  
 
-int write_problem( struct io_output_object *output_obj, struct opt_data *op )
+int load_problem_xml( char *filename, int argn, char *argv[], struct opt_data *op )
+{
+	tprintf( "ERROR: XML files cannot be loaded yet!\n" );
+	mads_quits( op->root );
+	return( 1 );
+}
+
+int save_problem( struct io_output_object *output_obj, struct opt_data *op )
+{
+
+        if(op->cd->netcdf)
+	  op->cd->ioml = IO_TEXT ;
+
+	if( op->cd->ioml == IO_YAML )
+	{
+#ifdef YAML
+		save_problem_yaml( output_obj->filename, op );
+#else
+		tprintf( "WARNING: YAML files cannot be saved! YAML libraries are not available.\n" );
+		tprintf( "WARNING: Outputs will be saved in TEXT format files cannot be saved!\n" );
+		save_problem_text( output_obj, op );
+#endif
+	}
+	else if( op->cd->ioml == IO_XML ) save_problem_xml( output_obj->filename, op );
+	else save_problem_text( output_obj, op );
+	return( 1 );
+}
+
+int save_problem_xml( char *filename, struct opt_data *op )
+{
+	tprintf( "ERROR: XML files cannot be saved yet!\n" );
+	mads_quits( op->root );
+	return( 1 );
+}
+
+int write_problem_text( struct io_output_object *output_obj, struct opt_data *op )
 {
 	struct calc_data *cd;
 	struct param_data *pd;
@@ -1561,15 +1556,18 @@ int write_problem( struct io_output_object *output_obj, struct opt_data *op )
 	fprintf( output_obj->outfile, "Problem: " );
 	switch( cd->problem_type )
 	{
-		case CREATE: fprintf( output_obj->outfile, "create" ); break;
+	        case CREATE: fprintf( output_obj->outfile, "create" ); break;
 		case FORWARD: fprintf( output_obj->outfile, "forward" ); break;
 		case CALIBRATE: fprintf( output_obj->outfile, "calibration" ); break;
 		case LOCALSENS: fprintf( output_obj->outfile, "lsens" ); break;
 		case GLOBALSENS: fprintf( output_obj->outfile, "gsens" ); break;
 		case EIGEN: fprintf( output_obj->outfile, "eigen" ); break;
-		case MONTECARLO: fglobalprintf( output_obj, "montecarlo real=%d", cd->nreal ); break;
-		case ABAGUS: fglobalprintf( output_obj, " abagus energy=%d", cd->energy ); break;
-		case POSTPUA: fprintf( output_obj->outfile, " postpua" ); break;
+		case MONTECARLO: fprintf( output_obj->outfile, "montecarlo real=%d", cd->nreal ); break;
+		case ABAGUS: fprintf( output_obj->outfile, "abagus energy=%d", cd->energy ); break;
+		case POSTPUA: fprintf( output_obj->outfile, "postpua" ); break;
+		case INFOGAP: fprintf( output_obj->outfile, "infogap" ); break;
+		case BAYES: fprintf( output_obj->outfile, "bayes" ); break;
+		case GLUE: fprintf( output_obj->outfile, "glue" ); break;
 	}
 	if( cd->debug > 0 ) fglobalprintf( output_obj, " debug=%d", cd->debug );
 	if( cd->fdebug > 0 ) fglobalprintf( output_obj, " fdebug=%d", cd->fdebug );
@@ -1586,7 +1584,7 @@ int write_problem( struct io_output_object *output_obj, struct opt_data *op )
 	if( cd->sintrans ) { if( cd->sindx > DBL_EPSILON ) fglobalprintf( output_obj, " sindx=%g", cd->sindx ); }
 	else { if( cd->lindx > DBL_EPSILON ) fglobalprintf( output_obj, " lindx=%g", cd->lindx ); }
 	// if( cd->pardx > DBL_EPSILON ) fglobalprintf( output_obj, " pardx=%g", cd->pardx ); TODO when to print pardx?
-	if( cd->check_success ) fprintf( output_obj->outfile, " success" );
+	if( cd->check_success ) fprintf( output_obj->outfile, " obsrange" );
 	fprintf( output_obj->outfile, " " );
 	switch( cd->calib_type )
 	{
@@ -1609,6 +1607,12 @@ int write_problem( struct io_output_object *output_obj, struct opt_data *op )
 	if( cd->niter > 0 ) fglobalprintf( output_obj, " iter=%d", cd->niter );
 	if( cd->smp_method[0] != 0 ) fglobalprintf( output_obj, " rnd=%s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fglobalprintf( output_obj, " paran=%s", cd->paran_method );
+	if( cd->pardomain > DBL_EPSILON ) fglobalprintf( output_obj, " pardomain=%g", cd->pardomain );
+	if( cd->problem_type == INFOGAP )
+	{
+		if( cd->obsdomain > DBL_EPSILON ) fglobalprintf( output_obj, " obsdomain=%g", cd->obsdomain );
+		if( fabs( cd->obsstep ) > DBL_EPSILON ) fglobalprintf( output_obj, " obsstep=%g", cd->obsstep );
+	}
 	fprintf( output_obj->outfile, " " );
 	switch( cd->objfunc_type )
 	{
@@ -1814,7 +1818,6 @@ void compute_btc2( struct io_output_object *output_obj, struct opt_data *op, int
 			op->pd->var[i] = pow( 10, op->pd->var[i] );
 	i = ( op->cd->num_sources - 1 ) * NUM_ANAL_PARAMS_SOURCE;
 	v = sqrt( op->pd->var[i + VX] * op->pd->var[i + VX] + op->pd->var[i + VY] * op->pd->var[i + VY] + op->pd->var[i + VZ] * op->pd->var[i + VZ] ); // Flow velocity
-	// tprintf( "Flow velocity pointers = (%d %d %d)\n", i+VX, i+VY, i+VZ );
 	tprintf( "Flow velocity = %g (%g %g %g)\n", v, op->pd->var[i + VX], op->pd->var[i + VY], op->pd->var[i + VZ] );
 	for( i = 0; i < op->wd->nW; i++ )
 	{
@@ -2936,6 +2939,9 @@ int map_obs( struct opt_data *op )
 	od2.obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_scale = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_location = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od2.obs_alpha = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	// od2.obs_current = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.obs_best = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od2.res = ( double * ) malloc( od->nTObs * sizeof( double ) );
@@ -2947,6 +2953,9 @@ int map_obs( struct opt_data *op )
 		od2.obs_weight[i] = od->obs_weight[i];
 		od2.obs_min[i] = od->obs_min[i];
 		od2.obs_max[i] = od->obs_max[i];
+		od2.obs_alpha[i] = od->obs_alpha[i];
+		od2.obs_scale[i] = od->obs_scale[i];
+		od2.obs_location[i] = od->obs_location[i];
 		// od2.obs_current[i] = od->obs_current[i];
 		od2.obs_best[i] = od->obs_best[i];
 		od2.res[i] = od->res[i];
@@ -2957,6 +2966,9 @@ int map_obs( struct opt_data *op )
 	free( od->obs_weight );
 	free( od->obs_min );
 	free( od->obs_max );
+	free( od->obs_alpha );
+	free( od->obs_scale );
+	free( od->obs_location );
 	// if( rd->nRegul == 0 ) free( od->obs_current ); // Already freed if there are regularization terms ...
 	free( od->obs_best );
 	free( od->res );
@@ -3052,6 +3064,9 @@ int map_well_obs( struct opt_data *op )
 	od->obs_weight = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od->obs_min = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od->obs_max = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_location = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_scale = ( double * ) malloc( od->nTObs * sizeof( double ) );
+	od->obs_alpha = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od->res = ( double * ) malloc( od->nTObs * sizeof( double ) );
 	od->obs_log = ( int * ) malloc( od->nTObs * sizeof( int ) );
 	od->obs_well_index = ( int * ) malloc( od->nTObs * sizeof( int ) );
@@ -3064,6 +3079,9 @@ int map_well_obs( struct opt_data *op )
 				od->obs_weight[k] = wd->obs_weight[i][j];
 				od->obs_min[k] = wd->obs_min[i][j];
 				od->obs_max[k] = wd->obs_max[i][j];
+				od->obs_alpha[k] = wd->obs_alpha[i][j];
+				od->obs_scale[k] = wd->obs_scale[i][j];
+				od->obs_location[k] = wd->obs_location[i][j];
 				od->obs_log[k] = wd->obs_log[i][j];
 				od->obs_well_index[k] = i;
 				od->obs_time_index[k] = j;
@@ -3086,5 +3104,67 @@ int map_well_obs( struct opt_data *op )
 	}
 	if( cd->debug ) tprintf( "\n" );
 	if( bad_data ) return( -1 );
+	return( 1 );
+}
+
+int set_predictions( struct opt_data *op )
+{
+	int  i, k, c, bad_data = 0;
+	struct calc_data *cd;
+	struct obs_data *od;
+	struct obs_data *preds;
+	cd = op->cd;
+	od = op->od;
+	preds = op->preds;
+	if( preds->nTObs > 0 ) // TODO add regularization in INFOGAP and GLUE analysis
+	{
+		if( cd->problem_type == INFOGAP ) tprintf( "Number of performance criterion predictions for info-gap analysis = %d\n", preds->nTObs );
+		else tprintf( "Number of predictions = %d\n", preds->nTObs );
+		preds->obs_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_target = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_current = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_best = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_well_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_time_index = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->obs_id = char_matrix( preds->nTObs, 50 );
+		preds->obs_weight = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_min = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_max = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		preds->obs_log = ( int * ) malloc( preds->nTObs * sizeof( int ) );
+		preds->res = ( double * ) malloc( preds->nTObs * sizeof( double ) );
+		for( c = k = i = 0; i < od->nTObs; i++ )
+		{
+			if( fabs( od->obs_weight[i] ) > DBL_EPSILON ) c++;
+			if( od->obs_weight[i] < -DBL_EPSILON )
+			{
+				preds->obs_index[k] = c - 1;
+				preds->obs_target[k] = od->obs_target[i];
+				preds->obs_weight[k] = fabs( od->obs_weight[i] );
+				preds->obs_min[k] = od->obs_target[i];
+				preds->obs_max[k] = od->obs_target[i];
+				preds->obs_log[k] = od->obs_log[i];
+				preds->obs_well_index[k] = od->obs_well_index[i];
+				preds->obs_time_index[k] = od->obs_time_index[i];
+				sprintf( preds->obs_id[k], "%s", od->obs_id[i] );
+				if( cd->debug ) tprintf( "%s: %g weight %g\n", preds->obs_id[k], preds->obs_target[k], preds->obs_weight[k] );
+				k++;
+			}
+		}
+	}
+	else
+	{
+		tprintf( "Number of predictions = %d\n", preds->nTObs );
+		if( cd->problem_type == INFOGAP ) // INFOGAP problem
+		{
+			tprintf( "\nERROR: Weight of at least one observation must be set as a performance criterion prediction\nby setting weight to -1 for Info-gap analysis\n\n" );
+			bad_data = 1;
+		}
+		if( cd->problem_type == GLUE ) // GLUE problem
+		{
+			tprintf( "\nERROR: Weight of at least one observation must be set as a prediction\nby setting weight to -1 for GLUE analysis\n\n" );
+			bad_data = 1;
+		}
+	}
+	if( bad_data ) return( 0 );
 	return( 1 );
 }

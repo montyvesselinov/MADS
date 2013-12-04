@@ -1,8 +1,10 @@
 // MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
 // Dylan Harp, dharp@lanl.gov
 //
+// http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
 //
 // LA-CC-10-055; LA-CC-11-035
@@ -29,11 +31,11 @@
 #define TRUE 1
 #define FALSE 0
 #define MAXPHI 4+1 // Maximum number of objective functions Note: number of "real" objective functions +1
-#define MAXRUNS 500 // Maximum number of runs
+#define MAXRUNS 5000 // Maximum number of runs
 #define MAXPART 100
 #define MAXTRIBE 60 //Maximum number of tribes
 #define MAXVALUES 11 // Maximum number of acceptable values on a dimension
-#define MAXARCHIVE 100 // Maximum number of archived positions in the case of multiobjective optimization
+#define MAXARCHIVE 100 // Maximum number of archived positions in the case of multi-objective optimization
 
 int pso_tribes( struct opt_data *op );
 // Specific to multiobjective
@@ -171,7 +173,7 @@ int pso_tribes( struct opt_data *op )
 	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed ); }
 	nExceedSizeSwarm = nExceedSizeTribe = 0;
 	pb.lm_factor = op->cd->lm_factor;
-	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); exit( 1 ); }
+	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); mads_quits( op->root ); }
 	if( op->cd->pdebug )
 	{
 		sprintf( filename, "%s.runs", op->root );
@@ -320,7 +322,7 @@ void set_swarm( struct problem *pb, struct swarm *S )
 	int i;
 	S->size = 0;
 	S->status = 0;
-	if( ( S->trib = ( struct tribe * ) malloc( MAXTRIBE * sizeof( struct tribe ) ) ) == NULL ) { tprintf( "No memory 1!\n" ); exit( 1 ); }
+	if( ( S->trib = ( struct tribe * ) malloc( MAXTRIBE * sizeof( struct tribe ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	for( i = 0; i < MAXTRIBE; i++ )
 		set_tribe( pb, &S->trib[i] );
 	set_position( pb, &S->best );
@@ -336,6 +338,7 @@ void free_swarm( struct swarm *S )
 	free_position( &S->best );
 	free_objfunc( &S->fBestPrev );
 	free_objfunc( &S->fBestStag );
+	free( S->trib );
 }
 
 void copy_tribe( struct tribe *ps, struct tribe *pd )
@@ -353,7 +356,7 @@ void set_tribe( struct problem *pb, struct tribe *T )
 	int i;
 	T->size = 0;
 	T->status = 0;
-	if( ( T->part = ( struct particle * ) malloc( MAXPART * sizeof( struct particle ) ) ) == NULL ) { tprintf( "No memory 2!\n" ); exit( 1 ); }
+	if( ( T->part = ( struct particle * ) malloc( MAXPART * sizeof( struct particle ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	for( i = 0; i < MAXPART; i++ )
 		set_particle( pb, &T->part[i] );
 	set_objfunc( pb, &T->fBestPrev );
@@ -364,6 +367,7 @@ void free_tribe( struct tribe *T )
 	int i;
 	for( i = 0; i < MAXPART; i++ )
 		free_particle( &T->part[i] );
+	free( T->part );
 	free_objfunc( &T->fBestPrev );
 }
 
@@ -415,19 +419,19 @@ void free_position( struct position *pos )
 void set_position( struct problem *pb, struct position *pos )
 {
 	pos->size = ( *pb ).D;
-	if( ( pos->x = ( double * ) malloc( ( *pos ).size * sizeof( double ) ) ) == NULL ) { tprintf( "No memory 3!\n" ); exit( 1 ); }
+	if( ( pos->x = ( double * ) malloc( ( *pos ).size * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	set_objfunc( pb, &pos->f );
 }
 
 void free_objfunc( struct objfunc *phi )
 {
-	free( phi-> f );
+	free( phi->f );
 }
 
 void set_objfunc( struct problem *pb, struct objfunc *phi )
 {
 	phi->size = ( *pb ).nPhi;
-	if( ( phi->f = ( double * ) malloc( ( *phi ).size * sizeof( double ) ) ) == NULL ) { tprintf( "No memory 4!\n" ); exit( 1 ); }
+	if( ( phi->f = ( double * ) malloc( ( *phi ).size * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 }
 
 void position_eval( struct problem *pb, struct position *pos )
@@ -475,15 +479,15 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	int d;
 	double *opt_var, *tr_var;
 	( *pb ).D = op->pd->nOptParam;
-	if( ( opt_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( tr_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->ival = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->min = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->max = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->dx = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->valSize = ( int * ) malloc( ( *pb ).D * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->objective = ( double * ) malloc( MAXPHI * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( pb->code = ( int * ) malloc( MAXPHI * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( opt_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( tr_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root );}
+	if( ( pb->ival = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( pb->min = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( pb->max = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( pb->dx = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( pb->valSize = ( int * ) malloc( ( *pb ).D * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( pb->objective = ( double * ) malloc( MAXPHI * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( pb->code = ( int * ) malloc( MAXPHI * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	pb->val = double_matrix( ( *pb ).D, MAXVALUES );
 	set_objfunc( pb, &pb->maxError );
 	for( d = 0; d < ( *pb ).D; d++ )
@@ -511,7 +515,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	if( ( *pb ).nPhi > MAXPHI - 1 )
 	{
 		tprintf( "ERROR: Too many multi-objective functions: %i (max %i) \n", ( *pb ).nPhi, MAXPHI );
-		exit( 1 );
+		mads_quits( op->root );
 	}
 	( *pb ).code[0] = -1;
 	( *pb ).objective[0] = 0;
@@ -524,7 +528,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	if( ( *pb ).repeat > MAXRUNS )
 	{
 		tprintf( "MADS Quits: Too many retries (max %i < %i) \n", MAXRUNS, ( *pb ).repeat );
-		exit( 1 );
+		mads_quits( op->root );
 	}
 	debug_level = op->cd->pdebug;
 	multiObj = FALSE;

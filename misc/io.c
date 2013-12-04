@@ -1,8 +1,10 @@
 // MADS: Model Analyses & Decision Support (v.1.1.14) 2013
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
 // Dylan Harp, dharp@lanl.gov
 //
+// http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
 //
 // LA-CC-10-055; LA-CC-11-035
@@ -80,8 +82,13 @@ void Fwrite( struct io_output_object *output_obj, struct opt_data *op )
 	}
 
 	// Test to see if pointers have been initialized
- 	if(op->wd->x)
-	  output_obj->use_netcdf = 1 ;
+ 	if(op->wd)
+	  {
+	    if(op->wd->x)
+	      output_obj->use_netcdf = 1 ;
+	    else
+	      output_obj->use_netcdf = 0 ;
+	  }
 	else
 	  output_obj->use_netcdf = 0 ;
 
@@ -95,7 +102,7 @@ void Fwrite( struct io_output_object *output_obj, struct opt_data *op )
 	    // This directions text output to nowhere
 	    output_obj->outfile = fopen("/dev/null","w") ;
 
-	    write_problem(output_obj, op) ;
+	    write_problem_text(output_obj, op) ;
 
 	    output_obj->outfile = hold_file_ptr ;
 	  }
@@ -143,13 +150,14 @@ time_t Fdatetime_t( char *filename, int debug )
 	struct tm *ptr_ts;
 	struct stat b;
 	char *datetime;
-	datetime = ( char * ) malloc( 16 * sizeof( char ) );
 	if( Ftest( filename ) != 0 ) { if( debug ) tprintf( "File %s: does not exist\n", filename ); return ( 0 ); }
 	else if( !stat( filename, &b ) )
 	{
 		ptr_ts = localtime( &b.st_mtime );
+		datetime = ( char * ) malloc( 16 * sizeof( char ) );
 		sprintf( datetime, "%4d%02d%02d-%02d%02d%02d", ptr_ts->tm_year + 1900, ptr_ts->tm_mon + 1, ptr_ts->tm_mday, ptr_ts->tm_hour, ptr_ts->tm_min, ptr_ts->tm_sec );
 		if( debug )	tprintf( "File %s: last modified at %s\n", filename, datetime );
+		free( datetime );
 		return( b.st_mtime );
 	}
 	else { if( debug ) printf( "File %s: cannot display the time\n", filename ); return( 0 ); }

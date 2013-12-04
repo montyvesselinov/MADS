@@ -1,11 +1,32 @@
-/*
- * mads_info.c
- *
- *  Created on: Mar 4, 2012
- *      Author: monty
- */
+// MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+//
+// Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
+// Dylan Harp, dharp@lanl.gov
+//
+// http://mads.lanl.gov
+// http://www.ees.lanl.gov/staff/monty/codes/mads
+//
+// LA-CC-10-055; LA-CC-11-035
+//
+// Copyright 2011.  Los Alamos National Security, LLC.  All rights reserved.
+// This material was produced under U.S. Government contract DE-AC52-06NA25396 for
+// Los Alamos National Laboratory, which is operated by Los Alamos National Security, LLC for
+// the U.S. Department of Energy. The Government is granted for itself and others acting on its
+// behalf a paid-up, nonexclusive, irrevocable worldwide license in this material to reproduce,
+// prepare derivative works, and perform publicly and display publicly. Beginning five (5) years after
+// --------------- March 11, 2011, -------------------------------------------------------------------
+// subject to additional five-year worldwide renewals, the Government is granted for itself and
+// others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this
+// material to reproduce, prepare derivative works, distribute copies to the public, perform
+// publicly and display publicly, and to permit others to do so.
+//
+// NEITHER THE UNITED STATES NOR THE UNITED STATES DEPARTMENT OF ENERGY, NOR LOS ALAMOS NATIONAL SECURITY, LLC,
+// NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR
+// RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
+// PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
-#include <stdio.h> // TODO fix
+#include <stdio.h>
 
 void mads_info()
 {
@@ -157,7 +178,8 @@ void mads_info()
 	printf( "   nobs=[integer]     - number of observations for the test problem (fixed for some of the problems) [default=2]\n" );
 	printf( "   pardomain=[float]  - parameter space domain size [default pardomain=100]\n" );
 	printf( "\ndebugging / verbose levels:\n" );
-	printf( "   quiet              - no screen output (all the output is saved in a file with extension mads_output\n" );
+	printf( "   force | f          - enforce running even if a file *.running exists (the file *.running is to prevent overlapping executions)\n" );
+	printf( "   quiet | q          - no screen output (all the screen output is saved in a file with extension mads_output\n" );
 	printf( "   debug=[0-5]        - general debugging [default debug=0]\n" );
 	printf( "   fdebug=[0-5]       - model evaluation debugging [default fdebug=0]\n" );
 	printf( "   ldebug=[0-3]       - Levenberg-Marquardt optimization debugging [default ldebug=0]\n" );
@@ -168,7 +190,8 @@ void mads_info()
 	printf( "   insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]\n" );
 	printf( "   pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]\n" );
 	printf( "\npre-/post-processing:\n" );
-	printf( "   yaml               - Convert MADS text files into YAML format\n" );
+	printf( "   yaml               - Reads/writes/converts MADS files in YAML format\n" );
+	printf( "   xml                - Reads/writes/converts MADS files in XML format\n" );
 	printf( "   resultsfile        - Post process results saved in resultsfile\n" );
 	printf( "   resultscase        - Post process specific case saved in resultsfile (if resultscase<0, first abs(resultscase) cases)\n" );
 	printf( "   cutoff=[real]      - Post process all cases saved in resultsfile with objective function below the cutoff value\n" );
@@ -207,5 +230,5 @@ void mads_info()
 	printf( "               (for w01 comparison, code WELLS can be obtained at http://wells.lanl.gov)\n" );
 	printf( "\nFor additional information:\n" );
 	printf( "   web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n" );
-	printf( "   email: Velimir Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\n" );
+	printf( "   email: Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\n" );
 }

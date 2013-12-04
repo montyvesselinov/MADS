@@ -1,18 +1,46 @@
+// MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+//
+// Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
+// Dylan Harp, dharp@lanl.gov
+//
+// http://mads.lanl.gov/
+// http://www.ees.lanl.gov/staff/monty/codes/mads
+//
+// LA-CC-10-055; LA-CC-11-035
+//
+// Copyright 2011.  Los Alamos National Security, LLC.  All rights reserved.
+// This material was produced under U.S. Government contract DE-AC52-06NA25396 for
+// Los Alamos National Laboratory, which is operated by Los Alamos National Security, LLC for
+// the U.S. Department of Energy. The Government is granted for itself and others acting on its
+// behalf a paid-up, nonexclusive, irrevocable worldwide license in this material to reproduce,
+// prepare derivative works, and perform publicly and display publicly. Beginning five (5) years after
+// --------------- March 11, 2011, -------------------------------------------------------------------
+// subject to additional five-year worldwide renewals, the Government is granted for itself and
+// others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this
+// material to reproduce, prepare derivative works, distribute copies to the public, perform
+// publicly and display publicly, and to permit others to do so.
+//
+// NEITHER THE UNITED STATES NOR THE UNITED STATES DEPARTMENT OF ENERGY, NOR LOS ALAMOS NATIONAL SECURITY, LLC,
+// NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR
+// RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
+// PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 /*
- * interpolation.c
- *
- *  Created on: Jul 24, 2013
  *      Author: Daniel O'Malley <omalled@lanl.gov>
  */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <pthread.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 
 #include "astable.h"
 #include "pqueue.h"
+
+#define DEFAULT_PERCENTILE 0.0001
+#define DEFAULT_ABSERR 1e-6
 
 struct interval
 {
@@ -24,52 +52,109 @@ struct interval
 	double cdf_right;
 };
 
-struct interpolant_params global_ip[1024];//Global memory! Seriously?!?!?!? Yep!!!!!
-
-void astable_cdf_interp( double x, double alpha, double beta, double gamma, double lambda, double *val )
+void copy_interpolant_params( struct interpolant_params *from, struct interpolant_params *to )
 {
-	static int num_in_use = 0;
-	static int last_use = 0;
+	to->alpha = from->alpha;
+	to->beta = from->beta;
+	to->acc = from->acc;
+	to->spline = from->spline;
+	to->ymax = from->ymax;
+	to->ymin = from->ymin;
+	to->size = from->size;
+	to->limiting_coefficient = from->limiting_coefficient;
+	to->cdf_or_pdf = from->cdf_or_pdf;
+}
+
+void symmetric_astable_pdf_interp( double x, double alpha, double gamma, double lambda, double *val )
+{
+	const int num_interps = 19;
+	static struct interpolant_params ips[19];
+	static int setup = 0;
 	struct interpolant_params *ip;
+	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 	int i;
-	if( alpha == 2 )
+	double alpha1, alpha2;
+	double interp1, interp2;
+	if( alpha < 0.1 )
 	{
-		double a;
-		a = astable_cdf( x, alpha, beta, gamma, lambda );
-		val[0] = a;
-		return;
+		fprintf( stderr, "value of alpha is too small for symmetric_astable_pdf_interp\n" );
+		exit( 1 );
 	}
-	i = 0;
-	while( i < num_in_use && ( global_ip[( i + last_use ) % num_in_use].alpha != alpha || global_ip[( i + last_use ) % num_in_use].beta != beta ) )
+	else
 	{
-		i++;
-	}
-	if( i == num_in_use )
-	{
-		if( num_in_use == 1024 )
+		if( !setup )
 		{
-			fprintf( stderr, "Too many alpha, beta combinations in use\n" );
-			exit( 1 );
+			pthread_mutex_lock( &mutex );
+			if( !setup )
+			{
+				setup = 1;
+				for( i = 0; i < num_interps; i++ )
+				{
+					ip = automate_interpolant( 2. * ( i + 1. ) / ( num_interps + 1. ), 0., DEFAULT_PERCENTILE, DEFAULT_ABSERR, INTERP_PDF );
+					copy_interpolant_params( ip, ips + i );
+				}
+			}
+			pthread_mutex_unlock( &mutex );
 		}
+		if( alpha == 2. ) *val = astable_pdf( x, 2., 0., gamma, lambda );
 		else
 		{
-			ip = automate_interpolant( alpha, beta, 0.00001, 1e-6, INTERP_CDF );
-			global_ip[num_in_use].alpha = alpha;
-			global_ip[num_in_use].beta = beta;
-			global_ip[num_in_use].acc = ip->acc;
-			global_ip[num_in_use].spline = ip->spline;
-			global_ip[num_in_use].ymax = ip->ymax;
-			global_ip[num_in_use].ymin = ip->ymin;
-			global_ip[num_in_use].size = ip->size;
-			global_ip[num_in_use].limiting_coefficient = ip->limiting_coefficient;
-			global_ip[num_in_use].cdf_or_pdf = ip->cdf_or_pdf;
-			num_in_use++;
+			i = floor( alpha * ( num_interps + 1. ) / 2. ) - 1;
+			alpha1 = 2. * ( i + 1. ) / ( num_interps + 1. );
+			alpha2 = 2. * ( i + 2. ) / ( num_interps + 1. );
+			interp1 = interpolate( x, gamma, lambda, ips + i );
+			if( alpha2 < 2. - .5 / ( num_interps + 1. ) ) interp2 = interpolate( x, gamma, lambda, ips + i + 1 );
+			else interp2 = astable_pdf( x, 2., 0., gamma, lambda );
+			*val = interp2 * ( alpha1 - alpha ) + interp1 * ( alpha - alpha2 );
+			*val /= ( alpha1 - alpha2 );
 		}
 	}
-	last_use = i;
-	val[0] = interpolate( x, gamma, lambda, global_ip + i );
-	return;
-	//return interpolate( x, gamma, lambda, &global_ip[i] );
+}
+
+void symmetric_astable_cdf_interp( double x, double alpha, double gamma, double lambda, double *val )
+{
+	const int num_interps = 19;
+	static struct interpolant_params ips[19];
+	static int setup = 0;
+	struct interpolant_params *ip;
+	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+	int i;
+	double alpha1, alpha2;
+	double interp1, interp2;
+	if( alpha < 0.1 )
+	{
+		fprintf( stderr, "value of alpha is too small for symmetric_astable_cdf_interp\n" );
+		exit( 1 );
+	}
+	else
+	{
+		if( !setup )
+		{
+			pthread_mutex_lock( &mutex );
+			if( !setup )
+			{
+				setup = 1;
+				for( i = 0; i < num_interps; i++ )
+				{
+					ip = automate_interpolant( 2. * ( i + 1. ) / ( num_interps + 1. ), 0., DEFAULT_PERCENTILE, DEFAULT_ABSERR, INTERP_CDF );
+					copy_interpolant_params( ip, ips + i );
+				}
+			}
+			pthread_mutex_unlock( &mutex );
+		}
+		if( alpha == 2. ) *val = astable_cdf( x, 2., 0., gamma, lambda );
+		else
+		{
+			i = floor( alpha * ( num_interps + 1. ) / 2. ) - 1;
+			alpha1 = 2. * ( i + 1. ) / ( num_interps + 1. );
+			alpha2 = 2. * ( i + 2. ) / ( num_interps + 1. );
+			interp1 = interpolate( x, gamma, lambda, ips + i );
+			if( alpha2 < 2. - .5 / ( num_interps + 1. ) ) interp2 = interpolate( x, gamma, lambda, ips + i + 1 );
+			else interp2 = astable_cdf( x, 2., 0., gamma, lambda );
+			*val = interp2 * ( alpha1 - alpha ) + interp1 * ( alpha - alpha2 );
+			*val /= ( alpha1 - alpha2 );
+		}
+	}
 }
 
 struct interpolant_params *automate_interpolant( double alpha, double beta, double percentile, double abserr, int CDF_OR_PDF )
@@ -99,16 +184,14 @@ struct interpolant_params *automate_interpolant( double alpha, double beta, doub
 
 double interpolate( double x, double gamma, double lambda, struct interpolant_params *ip )
 {
+	double retval;
 	double normalized_x;
 	//TODO: find the expressions for when \beta=-1,x\to\infty and \beta=1,x\to-\infty
 	normalized_x = ( x - gamma ) / lambda;
 	if( normalized_x <= ip->spline->interp->xmax && normalized_x >= ip->spline->interp->xmin )
 	{
-		double a;
-		a = gsl_spline_eval( ip->spline, normalized_x, ip->acc ); // / lambda;
-		if( ip->cdf_or_pdf == INTERP_PDF ) a = a / lambda;
-		return a;
-		//return gsl_spline_eval(ip->spline, (x - gamma) / lambda, ip->acc) / lambda;
+		retval = gsl_spline_eval( ip->spline, normalized_x, ip->acc ); // / lambda;
+		if( ip->cdf_or_pdf == INTERP_PDF ) retval /= lambda;
 	}
 	else if( normalized_x > ip->spline->interp->xmax )
 	{
@@ -116,22 +199,22 @@ double interpolate( double x, double gamma, double lambda, struct interpolant_pa
 		{
 			if( ip->beta > -1. )
 			{
-				return ip->limiting_coefficient * ( 1 + ip->beta ) * ( ip->cdf_or_pdf == INTERP_CDF ? pow( gamma / x, ip->alpha ) : ip->alpha * pow( gamma, ip->alpha ) * pow( x, -1 - ip->alpha ) );
+				retval = ip->limiting_coefficient * ( 1 + ip->beta ) * ( ip->alpha * pow( lambda, ip->alpha ) * pow( x, -1 - ip->alpha ) );
 			}
 			else if( ip->alpha < 1 && x > gamma + lambda * tan( M_PI * ip->alpha / 2. ) ) //beta == -1 in this case
 			{
-				return 0.;
+				retval = 0.;
 			}
 			else
 			{
 				fprintf( stderr, "Warning: You are asking for a value outside the interpolation range for which no asymptotic estimate is used. Returning value at right end point.\n" );
-				return ip->ymax;
+				retval = ip->ymax;
 			}
 		}
 		else
 		{
 			//TODO: fix this code (account for beta, etc)
-			return 1. - ( 1. - ip->ymax ) * pow( ip->spline->interp->xmax / normalized_x, ip->alpha );
+			retval =  1. - ( 1. - ip->ymax ) * pow( ip->spline->interp->xmax / normalized_x, ip->alpha );
 		}
 	}
 	else
@@ -140,26 +223,26 @@ double interpolate( double x, double gamma, double lambda, struct interpolant_pa
 		{
 			if( ip->beta < 1. )
 			{
-				return ip->limiting_coefficient * ( 1 + ip->beta ) * ( ip->cdf_or_pdf == INTERP_CDF ? pow( gamma / -x, ip->alpha ) : ip->alpha * pow( gamma, ip->alpha ) * pow( -x, -1 - ip->alpha ) );
+				retval = ip->limiting_coefficient * ( 1 + ip->beta ) * ( ip->alpha * pow( lambda, ip->alpha ) * pow( -x, -1 - ip->alpha ) );
 			}
 			else if( ip->alpha < 1 && x < gamma - lambda * tan( M_PI * ip->alpha / 2. ) ) //beta == 1 in this case
 			{
-				return 0.;
+				retval = 0.;
 			}
 			else
 			{
 				fprintf( stderr, "Warning: You are asking for a value outside the interpolation range for which no asymptotic estimate is used. Returning value at left end point.\n" );
-				return ip->ymin;
+				retval = ip->ymin;
 			}
 		}
 		else
 		{
 			//TODO: fix this code (account for beta, etc)
 			//return astable_cdf(x, ip->alpha, ip->beta, gamma, lambda);
-			return ip->ymin * pow( ip->spline->interp->xmin / normalized_x, ip->alpha );
-			//return 0.;
+			retval = ip->ymin * pow( ip->spline->interp->xmin / normalized_x, ip->alpha );
 		}
 	}
+	return retval;
 }
 
 int interval_comp( const void *d1, const void *d2 )
@@ -188,14 +271,11 @@ int interval_comp_x( const void *d1, const void *d2 )
 	else return 0;
 }
 
-struct interpolant_params *setup_interpolant( double alpha, double beta, double left, double right, int N, int CDF_OR_PDF )
+void get_sorted_vals( double alpha, double beta, double left, double right, int N, int CDF_OR_PDF, double *x_sorted, double *y_sorted )
 {
-	struct interpolant_params *ip;
 	struct interval *worst_interval;
 	struct interval *new_interval[2];
 	struct interval *current_interval;
-	double *x_sorted;
-	double *y_sorted;
 	double func_left;
 	double func_right;
 	double cdf_left;
@@ -206,15 +286,9 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 	PQueue *q;
 	PQueue *q_x;
 	int i;
-
 	if( left > -1 ) left = -1.; //We need the lower end point to be < 0 in order for the limiting behavior code to work.
 	if( right < 1 ) right = 1.; //We need the upper end point to be > 0 in order for the limiting behavior code to work.
-
 	q = pqueue_new( &interval_comp, N );
-
-	x_sorted = ( double * )malloc( ( N + 1 ) * sizeof( double ) );
-	y_sorted = ( double * )malloc( ( N + 1 ) * sizeof( double ) );
-
 	worst_interval = ( struct interval * )malloc( sizeof( struct interval ) );
 	worst_interval->left = left;
 	worst_interval->right = right;
@@ -232,14 +306,11 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 		cdf_left = standard_astable_cdf( left, alpha, beta );
 		cdf_right = standard_astable_cdf( right, alpha, beta );
 	}
-
 	worst_interval->func_right = func_right;
 	worst_interval->func_left = func_left;
 	worst_interval->cdf_left = cdf_left;
 	worst_interval->cdf_right = cdf_right;
-
 	pqueue_enqueue( q, worst_interval );
-
 	for( i = 0; i < N - 1; i++ )
 	{
 		worst_interval = ( struct interval * )pqueue_dequeue( q );
@@ -251,8 +322,7 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 		cdf_left = worst_interval->cdf_left;
 		cdf_right = worst_interval->cdf_right;
 		func_mid = ( CDF_OR_PDF == INTERP_CDF ? standard_astable_cdf( mid, alpha, beta ) : standard_astable_pdf( mid, alpha, beta ) );
-		cdf_mid = ( CDF_OR_PDF == INTERP_CDF ? func_mid : standard_astable_pdf( mid, alpha, beta ) );
-		//printf("here: (%g, %g, %g), (%g, %g, %g), l-r: %g, fl-fr: %g\n", left, mid, right, func_left, func_mid, func_right, right-left, func_right-func_left);
+		cdf_mid = ( CDF_OR_PDF == INTERP_CDF ? func_mid : standard_astable_cdf( mid, alpha, beta ) );
 		new_interval[0] = ( struct interval * )malloc( sizeof( struct interval ) );
 		new_interval[0]->left = left;
 		new_interval[0]->right = mid;
@@ -271,7 +341,6 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 		pqueue_enqueue( q, new_interval[1] );
 		free( worst_interval );
 	}
-
 	/* Now sort them in increasing values of the left interval point. */
 	q_x = pqueue_new( &interval_comp_x, N );
 	i = 0;
@@ -291,13 +360,25 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 		current_interval = ( struct interval * )pqueue_dequeue( q_x );
 		x_sorted[i] = current_interval->left;
 		y_sorted[i] = current_interval->func_left;
-		//if(i > 0 && x_sorted[i] <= x_sorted[i-1]) printf("unsorted (%d): %g, %g -- %g, %g (a,b): (%g, %g)\n", i-1, x_sorted[i], x_sorted[i-1], y_sorted[i], y_sorted[i-1], alpha, beta);
-		//else printf("  sorted (%d): %g, %g -- %g, %g (a,b): (%g, %g)\n", i-1, x_sorted[i], x_sorted[i-1], y_sorted[i], y_sorted[i-1], alpha, beta);
 		i++;
 	}
 	x_sorted[i] = current_interval->right;
 	y_sorted[i] = current_interval->func_right;
 	free( current_interval );
+	pqueue_delete( q );
+	pqueue_delete( q_x );
+}
+
+struct interpolant_params *setup_interpolant( double alpha, double beta, double left, double right, int N, int CDF_OR_PDF )
+{
+	struct interpolant_params *ip;
+	double *x_sorted;
+	double *y_sorted;
+
+	x_sorted = ( double * )malloc( ( N + 1 ) * sizeof( double ) );
+	y_sorted = ( double * )malloc( ( N + 1 ) * sizeof( double ) );
+
+	get_sorted_vals( alpha, beta, left, right, N, CDF_OR_PDF, x_sorted, y_sorted );
 
 	ip = ( struct interpolant_params * )malloc( sizeof( struct interpolant_params ) );
 	ip->alpha = alpha;
@@ -313,9 +394,6 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 
 	free( x_sorted );
 	free( y_sorted );
-
-	pqueue_delete( q );
-	pqueue_delete( q_x );
 
 	return ip;
 }
