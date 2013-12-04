@@ -26,24 +26,21 @@ CFLAGS = -Wall -O1 -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
 ifeq ($(OS),Linux)
 # Linux
-LDLIBS += -lgfortran 
+LDLIBS += -lgfortran -lgslcblas -lm -lblas
+YAML = true
 $(info LINUX)
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
-YAML = true
-CFLAGS += -I/home/monty/local/include
-LDLIBS += -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
+CFLAGS += -I/home/monty/local/include-aquifer
+LDLIBS = -lgsl -llapack -lstdc++ -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath -Wl,/home/monty/local/lib 
 endif
 ifeq ($(ND),madsmax)
 $(info Machine -- MadsMax)
-LDLIBS += -lgslcblas -lm -llapack -lblas
-YAML = true
 endif
 ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
-LDLIBS += -L/home/monty/local/lib -L/usr/local/lib -lgslcblas -lm -llapack -lblas
-YAML = true
+LDLIBS += -L/home/monty/local/lib -L/usr/local/lib
 endif
 else
 ifeq ($(OS),Cygwin)
@@ -54,10 +51,13 @@ ifeq ($(OS),Darwin)
 # Mac
 $(info MAC OS X)
 CFLAGS += -I/opt/local/include
-LDLIBS += -lgfortran -latlas -L/opt/local/lib
+LDLIBS += -lgfortran -lblas -L/opt/local/lib
 YAML = true
+ifeq ($(ND),bored.lanl.gov)
+LDLIBS += -latlas
+endif
 ifeq ($(ND),pn1246281)
-LDLIBS += -lblas
+LDLIBS += -latlas
 endif
 ifeq ($(ND),dazed.local)
 $(info Machine -- Dazed)

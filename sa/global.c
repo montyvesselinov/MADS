@@ -424,7 +424,7 @@ double saltelli_mean( double *x, size_t dim, void *params )
 		k = op->pd->var_index[i];
 		op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[i] ) : x[i] );
 	}
-	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
+	c = func_solver( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->z2[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= joint_param_pdf( op );
 	return c;
 }
@@ -441,7 +441,7 @@ double saltelli_variance( double *x, size_t dim, void *params )
 		k = op->pd->var_index[i];
 		op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x[i] ) : x[i] );
 	}
-	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
+	c = func_solver( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->z2[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c -= salt->mean;
 	c *= c * joint_param_pdf( op );
 	return c;
@@ -466,7 +466,7 @@ double first_order_sensitivity_integrand_integrand( double *x, size_t dim, void 
 	}
 	k = op->pd->var_index[salt->special_index];
 	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, salt->special_value ) : salt->special_value );
-	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
+	c = func_solver( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->z2[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= joint_param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
 }
@@ -538,7 +538,7 @@ double total_effect_integrand_integrand( double x, void *params )
 	double c;
 	k = op->pd->var_index[salt->special_index];
 	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x ) : x );
-	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
+	c = func_solver( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->z2[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c -= salt->cond_mean;
 	c *= c * param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
@@ -552,7 +552,7 @@ double total_effect_integrand_cond_mean( double x, void *params )
 	double c;
 	k = op->pd->var_index[salt->special_index];
 	op->cd->var[k] = ( op->pd->var_log[k] ? pow( 10, x ) : x );
-	c = func_solver1( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
+	c = func_solver( op->wd->x[salt->well_index], op->wd->y[salt->well_index], op->wd->z1[salt->well_index], op->wd->z2[salt->well_index], op->wd->obs_time[salt->well_index][salt->obs_index], op->cd );
 	c *= param_pdf_cond( op, salt->special_index, salt->special_value );
 	return c;
 }
