@@ -88,7 +88,7 @@ int set_param_names( struct opt_data *op, int flag );
 void init_params( struct opt_data *op );
 int parse_cmd( char *buf, struct calc_data *cd );
 int set_optimized_params( struct opt_data *op );
-int map_obs( struct opt_data *op );
+int map_obs_regul( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
 int set_predictions( struct opt_data *op );
 char **shellpath( void );
@@ -317,7 +317,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	g_node_destroy( gnode_data ); // Destroy GNODE data
 	if( !set_optimized_params( op ) ) return( -1 );
 	tprintf( "Number of regularization terms = %d\n", op->rd->nRegul );
-	if( op->rd->nRegul > 0 ) map_obs( op ); // add regularizations to the observations
+	if( op->rd->nRegul > 0 ) map_obs_regul( op ); // add regularizations to the observations
 	if( !set_predictions( op ) ) return( -1 );
 	return( ier );
 }
@@ -821,7 +821,7 @@ int load_yaml_observations( GNode *node, gpointer data )
 	od = op->od;
 	preds = op->preds;
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
-	od->nObs = g_node_n_children( node );
+	od->nTObs = od->nObs = g_node_n_children( node );
 	tprintf( "Number of observations = %d\n", od->nObs );
 	if( ( od->obs_id = char_matrix( od->nObs, 50 ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( od->obs_target = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }

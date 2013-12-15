@@ -72,7 +72,7 @@ char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 char *str_replace( char *orig, char *rep, char *with ); // replace all string occurrences
 int set_optimized_params( struct opt_data *op );
-int map_obs( struct opt_data *op );
+int map_obs_regul( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
 int set_predictions( struct opt_data *op );
 
@@ -1341,7 +1341,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 	if( rd->nRegul > 0 )
 	{
 		tprintf( "Number of total observations & regularizations = %d\n", od->nTObs );
-		map_obs( op ); // add regularizations to the observations
+		map_obs_regul( op ); // add regularizations to the observations
 		if( cd->debug )
 			for( i = 0; i < rd->nRegul; i++ )
 				tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
@@ -2069,7 +2069,7 @@ int set_optimized_params( struct opt_data *op )
 	return( 1 );
 }
 
-int map_obs( struct opt_data *op )
+int map_obs_regul( struct opt_data *op )
 {
 	struct obs_data od2;
 	struct param_data *pd;

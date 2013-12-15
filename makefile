@@ -364,6 +364,11 @@ verify-external-short:
 	rm -f example/wells-short/w01.results example/wells-short/w01.running
 	cd example/wells-short; ln -sf w01-v4.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
 	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
+	@echo ""
+	@echo "TEST 6.5: Problem example/wells-short/w01 (YAML input format) ..."
+	rm -f example/wells-short/w01_yaml.results example/wells-short/w01_yaml.running
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01_yaml $(OUTPUT)
+	@$(CMP) example/wells-short/w01_yaml.results example/wells-short/w01.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 6: DONE"
 	@echo ""
@@ -383,7 +388,7 @@ verify-external-short:
 	@$(CMP) example/wells-short/w01regul.results example/wells-short/w01regul.results-$(OS)-correct
 	@echo ""
 	@echo "TEST 7.3: Problem example/wells-short/w01 with regularization terms for optimized model parameters (YAML input format) ..."
-	rm -f example/wells-short/w01regul.results example/wells-short/w01regul.running
+	rm -f example/wells-short/w01regul_yaml.results example/wells-short/w01regul_yaml.running
 	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01regul_yaml $(OUTPUT)
 	@$(CMP) example/wells-short/w01regul_yaml.results example/wells-short/w01regul_yaml.results-$(OS)-correct
 	@echo "**************************************************************************************"
