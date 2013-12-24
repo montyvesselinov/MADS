@@ -70,27 +70,48 @@ Dispersivity x [L]         :ax     : init       130 opt 1 log 1 step       5 min
 Dispersivity y [L]         :ay     : init        15 opt 1 log 1 step       1 min         1 max        30
 Dispersivity z [L]         :az     : init       0.3 opt 1 log 1 step     0.1 min       0.1 max         1
 Process Wells ... Number of wells: 20
-Well W-1    x     1503 y     1954 z0   5.57 z1  12.55 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
-Well W-2    x     2113 y     1479 z0  36.73 z1  55.14 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-3    x      418 y      950 z0      0 z1  15.04 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
-Well W-4    x     1377 y     1534 z0  13.15 z1  20.41 nObs  2 t    44 c   350 weight       1 log 0 acceptable range: min   300 max   700
-							      t    49 c   432 weight       1 log 0 acceptable range: min   300 max   700
-Well W-5    x     3268 y     1074 z0  26.73 z1  33.71 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-6    x     2112 y     2294 z0  69.01 z1  83.98 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-7    x     2086 y     2284 z0  11.15 z1  18.19 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-8    x     2770 y     2119 z0   4.86 z1  11.87 nObs  1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
-Well W-9    x      975 y     1450 z0   3.66 z1  10.09 nObs  1 t    49 c   981 weight       1 log 0 acceptable range: min   600 max  1200
-Well W-10#1 x      723 y     1599 z0   3.32 z1   9.63 nObs  1 t    49 c   1.1 weight       1 log 0 acceptable range: min     0 max     5
-Well W-10#2 x      723 y     1599 z0   23.2 z1  26.24 nObs  1 t    49 c   0.1 weight       1 log 0 acceptable range: min     0 max     5
-Well W-11#1 x     1850 y     1368 z0   4.94 z1   7.99 nObs  1 t    49 c    22 weight       1 log 0 acceptable range: min     3 max    25
-Well W-11#2 x     1850 y     1368 z0  32.46 z1  35.48 nObs  1 t    49 c   0.3 weight       1 log 0 acceptable range: min     0 max     5
-Well W-12#1 x     1761 y     1636 z0   3.59 z1   6.64 nObs  1 t    49 c    15 weight       1 log 0 acceptable range: min     3 max    25
-Well W-12#2 x     1761 y     1636 z0  32.51 z1  38.61 nObs  1 t    49 c  0.17 weight       1 log 0 acceptable range: min     0 max     5
-Well W-13#1 x     1485 y     1149 z0      3 z1      6 nObs  1 t    50 c    72 weight       1 log 0 acceptable range: min    40 max   100
-Well W-13#2 x     1485 y     1149 z0     36 z1     42 nObs  1 t    50 c  0.26 weight       1 log 0 acceptable range: min     0 max    20
-Well W-14a  x      972 y      869 z0      3 z1      6 nObs  1 t    50 c     0 weight       1 log 0 acceptable range: min     0 max     5
-Well W-14b  x      940 y     1160 z0      3 z1      6 nObs  1 t    50 c    30 weight       1 log 0 acceptable range: min     0 max    50
-Well W-14c  x      900 y     1260 z0      3 z1      6 nObs  1 t    50 c    10 weight       0 log 0 acceptable range: min     0 max    20
+Well W-1    nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
+Well W-2    nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-3    nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
+Well W-4    nObs   2 t    44 c   350 weight       1 log 0 acceptable range: min   300 max   700
+		     t    49 c   432 weight       1 log 0 acceptable range: min   300 max   700
+Well W-5    nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-6    nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-7    nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-8    nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-9    nObs   1 t    49 c   981 weight       1 log 0 acceptable range: min   600 max  1200
+Well W-10#1 nObs   1 t    49 c   1.1 weight       1 log 0 acceptable range: min     0 max     5
+Well W-10#2 nObs   1 t    49 c   0.1 weight       1 log 0 acceptable range: min     0 max     5
+Well W-11#1 nObs   1 t    49 c    22 weight       1 log 0 acceptable range: min     3 max    25
+Well W-11#2 nObs   1 t    49 c   0.3 weight       1 log 0 acceptable range: min     0 max     5
+Well W-12#1 nObs   1 t    49 c    15 weight       1 log 0 acceptable range: min     3 max    25
+Well W-12#2 nObs   1 t    49 c  0.17 weight       1 log 0 acceptable range: min     0 max     5
+Well W-13#1 nObs   1 t    50 c    72 weight       1 log 0 acceptable range: min    40 max   100
+Well W-13#2 nObs   1 t    50 c  0.26 weight       1 log 0 acceptable range: min     0 max    20
+Well W-14a  nObs   1 t    50 c     0 weight       1 log 0 acceptable range: min     0 max     5
+Well W-14b  nObs   1 t    50 c    30 weight       1 log 0 acceptable range: min     0 max    50
+Well W-14c  nObs   1 t    50 c    10 weight       0 log 0 acceptable range: min     0 max    20
+Well W-1    x     1503 y     1954 z0   5.57 z1  12.55 nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
+Well W-2    x     2113 y     1479 z0  36.73 z1  55.14 nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-3    x      418 y      950 z0      0 z1  15.04 nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    25
+Well W-4    x     1377 y     1534 z0  13.15 z1  20.41 nObs   2 t    44 c   350 weight       1 log 0 acceptable range: min   300 max   700
+							       t    49 c   432 weight       1 log 0 acceptable range: min   300 max   700
+Well W-5    x     3268 y     1074 z0  26.73 z1  33.71 nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-6    x     2112 y     2294 z0  69.01 z1  83.98 nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-7    x     2086 y     2284 z0  11.15 z1  18.19 nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-8    x     2770 y     2119 z0   4.86 z1  11.87 nObs   1 t    49 c     0 weight       1 log 0 acceptable range: min     0 max    10
+Well W-9    x      975 y     1450 z0   3.66 z1  10.09 nObs   1 t    49 c   981 weight       1 log 0 acceptable range: min   600 max  1200
+Well W-10#1 x      723 y     1599 z0   3.32 z1   9.63 nObs   1 t    49 c   1.1 weight       1 log 0 acceptable range: min     0 max     5
+Well W-10#2 x      723 y     1599 z0   23.2 z1  26.24 nObs   1 t    49 c   0.1 weight       1 log 0 acceptable range: min     0 max     5
+Well W-11#1 x     1850 y     1368 z0   4.94 z1   7.99 nObs   1 t    49 c    22 weight       1 log 0 acceptable range: min     3 max    25
+Well W-11#2 x     1850 y     1368 z0  32.46 z1  35.48 nObs   1 t    49 c   0.3 weight       1 log 0 acceptable range: min     0 max     5
+Well W-12#1 x     1761 y     1636 z0   3.59 z1   6.64 nObs   1 t    49 c    15 weight       1 log 0 acceptable range: min     3 max    25
+Well W-12#2 x     1761 y     1636 z0  32.51 z1  38.61 nObs   1 t    49 c  0.17 weight       1 log 0 acceptable range: min     0 max     5
+Well W-13#1 x     1485 y     1149 z0      3 z1      6 nObs   1 t    50 c    72 weight       1 log 0 acceptable range: min    40 max   100
+Well W-13#2 x     1485 y     1149 z0     36 z1     42 nObs   1 t    50 c  0.26 weight       1 log 0 acceptable range: min     0 max    20
+Well W-14a  x      972 y      869 z0      3 z1      6 nObs   1 t    50 c     0 weight       1 log 0 acceptable range: min     0 max     5
+Well W-14b  x      940 y     1160 z0      3 z1      6 nObs   1 t    50 c    30 weight       1 log 0 acceptable range: min     0 max    50
+Well W-14c  x      900 y     1260 z0      3 z1      6 nObs   1 t    50 c    10 weight       0 log 0 acceptable range: min     0 max    20
 
 
 Number of calibration targets = 20
@@ -167,7 +188,7 @@ Number of regularization terms = 3
 Number of predictions = 0
 
 
-Execution date & time stamp: 20131116-160654
+Execution date & time stamp: 20131224-093802
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -881,6 +902,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sat Nov 16 16:06:54 2013
-Execution completed on Sat Nov 16 16:06:54 2013
-Execution date & time stamp: 20131116-160654
+Execution  started  on Tue Dec 24 09:38:02 2013
+Execution completed on Tue Dec 24 09:38:02 2013
+Execution date & time stamp: 20131224-093802
