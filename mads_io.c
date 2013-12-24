@@ -206,9 +206,9 @@ int parse_cmd_init( int argn, char *argv[], struct calc_data *cd )
 	{
 		if( !strncasecmp( argv[i], "debug", 5 ) ) { if( sscanf( argv[i], "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
 		if( !strncasecmp( argv[i], "quiet", 5 ) ) { quiet = 1; } // No output
-		if( !strncasecmp( argv[i], "q", 1 ) ) { quiet = 1; } // No output
+		if( !strncasecmp( argv[i], "q", 1 ) && strlen( argv[i] ) == 1 ) { quiet = 1; } // No output
 		if( !strncasecmp( argv[i], "force", 5 ) ) { r = 1; } // Force running
-		if( !strncasecmp( argv[i], "f", 1 ) ) { r = 1; } // Force running
+		if( !strncasecmp( argv[i], "f", 1 ) && strlen( argv[i] ) == 1 ) { r = 1; } // Force running
 		if( !strncasecmp( argv[i], "test", 4 ) ) { cd->test_func = 1; cd->solution_type[0] = TEST; }
 	}
 	return( r );
@@ -294,9 +294,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	{
 		w = 0;
 		if( !strncasecmp( word, "quiet", 5 ) ) { w = 1; }; // processed in parse_cmd_init
-		if( !strncasecmp( word, "q", 1 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "q", 1 ) && strlen( word ) == 1 ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "force", 5 ) ) { w = 1; }; // processed in parse_cmd_init
-		if( !strncasecmp( word, "f", 1 ) ) { w = 1; }; // processed in parse_cmd_init
+		if( !strncasecmp( word, "f", 1 ) && strlen( word ) == 1 ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "text", 4 ) ) { w = 1; cd->ioml = IO_TEXT; }
 		if( !strncasecmp( word, "yaml", 4 ) ) { w = 1; cd->ioml = IO_YAML; }
 		if( !strncasecmp( word, "xml", 3 ) ) { w = 1; cd->ioml = IO_XML; }
