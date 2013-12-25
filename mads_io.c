@@ -125,8 +125,8 @@ int set_param_id( struct opt_data *op )
 	strcpy( op->qd->param_id[7], "ax" ); strcpy( op->qd->param_id[8], "ay" ); strcpy( op->qd->param_id[9], "az" );
 	strcpy( op->qd->param_id[10], "ts_dsp" ); strcpy( op->qd->param_id[11], "ts_adv" ); strcpy( op->qd->param_id[12], "ts_rct" );
 	strcpy( op->qd->param_id[13], "alpha" ); strcpy( op->qd->param_id[14], "beta" ); strcpy( op->qd->param_id[15], "nlc0" ); strcpy( op->qd->param_id[16], "nlc1" );
-	op->sd->param_name = char_matrix( op->cd->num_source_params, 60 );
-	op->qd->param_name = char_matrix( op->cd->num_aquifer_params, 60 );
+	op->sd->param_name = char_matrix( op->cd->num_source_params, 50 );
+	op->qd->param_name = char_matrix( op->cd->num_aquifer_params, 50 );
 	strcpy( op->sd->param_name[0], "Source x coordinate [L]" ); strcpy( op->sd->param_name[1], "Source y coordinate [L]" ); strcpy( op->sd->param_name[2], "Source z coordinate [L]" );
 	strcpy( op->sd->param_name[3], "Source x dimension [L]" ); strcpy( op->sd->param_name[4], "Source y dimension [L]" ); strcpy( op->sd->param_name[5], "Source z dimension [L]" );
 	strcpy( op->sd->param_name[6], "Contaminant flux [M/T]" ); strcpy( op->sd->param_name[7], "Start Time [T]" ); strcpy( op->sd->param_name[8], "End Time [T]" );

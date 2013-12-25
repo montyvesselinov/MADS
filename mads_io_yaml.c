@@ -443,8 +443,8 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	int i;
 	pd = op->pd;
 	cd = op->cd;
-	pd->var_name = char_matrix( num_param, 60 );
-	pd->var_id = char_matrix( num_param, 20 );
+	pd->var_name = char_matrix( num_param, 50 );
+	pd->var_id = char_matrix( num_param, 10 );
 	for( i = 0; i < num_param; i++ )
 		pd->var_name[i][0] = pd->var_id[i][0] = 0;
 	pd->var = ( double * ) malloc( num_param * sizeof( double ) );
