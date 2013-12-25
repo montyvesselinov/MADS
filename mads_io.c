@@ -115,8 +115,8 @@ int set_param_id( struct opt_data *op )
 	op->cd->num_aquifer_params = NUM_ANAL_PARAMS_AQUIFER;
 	op->cd->num_source_params = NUM_ANAL_PARAMS_SOURCE;
 	if( ( op->ad->var = ( double * ) malloc( ( op->cd->num_source_params + op->cd->num_aquifer_params ) * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	op->sd->param_id = char_matrix( op->cd->num_source_params, 6 );
-	op->qd->param_id = char_matrix( op->cd->num_aquifer_params, 6 );
+	op->sd->param_id = char_matrix( op->cd->num_source_params, 10 );
+	op->qd->param_id = char_matrix( op->cd->num_aquifer_params, 10 );
 	strcpy( op->sd->param_id[0], "x" ); strcpy( op->sd->param_id[1], "y" ); strcpy( op->sd->param_id[2], "z" );
 	strcpy( op->sd->param_id[3], "dx" ); strcpy( op->sd->param_id[4], "dy" ); strcpy( op->sd->param_id[5], "dz" );
 	strcpy( op->sd->param_id[6], "f" ); strcpy( op->sd->param_id[7], "t0" ); strcpy( op->sd->param_id[8], "t1" );
@@ -1310,7 +1310,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 #ifdef MATHEVAL
 		for( k = 0; k < pd->nAnalParam; k++ ) { rd->regul_map_id[k] = pd->var_id[k]; rd->regul_map_val[k] = cd->var[k]; }
 		for( i = pd->nAnalParam, k = 0; k < od->nObs; k++, i++ ) { rd->regul_map_id[i] = od->obs_id[k]; rd->regul_map_val[i] = od->obs_current[k] = od->obs_target[k]; }
-		// free( cd->var ); // TODO Linux fails to free cd->var; needs debugging
+		free( cd->var );
 		free( od->obs_current );
 		cd->var = &rd->regul_map_val[0];
 		od->obs_current = &rd->regul_map_val[pd->nAnalParam];

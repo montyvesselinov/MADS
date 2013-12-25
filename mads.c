@@ -958,7 +958,8 @@ int main( int argn, char *argv[] )
 				{
 					if( cd.problem_type == CALIBRATE && wd.obs_weight[i][j] > DBL_EPSILON ) continue;
 					compare = 1;
-					od.obs_current[k++] = c = func_solver( wd.x[i], wd.y[i], wd.z1[i], wd.z2[i], wd.obs_time[i][j], &cd );
+					c = func_solver( wd.x[i], wd.y[i], wd.z1[i], wd.z2[i], wd.obs_time[i][j], &cd );
+					if( wd.obs_weight[i][j] > DBL_EPSILON ) od.obs_current[k++] = c;
 					err = wd.obs_target[i][j] - c;
 					min = wd.obs_min[i][j];
 					max = wd.obs_max[i][j];
@@ -1062,7 +1063,7 @@ int main( int argn, char *argv[] )
 	if( op.datetime_stamp != NULL ) free( op.datetime_stamp );
 	if( pd.var_name != NULL ) free_matrix( ( void ** ) pd.var_name, pd.nParam );
 	if( cd.solution_type[0] == EXTERNAL && pd.var_id != NULL ) free_matrix( ( void ** ) pd.var_id, pd.nParam );
-	// if( od.obs_id != NULL ) free_matrix( ( void ** ) od.obs_id, od.nTObs ); // TODO Linux fails to clean this; needs debugging
+	if( od.obs_id != NULL ) free_matrix( ( void ** ) od.obs_id, od.nTObs );
 	if( wd.nW > 0 ) free_matrix( ( void ** ) wd.id, wd.nW );
 	if( rd.nRegul > 0 ) free_matrix( ( void ** ) rd.regul_id, rd.nRegul );
 	if( ed.ntpl > 0 ) { free_matrix( ( void ** ) ed.fn_tpl, ed.ntpl ); free_matrix( ( void ** ) ed.fn_out, ed.ntpl ); }
