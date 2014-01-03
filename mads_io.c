@@ -1554,7 +1554,7 @@ int save_problem_text( char *filename, struct opt_data *op )
 	if( cd->phi_cutoff > 0 ) fprintf( outfile, " cutoff=%g", cd->phi_cutoff );
 	if( cd->sintrans ) { if( cd->sindx > DBL_EPSILON ) fprintf( outfile, " sindx=%g", cd->sindx ); }
 	else { if( cd->lindx > DBL_EPSILON ) fprintf( outfile, " lindx=%g", cd->lindx ); }
-	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, ", pardx: %g", cd->pardx ); // TODO when to print this?
+	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, ", pardx=%g", cd->pardx ); // TODO when to print this?
 	if( cd->check_success ) fprintf( outfile, " obsrange" );
 	fprintf( outfile, " " );
 	switch( cd->calib_type )
@@ -1578,11 +1578,11 @@ int save_problem_text( char *filename, struct opt_data *op )
 	if( cd->niter > 0 ) fprintf( outfile, " iter=%d", cd->niter );
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, " rnd=%s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fprintf( outfile, " paran=%s", cd->paran_method );
-	if( cd->pardomain > DBL_EPSILON ) fprintf( outfile, " pardomain: %g", cd->pardomain );
+	if( fabs( cd->pardomain - 100 ) > DBL_EPSILON ) fprintf( outfile, " pardomain=%g", cd->pardomain );
 	if( cd->problem_type == INFOGAP )
 	{
-		if( cd->obsdomain > DBL_EPSILON ) fprintf( outfile, " obsdomain: %g", cd->obsdomain );
-		if( fabs( cd->obsstep ) > DBL_EPSILON ) fprintf( outfile, " obsstep: %g", cd->obsstep );
+		if( cd->obsdomain > DBL_EPSILON ) fprintf( outfile, " obsdomain=%g", cd->obsdomain );
+		if( fabs( cd->obsstep ) > DBL_EPSILON ) fprintf( outfile, " obsstep=%g", cd->obsstep );
 	}
 	fprintf( outfile, " " );
 	switch( cd->objfunc_type )

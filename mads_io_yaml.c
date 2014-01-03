@@ -1448,7 +1448,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	if( cd->niter > 0 ) fprintf( outfile, ", iter: %d", cd->niter );
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, ", rnd: %s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fprintf( outfile, ", paran: %s", cd->paran_method );
-	if( cd->pardomain > DBL_EPSILON ) fprintf( outfile, ", pardomain: %g", cd->pardomain );
+	if( fabs( cd->pardomain - 100 ) > DBL_EPSILON ) fprintf( outfile, ", pardomain: %g", cd->pardomain );
 	if( cd->problem_type == INFOGAP )
 	{
 		if( cd->obsdomain > DBL_EPSILON ) fprintf( outfile, ", obsdomain: %g", cd->obsdomain );
@@ -1485,9 +1485,9 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 					fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
 #endif
 				else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
-					fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
+					fprintf( outfile, "init: %.12g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
 				else // fixed or not log-transformed parameter
-					fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
+					fprintf( outfile, "init: %.12g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
 				if( cd->num_source_params == j + 1 ) fprintf( outfile, " }" );
 				else fprintf( outfile, " },\n" );
 			}
@@ -1529,9 +1529,10 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 		fprintf( outfile, "Wells:\n" );
 		for( i = 0; i < wd->nW; i++ )
 		{
-			fprintf( outfile, "- %-6s: { x: %g, y: %g, z0: %g, z1: %g, obs: [", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i] );
+			fprintf( outfile, "- %-6s: { x: %.12g, y: %.12g, z0: %g, z1: %g, obs: [", wd->id[i], wd->x[i], wd->y[i], wd->z1[i], wd->z2[i] );
 			for( j = 0; j < wd->nWellObs[i]; j++ )
 			{
+				if( wd->nWellObs[i] > 1 && j == 0 ) fprintf( outfile, "\n" );
 				fprintf( outfile, " %d: { t: %g, c: %g, weight: %g, log: %i, min: %g, max: %g }", j + 1, wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
 				if( wd->nWellObs[i] == j + 1 ) fprintf( outfile, " ]" );
 				else fprintf( outfile, ",\n" );
