@@ -1485,9 +1485,9 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 					fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
 #endif
 				else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
-					fprintf( outfile, "init: %.12g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
+					fprintf( outfile, "init: %.15g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
 				else // fixed or not log-transformed parameter
-					fprintf( outfile, "init: %.12g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
+					fprintf( outfile, "init: %.15g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
 				if( cd->num_source_params == j + 1 ) fprintf( outfile, " }" );
 				else fprintf( outfile, " },\n" );
 			}
@@ -1509,9 +1509,9 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 			fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
 #endif
 		else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
-			fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
+			fprintf( outfile, "init: %.15g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
 		else // fixed or not log-transformed parameter
-			fprintf( outfile, "init: %g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
+			fprintf( outfile, "init: %.15g, type: %s, log: %s, step: %g, min: %g, max: %g", pd->var[count_param], key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pd->var_dx[count_param], pd->var_min[count_param], pd->var_max[count_param] );
 		fprintf( outfile, " }\n" );
 	}
 	if( rd->nRegul > 0 )

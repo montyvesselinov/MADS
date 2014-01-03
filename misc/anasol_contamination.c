@@ -260,7 +260,6 @@ double int_box_source( double tau, void *params )
 	// printf( "param %g %g %g %g %g %g\n", source_z, source_sizez, ze, p->ze, rz, az );
 	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
 	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] );
-	else tau_d = tau_d;
 	tv = ( double ) 4 * tau_d * vx;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
@@ -673,8 +672,7 @@ double int_box_source_sym_levy_dispersion( double tau, void *params )
 	ye = x0 * rot2  + y0 * rot1;
 	ze = ( p->ze - source_z );
 	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
-	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
-	else tau_d = tau;
+	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] );
 	t0v = 2 * t0 * vx;
 	t_alpha = pow( tau_d / t0, 1. / alpha );
 	lambda_x = t_alpha * sqrt( t0v * ax );

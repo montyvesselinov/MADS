@@ -10,7 +10,7 @@ YAML Classes:
  Problem -> 3 components
  Solution -> 1 components
  Sources -> 1 components
- Parameters -> 16 components
+ Parameters -> 17 components
  Wells -> 20 components
  Grid -> 10 components
  Time -> 3 components
@@ -38,8 +38,7 @@ Process Solution ... Number of solution components: 1
 Process Sources ... Number of sources: 1
 Source #1 type: box ... Number of parameters: 9
 Model: internal box contaminant source | Levy dispersion
-Process Parameters ... Number of parameters: 16
-WARNING: The number of provided parameters (16) is different than the number of expected parameters (17)
+Process Parameters ... Number of parameters: 17
 Process Wells ... Number of wells: 20
 Number of calibration targets = 20
 WARNING: Regularization class not found!
@@ -53,7 +52,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140102-110156
+Execution date & time stamp: 20140103-150531
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -80,7 +79,7 @@ Time Scale Advection [-] 1
 Time Scale Reaction [-] 1
 Levy alpha [-] 1.5
 Levy beta [-] 0
-NLC 0 [T] 1
+NLC 0 [T] 0
 NLC 1 [T] 1
 
 Model predictions (forward run; no calibration):
@@ -109,6 +108,6 @@ Objective function: 1.17087e+06 Success: 0
 At least one of the predictions is outside acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Thu Jan  2 11:01:56 2014
-Execution completed on Thu Jan  2 11:01:56 2014
-Execution date & time stamp: 20140102-110156
+Execution  started  on Fri Jan  3 15:05:31 2014
+Execution completed on Fri Jan  3 15:05:31 2014
+Execution date & time stamp: 20140103-150531
