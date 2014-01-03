@@ -193,7 +193,7 @@ void init_params( struct opt_data *op )
 	pd->var_opt[k + ALPHA] = 0; pd->var_opt[k + BETA] = 0; pd->var_opt[k + NLC0] = 0; pd->var_opt[k + NLC1] = 0;
 	pd->var_log[k + ALPHA] = 0; pd->var_log[k + BETA] = 0; pd->var_log[k + NLC0] = 0; pd->var_log[k + NLC1] = 0;
 	pd->var_dx[k + ALPHA] = 0.1; pd->var_dx[k + BETA] = 0.1; pd->var_dx[k + NLC0] = 0.1; pd->var_dx[k + NLC1] = 1.;
-	pd->var_min[k + ALPHA] = 0.5; pd->var_min[k + BETA] = -1.; pd->var_min[k + NLC0] = -1.; pd->var_min[k + NLC1] = 0.1;
+	pd->var_min[k + ALPHA] = 1.1; pd->var_min[k + BETA] = -1.; pd->var_min[k + NLC0] = -1.; pd->var_min[k + NLC1] = 0.1;
 	pd->var_max[k + ALPHA] = 2; pd->var_max[k + BETA] = 1.; pd->var_max[k + NLC0] = 1.; pd->var_max[k + NLC1] = 10.;
 }
 
