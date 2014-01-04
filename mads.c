@@ -211,11 +211,12 @@ int main( int argn, char *argv[] )
 	pd.var_id = pd.var_name = od.obs_id = NULL;
 	cd.solution_type = ( int * ) malloc( sizeof( int ) );
 	ignore_running = parse_cmd_init( argn, argv, &cd );
+	sprintf( buf, "%s.running", op.root );
 	if( Ftest( buf ) == 0 ) // If file already exists quit ...
 	{
 		if( ignore_running )
 		{
-			// printf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
+			printf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
 			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 		}
 		else
@@ -223,7 +224,7 @@ int main( int argn, char *argv[] )
 			printf( "MADS: Model Analyses & Decision Support (v.%s) 2013\n", version_id );
 			printf( "---------------------------------------------------\n" );
 			printf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-			printf( "Delete %s to execute or run mads with argument \"f\")!\n", buf );
+			printf( "Delete %s to execute or run mads with argument \"force\"!\n", buf );
 			exit( 0 );
 		}
 	}
