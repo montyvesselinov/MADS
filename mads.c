@@ -224,7 +224,7 @@ int main( int argn, char *argv[] )
 			printf( "MADS: Model Analyses & Decision Support (v.%s) 2013\n", version_id );
 			printf( "---------------------------------------------------\n" );
 			printf( "ERROR: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-			printf( "Delete %s to execute or run mads with argument \"force\"!\n", buf );
+			printf( "To execute this problem, either delete %s or run MADS with argument \"force\"!\n", buf );
 			exit( 0 );
 		}
 	}
