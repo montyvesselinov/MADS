@@ -112,6 +112,7 @@ double int_point_source( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - source_z );
+	tau = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
 	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
 	else { tau_d = tau; ts = pow( tau, -1.5 ); }
 	tv = ( double ) 4 * tau_d * vx;
@@ -182,6 +183,7 @@ double int_point_source_triangle_time( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - source_z );
+	tau = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
 	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
 	else { tau_d = tau; ts = pow( tau, -1.5 ); }
 	tv = ( double ) 4 * tau_d * vx;
@@ -323,8 +325,8 @@ double int_rectangle_source( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
-	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
-	else tau_d = tau;
+	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
+	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] );
 	tv = ( double ) 4 * tau_d * vx;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
@@ -386,8 +388,8 @@ double int_rectangle_source_vz( double tau, void *params )
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
 	v = sqrt( vx * vx + vz * vz );
-	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
-	else tau_d = tau;
+	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
+	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] );
 	tv = ( double ) 4 * tau_d * v;
 	rx = sqrt( tv * ax );
 	ry = sqrt( tv * ay );
@@ -452,6 +454,7 @@ double int_gaussian_source_2d( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
+	tau = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
 	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
 	else { tau_d = tau; ts = pow( tau, -1.5 ); }
 	tv = ( double ) 2 * tau_d * vx;
@@ -516,6 +519,7 @@ double int_gaussian_source_3d( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
+	tau = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
 	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
 	else { tau_d = tau; ts = pow( tau, -1.5 ); }
 	tv = ( double ) 2 * tau_d * vx;
@@ -578,7 +582,7 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	double tau_d, t0v, t_alpha;
 	double angle, rot1, rot2, xe, ye, ze, x0, y0;
 	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2;
-	double t0 = 1;//TODO: maybe make this a parameter
+	double t0 = 1; //TODO: maybe make this a parameter
 	alpha = p->var[ALPHA];
 	beta = p->var[BETA];
 	x0 = ( p->xe - p->var[SOURCE_X] );
@@ -589,8 +593,8 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	xe = x0 * rot1 - y0 * rot2;
 	ye = x0 * rot2  + y0 * rot1;
 	ze = ( p->ze - source_z );
-	if( p->scaling_dispersion ) tau_d = pow( tau, p->var[TSCALE_DISP] );
-	else tau_d = tau;
+	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
+	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] );
 	t0v = 2 * t0 * vx;
 	t_alpha = pow( tau_d / t0, 1. / alpha );
 	lambda_x = t_alpha * sqrt( t0v * ax );
@@ -661,7 +665,7 @@ double int_box_source_sym_levy_dispersion( double tau, void *params )
 	double tau_d, t0v, t_alpha;
 	double angle, rot1, rot2, xe, ye, ze, x0, y0;
 	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2;
-	double t0 = 1;//TODO: maybe make this a parameter
+	double t0 = 1; //TODO: maybe make this a parameter
 	alpha = p->var[ALPHA];
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -671,8 +675,8 @@ double int_box_source_sym_levy_dispersion( double tau, void *params )
 	xe = x0 * rot1 - y0 * rot2;
 	ye = x0 * rot2  + y0 * rot1;
 	ze = ( p->ze - source_z );
-	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
-	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] );
+	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] ); // TODO generelize NLC formulation
+	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] ); // TODO drop p->scaling_dispersion flag
 	t0v = 2 * t0 * vx;
 	t_alpha = pow( tau_d / t0, 1. / alpha );
 	lambda_x = t_alpha * sqrt( t0v * ax );
