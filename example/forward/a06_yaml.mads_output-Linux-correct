@@ -52,7 +52,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140106-150918
+Execution date & time stamp: 20140109-133036
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -83,32 +83,32 @@ NLC 0 [T] 0
 NLC 1 [T] 1
 
 Model predictions (forward run; no calibration):
-W-1       (  49):           0 -     0.745905 =    -0.745905 (   -0.745905) success 1 range            0 -           25
-W-2       (  49):           0 -     0.461852 =    -0.461852 (   -0.461852) success 1 range            0 -           10
-W-3       (  49):           0 -     0.215209 =    -0.215209 (   -0.215209) success 1 range            0 -           25
-W-4       (  44):         350 -      14.9896 =       335.01 (      335.01) success 0 range          300 -          700
-W-4       (  49):         432 -       16.167 =      415.833 (     415.833) success 0 range          300 -          700
-W-5       (  49):           0 -   0.00934071 =  -0.00934071 ( -0.00934071) success 1 range            0 -           10
-W-6       (  49):           0 -   0.00164719 =  -0.00164719 ( -0.00164719) success 1 range            0 -           10
-W-7       (  49):           0 -    0.0267054 =   -0.0267054 (  -0.0267054) success 1 range            0 -           10
-W-8       (  49):           0 -    0.0126688 =   -0.0126688 (  -0.0126688) success 1 range            0 -           10
-W-9       (  49):         981 -      42.5225 =      938.478 (     938.478) success 0 range          600 -         1200
-W-10#1    (  49):         1.1 -       3.2744 =      -2.1744 (     -2.1744) success 1 range            0 -            5
-W-10#2    (  49):         0.1 -      1.47907 =     -1.37907 (    -1.37907) success 1 range            0 -            5
-W-11#1    (  49):          22 -      6.21931 =      15.7807 (     15.7807) success 1 range            3 -           25
-W-11#2    (  49):         0.3 -       1.8048 =      -1.5048 (     -1.5048) success 1 range            0 -            5
-W-12#1    (  49):          15 -      4.09796 =       10.902 (      10.902) success 1 range            3 -           25
-W-12#2    (  49):        0.17 -      1.18327 =     -1.01327 (    -1.01327) success 1 range            0 -            5
-W-13#1    (  50):          72 -        7.491 =       64.509 (      64.509) success 0 range           40 -          100
-W-13#2    (  50):        0.26 -      1.56495 =     -1.30495 (    -1.30495) success 1 range            0 -           20
-W-14a     (  50):           0 -     0.923246 =    -0.923246 (   -0.923246) success 1 range            0 -            5
-W-14b     (  50):          30 -      8.96516 =      21.0348 (     21.0348) success 1 range            0 -           50
-W-14c     (  50):          10 -      20.5248 =     -10.5248 (          -0) success 1 range            0 -           20
-Objective function: 1.17087e+06 Success: 0
+W-1       (  49):           0 -      8.73247 =     -8.73247 (    -8.73247) success 1 range            0 -           25
+W-2       (  49):           0 -      3.26038 =     -3.26038 (    -3.26038) success 1 range            0 -           10
+W-3       (  49):           0 -      1.28113 =     -1.28113 (    -1.28113) success 1 range            0 -           25
+W-4       (  44):         350 -      298.723 =      51.2769 (     51.2769) success 0 range          300 -          700
+W-4       (  49):         432 -       335.06 =        96.94 (       96.94) success 1 range          300 -          700
+W-5       (  49):           0 -    0.0358298 =   -0.0358298 (  -0.0358298) success 1 range            0 -           10
+W-6       (  49):           0 -   0.00412042 =  -0.00412042 ( -0.00412042) success 1 range            0 -           10
+W-7       (  49):           0 -     0.150347 =    -0.150347 (   -0.150347) success 1 range            0 -           10
+W-8       (  49):           0 -      0.07465 =     -0.07465 (    -0.07465) success 1 range            0 -           10
+W-9       (  49):         981 -      848.016 =      132.984 (     132.984) success 1 range          600 -         1200
+W-10#1    (  49):         1.1 -      34.0255 =     -32.9255 (    -32.9255) success 0 range            0 -            5
+W-10#2    (  49):         0.1 -      10.7044 =     -10.6044 (    -10.6044) success 0 range            0 -            5
+W-11#1    (  49):          22 -      103.627 =     -81.6266 (    -81.6266) success 0 range            3 -           25
+W-11#2    (  49):         0.3 -      17.4417 =     -17.1417 (    -17.1417) success 0 range            0 -            5
+W-12#1    (  49):          15 -      58.1069 =     -43.1069 (    -43.1069) success 0 range            3 -           25
+W-12#2    (  49):        0.17 -      9.56107 =     -9.39107 (    -9.39107) success 0 range            0 -            5
+W-13#1    (  50):          72 -      131.076 =     -59.0764 (    -59.0764) success 0 range           40 -          100
+W-13#2    (  50):        0.26 -      15.0166 =     -14.7566 (    -14.7566) success 1 range            0 -           20
+W-14a     (  50):           0 -      9.56451 =     -9.56451 (    -9.56451) success 0 range            0 -            5
+W-14b     (  50):          30 -      124.862 =     -94.8624 (    -94.8624) success 0 range            0 -           50
+W-14c     (  50):          10 -      348.239 =     -338.239 (          -0) success 1 range            0 -           20
+Objective function: 52697.7 Success: 0
 At least one of the predictions is outside acceptable ranges!
-Simulation time = 1 seconds
+Simulation time = 2 seconds
 Functional evaluations = 1
-Functional evaluations per second = 1
-Execution  started  on Mon Jan  6 15:09:18 2014
-Execution completed on Mon Jan  6 15:09:19 2014
-Execution date & time stamp: 20140106-150918
+Functional evaluations per day = 0
+Execution  started  on Thu Jan  9 13:30:36 2014
+Execution completed on Thu Jan  9 13:30:38 2014
+Execution date & time stamp: 20140109-133036
