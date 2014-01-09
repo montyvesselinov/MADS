@@ -461,6 +461,18 @@ verify-forward:
 	cd example/forward; $(DBG) ../../mads a07 $(OUTPUT)
 	@$(CMP) example/forward/a07.mads_output example/forward/a07.mads_output-$(OS)-correct
 	@$(CMP) example/forward/a07.results example/forward/a07.results-$(OS)-correct
+	@echo "" 
+	@echo "TEST 9.8: Box source | Levy, alpha=2 ... "
+	rm -f example/forward/a08.mads_output example/forward/a08.results example/forward/a08.running
+	cd example/forward; $(DBG) ../../mads a08 $(OUTPUT)
+	@$(CMP) example/forward/a08.mads_output example/forward/a08.mads_output-$(OS)-correct
+	@$(CMP) example/forward/a08.results example/forward/a08.results-$(OS)-correct
+	@echo "" 
+	@echo "TEST 9.9: Box source | Symmetric Levy, alpha=2 ... "
+	rm -f example/forward/a09.mads_output example/forward/a09.results example/forward/a09.running
+	cd example/forward; $(DBG) ../../mads a09 $(OUTPUT)
+	@$(CMP) example/forward/a09.mads_output example/forward/a09.mads_output-$(OS)-correct
+	@$(CMP) example/forward/a09.results example/forward/a09.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 9: DONE"
 	@echo ""
