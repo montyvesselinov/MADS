@@ -561,7 +561,7 @@ double box_source_levy_dispersion( double x, double y, double z, double t, void 
 	}
 	gsl_integration_workspace_free( w );
 	/// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
-	return( p->var[FLUX] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
+	return( p->var[FLUX] * 1e6 / ( p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
 	// return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
 }
 
@@ -581,7 +581,7 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	double lambda_x, lambda_y, lambda_z;
 	double tau_d, t0v, t_alpha;
 	double angle, rot1, rot2, xe, ye, ze, x0, y0;
-	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2;
+	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2, pz3, pz4;
 	double t0 = 1; //TODO: maybe make this a parameter
 	alpha = p->var[ALPHA];
 	beta = p->var[BETA];
@@ -595,7 +595,7 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	ze = ( p->ze - source_z );
 	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
 	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] );
-	t0v = 2 * t0 * vx;
+	t0v = t0 * vx;
 	t_alpha = pow( tau_d / t0, 1. / alpha );
 	lambda_x = t_alpha * sqrt( t0v * ax );
 	lambda_y = t_alpha * sqrt( t0v * ay );
@@ -607,9 +607,11 @@ double int_box_source_levy_dispersion( double tau, void *params )
 	py1 = astable_cdf( ye + source_sizey / 2., alpha, beta, 0., lambda_y );
 	py2 = astable_cdf( ye - source_sizey / 2., alpha, beta, 0., lambda_y );
 	py = py1 - py2;
-	pz1 = astable_cdf( ze + source_sizez, alpha, beta, 0., lambda_z );
+	pz1 = astable_cdf( ze - source_sizez, alpha, beta, 0., lambda_z );
 	pz2 = astable_cdf( ze, alpha, beta, 0., lambda_z );
-	pz = pz1 - pz2;
+	pz3 = astable_cdf( ze + 2 * source_z, alpha, beta, 0., lambda_z );
+	pz4 = astable_cdf( ze + 2 * source_z + source_sizez, alpha, beta, 0., lambda_z );
+	pz = pz2 - pz1 + pz4 - pz3;
 	// ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz ) - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz );
 	// if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
 	return( decay_factor * px * py * pz );
@@ -644,7 +646,7 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 	}
 	gsl_integration_workspace_free( w );
 	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
-	return( p->var[FLUX] * 1e6 / ( 8. * p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
+	return( p->var[FLUX] * 1e6 / ( p->var[POROSITY] * p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) * result );
 	// return( p->var[C0] * 1e6 / ( p->var[SOURCE_DX] * p->var[SOURCE_DY] * p->var[SOURCE_DZ] ) / ( 8. * p->var[POROSITY] ) * result );
 }
 
@@ -664,7 +666,7 @@ double int_box_source_sym_levy_dispersion( double tau, void *params )
 	double lambda_x, lambda_y, lambda_z;
 	double tau_d, t0v, t_alpha;
 	double angle, rot1, rot2, xe, ye, ze, x0, y0;
-	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2;
+	double decay_factor, px, py, pz, px1, px2, py1, py2, pz1, pz2, pz3, pz4;
 	double t0 = 1; //TODO: maybe make this a parameter
 	alpha = p->var[ALPHA];
 	x0 = ( p->xe - p->var[SOURCE_X] );
@@ -677,7 +679,7 @@ double int_box_source_sym_levy_dispersion( double tau, void *params )
 	ze = ( p->ze - source_z );
 	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] ); // TODO generelize NLC formulation
 	if( p->scaling_dispersion ) tau_d = pow( tau_d, p->var[TSCALE_DISP] ); // TODO drop p->scaling_dispersion flag
-	t0v = 2 * t0 * vx;
+	t0v = t0 * vx;
 	t_alpha = pow( tau_d / t0, 1. / alpha );
 	lambda_x = t_alpha * sqrt( t0v * ax );
 	lambda_y = t_alpha * sqrt( t0v * ay );
@@ -689,9 +691,11 @@ double int_box_source_sym_levy_dispersion( double tau, void *params )
 	symmetric_astable_cdf_interp( ye + source_sizey / 2., alpha, 0., lambda_y, &py1 );
 	symmetric_astable_cdf_interp( ye - source_sizey / 2., alpha, 0., lambda_y, &py2 );
 	py = py1 - py2;
-	symmetric_astable_cdf_interp( ze + source_sizez, alpha, 0., lambda_z, &pz1 );
+	symmetric_astable_cdf_interp( ze - source_sizez, alpha, 0., lambda_z, &pz1 );
 	symmetric_astable_cdf_interp( ze, alpha, 0., lambda_z, &pz2 );
-	pz = pz1 - pz2;
+	symmetric_astable_cdf_interp( ze + 2 * source_z, alpha, 0., lambda_z, &pz3 );
+	symmetric_astable_cdf_interp( ze + 2 * source_z + source_sizez, alpha, 0., lambda_z, &pz4 );
+	pz = pz2 - pz1 + pz4 - pz3;
 	// ez = erfc( ( ze - source_sizez ) / rz ) - erfc( ( ze + source_sizez ) / rz ) - erfc( ( ze - source_z ) / rz ) + erfc( ( ze + source_z ) / rz );
 	// if( p->debug >= 3 ) printf( "int %g %g %g %g %g\n", tau, e1, ex, ey, ez );
 	return( decay_factor * px * py * pz );
