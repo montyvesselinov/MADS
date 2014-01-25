@@ -59,6 +59,9 @@ endif
 ifeq ($(ND),pn1246281)
 LDLIBS += -latlas
 endif
+ifeq ($(ND),macmonty.lanl.gov)
+LDLIBS += -latlas
+endif
 ifeq ($(ND),dazed.local)
 $(info Machine -- Dazed)
 CFLAGS += -I/Users/monty/include
