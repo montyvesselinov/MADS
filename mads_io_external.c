@@ -174,8 +174,8 @@ int load_pst( char *filename, struct opt_data *op )
 			}
 	if( bad_data ) return( 0 );
 	fgets( buf, 1000, in ); // skip line
-	ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
-	fgets( ed->cmdline, 80, in );
+	ed->cmdline = ( char * ) malloc( 255 * sizeof( char ) );
+	fgets( ed->cmdline, 255, in );
 	ed->cmdline[strlen( ed->cmdline ) - 1] = 0;
 	tprintf( "Execution command: %s\n", ed->cmdline );
 	tprintf( "External files:\n" );
