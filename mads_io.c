@@ -1352,8 +1352,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 	if( cd->solution_type[0] == EXTERNAL )
 	{
 		// Executable Command Line
-		ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
-		fscanf( infile, ": " ); fgets( ed->cmdline, 80, infile );
+		ed->cmdline = ( char * ) malloc( 255 * sizeof( char ) );
+		fscanf( infile, ": " ); fgets( ed->cmdline, 255, infile );
 		ed->cmdline[strlen( ed->cmdline ) - 1] = 0;
 		tprintf( "Execution command: %s\n", ed->cmdline );
 		if( sscanf( ed->cmdline, "%i", &i ) == -1 )
@@ -1392,8 +1392,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 			bad_data = 1;
 		}
 		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %d\n", &ed->ntpl );
-		ed->fn_tpl = char_matrix( ed->ntpl, 80 );
-		ed->fn_out = char_matrix( ed->ntpl, 80 );
+		ed->fn_tpl = char_matrix( ed->ntpl, 255 );
+		ed->fn_out = char_matrix( ed->ntpl, 255 );
 		for( i = 0; i < ed->ntpl; i++ )
 		{
 			fscanf( infile, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
@@ -1408,8 +1408,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		for( i = 0; i < ed->ntpl; i++ )
 			tprintf( "%s -> %s\n", ed->fn_tpl[i], ed->fn_out[i] );
 		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %d\n", &ed->nins );
-		ed->fn_ins = char_matrix( ed->nins, 80 );
-		ed->fn_obs = char_matrix( ed->nins, 80 );
+		ed->fn_ins = char_matrix( ed->nins, 255 );
+		ed->fn_obs = char_matrix( ed->nins, 255 );
 		for( i = 0; i < ed->nins; i++ )
 		{
 			fscanf( infile, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );

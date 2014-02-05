@@ -335,7 +335,7 @@ int mopso( struct opt_data *op )
 	struct problem pb;
 	struct swarm S;
 	double successRate[fMax], errorMean[fMax];
-	char filename[80];
+	char filename[255];
 	int debug, i, n, r, eval_total;
 	gop = op;
 	irand_seed = &op->cd->seed;

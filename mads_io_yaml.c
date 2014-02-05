@@ -1221,7 +1221,7 @@ int load_yaml_command( GNode *node, gpointer data )
 			if( cd->debug > 1 ) tprintf( "=%s", ( char * ) node_value->data );
 		}
 		tprintf( "\n" );
-		ed->cmdline = ( char * ) malloc( 80 * sizeof( char ) );
+		ed->cmdline = ( char * ) malloc( 255 * sizeof( char ) );
 		strcpy( ed->cmdline, node_key->data );
 		if( cd->debug > 1 ) tprintf( "Execution command: %s\n", ed->cmdline );
 		buf[0] = 0;
@@ -1271,8 +1271,8 @@ int load_yaml_templates( GNode *node, gpointer data )
 	int i, j, bad_data = 0;
 	ed->ntpl = g_node_n_children( node );
 	tprintf( "Number of template components: %i\n", ed->ntpl );
-	ed->fn_tpl = char_matrix( ed->ntpl, 80 );
-	ed->fn_out = char_matrix( ed->ntpl, 80 );
+	ed->fn_tpl = char_matrix( ed->ntpl, 255 );
+	ed->fn_out = char_matrix( ed->ntpl, 255 );
 	if( cd->debug > 1 ) tprintf( "Components:\n%s\n", ( char * ) node->data );
 	for( i = 0; i < ed->ntpl; i++ )
 	{
@@ -1317,8 +1317,8 @@ int load_yaml_instructions( GNode *node, gpointer data )
 	int i, j, bad_data = 0;
 	ed->nins = g_node_n_children( node );
 	tprintf( "Number of instruction components: %i\n", ed->nins );
-	ed->fn_ins = char_matrix( ed->nins, 80 );
-	ed->fn_obs = char_matrix( ed->nins, 80 );
+	ed->fn_ins = char_matrix( ed->nins, 255 );
+	ed->fn_obs = char_matrix( ed->nins, 255 );
 	if( cd->debug > 1 ) tprintf( "Components:\n%s\n", ( char * ) node->data );
 	for( i = 0; i < ed->nins; i++ )
 	{

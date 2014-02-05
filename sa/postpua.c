@@ -63,7 +63,7 @@ int postpua( struct opt_data *op )
 {
 	FILE *in, *out;
 	double *opt_params, of;
-	char buf[80], filename[80];
+	char buf[255], filename[255];
 	int i, n;
 	op->od = op->preds;
 	if( op->cd->infile[0] == 0 ) { tprintf( "\nInfile (results file from abagus run) must be specified for postpua run\n" ); return( 0 );}

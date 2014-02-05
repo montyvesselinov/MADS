@@ -171,7 +171,7 @@ int infogap( struct opt_data *op )
 {
 	FILE *fl, *outfl;
 	double *opt_params, of, maxof;
-	char buf[80], filename[80];
+	char buf[255], filename[255];
 	int i, j, k, n, npar, nrow, ncol, *nPreds, col;
 	gsl_matrix *ig_mat; //! info gap matrix for sorting
 	gsl_permutation *p;

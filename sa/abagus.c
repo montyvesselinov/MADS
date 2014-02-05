@@ -218,7 +218,7 @@ int abagus( struct opt_data *op )
 	struct position G; // Eaten positions
 	double dmax = 0; // maximum dimension length
 	double dxmin = 100000; // minimum parameter dx
-	char filename[80]; // output filename
+	char filename[255]; // output filename
 	int enrgy_add; // energy to add for good position
 	int energy; // energy of swarm
 	int energy_prev; // energy from previous iteration

@@ -179,10 +179,10 @@ int load_pst( char *filename, struct opt_data *op )
 	ed->cmdline[strlen( ed->cmdline ) - 1] = 0;
 	tprintf( "Execution command: %s\n", ed->cmdline );
 	tprintf( "External files:\n" );
-	ed->fn_ins = char_matrix( ed->nins, 80 );
-	ed->fn_obs = char_matrix( ed->nins, 80 );
-	ed->fn_tpl = char_matrix( ed->ntpl, 80 );
-	ed->fn_out = char_matrix( ed->ntpl, 80 );
+	ed->fn_ins = char_matrix( ed->nins, 255 );
+	ed->fn_obs = char_matrix( ed->nins, 255 );
+	ed->fn_tpl = char_matrix( ed->ntpl, 255 );
+	ed->fn_out = char_matrix( ed->ntpl, 255 );
 	fgets( buf, 1000, in ); // skip line
 	for( i = 0; i < ed->ntpl; i++ )
 		fscanf( in, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
