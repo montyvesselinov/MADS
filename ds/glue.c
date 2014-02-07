@@ -63,7 +63,7 @@ int glue( struct opt_data *op )
 {
 	FILE *in, *out;
 	double *phi, **preds, phi_temp, *percentile, *pred_temp, *sum;
-	char buf[200], filename[255], pred_id[100][30];
+	char buf[1000], filename[255], pred_id[100][50];
 	int num_lines = 0, j;
 	gsl_matrix *glue_mat; // matrix for sorting predictions
 	gsl_permutation *p1;

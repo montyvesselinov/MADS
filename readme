@@ -47,15 +47,16 @@ Required libraries:
 	YAML:       http://pyyaml.org/wiki/LibYAML; http://www.yaml.org
 	GLIB:       http://developer.gnome.org/glib/
 	PKG-CONFIG: http://www.freedesktop.org/wiki/Software/pkg-config/
+	TCSH:       http://www.tcsh.org
 
 MAC OS X installation of required libraries:
-	sudo port install gsl glib2 libyaml libmatheval atlas pkgconfig git
+	sudo port install gsl glib2 libyaml libmatheval atlas pkgconfig git tcsh
 	
 RHEL/CentOS/Fedora installation of required libraries:	
-	sudo yum install gsl glib2 libyaml libmatheval atlas pkgconfig git
+	sudo yum install gsl glib2 libyaml libmatheval atlas pkgconfig git tcsh
 
 Ubuntu/Debian installation of required libraries:
-	sudo apt-get install libgsl0-dev libglib2.0-0 libyaml-0-2 libmatheval1 atlas pkg-config git
+	sudo apt-get install libgsl0-dev libglib2.0-0 libyaml-0-2 libmatheval1 atlas pkg-config git tcsh
 
 Compilation:
 	make

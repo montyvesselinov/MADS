@@ -192,8 +192,8 @@ void mads_info()
 	printf( "\npre-/post-processing:\n" );
 	printf( "   yaml               - Reads/writes/converts MADS files in YAML format\n" );
 	printf( "   xml                - Reads/writes/converts MADS files in XML format\n" );
-	printf( "   resultsfile        - Post process results saved in resultsfile\n" );
-	printf( "   resultscase        - Post process specific case saved in resultsfile (if resultscase<0, first abs(resultscase) cases)\n" );
+	printf( "   resultsfile=[file] - Post process results saved in a previously generated resultsfile (e.g. using 'igrnd' analysis)\n" );
+	printf( "   resultscase=[int]  - Post process specific case saved in resultsfile (if resultscase<0, first abs(resultscase) cases)\n" );
 	printf( "   cutoff=[real]      - Post process all cases saved in resultsfile with objective function below the cutoff value\n" );
 	printf( "   obsrange           - Post process all cases saved in resultsfile with model predictions within predefined calibration ranges\n" );
 	printf( "   pargen             - Generate MADS input files for independent multi-processor runs [default pargen=0]\n" );

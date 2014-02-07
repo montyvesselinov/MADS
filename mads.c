@@ -1448,7 +1448,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 	int   debug, compute_center, compute_jacobian, compute_covar;
 	int   i, j, k, error_stddev, debug_level = 0, status, dof;
 	double eps;
-	char filename[200], buf[20];
+	char filename[255], buf[20];
 	static double student_dist[34] = {12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042, 2.021, 2.000, 1.980, 1.960 };
 	tprintf( "Eigen analysis ...\n" );
 	gf = sml = aic = bic = cic = kic = copt = dopt = eopt = ln_det_v = ln_det_weight = 0;
