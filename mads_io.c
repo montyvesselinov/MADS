@@ -1624,7 +1624,7 @@ int save_problem_text( char *filename, struct opt_data *op )
 	{
 		fprintf( outfile, "Number of observations: %i\n", od->nTObs );
 		for( i = 0; i < od->nTObs; i++ )
-			fprintf( outfile, "%s %g %g %d %g %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
+			fprintf( outfile, "%s %.15g %g %d %g %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 		fprintf( outfile, "Execution command: %s\n", ed->cmdline );
 		fprintf( outfile, "Number of execution templates: %d\n", ed->ntpl );
 		for( i = 0; i < ed->ntpl; i++ )
