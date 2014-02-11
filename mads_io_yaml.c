@@ -1519,9 +1519,9 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 		fprintf( outfile, "Regularizations:\n" );
 		for( i = 0; i < rd->nRegul; i++ )
 #ifdef MATHEVAL
-			fprintf( outfile, "- %s: { equation: \"%s\", target: %g, weight: %g, log: %i, min: %g, max: %g }\n", rd->regul_id[i], evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+			fprintf( outfile, "- %s: { equation: \"%s\", target: %g, weight: %g, log: %s, min: %g, max: %g }\n", rd->regul_id[i], evaluator_get_string( rd->regul_expression[i] ), rd->regul_target[i], rd->regul_weight[i], key_yes_no( rd->regul_log[i] ), rd->regul_min[i], rd->regul_max[i] );
 #else
-			fprintf( outfile, "- reg%d = { equations: \"\", target: %g, weight: %g, log: %i, min: %g, max: %g }\n", i, rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+			fprintf( outfile, "- reg%d = { equations: \"\", target: %g, weight: %g, log: %s, min: %g, max: %g }\n", i, rd->regul_target[i], rd->regul_weight[i], key_yes_no( rd->regul_log[i] ), rd->regul_min[i], rd->regul_max[i] );
 #endif
 	}
 	if( cd->solution_type[0] != EXTERNAL && cd->solution_type[0] != TEST )
@@ -1533,7 +1533,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 			for( j = 0; j < wd->nWellObs[i]; j++ )
 			{
 				if( wd->nWellObs[i] > 1 && j == 0 ) fprintf( outfile, "\n" );
-				fprintf( outfile, " %d: { t: %g, c: %g, weight: %g, log: %i, min: %g, max: %g }", j + 1, wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], wd->obs_log[i][j], wd->obs_min[i][j], wd->obs_max[i][j] );
+				fprintf( outfile, " %d: { t: %g, c: %g, weight: %g, log: %s, min: %g, max: %g }", j + 1, wd->obs_time[i][j], wd->obs_target[i][j], wd->obs_weight[i][j], key_yes_no( wd->obs_log[i][j] ), wd->obs_min[i][j], wd->obs_max[i][j] );
 				if( wd->nWellObs[i] == j + 1 ) fprintf( outfile, " ]" );
 				else fprintf( outfile, ",\n" );
 			}
@@ -1547,16 +1547,16 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	}
 	else
 	{
-		fprintf( outfile, "Number of observations: %i\n", od->nTObs );
+		fprintf( outfile, "Observations:\n" );
 		for( i = 0; i < od->nTObs; i++ )
-			fprintf( outfile, "%s %g %g %d %g %g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
-		fprintf( outfile, "Execution command: %s\n", ed->cmdline );
-		fprintf( outfile, "Number of execution templates: %d\n", ed->ntpl );
+			fprintf( outfile, "- %s: { target: %.15g, weight: %g, log: %s, min: %g, max: %g }\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], key_yes_no( od->obs_log[i] ), od->obs_min[i], od->obs_max[i] );
+		fprintf( outfile, "Command: \"%s\"\n", ed->cmdline );
+		fprintf( outfile, "Templates:\n" );
 		for( i = 0; i < ed->ntpl; i++ )
-			fprintf( outfile, "%s %s\n", ed->fn_tpl[i], ed->fn_out[i] );
-		fprintf( outfile, "Number of execution instructions: %d\n", ed->nins );
+			fprintf( outfile, "- tmp%i: { tpl: %s, write: %s }\n", i + 1, ed->fn_tpl[i], ed->fn_out[i] );
+		fprintf( outfile, "Instructions:\n" );
 		for( i = 0; i < ed->nins; i++ )
-			fprintf( outfile, "%s %s\n", ed->fn_ins[i], ed->fn_obs[i] );
+			fprintf( outfile, "- ins%i: { ins: %s, read: %s }\n", i + 1, ed->fn_ins[i], ed->fn_obs[i] );
 	}
 	fclose( outfile );
 	return( 1 );
