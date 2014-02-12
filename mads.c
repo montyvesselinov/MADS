@@ -1,4 +1,4 @@
-// MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+// MADS: Model Analyses & Decision Support (v.1.1.14) 2014
 //
 // Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
 // Dan O'Malley, omalled@lanl.gov
@@ -8,8 +8,9 @@
 //
 // http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
+// http://gitlab.com/monty/mads
 //
-// LA-CC-10-055; LA-CC-11-035
+// Licensing: GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
 //
 // Copyright 2011.  Los Alamos National Security, LLC.  All rights reserved.
 // This material was produced under U.S. Government contract DE-AC52-06NA25396 for
@@ -27,6 +28,8 @@
 // NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR
 // RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
 // PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
+//
+// LA-CC-10-055; LA-CC-11-035
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE

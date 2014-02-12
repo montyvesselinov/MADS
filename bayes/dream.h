@@ -35,6 +35,23 @@ enum PPCR_TYPE { PPCR_UPDATE };
 enum BOUND_HANDLING_TYPE { BH_REFLECT, BH_BOUND, BH_FOLD };
 enum INIT_POPULATION_TYPE { IP_LHS_BASED };
 
+#ifdef __cplusplus
+extern "C"
+#endif
+struct MCMC *get_posterior_parameter_samples( struct opt_data *od );
+#ifdef __cplusplus
+extern "C"
+#endif
+void free_mcmc( struct MCMC *mcmc );
+#ifdef __cplusplus
+extern "C"
+#endif
+void tprintf( char const *fmt, ... );
+#ifdef __cplusplus
+extern "C"
+#endif
+void symmetric_astable_pdf_interp( double x, double alpha, double gamma, double lambda, double *val );
+
 struct MCMC  //introduce a data structure called MCMC
 {
 	int n;                         // Dimension of the problem (number of parameters to be estimated)
@@ -92,12 +109,4 @@ struct out
 	int *R_stat_iter;
 	double **R_stat;
 };
-#ifdef __cplusplus
-extern "C"
-#endif
-struct MCMC *get_posterior_parameter_samples( struct opt_data *od );
-#ifdef __cplusplus
-extern "C"
-#endif
-void free_mcmc( struct MCMC *mcmc );
 #endif /* DREAM_H_ */

@@ -54,8 +54,6 @@ using namespace std;
 #include "dream.h"
 #include "../mads.h"
 
-extern "C" void symmetric_astable_pdf_interp( double x, double alpha, double gamma, double lambda, double *val );
-
 // function headers
 double performance_requirement_satisfied( struct opt_data *od );
 struct MCMC *get_posterior_parameter_samples( struct opt_data *od );
@@ -112,7 +110,7 @@ double performance_requirement_satisfied( struct opt_data *od )
 	return 1.;
 }
 
-//main rundream code
+// main rundream code
 extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 {
 	struct MCMC *MCMCPar;
@@ -173,7 +171,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	if( verbose > 4 )
 	{
 		for( int i = 0; i < MCMCPar->n; i++ )
-			printf( "range %g %g\n", ParRange.minn[i], ParRange.maxn[i] );
+			tprintf( "range %g %g\n", ParRange.minn[i], ParRange.maxn[i] );
 	}
 	//Put the obs_data in the Measure data structure
 	Measurement.MeasData = new double[od->od->nCObs];
@@ -324,7 +322,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	return MCMCPar;
 }
 
-//function DREAM_zs
+// DREAM_zs
 void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct opt_data *od, int option,
 			   double ***Reduced_Seq, double **Zee, out &output, double **Zinit,
 			   double *ModPred, double *p, double *log_p, double *integrand,
@@ -348,12 +346,12 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		LHSU( ParRange, MCMCPar, Zinit ); // Latin hypercube sampling
 	if( MCMCPar->verbose > 5 )
 	{
-		printf( "Zinit\n" );
+		tprintf( "Zinit\n" );
 		for( int row = 0; row < MCMCPar->m0; row++ )
 		{
 			for( int col = 0; col < MCMCPar->n; col++ )
-				printf( " %g", Zinit[row][col] );
-			printf( "\n" );
+				tprintf( " %g", Zinit[row][col] );
+			tprintf( "\n" );
 		}
 	}
 	double **Zoff;
@@ -406,12 +404,12 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 	}
 	if( MCMCPar->verbose > 5 )
 	{
-		cout << "X2 init" << endl;
+		tprintf( "X2 init\n" );
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
 			for( int col = 0; col < MCMCPar->np3; col++ )
-				cout << " " << X2[row][col];
-			cout << endl;
+				tprintf( " %g", X2[row][col] );
+			tprintf( "\n" );
 		}
 	}
 	// Initialize the sequences
@@ -421,8 +419,8 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		{
 			for( int j = 0; j < MCMCPar->np3; j++ )
 			{
-				//if( Sequences[k][0] == NULL ) printf( "seq null\n" );
-				//printf( "%d, %d\n", k, j );
+				//if( Sequences[k][0] == NULL ) tprintf( "seq null\n" );
+				//tprintf( "%d, %d\n", k, j );
 				Sequences[k][0][j] = X2[k][j];
 			}
 		}
@@ -462,7 +460,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 	int total_accept = 0;
 	while( nEvaluations < MCMCPar->ndraw ) // Main Loop
 	{
-		if( MCMCPar->verbose > 5 ) cout << "\nEvaluations " << nEvaluations << endl;
+		if( MCMCPar->verbose > 5 ) tprintf( "\nEvaluations %d\n" );
 		// Initialize total accepted realizations;
 		int iter_accept = 0;
 		// Loop a number of times before calculating convergence diagnostic, etc.
@@ -471,36 +469,36 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			// Initialize teller
 			if( MCMCPar->reduced_sample_collection ) reduced_seq_teller++;
 			// Define the current locations and associated posterior densities
-			if( MCMCPar->verbose ) cout << "GetLocation ..." << endl;
+			if( MCMCPar->verbose ) tprintf( "GetLocation ...\n" );
 			GetLocation( X2, MCMCPar, xold, p_xold, log_p_xold, integrand_old );
 			if( MCMCPar->verbose > 5 )
 			{
-				printf( "xold\n" );
+				tprintf( "xold\n" );
 				for( int row = 0; row < MCMCPar->seq; row++ )
 				{
 					for( int i = 0; i < MCMCPar->n; i++ )
-						printf( " %g", xold[row][i] );
-					printf( "\n" );
+						tprintf( " %g", xold[row][i] );
+					tprintf( "\n" );
 				}
-				printf( "p_xold\n" );
+				tprintf( "p_xold\n" );
 				for( int row = 0; row < MCMCPar->seq; row++ )
-					printf( " %g (%g)", p_xold[row], log_p_xold[row] );
-				printf( "\n" );
+					tprintf( " %g (%g)", p_xold[row], log_p_xold[row] );
+				tprintf( "\n" );
 			}
 			if( MCMCPar->m < MCMCPar->nzoff )
 			{
 				// The number of elements of Z is not sufficient
-				cout << "size of Z not sufficient to generate offspring with selected MCMCPar->m0, MCMCPar->seq, and MCMCPar->DEpairs" << endl;
+				tprintf( "size of Z not sufficient to generate offspring with selected MCMCPar->m0, MCMCPar->seq, and MCMCPar->DEpairs\n" );
 			}
 			else
 			{
 				// Without replacement draw rows from Z for proposal creation
 				if( MCMCPar->m > MCMCPar->nzee )
 				{
-					printf( "ERROR: Memory problem. Increase MCMCPar->nzee (%d). MCMCPar->m = %d\n", MCMCPar->nzee, MCMCPar->m );
+					tprintf( "ERROR: Memory problem. Increase MCMCPar->nzee (%d). MCMCPar->m = %d\n", MCMCPar->nzee, MCMCPar->m );
 					exit( 1 );
 				}
-				if( MCMCPar->verbose ) cout << "Randsample ..." << endl;
+				if( MCMCPar->verbose ) tprintf( "Randsample ...\n" );
 				randsample( MCMCPar->m, MCMCPar->nzoff, RandArray, MCMCPar->verbose );
 				for( int row = 0; row < MCMCPar->nzoff; row++ )
 					for( int col = 0; col < MCMCPar->n; col++ )
@@ -508,55 +506,55 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			}
 			if( MCMCPar->verbose > 5 )
 			{
-				printf( "Zoff\n" );
+				tprintf( "Zoff\n" );
 				for( int row = 0; row < MCMCPar->nzoff; row++ )
 				{
 					for( int col = 0; col < MCMCPar->n; col++ )
-						printf( " %g", Zoff[row][col] );
-					printf( "\n" );
+						tprintf( " %g", Zoff[row][col] );
+					tprintf( "\n" );
 				}
 			}
 			// First generate a random number between 0 and 1
 			U = ( double ) rand() / RAND_MAX;
 			// Determine to do parallel direction or snooker update depending on random number U
 			if( U <= MCMCPar->parallelUpdate ) Update = "Parallel_Direction_Update";
-			else                              Update = "Snooker_Update";
+			else                               Update = "Snooker_Update";
 			// Generate candidate points (proposal) in each chain using either snooker or parallel direction update
-			if( MCMCPar->verbose ) cout << "offde using " << Update << " ..." << endl;
+			if( MCMCPar->verbose ) tprintf( "offde using %s ...\n", Update.c_str() );
 			offde( xold, Zoff, MCMCPar, Update, Table_JumpRate, ParRange, xnew, alpha_s, CRS, DEversion );
 			// Compute the likelihood of each proposal in each chain
-			if( MCMCPar->verbose ) cout << "comp_likelihood ..." << endl;
+			if( MCMCPar->verbose ) tprintf( "comp_likelihood ...\n" );
 			comp_likelihood( xnew, MCMCPar, Measurement, od, ModPred, p_xnew, log_p_xnew, integrand_new );
 			// Update number of evaluations
 			nEvaluations += MCMCPar->seq;
 			if( MCMCPar->verbose > 5 )
 			{
-				printf( "xnew\n" );
+				tprintf( "xnew\n" );
 				for( int row = 0; row < MCMCPar->seq; row++ )
 				{
 					for( int i = 0; i < MCMCPar->n; i++ )
-						printf( " %g", xnew[row][i] );
-					printf( "\n" );
+						tprintf( " %g", xnew[row][i] );
+					tprintf( "\n" );
 				}
-				printf( "p_xnew\n" );
+				tprintf( "p_xnew\n" );
 				for( int row = 0; row < MCMCPar->seq; row++ )
-					printf( " %g (%g)", p_xnew[row], log_p_xnew[row] );
-				printf( "\n" );
-				printf( "xold\n" );
+					tprintf( " %g (%g)", p_xnew[row], log_p_xnew[row] );
+				tprintf( "\n" );
+				tprintf( "xold\n" );
 				for( int row = 0; row < MCMCPar->seq; row++ )
 				{
 					for( int i = 0; i < MCMCPar->n; i++ )
-						printf( " %g", xold[row][i] );
-					printf( "\n" );
+						tprintf( " %g", xold[row][i] );
+					tprintf( "\n" );
 				}
-				printf( "p_xold\n" );
+				tprintf( "p_xold\n" );
 				for( int row = 0; row < MCMCPar->seq; row++ )
-					printf( " %g (%g)", p_xold[row], log_p_xold[row] );
-				printf( "\n" );
+					tprintf( " %g (%g)", p_xold[row], log_p_xold[row] );
+				tprintf( "\n" );
 			}
 			// p_xnew = p_xnew(:,1); TODO check do we need this ..
 			// Apply the acceptance/rejectance rule
-			if( MCMCPar->verbose ) cout << "metrop ..." << endl;
+			if( MCMCPar->verbose ) tprintf( "metrop ...\n" );
 			metrop( xnew, p_xnew, log_p_xnew, integrand_new, xold, p_xold, log_p_xold, integrand_old, alpha_s, Measurement, MCMCPar, option, X2, accept );
 			// How many candidate points have been accepted -- for Acceptance Rate
 			int cur_iter_accept = 0;
@@ -565,12 +563,12 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			iter_accept += cur_iter_accept;
 			if( MCMCPar->verbose > 5 )
 			{
-				cout << "X2 updated" << endl;
+				tprintf( "X2 updated\n" );
 				for( int row = 0; row < MCMCPar->seq; row++ )
 				{
 					for( int col = 0; col < MCMCPar->np3; col++ )
-						cout << " " << X2[row][col];
-					cout << endl;
+						tprintf( " %g", X2[row][col] );
+					tprintf( "\n" );
 				}
 			}
 			// if( strcmp( MCMCPar->save_in_file.c_str(), "No" ) == 0 && strcmp( MCMCPar->reduced_sample_collection.c_str(), "No" ) == 0 )
@@ -579,10 +577,10 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			{
 
 				GelmanCum( MCMCPar, R_stat, X2 );
-				printf( "Evals %6d Acceptance Rate %7.4g Accepted %4d R_stat", nEvaluations, ( double ) cur_iter_accept / MCMCPar->seq, cur_iter_accept );
+				tprintf( "Evals %6d Acceptance Rate %7.4g Accepted %4d R_stat", nEvaluations, ( double ) cur_iter_accept / MCMCPar->seq, cur_iter_accept );
 				for( int col = 0; col < MCMCPar->n; col++ )
-					printf( " %7.3g", R_stat[col] );
-				printf( "\n" );
+					tprintf( " %7.3g", R_stat[col] );
+				tprintf( "\n" );
 			}
 			*/
 			// Check whether to add to sequence or to only store current point
@@ -591,33 +589,33 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 				iloc++; // Define Sequences idx based on iloc
 				if( iloc < MCMCPar->seq_length )
 				{
-					if( MCMCPar->verbose ) cout << "Augment Sequences ..." << endl;
+					if( MCMCPar->verbose ) tprintf( "Augment Sequences ...\n" );
 					for( int i = 0; i < MCMCPar->np3; i++ )
 						for( int j = 0; j < MCMCPar->seq; j++ )
 							Sequences[j][iloc][i] = X2[j][i]; // Update the location of the chains
 					if( MCMCPar->verbose > 15 )
 					{
 						Gelman( MCMCPar, R_stat, Sequences, 0, iloc + 1 ); // this is double check the accuracy of GelmanCum()
-						printf( "FEvals %6d R_stat", nEvaluations );
+						tprintf( "FEvals %6d R_stat", nEvaluations );
 						for( int col = 0; col < MCMCPar->n; col++ )
-							printf( " %7.3g", R_stat[col] );
-						printf( "\n" );
+							tprintf( " %7.3g", R_stat[col] );
+						tprintf( "\n" );
 						for( int k = 0; k < MCMCPar->seq; k++ )
 						{
-							cout << "Sequence " << k + 1	 << endl;
+							tprintf( "Sequence %d\n", k + 1 );
 							for( int i = 0; i < MCMCPar->np3; i++ )
 							{
-								cout << "Param " << i + 1;
+								tprintf( "Param %d ", i + 1 );
 								for( int j = 0; j <= iloc; j++ )
-									cout << " " << Sequences[k][j][i];
-								cout << endl;
+									tprintf( " %g", Sequences[k][j][i] );
+								tprintf( "\n" );
 							}
 						}
 					}
 				}
 				else
 				{
-					printf( "No memory to save Sequences! Increase MCMCPar->seq_length ... \n" );
+					tprintf( "No memory to save Sequences! Increase MCMCPar->seq_length ... \n" );
 					exit( 1 );
 				}
 			}
@@ -641,7 +639,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			{
 				if( reduced_seq_teller == MCMCPar->reduced_seq_interval )
 				{
-					if( MCMCPar->verbose ) cout << "Augment Reduced Sequences ..." << endl;
+					if( MCMCPar->verbose ) tprintf( "Augment Reduced Sequences ...\n" );
 					reduced_seq_teller = 0; // reset new_teller
 					if( iloc_2 < MCMCPar->reduced_seq_length )
 						for( int i = 0; i < MCMCPar->np3; i++ )
@@ -649,7 +647,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 								Reduced_Seq[j][iloc_2][i] = X2[j][i]; // Reduced sample collection
 					else
 					{
-						printf( "No memory to save Reduced_Seq! Increase MCMCPar->reduced_seq_length ... \n" );
+						tprintf( "No memory to save Reduced_Seq! Increase MCMCPar->reduced_seq_length ... \n" );
 						exit( 1 );
 					}
 					iloc_2++; // Update iloc_2
@@ -661,7 +659,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			// Compute squared jumping distance for each CR value
 			if( MCMCPar->ppCR == PPCR_UPDATE )
 			{
-				if( MCMCPar->verbose ) cout << "Update CR ..." << endl;
+				if( MCMCPar->verbose ) tprintf( "Update CR ...\n" );
 				for( col = 0; col < MCMCPar->n; col++ )
 				{
 					// Calculate the mean of X
@@ -678,10 +676,10 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 				}
 				if( MCMCPar->verbose > 5 )
 				{
-					cout << "R ";
+					tprintf( "R\n" );
 					for( col = 0; col < MCMCPar->n; col++ )
-						cout << " " << r[col];
-					cout << endl;
+						tprintf( " %g", r[col] );
+					tprintf( "\n" );
 				}
 				// Compute the Euclidean distance between new X and old X
 				for( row = 0; row < MCMCPar->seq; row++ )
@@ -694,14 +692,14 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 					delta_normX[row] = sum;
 				}
 				// Use this information to update sum_p2 to update N_CR
-				if( MCMCPar->verbose > 3 ) cout << "CalcDelta ..." << endl;
+				if( MCMCPar->verbose > 3 ) tprintf( "CalcDelta ...\n" );
 				CalcDelta( MCMCPar, delta_normX, CRS, delta_tot );
 			}
 			// Check whether to append X to Z
 			if( ( ( gen_number + 1 ) % MCMCPar->k ) == 0 )
 			{
 				// Append X to Z
-				if( MCMCPar->verbose ) cout << "Augment Z ..." << endl;
+				if( MCMCPar->verbose ) tprintf( "Augment Z ...\n" );
 				if( MCMCPar->m + MCMCPar->seq <= MCMCPar->nzee )
 				{
 					for( row = 0; row < MCMCPar->seq; row++ )
@@ -714,18 +712,18 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 				}
 				else
 				{
-					printf( "No memory to save Zee Sequences (%d>%d) Increase MCMCPar->nzee ... \n", MCMCPar->m + MCMCPar->seq, MCMCPar->nzee );
+					tprintf( "No memory to save Zee Sequences (%d>%d) Increase MCMCPar->nzee ... \n", MCMCPar->m + MCMCPar->seq, MCMCPar->nzee );
 					exit( 1 );
 				}
 				MCMCPar->m += MCMCPar->seq; // Update MCMCPar->m
 				if( MCMCPar->verbose > 5 ) // MCMCPar->verbose > 5
 				{
-					printf( "Zee appended\n" );
+					tprintf( "Zee appended\n" );
 					for( row = 0; row < MCMCPar->m; row++ )
 					{
 						for( col = 0; col < MCMCPar->np3; col++ )
-							printf( "%g ", Zee[row][col] );
-						printf( "\n" );
+							tprintf( "%g ", Zee[row][col] );
+						tprintf( "\n" );
 					}
 				}
 			}
@@ -736,19 +734,19 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 				RMSE[row] = sqrt( X2[row][MCMCPar->n - 1] / Measurement.N );
 			*/
 		}
-		if( MCMCPar->verbose ) cout << "\nDone with MCMC steps ..." << endl;
+		if( MCMCPar->verbose ) tprintf( "\nDone with MCMC steps ...\n" );
 		if( MCMCPar->verbose > 5 )
 		{
-			cout << "Sequences after MCMC steps" << endl;
+			tprintf( "Sequences after MCMC steps\n" );
 			for( int k = 0; k < MCMCPar->seq; k++ )
 			{
-				cout << "Sequence " << k + 1	 << endl;
+				tprintf( "Sequence %d\n", k + 1 );
 				for( int i = 0; i < MCMCPar->n; i++ )
 				{
-					cout << "Param " << i + 1;
+					tprintf( "Param %d", i + 1 );
 					for( int j = 0; j <= iloc; j++ )
-						cout << " " << Sequences[k][j][i];
-					cout << endl;
+						tprintf( " %g", Sequences[k][j][i] );
+					tprintf( "\n" );
 				}
 			}
 		}
@@ -763,7 +761,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			if( MCMCPar->ppCR == PPCR_UPDATE )
 				AdaptpCR( MCMCPar, delta_tot, lCR, pCR ); // Update pCR values
 		// Generate CR values based on current pCR values
-		if( MCMCPar->verbose ) cout << "GenCR ..." << endl;
+		if( MCMCPar->verbose ) tprintf( "GenCR ...\n" );
 		GenCR( MCMCPar, lCRnew, pCR, CRS );
 		for( int col = 0; col < MCMCPar->seq; col++ )
 			lCR[0][col] += lCRnew[0][col];
@@ -777,7 +775,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			else start_loc = 0;
 			end_loc = iloc + 1; // to use < end_loc instead of <=iloc; this is the number of locations
 			// Compute the R-statistic using 50% burn-in from Sequences
-			if( MCMCPar->verbose ) cout << "Gelman Convergence Diagnostic using Full Sequences ... (" << start_loc  << "," << end_loc << ")" << endl;
+			if( MCMCPar->verbose ) tprintf( "Gelman Convergence Diagnostic using Full Sequences ... (%d,%d)\n", start_loc, end_loc );
 			Gelman( MCMCPar, R_stat, Sequences, 0, end_loc );
 			for( int col = 0; col < MCMCPar->n; col++ )
 				output.R_stat[output_teller][col] = R_stat[col];
@@ -789,7 +787,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 			else start_loc = 0;
 			end_loc = iloc_2; // to use < end_loc instead of <=iloc; this is the number of locations
 			// Compute the R-statistic using 50% burn-in from Reduced_Seq
-			if( MCMCPar->verbose ) cout << "Gelman Convergence Diagnostic using Reduced Sequences ... (" << start_loc  << "," << end_loc << ")" << endl;
+			if( MCMCPar->verbose ) tprintf( "Gelman Convergence Diagnostic using Reduced Sequences ... (%d,%d)\n", start_loc, end_loc );
 			Gelman( MCMCPar, R_stat, Reduced_Seq, start_loc, end_loc );
 			for( int col = 0; col < MCMCPar->n; col++ )
 				output.R_stat[output_teller][col] = R_stat[col];
@@ -800,10 +798,10 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		if( MCMCPar->save_in_memory || MCMCPar->reduced_sample_collection ) // If GelmanCum() only no output needed
 		{
 			// produce screen output
-			printf( "Evals %6d Acceptance Rate %7.4g Accepted %4d R_stat", output.nEval[output_teller], output.Acceptance_Rate[output_teller], iter_accept );
+			tprintf( "Evals %6d Acceptance Rate %7.4g Accepted %4d R_stat", output.nEval[output_teller], output.Acceptance_Rate[output_teller], iter_accept );
 			for( int col = 0; col < MCMCPar->n; col++ )
-				printf( " %7.3g", output.R_stat[output_teller][col] );
-			cout << " (full)" << endl;
+				tprintf( " %7.3g", output.R_stat[output_teller][col] );
+			tprintf( " (full)\n" );
 		}
 		// produce file output
 		outfile << output.nEval[output_teller];
@@ -815,11 +813,11 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		output_teller++;
 		total_accept += iter_accept;
 	}
-	//printf( "Total Accepted %5d\n", total_accept );
+	//tprintf( "Total Accepted %5d\n", total_accept );
 	outfile.close();
 }
 
-// Latin Hypercube sampling
+// Latin Hypercube sampling TODO redundant with the LHS algorithms elsewhere in MADS; consider unification
 void LHSU( Range ParRange, struct MCMC *MCMCPar, double **Zinit )
 {
 	// Declare and initialize variables
@@ -892,11 +890,11 @@ void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, str
 				else
 				{
 					//double temp2;
-					//printf("going in with x=%g\n", od->od->obs_current[i] - Measurement.MeasData[k]);
+					//tprintf("going in with x=%g\n", od->od->obs_current[i] - Measurement.MeasData[k]);
 					symmetric_astable_pdf_interp( od->od->obs_current[i] - Measurement.MeasData[k], od->od->obs_alpha[i], od->od->obs_location[i], od->od->obs_scale[i], &temp );
 					log_p[ii] += log( temp );
 					//temp2 = od->od->obs_current[i] - Measurement.MeasData[k] - od->od->obs_location[i];
-					//printf("%g=log(%g), %g, %g\n", log(temp), temp, -temp2 * temp2 / ( 4 * od->od->obs_scale[i] * od->od->obs_scale[i] ) - .5 * log( 4 * M_PI * od->od->obs_scale[i] * od->od->obs_scale[i]), -temp2 * temp2 / ( 4 * od->od->obs_scale[i] * od->od->obs_scale[i] ));
+					//tprintf("%g=log(%g), %g, %g\n", log(temp), temp, -temp2 * temp2 / ( 4 * od->od->obs_scale[i] * od->od->obs_scale[i] ) - .5 * log( 4 * M_PI * od->od->obs_scale[i] * od->od->obs_scale[i]), -temp2 * temp2 / ( 4 * od->od->obs_scale[i] * od->od->obs_scale[i] ));
 				}
 				k++;
 			}
@@ -996,10 +994,10 @@ void GenCR( struct MCMC *MCMCPar, double **lCR, double **pCR, double **CRS )
 	multrnd( nn, m, MCMCPar->nCR, lCR, Y, pCR ); // TODO why 1 ?!
 	if( MCMCPar->verbose > 5 )
 	{
-		printf( "lCR" );
+		tprintf( "lCR" );
 		for( int col = 0; col < MCMCPar->nCR; col++ )
-			printf( " %g", lCR[0][col] );
-		printf( "\n" );
+			tprintf( " %g", lCR[0][col] );
+		tprintf( "\n" );
 	}
 	for( int col = 0; col < MCMCPar->nCR; col++ )
 		L2[col] = lCR[0][col];
@@ -1007,10 +1005,10 @@ void GenCR( struct MCMC *MCMCPar, double **lCR, double **pCR, double **CRS )
 		L2[col] += L2[col - 1]; // cumsum TODO L2 not used !?
 	if( MCMCPar->verbose > 5 )
 	{
-		printf( "L2" );
+		tprintf( "L2" );
 		for( int col = 0; col < MCMCPar->nCR; col++ )
-			printf( " %g", L2[col] );
-		printf( "\n" );
+			tprintf( " %g", L2[col] );
+		tprintf( "\n" );
 	}
 	int RR[MCMCPar->seq * MCMCPar->steps];
 	int idx[MCMCPar->seq * MCMCPar->steps];
@@ -1023,10 +1021,10 @@ void GenCR( struct MCMC *MCMCPar, double **lCR, double **pCR, double **CRS )
 	}
 	if( MCMCPar->verbose > 5 )
 	{
-		printf( "RR" );
+		tprintf( "RR" );
 		for( int col = 0; col < ( MCMCPar->seq * MCMCPar->steps ); col++ )
-			printf( " %i", RR[col] );
-		printf( "\n" );
+			tprintf( " %i", RR[col] );
+		tprintf( "\n" );
 	}
 	// Define start and end
 	int i_start = 0;
@@ -1060,12 +1058,12 @@ void GenCR( struct MCMC *MCMCPar, double **lCR, double **pCR, double **CRS )
 	}
 	if( MCMCPar->verbose > 5 )
 	{
-		cout << "CR\n";
+		tprintf( "CR\n" );
 		for( int i = 0; i < MCMCPar->steps; i++ )
 		{
 			for( int j = 0; j < MCMCPar->nCR; j++ )
-				cout << " " << CRS[j][i];
-			cout << endl;
+				tprintf( " %g", CRS[j][i] );
+			tprintf( "\n" );
 		}
 	}
 }
@@ -1123,7 +1121,7 @@ void Gelman( struct MCMC *MCMCPar, double *R_stat, double ***Sequences, int star
 	int verbose;
 	verbose = MCMCPar->verbose > 5;
 	int seq_size = end_loc - start_loc;
-	if( verbose ) printf( "Gelman: size %d range %d %d\n", seq_size, start_loc, end_loc ); //MCMCPar->verbose
+	if( verbose ) tprintf( "Gelman: size %d range %d %d\n", seq_size, start_loc, end_loc ); //MCMCPar->verbose
 	if( seq_size < 2 ) // Set the R-statistic to a large value
 	{
 		for( int i = 0; i < MCMCPar->n; i++ )
@@ -1140,18 +1138,18 @@ void Gelman( struct MCMC *MCMCPar, double *R_stat, double ***Sequences, int star
 			for( i = 0; i < MCMCPar->n; i++ )
 			{
 				for( j = start_loc; j < end_loc; j++ )
-					printf( " %g", Sequences[k][j][i] );
-				printf( "\n" );
+					tprintf( " %g", Sequences[k][j][i] );
+				tprintf( "\n" );
 			}
-			printf( "\n" );
+			tprintf( "\n" );
 		}
-		printf( "\n" );
+		tprintf( "\n" );
 	}
 	double sum;
 	double **meanSeq;
 	meanSeq = double_matrix( MCMCPar->seq, MCMCPar->n );
 	// Step 1: Determine the sequence means
-	if( verbose ) cout << "mean sequence" << endl;
+	if( verbose ) tprintf( "mean sequence\n" );
 	for( k = 0; k < MCMCPar->seq; k++ )
 	{
 		for( i = 0; i < MCMCPar->n; i++ )
@@ -1159,26 +1157,26 @@ void Gelman( struct MCMC *MCMCPar, double *R_stat, double ***Sequences, int star
 			for( j = start_loc, sum = 0; j < end_loc; j++ )
 				sum += Sequences[k][j][i];
 			meanSeq[k][i] = sum / seq_size;
-			if( verbose ) cout << " " << meanSeq[k][i]; // MCMCPar->verbose
+			if( verbose ) tprintf( " %g", meanSeq[k][i] ); // MCMCPar->verbose
 		}
-		if( verbose ) cout << endl;
+		if( verbose ) tprintf( "\n" );
 	}
-	if( verbose ) cout << endl;
+	if( verbose ) tprintf( "\n" );
 	double mean[MCMCPar->n];
 	// Calculate the mean
-	if( verbose ) cout << "mean parameter" << endl;
+	if( verbose ) tprintf( "mean parameter\n" );
 	for( i = 0; i < MCMCPar->n; i++ )
 	{
 		for( k = 0, sum = 0; k < MCMCPar->seq; k++ )
 			sum += meanSeq[k][i];
 		mean[i] = sum / MCMCPar->seq;
-		if( verbose ) cout << " " << mean[i];
+		if( verbose ) tprintf( " %g", mean[i] );
 	}
-	if( verbose ) cout << endl;
+	if( verbose ) tprintf( "\n" );
 	double stdDev_loc[MCMCPar->n];
 	// Step 1: Determine the variance between the sequence means
 	double tmp;
-	if( verbose ) cout << "stddev parameter" << endl;
+	if( verbose ) tprintf( "stddev parameter\n" );
 	for( i = 0; i < MCMCPar->n; i++ )
 	{
 		for( k = 0, sum = 0; k < MCMCPar->seq; k++ )
@@ -1187,9 +1185,9 @@ void Gelman( struct MCMC *MCMCPar, double *R_stat, double ***Sequences, int star
 			sum += tmp * tmp;
 		}
 		stdDev_loc[i] = sum * seq_size / ( MCMCPar->seq - 1 );
-		if( verbose ) cout << " " << stdDev_loc[i];
+		if( verbose ) tprintf( " %g", stdDev_loc[i] );
 	}
-	if( verbose ) cout << endl;
+	if( verbose ) tprintf( "\n" );
 	// Step 2: Compute the variance of the various sequences
 	double W[MCMCPar->n];
 	double varSeq[MCMCPar->seq][MCMCPar->n];
@@ -1201,19 +1199,19 @@ void Gelman( struct MCMC *MCMCPar, double *R_stat, double ***Sequences, int star
 			{
 				tmp = Sequences[k][j][i] - meanSeq[k][i];
 				sum += tmp * tmp;
-				//				printf( "s%d %g\n ", j, sum );
+				//				tprintf( "s%d %g\n ", j, sum );
 			}
 			varSeq[k][i] = sum / ( seq_size - 1 );
 		}
 	}
 	if( verbose )
 	{
-		cout << "var sequence\n";
+		tprintf( "var sequence\n" );
 		for( k = 0; k < MCMCPar->seq; k++ )
 		{
 			for( i = 0; i < MCMCPar->n; i++ )
-				cout << varSeq[k][i] << " ";
-			cout << endl;
+				tprintf( " %g", varSeq[k][i] );
+			tprintf( "\n" );
 		}
 	}
 	// Step 3: Calculate the average of the within sequence variances
@@ -1233,10 +1231,10 @@ void Gelman( struct MCMC *MCMCPar, double *R_stat, double ***Sequences, int star
 	}
 	if( verbose )
 	{
-		cout << "R_stat " << endl;
+		tprintf( "R_stat \n" );
 		for( i = 0; i < MCMCPar->n; i++ )
-			cout << " " << R_stat[i];
-		cout << endl;
+			tprintf( " %g", R_stat[i] );
+		tprintf( "\n" );
 	}
 }
 
@@ -1252,7 +1250,7 @@ void GelmanCum( struct MCMC *MCMCPar, double *R_stat, double **X2 )
 	int i, k;
 	verbose = MCMCPar->verbose > 5;
 	cum_seq_size++;
-	if( verbose ) printf( "Gelman Cummulative: size %d\n", cum_seq_size ); //MCMCPar->verbose
+	if( verbose ) tprintf( "Gelman Cummulative: size %d\n", cum_seq_size ); //MCMCPar->verbose
 	if( cum_seq_size < 2 )
 	{
 		for( i = 0; i < MCMCPar->n; i++ )
@@ -1267,34 +1265,34 @@ void GelmanCum( struct MCMC *MCMCPar, double *R_stat, double **X2 )
 	double **meanSeq;
 	meanSeq = double_matrix( MCMCPar->seq, MCMCPar->n );
 	// Step 1: Determine the sequence means
-	if( verbose ) cout << "mean sequence" << endl;
+	if( verbose ) tprintf( "mean sequence\n" );
 	for( k = 0; k < MCMCPar->seq; k++ )
 	{
 		for( i = 0; i < MCMCPar->n; i++ )
 		{
 			meanseqsum[k][i] += X2[k][i];
 			meanSeq[k][i] = meanseqsum[k][i] / cum_seq_size;
-			if( verbose ) cout << " " << meanSeq[k][i]; // MCMCPar->verbose
+			if( verbose ) tprintf( " %g", meanSeq[k][i] ); // MCMCPar->verbose
 		}
-		if( verbose ) cout << endl;
+		if( verbose ) tprintf( "\n" );
 	}
-	if( verbose ) cout << endl;
+	if( verbose ) tprintf( "\n" );
 	double sum;
 	double mean[MCMCPar->n];
 	// Calculate the mean
-	if( verbose ) cout << "mean parameter" << endl;
+	if( verbose ) tprintf( "mean parameter\n" );
 	for( i = 0; i < MCMCPar->n; i++ )
 	{
 		for( k = 0, sum = 0; k < MCMCPar->seq; k++ )
 			sum += meanSeq[k][i];
 		mean[i] = sum / MCMCPar->seq;
-		if( verbose ) cout << " " << mean[i];
+		if( verbose ) tprintf( " %g", mean[i] );
 	}
-	if( verbose ) cout << endl;
+	if( verbose ) tprintf( "\n" );
 	double stdDev_loc[MCMCPar->n];
 	// Step 1: Determine the variance between the sequence means
 	double tmp;
-	if( verbose ) cout << "stddev parameter" << endl;
+	if( verbose ) tprintf( "stddev parameter\n" );
 	for( i = 0; i < MCMCPar->n; i++ )
 	{
 		for( k = 0, sum = 0; k < MCMCPar->seq; k++ )
@@ -1303,9 +1301,9 @@ void GelmanCum( struct MCMC *MCMCPar, double *R_stat, double **X2 )
 			sum += tmp * tmp;
 		}
 		stdDev_loc[i] = sum * cum_seq_size / ( MCMCPar->seq - 1 );
-		if( verbose ) cout << " " << stdDev_loc[i];
+		if( verbose ) tprintf( " %g", stdDev_loc[i] );
 	}
-	if( verbose ) cout << endl;
+	if( verbose ) tprintf( "\n" );
 	// Step 2: Compute the variance of the various sequences
 	double varSeq[MCMCPar->seq][MCMCPar->n];
 	for( k = 0; k < MCMCPar->seq; k++ )
@@ -1320,12 +1318,12 @@ void GelmanCum( struct MCMC *MCMCPar, double *R_stat, double **X2 )
 	}
 	if( verbose )
 	{
-		cout << "var sequence\n";
+		tprintf( "var sequence\n" );
 		for( k = 0; k < MCMCPar->seq; k++ )
 		{
 			for( i = 0; i < MCMCPar->n; i++ )
-				cout << varSeq[k][i] << " ";
-			cout << endl;
+				tprintf( " %g", varSeq[k][i] );
+			tprintf( "\n" );
 		}
 	}
 	// Step 3: Calculate the average of the within sequence variances
@@ -1346,10 +1344,10 @@ void GelmanCum( struct MCMC *MCMCPar, double *R_stat, double **X2 )
 	}
 	if( verbose )
 	{
-		cout << "R_stat " << endl;
+		tprintf( "R_stat\n" );
 		for( i = 0; i < MCMCPar->n; i++ )
-			cout << " " << R_stat[i];
-		cout << endl;
+			tprintf( " %g", R_stat[i] );
+		tprintf( "\n" );
 	}
 }
 
@@ -1412,22 +1410,22 @@ void randsample( int n, int k, int *ro, int verbose )
 		};
 		if( verbose > 15 )
 		{
-			printf( "rp\n" );
+			tprintf( "rp\n" );
 			for( i = 0; i < n; i++ )
-				printf( " %d", rp[i] );
-			printf( "\n" );
-			printf( "ro\n" );
+				tprintf( " %d", rp[i] );
+			tprintf( "\n" );
+			tprintf( "ro\n" );
 			for( i = 0; i < k; i++ )
-				printf( " %d", ro[i] );
-			printf( "\n" );
+				tprintf( " %d", ro[i] );
+			tprintf( "\n" );
 		}
 	}
 	if( verbose > 5 )
 	{
-		printf( "random sample: " );
+		tprintf( "random sample: " );
 		for( i = 0; i < k; i++ )
-			printf( " %d", ro[i] );
-		printf( "\n" );
+			tprintf( " %d", ro[i] );
+		tprintf( "\n" );
 	}
 	/* a scalar loop version
 	     x = 1:n;
@@ -1456,12 +1454,12 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 	DEStrategy( MCMCPar, DEversion );
 	if( MCMCPar->verbose > 5 )
 	{
-		printf( "DEversion offde\n" );
+		tprintf( "DEversion offde\n" );
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
 			for( int i = 0; i < MCMCPar->DEpairs; i++ )
-				printf( " %d", DEversion[row][i] );
-			printf( "\n" );
+				tprintf( " %d", DEversion[row][i] );
+			tprintf( "\n" );
 		}
 	}
 	// Generate uniform random numbers for each chain to determine which dimension to update
@@ -1478,7 +1476,7 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 			xjump[i][j] = 0;
 	if( strcmp( Update.c_str(), "Parallel_Direction_Update" ) == 0 ) // PARALLEL DIRECTION UPDATER
 	{
-		if( MCMCPar->verbose > 3 ) cout << "offde Parallel_Direction_Update" << endl;
+		if( MCMCPar->verbose > 3 ) tprintf( "offde Parallel_Direction_Update\n" );
 		// Define which points of Zoff to use to generate jumps
 		rr[0][0] = 0;
 		rr[0][1] = rr[0][0] + DEversion[0][0] - 1;
@@ -1500,16 +1498,16 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 			count = 0;
 			for( int i = 0; i < MCMCPar->n; i++ )
 			{
-				if( MCMCPar->verbose > 5 ) printf( "c %g %g\n", D[qq][i], 1 - CRS[qq][0] );
+				if( MCMCPar->verbose > 5 ) tprintf( "c %g %g\n", D[qq][i], 1 - CRS[qq][0] );
 				if( D[qq][i] > ( double ) 1 - CRS[qq][0] ) it[qq][i] = i; // TODO CRS[qq][0] does not change after the optimization is initiated; not good!
 				else                                   { it[qq][i] = MCMCPar->n; count++; } // Ignore this direction
 			}
 			if( MCMCPar->verbose > 5 )
 			{
-				printf( "it[qq] " );
+				tprintf( "it[qq] " );
 				for( int k = 0; k < MCMCPar->n; k++ )
-					printf( " %i", it[qq][k] );
-				printf( "\n" );
+					tprintf( " %i", it[qq][k] );
+				tprintf( "\n" );
 			}
 			// if( it[qq][0] == MCMCPar->n && it[qq][1] == MCMCPar->n && it[qq][2] == MCMCPar->n && it[qq][3] == MCMCPar->n && it[qq][4] == MCMCPar->n )
 			if( count == MCMCPar->n ) // If all the directions are ignored ...
@@ -1524,10 +1522,10 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 					it[qq][k] = it[qq][0];
 				if( MCMCPar->verbose > 5 )
 				{
-					printf( "it[qq] new " );
+					tprintf( "it[qq] new " );
 					for( int k = 0; k < MCMCPar->n; k++ )
-						printf( " %i", it[qq][k] );
-					printf( "\n" );
+						tprintf( " %i", it[qq][k] );
+					tprintf( "\n" );
 				}
 			}
 			// -----------------------------------------------------------------
@@ -1536,29 +1534,29 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 			// Select the appropriate JumpRate and create a jump
 			if( U < 0.8 )
 			{
-				if( MCMCPar->verbose > 5 ) cout << "offde not done ul " << qq << " / " << MCMCPar->seq << endl;
+				if( MCMCPar->verbose > 5 ) tprintf( "offde not done ul %g / %g\n", qq, MCMCPar->seq );
 				// Select the JumpRate (dependent of NrDim and number of pairs)
 				int NrDim = count - 1;
 				if( NrDim < 0 ) NrDim = 0;
 				Gamma = Table_JumpRate[NrDim][0];
 				// Produce the difference of the pairs used for population evolution
-				if( MCMCPar->verbose > 5 ) cout << "offde not done ul " << rr[qq][0] << " - " << rr[qq][3] << endl;
+				if( MCMCPar->verbose > 5 ) tprintf( "offde not done ul %g / %g\n", rr[qq][0], rr[qq][3] );
 				for( int j = 0; j < MCMCPar->n; j++ )
 					jump[j] = Zoff[rr[qq][0]][j] - Zoff[rr[qq][3]][j];
 				if( MCMCPar->verbose > 6 )
 				{
-					printf( "jump " );
+					tprintf( "jump " );
 					for( int j = 0; j < MCMCPar->n; j++ )
-						printf( " %g", jump[j] );
-					printf( "\n" );
-					printf( "Zoff[rr[qq][0]][j] " );
+						tprintf( " %g", jump[j] );
+					tprintf( "\n" );
+					tprintf( "Zoff[rr[qq][0]][j] " );
 					for( int j = 0; j < MCMCPar->n; j++ )
-						printf( " %g", Zoff[rr[qq][0]][j] );
-					printf( "\n" );
-					printf( "Zoff[rr[qq][3]][j] " );
+						tprintf( " %g", Zoff[rr[qq][0]][j] );
+					tprintf( "\n" );
+					tprintf( "Zoff[rr[qq][3]][j] " );
 					for( int j = 0; j < MCMCPar->n; j++ )
-						printf( " %g", Zoff[rr[qq][3]][j] );
-					printf( "\n" );
+						tprintf( " %g", Zoff[rr[qq][3]][j] );
+					tprintf( "\n" );
 				}
 				// Then fill update the dimension
 				for( int i = 0; i < MCMCPar->n; i++ )
@@ -1566,22 +1564,22 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 					if( it[qq][i] != MCMCPar->n ) xjump[qq][i] = Gamma * ( noise_x[qq][it[qq][i]] + 1 ) * jump[it[qq][i]];
 					else                         xjump[qq][i] = 0;
 				}
-				if( MCMCPar->verbose > 5 ) cout << "offde done ul " << qq << " / " << MCMCPar->seq << endl;
+				if( MCMCPar->verbose > 5 ) tprintf( "offde done ul %g / %g\n", qq, MCMCPar->seq );
 			}
 			else
 			{
-				if( MCMCPar->verbose > 5 ) cout << "offde not done ug " << qq << " / " << MCMCPar->seq << endl;
+				if( MCMCPar->verbose > 5 ) tprintf( "offde not done ug %g / %g\n", qq, MCMCPar->seq );
 				// Full space jump
 				Gamma = 1;
 				CRS[qq][0] = 1;
 				// Compute delta from one pair
-				if( MCMCPar->verbose > 5 ) cout << "offde not done ug " << rr[qq][0] << " - " << rr[qq][3] << endl;
+				if( MCMCPar->verbose > 5 ) tprintf( "offde not done ug %g / %g\n ", rr[qq][0], rr[qq][3] );
 				for( int j = 0; j < MCMCPar->n; j++ )
 					jump[j] = Zoff[rr[qq][0]][j] - Zoff[rr[qq][3]][j];
 				// Now jumprate to facilitate jumping from one mode to the other in all dimensions
 				for( int j = 0; j < MCMCPar->n; j++ )
 					xjump[qq][j] = Gamma * jump[j];
-				if( MCMCPar->verbose > 5 ) cout << "offde done ug " << qq << " / " << MCMCPar->seq << endl;
+				if( MCMCPar->verbose > 5 ) tprintf( "offde done ug %g / %g\n", qq, MCMCPar->seq );
 			}
 			count = 0;
 		}
@@ -1597,7 +1595,7 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 	double zP[MCMCPar->seq][MCMCPar->n];	string Update2;
 	if( strcmp( Update.c_str(), "Snooker_Update" ) == 0 ) // SNOOKER UPDATER
 	{
-		if( MCMCPar->verbose > 3 ) cout << "offde Snooker_Update" << endl;
+		if( MCMCPar->verbose > 3 ) tprintf( "offde Snooker_Update\n" );
 		// Determine the number of rows of Zoff
 		// Define rr
 		int k = 0;
@@ -1647,14 +1645,10 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 			D = max( D, 1e-300 );
 			// Orthogonally project of zR1 and zR2 onto F
 			for( int col = 0; col < MCMCPar->n; col++ )
-			{
 				zP[qq][col] = F[qq][col] * ( zR1[col] - zR2[col] * F[qq][col] ) / D;
-			}
 			// And define the jump
 			for( int i = 0; i < MCMCPar->n; i++ )
-			{
 				xjump[qq][i] = Gamma * zP[qq][i];
-			}
 			// Update CR because we only consider full dimensional updates
 			CRS[qq][1] = 1;
 		}
@@ -1662,20 +1656,16 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 	}
 	// Now propose new x
 	for( int qq = 0; qq < MCMCPar->seq; qq++ )
-	{
 		for( int j = 0; j < MCMCPar->n; j++ )
-		{
 			xnew[qq][j] = xold[qq][j] + xjump[qq][j];
-		}
-	}
 	if( MCMCPar->verbose > 5 )
 	{
-		printf( "xjump offde\n" );
+		tprintf( "xjump offde\n" );
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
 			for( int i = 0; i < MCMCPar->n; i++ )
-				printf( " %g", xjump[row][i] );
-			printf( "\n" );
+				tprintf( " %g", xjump[row][i] );
+			tprintf( "\n" );
 		}
 	}
 	// Define alpha_s
@@ -1702,40 +1692,40 @@ void offde( double **xold, double **Zoff, struct MCMC *MCMCPar, string Update, d
 			alpha_s[i] = 1;
 	if( MCMCPar->verbose > 8 )
 	{
-		printf( "xnew pre bound\n" );
+		tprintf( "xnew pre bound\n" );
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
 			for( int i = 0; i < MCMCPar->n; i++ )
-				printf( " %g", xnew[row][i] );
-			printf( "\n" );
+				tprintf( " %g", xnew[row][i] );
+			tprintf( "\n" );
 		}
 	}
 	// Do boundary handling -- what to do when points fall outside bound
 	if( MCMCPar->BoundHandling == BH_REFLECT )
 	{
-		if( MCMCPar->verbose ) cout << "ReflectBounds" << endl;
+		if( MCMCPar->verbose ) tprintf( "ReflectBounds\n" );
 		ReflectBounds( xnew, MCMCPar->seq, MCMCPar->n, ParRange );
 	}
 	else if( MCMCPar->BoundHandling == BH_BOUND )
 	{
-		if( MCMCPar->verbose ) cout << "Bound not done" << endl;
+		if( MCMCPar->verbose ) tprintf( "Bound not done\n" );
 		//           SetToBounds(xnew, MCMCPar->seq, MCMCPar->n, ParRange);
 	}
 	else if( MCMCPar->BoundHandling == BH_FOLD )
 	{
-		if( MCMCPar->verbose ) cout << "Fold not done" << endl;
+		if( MCMCPar->verbose ) tprintf( "Fold not done\n" );
 		//           FoldBounds(xnew, MCMCPar->seq, MCMCPar->n, ParRange);
 	}
 	if( MCMCPar->verbose > 8 )
 	{
-		printf( "xnew post bound\n" );
+		tprintf( "xnew post bound\n" );
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
 			for( int i = 0; i < MCMCPar->n; i++ )
-				printf( " %g", xnew[row][i] );
-			printf( "\n" );
+				tprintf( " %g", xnew[row][i] );
+			tprintf( "\n" );
 		}
-		cout << "offde done." << endl;
+		tprintf( "offde done.\n" );
 	}
 }
 
@@ -1826,7 +1816,7 @@ void metrop( double **xnew, double *p_xnew, double *log_p_x, double *integrand_n
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
 			alpha[row] = pow( p_xnew[row] / p_xold[row], alp );
-			if( MCMCPar->verbose > 5 ) printf( "alp %g %g %g\n", alpha[row], p_xnew[row], p_xold[row] );
+			if( MCMCPar->verbose > 5 ) tprintf( "alp %g %g %g\n", alpha[row], p_xnew[row], p_xold[row] );
 		}
 	}
 	if( option == 5 ) // Similar as 3 but now weighted with Measurement.Sigma
@@ -1855,10 +1845,10 @@ void metrop( double **xnew, double *p_xnew, double *log_p_x, double *integrand_n
 	// Find which alpha's are greater than Z
 	for( int row = 0; row < MCMCPar->seq; row++ )
 	{
-		if( MCMCPar->verbose > 5 ) printf( "compare %g %g\n", alpha[row], Z[row] );
+		if( MCMCPar->verbose > 5 ) tprintf( "compare %g %g\n", alpha[row], Z[row] );
 		if( alpha[row] > Z[row] )
 		{
-			if( MCMCPar->verbose > 5 ) printf( "accept sequence %d\n", row );
+			if( MCMCPar->verbose > 5 ) tprintf( "accept sequence %d\n", row );
 			// And update these chains
 			for( int i = 0; i < MCMCPar->n; i++ )
 				newgen[row][i] = xnew[row][i];
