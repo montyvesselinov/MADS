@@ -36,6 +36,7 @@ LDLIBS = -lgsl -llapack -lstdc++ -L/home/monty/local/lib -lgslcblas -lgfortran -
 endif
 ifeq ($(ND),madsmax)
 $(info Machine -- MadsMax)
+CFLAGS += -Wno-unused-result
 endif
 ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
