@@ -444,7 +444,7 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	pd = op->pd;
 	cd = op->cd;
 	pd->var_name = char_matrix( num_param, 50 );
-	pd->var_id = char_matrix( num_param, 10 );
+	pd->var_id = char_matrix( num_param, 20 );
 	for( i = 0; i < num_param; i++ )
 		pd->var_name[i][0] = pd->var_id[i][0] = 0;
 	pd->var = ( double * ) malloc( num_param * sizeof( double ) );
@@ -1497,6 +1497,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	}
 	else param_limit = pd->nParam;
 	fprintf( outfile, "Parameters:\n" );
+	fflush( outfile );
 	for( i = j = 0; i < param_limit; i++, count_param++ )
 	{
 		fprintf( outfile, "- %-8s: {", pd->var_id[count_param] );

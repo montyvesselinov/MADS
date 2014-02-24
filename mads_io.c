@@ -732,7 +732,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 			// bad_data = 1; TODO revisit this; currently the code does not check for consistency
 			// return( -1 );
 		}
-		pd->var_id = char_matrix( pd->nAnalParam , 10 );
+		pd->var_id = char_matrix( pd->nAnalParam , 20 );
 		pd->var_name = char_matrix( pd->nAnalParam , 50 );
 		for( i = 0; i < pd->nAnalParam ; i++ )
 			pd->var_id[i][0] = pd->var_name[i][0] = 0;

@@ -73,7 +73,7 @@ int set_test_problems( struct opt_data *op )
 	pd->nParam = pd->nOptParam = cd->test_func_npar;
 	pd->nFlgParam = 0;
 	pd->var_name = char_matrix( pd->nParam, 50 );
-	pd->var_id = char_matrix( pd->nParam, 10 );
+	pd->var_id = char_matrix( pd->nParam, 20 );
 	pd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_opt = ( int * ) malloc( pd->nParam * sizeof( int ) );
