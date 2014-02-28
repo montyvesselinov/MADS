@@ -1690,7 +1690,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			fprintf( out, " %g", gsl_vector_get( eigenval, j ) );
 		fprintf( out, "\n" );
 		fclose( out );
-		tprintf( "Eigen vactors and eigen values stored (%s)\n", filename );
+		tprintf( "Eigen vectors and eigen values stored (%s)\n", filename );
 		// compute performance metrics
 		copt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) ) / fabs( gsl_vector_get( eigenval, 0 ) );
 		eopt = fabs( gsl_vector_get( eigenval, op->pd->nOptParam - 1 ) );
