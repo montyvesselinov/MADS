@@ -1386,9 +1386,20 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 				}
 			}
 		}
+		if( k == 0 ) // check for executable command
+		{
+			char* const args[] = { file, NULL };
+			if( execvp( file, args ) == -1 )
+			{
+				perror( file ); // retrieve the error message
+				k = 0;
+			}
+			else
+				k = 1;
+		}
 		if( k == 0 )
 		{
-			tprintf( "ERROR: Program \'%s\' does not exist or cannot be executed!\n", file );
+			tprintf( "ERROR: Program or command \'%s\' does not exist or cannot be executed!\n", file );
 			bad_data = 1;
 		}
 		fscanf( infile, "%1000[^:]s", buf ); fscanf( infile, ": %d\n", &ed->ntpl );

@@ -1227,7 +1227,7 @@ int load_yaml_command( GNode *node, gpointer data )
 		buf[0] = 0;
 		file = &buf[0];
 		strcpy( file, ed->cmdline );
-		file = strsep( &file, " \t" );
+		file = strsep( &file, " \t;" );
 		k = 1;
 		if( access( file, X_OK ) == -1 )
 		{
@@ -1250,9 +1250,20 @@ int load_yaml_command( GNode *node, gpointer data )
 				}
 			}
 		}
+		if( k == 0 ) // check for executable command
+		{
+			char* const args[] = { file, NULL };
+			if( execvp( file, args ) == -1 )
+			{
+				perror( file ); // retrieve the error message
+				k = 0;
+			}
+			else
+				k = 1;
+		}
 		if( k == 0 )
 		{
-			tprintf( "ERROR: Program \'%s\' does not exist or cannot be executed!\n", file );
+			tprintf( "ERROR: Program or command \'%s\' does not exist or cannot be executed!\n", file );
 			bad_data = 1;
 		}
 	}
