@@ -1227,7 +1227,7 @@ int load_yaml_command( GNode *node, gpointer data )
 		buf[0] = 0;
 		file = &buf[0];
 		strcpy( file, ed->cmdline );
-		file = strsep( &file, " \t;" );
+		file = strsep( &file, " \t" );
 		k = 1;
 		if( access( file, X_OK ) == -1 )
 		{
@@ -1252,10 +1252,16 @@ int load_yaml_command( GNode *node, gpointer data )
 		}
 		if( k == 0 ) // check for executable command
 		{
-			char* const args[] = { file, NULL };
-			if( execvp( file, args ) == -1 )
+			tprintf( "Check execution command ...\n" );
+			strcpy( file, ed->cmdline );
+			file = strsep( &file, ";" );
+			int err = system( file );
+			if( err == -1 )
+				tprintf( "ERROR: System call of \'%s\' failed!\n", file );
+			else if( WEXITSTATUS( err ) == 127 )
 			{
 				perror( file ); // retrieve the error message
+				tprintf( "ERROR: The command \'%s\' cannot be executed\n", file );
 				k = 0;
 			}
 			else

@@ -1388,10 +1388,16 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		}
 		if( k == 0 ) // check for executable command
 		{
-			char* const args[] = { file, NULL };
-			if( execvp( file, args ) == -1 )
+			tprintf( "Check execution command ...\n" );
+			strcpy( file, ed->cmdline );
+			file = strsep( &file, ";" );
+			int err = system( file );
+			if( err == -1 )
+				tprintf( "ERROR: System call of \'%s\' failed!\n", file );
+			else if( WEXITSTATUS( err ) == 127 )
 			{
 				perror( file ); // retrieve the error message
+				tprintf( "ERROR: The command \'%s\' cannot be executed\n", file );
 				k = 0;
 			}
 			else
