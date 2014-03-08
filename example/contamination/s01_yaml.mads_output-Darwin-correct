@@ -181,7 +181,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20131215-103058
+Execution date & time stamp: 20140308-105452
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -266,7 +266,7 @@ Dispersivity x [L]         : -0.081  0.028  0.345  0.172 -0.332  0.092 -0.803 -0
 Dispersivity y [L]         :  0.011  0.076 -0.141 -0.016  0.581  0.286 -0.012 -0.201  0.001  0.717  0.000
 Dispersivity z [L]         :  0.018  0.056 -0.176  0.073 -0.076 -0.904 -0.005 -0.125  0.000  0.348  0.000
 Eigenvalues                :  1e-08  3e-07  1e-05  2e-05  4e-04  1e-03  3e-02  8e-01  6e+01  2e+03  4e+17
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -317,6 +317,8 @@ Pore x velocity [L/T]      :            5 stddev      27.9346 (        0.01 -   
 Dispersivity x [L]         :           70 stddev      40.9115 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :           15 stddev      133.278 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :          0.3 stddev       152.16 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
 Computed initial lambda 10
 OF 0.869272 lambda 10
 New Jacobian requested because: > OF estimate declined substantially (0.869272 << 63.7496)
@@ -397,7 +399,7 @@ Dispersivity x [L]         :  0.000 -0.079  0.025  0.353 -0.159 -0.365  0.093 -0
 Dispersivity y [L]         :  0.001  0.011  0.075 -0.138 -0.028  0.581  0.276 -0.042 -0.189  0.724  0.000
 Dispersivity z [L]         :  0.000  0.016  0.055 -0.167 -0.076 -0.069 -0.914 -0.020 -0.111  0.333  0.000
 Eigenvalues                : -3e+01  1e-08  3e-07  1e-05  3e-05  4e-04  1e-03  2e-02  9e-01  1e+03  1e+17
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -448,6 +450,8 @@ Pore x velocity [L/T]      :      5.19632 stddev     0.880522 (        0.01 -   
 Dispersivity x [L]         :      66.1008 stddev      3.15523 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      15.4336 stddev       8.2527 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.290911 stddev      4.83105 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y coordinate [L]        (-5.00372)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.0122956 lambda 3.33333
@@ -529,7 +533,7 @@ Dispersivity x [L]         : -0.078  0.025  0.355 -0.159 -0.369  0.091 -0.793 -0
 Dispersivity y [L]         :  0.011  0.075 -0.140 -0.032  0.579  0.280 -0.047 -0.192  0.001  0.721  0.000
 Dispersivity z [L]         :  0.016  0.055 -0.168 -0.075 -0.064 -0.914 -0.020 -0.111  0.000  0.334  0.000
 Eigenvalues                :  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  9e-01  3e+01  1e+03  3e+17
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -580,6 +584,8 @@ Pore x velocity [L/T]      :      5.21061 stddev     0.215567 (    0.477415 -   
 Dispersivity x [L]         :      65.2371 stddev     0.406568 (     20.2306 -      135.762)
 Dispersivity y [L]         :      15.4195 stddev      1.04323 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.288968 stddev      1.25775 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-3.32055)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00888811 lambda 1.11111
@@ -662,7 +668,7 @@ Dispersivity x [L]         : -0.077  0.023  0.357 -0.153 -0.364  0.101 -0.793 -0
 Dispersivity y [L]         :  0.010  0.075 -0.138 -0.032  0.579  0.279 -0.037 -0.188  0.000  0.725 -0.000
 Dispersivity z [L]         :  0.015  0.058 -0.172 -0.077 -0.072 -0.911 -0.029 -0.101  0.000  0.338  0.000
 Eigenvalues                :  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  6e+01  1e+03  4e+17
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -713,6 +719,8 @@ Pore x velocity [L/T]      :      5.15931 stddev    0.0874734 (     1.96598 -   
 Dispersivity x [L]         :      65.1306 stddev     0.262829 (     30.2827 -      115.816)
 Dispersivity y [L]         :      15.3273 stddev     0.621725 (     1.70473 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.288087 stddev     0.546124 (    0.103776 -     0.906262)
+Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-6.39001)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00114406 lambda 1.16208
@@ -794,7 +802,7 @@ Dispersivity x [L]         : -0.126 -0.077 -0.023  0.358 -0.152  0.372 -0.096  0
 Dispersivity y [L]         : -0.041  0.010 -0.075 -0.138 -0.033 -0.575 -0.281  0.036 -0.187  0.725 -0.000
 Dispersivity z [L]         :  0.024  0.015 -0.058 -0.173 -0.077  0.067  0.911  0.030 -0.099  0.339  0.000
 Eigenvalues                : -2e-03  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  1e+03  6e+16
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -845,6 +853,8 @@ Pore x velocity [L/T]      :      5.14865 stddev    0.0345439 (     3.53127 -   
 Dispersivity x [L]         :       65.134 stddev     0.120106 (     46.2833 -      88.0099)
 Dispersivity y [L]         :      15.3167 stddev     0.326658 (     4.70475 -      29.1645)
 Dispersivity z [L]         :     0.288001 stddev     0.154066 (    0.195729 -     0.428562)
+Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-1.13541)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00110848 lambda 0.387359
@@ -929,7 +939,7 @@ Dispersivity x [L]         :  0.121 -0.067 -0.045 -0.359 -0.150 -0.374  0.098  0
 Dispersivity y [L]         :  0.052  0.035 -0.067  0.138 -0.032  0.574  0.283  0.035 -0.187  0.726  0.000
 Dispersivity z [L]         : -0.017  0.032 -0.051  0.174 -0.078 -0.067 -0.911  0.031 -0.097  0.339  0.000
 Eigenvalues                : -1e-03  1e-07  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  2e+03  7e+18
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -980,6 +990,8 @@ Pore x velocity [L/T]      :       5.1277 stddev     0.124592 (     1.28931 -   
 Dispersivity x [L]         :      65.2359 stddev     0.173522 (     39.5666 -      98.8385)
 Dispersivity y [L]         :      15.3753 stddev     0.367836 (     4.04066 -      29.8097)
 Dispersivity z [L]         :     0.288419 stddev      1.01962 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-1.60983)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (-2.38698e-15)
 OF 0.0010751 lambda 0.280683
@@ -1064,7 +1076,7 @@ Dispersivity x [L]         :  0.000 -0.077  0.023  0.359 -0.150 -0.363  0.100 -0
 Dispersivity y [L]         : -0.000  0.011  0.075 -0.139 -0.032  0.575  0.283 -0.035 -0.188  0.725  0.000
 Dispersivity z [L]         : -0.000  0.015  0.058 -0.174 -0.078 -0.068 -0.911 -0.030 -0.097  0.339  0.000
 Eigenvalues                : -6e+01  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  2e+03  4e+17
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -1115,6 +1127,8 @@ Pore x velocity [L/T]      :      5.11701 stddev    0.0489959 (     2.99157 -   
 Dispersivity x [L]         :      65.3478 stddev     0.113868 (     47.3086 -      87.0052)
 Dispersivity y [L]         :      15.4559 stddev     0.317462 (     4.92931 -       29.033)
 Dispersivity z [L]         :      0.28902 stddev     0.148203 (    0.199118 -     0.423735)
+Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.558955)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00106897 lambda 0.372006
@@ -1199,7 +1213,7 @@ Dispersivity x [L]         :  0.000 -0.077  0.023  0.360 -0.150 -0.364  0.098 -0
 Dispersivity y [L]         : -0.000  0.011  0.075 -0.140 -0.032  0.574  0.284 -0.036 -0.189  0.725  0.000
 Dispersivity z [L]         : -0.000  0.016  0.058 -0.174 -0.078 -0.066 -0.911 -0.030 -0.097  0.340 -0.000
 Eigenvalues                : -1e+02  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  2e+03  9e+17
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -1250,6 +1264,8 @@ Pore x velocity [L/T]      :      5.10891 stddev    0.0427913 (     3.19889 -   
 Dispersivity x [L]         :      65.4347 stddev     0.118384 (     46.7521 -      88.0059)
 Dispersivity y [L]         :      15.5189 stddev     0.341523 (     4.51823 -      29.5108)
 Dispersivity z [L]         :     0.289489 stddev     0.159393 (     0.19419 -     0.436488)
+Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.439086)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00106364 lambda 0.332568
@@ -1334,7 +1350,7 @@ Dispersivity x [L]         : -0.077  0.023  0.360 -0.150 -0.364  0.098  0.793 -0
 Dispersivity y [L]         :  0.011  0.075 -0.140 -0.033  0.574  0.285  0.037 -0.190 -0.000  0.725  0.000
 Dispersivity z [L]         :  0.016  0.058 -0.174 -0.078 -0.066 -0.911  0.030 -0.097 -0.000  0.340 -0.000
 Eigenvalues                :  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  1e+02  2e+03  9e+17
-Eigen vactors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -1427,6 +1443,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sun Dec 15 10:30:58 2013
-Execution completed on Sun Dec 15 10:30:58 2013
-Execution date & time stamp: 20131215-103058
+Execution  started  on Sat Mar  8 10:54:52 2014
+Execution completed on Sat Mar  8 10:54:52 2014
+Execution date & time stamp: 20140308-105452

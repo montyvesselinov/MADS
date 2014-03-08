@@ -50,7 +50,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20131114-163956
+Execution date & time stamp: 20140308-105454
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -66,12 +66,14 @@ Eigen analysis ...
 Jacobian matrix stored (w01.jacobian)
 Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
-Eigen vactors and eigen values stored (w01.eigen)
+Eigen vectors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
 Optimized model parameters:
 k                          :            1 stddev      13.5908 (          -5 -            5) Uncertainty ranges constrained by prior bounds
 S                          :            1 stddev      29.1219 (          -5 -            5) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (w01.intermediate_results)
+Intermediate residuals stored (w01.intermediate_residuals)
 Computed initial lambda 0.00167603
 OF 79780.1 lambda 0.00167603
 OF 79781.6 lambda 0.00335207
@@ -86,12 +88,14 @@ Eigen analysis ...
 Jacobian matrix stored (w01.jacobian)
 Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
-Eigen vactors and eigen values stored (w01.eigen)
+Eigen vectors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
 Optimized model parameters:
 k                          :            1 stddev      13.5908 (          -5 -            5) Uncertainty ranges constrained by prior bounds
 S                          :            1 stddev      29.1219 (          -5 -            5) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (w01.intermediate_results)
+Intermediate residuals stored (w01.intermediate_residuals)
 Parameters did not change between last two jacobian iterations.
 OF 79757 lambda 1.71626
 OF 79781.6 lambda 3.43252
@@ -107,12 +111,14 @@ Eigen analysis ...
 Jacobian matrix stored (w01.jacobian)
 Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
-Eigen vactors and eigen values stored (w01.eigen)
+Eigen vectors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 32.2522 < 200)
 Optimized model parameters:
 k                          :      -1.0073 stddev    0.0252182 (    -1.24805 -      -0.7641)
 S                          :      -4.7429 stddev      1.29608 (          -5 -      4.80637) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (w01.intermediate_results)
+Intermediate residuals stored (w01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: S                              (5.7429)
 Parameter with minimum estimate change between jacobian iterations: k                              (2.0073)
 OF 79781.6 lambda 36.6135
@@ -127,12 +133,14 @@ Eigen analysis ...
 Jacobian matrix stored (w01.jacobian)
 Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
-Eigen vactors and eigen values stored (w01.eigen)
+Eigen vectors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 2.41192 < 200)
 Optimized model parameters:
 k                          :     -1.84872 stddev   0.00116428 (    -1.85931 -     -1.83811)
 S                          :     -3.00178 stddev    0.0109224 (    -3.08669 -     -2.91549)
+Intermediate results stored (w01.intermediate_results)
+Intermediate residuals stored (w01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: S                              (-1.74113)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.841414)
 OF 3076.62 lambda 97.636
@@ -148,12 +156,14 @@ Eigen analysis ...
 Jacobian matrix stored (w01.jacobian)
 Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
-Eigen vactors and eigen values stored (w01.eigen)
+Eigen vectors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
 Optimized model parameters:
 k                          :     -1.93197 stddev  0.000911836 (    -1.94021 -     -1.92373)
 S                          :     -2.80097 stddev   0.00719816 (    -2.85913 -     -2.74226)
+Intermediate results stored (w01.intermediate_results)
+Intermediate residuals stored (w01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.200806)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.083255)
 OF 2845.29 lambda 31.6935
@@ -169,12 +179,14 @@ Eigen analysis ...
 Jacobian matrix stored (w01.jacobian)
 Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
-Eigen vactors and eigen values stored (w01.eigen)
+Eigen vectors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
 Optimized model parameters:
 k                          :     -1.93197 stddev  0.000911836 (    -1.94021 -     -1.92373)
 S                          :     -2.80097 stddev   0.00719816 (    -2.85913 -     -2.74226)
+Intermediate results stored (w01.intermediate_results)
+Intermediate residuals stored (w01.intermediate_residuals)
 Parameters did not change between last two jacobian iterations.
 OF 2844.71 lambda 32454.1
 OF 2844.61 lambda 62642.2
@@ -189,12 +201,14 @@ Eigen analysis ...
 Jacobian matrix stored (w01.jacobian)
 Covariance matrix stored (w01.covariance)
 Correlation matrix stored (w01.correlation)
-Eigen vactors and eigen values stored (w01.eigen)
+Eigen vectors and eigen values stored (w01.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
 Optimized model parameters:
 k                          :     -1.93403 stddev  0.000909453 (    -1.94225 -     -1.92581)
 S                          :     -2.79024 stddev   0.00712231 (    -2.84788 -     -2.73205)
+Intermediate results stored (w01.intermediate_results)
+Intermediate residuals stored (w01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.0107376)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.00205928)
 OF 2844.63 lambda 137910
@@ -234,7 +248,7 @@ Eigenvectors (sorted by eigenvalues)
 k                          :  0.993  0.116
 S                          : -0.116  0.993
 Eigenvalues                :  7e-08  3e-05
-Eigen vactors and eigen values stored (w01.eigen)
+Eigen vectors and eigen values stored (w01.eigen)
 
 Number of parameters           : 2
 Number of observations         : 1441
@@ -361,6 +375,6 @@ Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 8
-Execution  started  on Thu Nov 14 16:39:56 2013
-Execution completed on Thu Nov 14 16:40:01 2013
-Execution date & time stamp: 20131114-163956
+Execution  started  on Sat Mar  8 10:54:54 2014
+Execution completed on Sat Mar  8 10:54:59 2014
+Execution date & time stamp: 20140308-105454

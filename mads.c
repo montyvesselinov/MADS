@@ -80,7 +80,6 @@ int montecarlo( struct opt_data *op );
 //
 void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op, int verbosity ); // Print final results
-void save_final_results( char *filename, struct opt_data *op, struct grid_data *gd ); // Save final results
 int sort_int( const void *x, const void *y );
 double sort_double( const void *a, const void *b );
 void multiply_obs_scale( struct opt_data *od, double factor );
@@ -118,6 +117,7 @@ FILE *Fwrite( char *filename );
 FILE *Fappend( char *filename );
 char *Fdatetime( char *filename, int debug );
 time_t Fdatetime_t( char *filename, int debug );
+int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2 );
 // External IO
 int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
@@ -600,7 +600,7 @@ int main( int argn, char *argv[] )
 		if( success == 0 ) { tprintf( "ERROR: Optimization did not start!\n" ); mads_quits( op.root ); }
 		if( cd.debug == 0 ) tprintf( "\n" );
 		print_results( &op, 1 );
-		save_final_results( "", &op, &gd );
+		save_results( 1, "", &op, &gd );
 		predict = 0;
 	}
 	if( status == 0 ) mads_quits( op.root );
@@ -856,7 +856,7 @@ int main( int argn, char *argv[] )
 						print_results( &op, 1 );
 					}
 					sprintf( filename, "%d", caseid );
-					save_final_results( filename, &op, &gd );
+					save_results( 1, filename, &op, &gd );
 				}
 				tprintf( "\n" );
 			}
@@ -1013,7 +1013,7 @@ int main( int argn, char *argv[] )
 		else    tprintf( "No calibration targets!\n" );
 		if( cd.problem_type != CREATE ) fclose( out );
 	}
-	if( predict && cd.problem_type == FORWARD ) save_final_results( "", &op, &gd );
+	if( predict && cd.problem_type == FORWARD ) save_results( 1, "", &op, &gd );
 	if( predict ) // Write phi in a separate file
 	{
 		if( od.nTObs > 0 )
@@ -2074,7 +2074,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 		}
 		fprintf( out, "\n" );
 		fflush( out );
-		if( op->success && op->cd->nreal > 1 && op->cd->save ) save_final_results( "igrnd", op, op->gd );
+		if( op->success && op->cd->nreal > 1 && op->cd->save ) save_results( 1, "igrnd", op, op->gd );
 		if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 		if( op->cd->ireal != 0 ) break;
 		if( op->success && op->cd->problem_type == INFOGAP ) break;
@@ -2172,7 +2172,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 		free( opt_params_min ); free( opt_params_max ); free( opt_params_avg );
 		if( op->cd->phi_cutoff > DBL_EPSILON || op->cd->check_success ) { free( sel_params_min ); free( sel_params_max ); free( sel_params_avg ); }
 	}
-	save_final_results( "", op, op->gd );
+	save_results( 1, "", op, op->gd );
 	if( solution_found ) return( 1 );
 	else return( 0 );
 }
@@ -2281,7 +2281,7 @@ int igpd( struct opt_data *op )
 			fflush( out );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			if( op->success && op->cd->nreal > 1 && op->cd->save )
-				save_final_results( "igpd", op, op->gd );
+				save_results( 1, "igpd", op, op->gd );
 			if( op->cd->ireal != 0 ) break;
 		}
 		if( op->pd->nFlgParam == 0 || op->pd->nOptParam == 0 ) break;
@@ -2337,7 +2337,7 @@ int igpd( struct opt_data *op )
 	fclose( out ); fclose( out2 );
 	tprintf( "Results are saved in %s.igpd.results\n", op->root );
 	free( opt_params ); free( orig_params );
-	save_final_results( "", op, op->gd );
+	save_results( 1, "", op, op->gd );
 	return( 1 );
 }
 
@@ -2486,7 +2486,7 @@ int ppsd( struct opt_data *op )
 				op->cd->calib_type = SIMPLE;
 				sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
 				save_problem( filename, op );
-				save_final_results( "ppsd", op, op->gd );
+				save_results( 1, "ppsd", op, op->gd );
 			}
 			if( op->cd->ireal != 0 ) break;
 		}
@@ -2680,7 +2680,7 @@ int montecarlo( struct opt_data *op )
 			else fprintf( out, "\n" );
 			fflush( out );
 			if( ( success_all || op->od->nTObs == 0 ) && op->cd->save )
-				save_final_results( "mcrnd", op, op->gd );
+				save_results( 1, "mcrnd", op, op->gd );
 		}
 	}
 	else // Serial job
@@ -2739,7 +2739,7 @@ int montecarlo( struct opt_data *op )
 			else fprintf( out, "\n" );
 			fflush( out );
 			if( ( success_all || op->od->nTObs == 0 ) && op->cd->save )
-				save_final_results( "mcrnd", op, op->gd );
+				save_results( 1, "mcrnd", op, op->gd );
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			if( op->cd->ireal != 0 ) break;
 		}
@@ -2767,7 +2767,7 @@ int montecarlo( struct opt_data *op )
 		else tprintf( "Number of the sequential calibration runs producing predictions below predefined OF cutoff (%g) = %d (out of %d; success ratio %g)\n", op->cd->phi_cutoff, phi_global, op->cd->nreal, ( double ) phi_global / op->cd->nreal );
 	}
 	free( opt_params );
-	save_final_results( "", op, op->gd );
+	save_results( 1, "", op, op->gd );
 	return( 1 );
 }
 
@@ -2972,36 +2972,57 @@ void print_results( struct opt_data *op, int verbosity )
 	}
 }
 
-void save_final_results( char *label, struct opt_data *op, struct grid_data *gd )
+void save_results( int final, char *label, struct opt_data *op, struct grid_data *gd )
 {
 	FILE *out, *out2;
-	int i, j, k, success, success_all;
-	double c, err, min, max, dx;
-	char filename[255], filename2[255], fileroot[255];
+	int i, k, success_all;
+	char filename[255], filename2[255], fileroot[255], buf[1000];
 	success_all = 1;
-	// Generate general filename
-	i = strlen( op->root ); // check for previous version number in the root name
-	k = -1;
-	if( label[0] == 0 && op->root[i - 4] == '-' && op->root[i - 3] == 'v' )
+	if( final )
 	{
-		sscanf( &op->root[i - 2], "%d", &k );
-		tprintf( "Current   MADS analysis version: %02d\n", k );
-		tprintf( "Following MADS analysis version: %02d\n", k + 1 );
-		strncpy( filename2, op->root, i - 4 );
-		filename2[i - 4] = 0;
+		// Generate general filename
+		i = strlen( op->root ); // check for previous version number in the root name
+		k = -1;
+		if( label[0] == 0 && op->root[i - 4] == '-' && op->root[i - 3] == 'v' )
+		{
+			sscanf( &op->root[i - 2], "%d", &k );
+			tprintf( "Current   MADS analysis version: %02d\n", k );
+			tprintf( "Following MADS analysis version: %02d\n", k + 1 );
+			strncpy( filename2, op->root, i - 4 );
+			filename2[i - 4] = 0;
+		}
 	}
 	strcpy( filename, op->root );
 	if( label[0] != 0 ) sprintf( filename, "%s.%s", filename, label );
-	if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
-	else if( op->cd->resultscase > 1 ) sprintf( filename, "%s.%d", filename, op->cd->resultscase );
+	if( final )
+	{
+		if( op->counter > 0 && op->cd->nreal > 1 ) sprintf( filename, "%s-%08d", filename, op->counter );
+		else if( op->cd->resultscase > 1 ) sprintf( filename, "%s.%d", filename, op->cd->resultscase );
+	}
 	strcpy( fileroot, filename ); // Save filename root
-	// Save MADS rerun file
-	if( k == -1 ) sprintf( filename, "%s-rerun.mads", filename );
-	else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file
-	if( op->cd->solution_type[0] != TEST ) save_problem( filename, op );
+	if( final )
+	{
+		// Save MADS rerun file
+		if( k == -1 ) sprintf( filename, "%s-rerun.mads", filename );
+		else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file
+		if( op->cd->solution_type[0] != TEST ) save_problem( filename, op );
+	}
 	// Save results file
-	strcpy( filename, fileroot );
-	strcat( filename, ".results" );
+	if( final )
+	{
+		strcpy( filename, fileroot );
+		strcat( filename, ".intermediate_results" );
+		sprintf( buf, "%s \"rm -f %s\"", SHELL, filename );
+		system( buf );
+		strcpy( filename, fileroot );
+		strcat( filename, ".results" );
+	}
+	else
+	{
+		strcpy( filename, fileroot );
+		strcat( filename, ".intermediate_results" );
+		tprintf( "Intermediate results stored (%s)\n", filename );
+	}
 	out = Fwrite( filename );
 	fprintf( out, "Model parameters:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
@@ -3033,59 +3054,23 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	{
 		fprintf( out, "\nModel predictions:\n" );
 		// Save residuals file
-		strcpy( filename, fileroot );
-		strcat( filename, ".residuals" );
-		out2 = Fwrite( filename );
-		if( op->cd->solution_type[0] == EXTERNAL )
-			for( i = 0; i < op->od->nTObs; i++ )
-			{
-				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
-				// err = op->od->res[i];
-				min = op->od->obs_min[i];
-				max = op->od->obs_max[i];
-				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { if( op->od->obs_weight[i] != 0 ) success_all = 0; success = 0; }
-				else success = 1;
-				fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
-				fprintf( out2, "%-20s:%20.15g - %20.15g = %.15g (%.15g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
-			}
+		if( final )
+		{
+			strcpy( filename, fileroot );
+			strcat( filename, ".intermediate_residuals" );
+			sprintf( buf, "%s \"rm -f %s\"", SHELL, filename );
+			system( buf );
+			strcpy( filename, fileroot );
+			strcat( filename, ".residuals" );
+		}
 		else
 		{
-			for( k = 0, i = 0; i < op->wd->nW; i++ )
-				for( j = 0; j < op->wd->nWellObs[i]; j++ )
-				{
-					min = op->wd->obs_min[i][j];
-					max = op->wd->obs_max[i][j];
-					if( op->wd->obs_weight[i][j] != 0 )
-					{
-						c = op->od->obs_current[k++];
-						if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
-						else success = 1;
-					}
-					else
-					{
-						c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
-						if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) success = 0;
-						else success = 1;
-					}
-					err = op->wd->obs_target[i][j] - c;
-					if( op->cd->objfunc_type != SSR )
-					{
-						if( op->cd->objfunc_type == SSDA )
-						{
-							err = sqrt( fabs( err ) );
-							if( c < op->wd->obs_target[i][j] ) err *= -1;
-						}
-						else err = 0; // SSD0 & SSDX
-						if( op->cd->objfunc_type == SSDX ) { dx = max - min; if( op->cd->obsdomain > DBL_EPSILON && op->cd->obsdomain < dx ) dx = op->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-						if( c < min ) err += min - c;
-						else if( c > max ) err += c - max;
-						if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
-					}
-					fprintf( out, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
-					fprintf( out2, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
-				}
+			strcpy( filename, fileroot );
+			strcat( filename, ".intermediate_residuals" );
+			tprintf( "Intermediate residuals stored (%s)\n", filename );
 		}
+		out2 = Fwrite( filename );
+		save_residuals( op, &success_all, out, out2 );
 		fclose( out2 );
 	}
 	else
@@ -3118,21 +3103,24 @@ void save_final_results( char *label, struct opt_data *op, struct grid_data *gd 
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->neval );
 	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed_init );
 	fclose( out );
-	// Save breakthrough files
-	if( gd->min_t > 0 && op->cd->solution_type[0] != TEST )
+	if( final )
 	{
-		tprintf( "\nCompute breakthrough curves at all the wells ..." );
-		sprintf( filename, "%s.btc", fileroot );
-		sprintf( filename2, "%s.btc-peak", fileroot );
-		compute_btc2( filename, filename2, op );
-		//			compute_btc( filename, &op, &gd );
-	}
-	// Save grid files (VTK)
-	if( gd->time > 0 && op->cd->solution_type[0] != TEST )
-	{
-		tprintf( "\nCompute spatial distribution of predictions at t = %g ...\n", gd->time );
-		sprintf( filename, "%s.vtk", fileroot );
-		compute_grid( filename, op->cd, gd );
+		// Save breakthrough files
+		if( gd->min_t > 0 && op->cd->solution_type[0] != TEST )
+		{
+			tprintf( "\nCompute breakthrough curves at all the wells ..." );
+			sprintf( filename, "%s.btc", fileroot );
+			sprintf( filename2, "%s.btc-peak", fileroot );
+			compute_btc2( filename, filename2, op );
+			//			compute_btc( filename, &op, &gd );
+		}
+		// Save grid files (VTK)
+		if( gd->time > 0 && op->cd->solution_type[0] != TEST )
+		{
+			tprintf( "\nCompute spatial distribution of predictions at t = %g ...\n", gd->time );
+			sprintf( filename, "%s.vtk", fileroot );
+			compute_grid( filename, op->cd, gd );
+		}
 	}
 }
 

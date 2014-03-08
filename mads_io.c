@@ -2332,3 +2332,60 @@ int set_predictions( struct opt_data *op )
 	if( bad_data ) return( 0 );
 	return( 1 );
 }
+
+int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2 )
+{
+	int i, j, k, success;
+	double c, err, dx, min, max;
+	if( op->cd->solution_type[0] == EXTERNAL )
+		for( i = 0; i < op->od->nTObs; i++ )
+		{
+			c = op->od->obs_current[i];
+			err = op->od->obs_target[i] - c;
+			// err = op->od->res[i];
+			min = op->od->obs_min[i];
+			max = op->od->obs_max[i];
+			if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { if( op->od->obs_weight[i] != 0 ) *success_all = 0; success = 0; }
+			else success = 1;
+			fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
+			fprintf( out2, "%-20s:%20.15g - %20.15g = %.15g (%.15g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
+		}
+	else
+	{
+		for( k = 0, i = 0; i < op->wd->nW; i++ )
+			for( j = 0; j < op->wd->nWellObs[i]; j++ )
+			{
+				min = op->wd->obs_min[i][j];
+				max = op->wd->obs_max[i][j];
+				if( op->wd->obs_weight[i][j] != 0 )
+				{
+					c = op->od->obs_current[k++];
+					if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { *success_all = 0; success = 0; }
+					else success = 1;
+				}
+				else
+				{
+					c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
+					if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) success = 0;
+					else success = 1;
+				}
+				err = op->wd->obs_target[i][j] - c;
+				if( op->cd->objfunc_type != SSR )
+				{
+					if( op->cd->objfunc_type == SSDA )
+					{
+						err = sqrt( fabs( err ) );
+						if( c < op->wd->obs_target[i][j] ) err *= -1;
+					}
+					else err = 0; // SSD0 & SSDX
+					if( op->cd->objfunc_type == SSDX ) { dx = max - min; if( op->cd->obsdomain > DBL_EPSILON && op->cd->obsdomain < dx ) dx = op->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
+					if( c < min ) err += min - c;
+					else if( c > max ) err += c - max;
+					if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
+				}
+				fprintf( out, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+				fprintf( out2, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );
+			}
+	}
+	return( 1 );
+}

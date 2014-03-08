@@ -114,7 +114,7 @@ int infogap_obs( struct opt_data *op )
 		}
 		if( !op->success ) break;
 		if( op->cd->debug ) print_results( op, 1 );
-		save_final_results( "infogap", op, op->gd );
+		save_results( 1, "infogap", op, op->gd );
 		op->od->obs_target[ig_index] += op->cd->obsstep;
 		if( op->cd->obsstep > DBL_EPSILON ) // max search
 		{
@@ -163,7 +163,7 @@ int infogap_obs( struct opt_data *op )
 	tprintf( "\n" );
 	free( opt_params );
 	print_results( op, 1 );
-	save_final_results( "", op, op->gd );
+	save_results( 1, "", op, op->gd );
 	return( 1 );
 }
 

@@ -518,6 +518,7 @@ int LEVMAR_DER2(
 				op->cd->lm_eigen--;
 				op->phi = p_eL2;
 				eigen( op, hx, gsl_jacobian, NULL );
+				save_results( 0, "", op, op->gd );
 				op->cd->lm_eigen++;
 			}
 		}

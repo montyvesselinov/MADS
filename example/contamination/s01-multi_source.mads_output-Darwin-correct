@@ -58,7 +58,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20131114-163955
+Execution date & time stamp: 20140308-105453
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -74,7 +74,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is not very good (chi^2/dof = 6318.62 > 200)
 Optimized model parameters:
@@ -90,6 +90,8 @@ Pore x velocity [L/T]      :            5 stddev      1777.09 (        0.01 -   
 Dispersivity x [L]         :           70 stddev      4969.74 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :           15 stddev      4514.36 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :          0.3 stddev      4454.53 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Computed initial lambda 10
 OF 15774 lambda 10
 New Jacobian requested because: > OF estimate declined substantially (15774 << 50549)
@@ -101,7 +103,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is not very good (chi^2/dof = 1971.75 > 200)
 Optimized model parameters:
@@ -117,6 +119,8 @@ Pore x velocity [L/T]      :      5.21825 stddev      1038.01 (        0.01 -   
 Dispersivity x [L]         :      65.5824 stddev      2106.22 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      14.8093 stddev      2420.14 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.281838 stddev      2051.01 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (8.13717)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 5871.2 lambda 9.46888
@@ -129,7 +133,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is not very good (chi^2/dof = 733.901 > 200)
 Optimized model parameters:
@@ -145,6 +149,8 @@ Pore x velocity [L/T]      :      5.13604 stddev      126.971 (        0.01 -   
 Dispersivity x [L]         :      64.9166 stddev      520.095 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      14.8605 stddev      426.695 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.283027 stddev      475.949 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Contaminant flux [M/T] #3      (0.081996)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 48.7932 lambda 9.31079
@@ -157,7 +163,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 6.09914 < 200)
 Optimized model parameters:
@@ -173,6 +179,8 @@ Pore x velocity [L/T]      :      5.27966 stddev      11.7077 (        0.01 -   
 Dispersivity x [L]         :      62.8373 stddev      94.5299 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :        14.48 stddev      68.7683 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.277478 stddev      83.6363 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (7.18605)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.0148728 lambda 3.1036
@@ -185,7 +193,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.0018591 < 200)
 Optimized model parameters:
@@ -201,6 +209,8 @@ Pore x velocity [L/T]      :       5.2571 stddev     0.216054 (    0.457676 -   
 Dispersivity x [L]         :       62.538 stddev     0.933966 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :       14.344 stddev     0.775678 (     1.13175 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.275119 stddev     0.877569 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-1.00263)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.000749027 lambda 1.03453
@@ -213,7 +223,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 9.36284e-05 < 200)
 Optimized model parameters:
@@ -229,6 +239,8 @@ Pore x velocity [L/T]      :      5.24304 stddev    0.0692027 (     2.41439 -   
 Dispersivity x [L]         :      62.5669 stddev     0.217503 (     32.7409 -      105.341)
 Dispersivity y [L]         :      14.3262 stddev     0.191177 (     7.18221 -      23.7767)
 Dispersivity z [L]         :     0.274522 stddev     0.199561 (    0.167722 -     0.462746)
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.363648)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.00188595 lambda 0.344844
@@ -244,7 +256,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 6.75388e-05 < 200)
 Optimized model parameters:
@@ -260,6 +272,8 @@ Pore x velocity [L/T]      :      5.23219 stddev    0.0698979 (     2.39029 -   
 Dispersivity x [L]         :      62.6627 stddev     0.744417 (     10.4382 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :       14.341 stddev     0.565666 (     1.82471 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.274893 stddev     0.729783 (         0.1 -     0.999944) Uncertainty ranges constrained by prior bounds
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.272461)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.000838213 lambda 0.458722
@@ -275,7 +289,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 6.64791e-05 < 200)
 Optimized model parameters:
@@ -291,6 +305,8 @@ Pore x velocity [L/T]      :      5.23108 stddev    0.0477675 (     3.07002 -   
 Dispersivity x [L]         :      62.6736 stddev     0.187852 (     35.8907 -      99.4954)
 Dispersivity y [L]         :      14.3431 stddev     0.152176 (     8.35359 -      21.9007)
 Dispersivity z [L]         :     0.274953 stddev     0.169994 (     0.17958 -     0.430004)
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.0276654)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.000528348 lambda 2.44652
@@ -306,7 +322,7 @@ Eigen analysis ...
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 Covariance matrix stored (example/contamination/s01-multi_source.covariance)
 Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 6.55959e-05 < 200)
 Optimized model parameters:
@@ -322,6 +338,8 @@ Pore x velocity [L/T]      :      5.22781 stddev    0.0612868 (     2.63325 -   
 Dispersivity x [L]         :      62.7063 stddev     0.355359 (     21.9156 -      129.278)
 Dispersivity y [L]         :      14.3492 stddev     0.282809 (     5.02995 -      27.5687)
 Dispersivity z [L]         :     0.275121 stddev      0.32397 (    0.131334 -     0.620703)
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.0850497)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.000520906 lambda 2.07036
@@ -411,7 +429,7 @@ Dispersivity x [L]         : -0.001 -0.080  0.050 -0.454 -0.065 -0.045 -0.379 -0
 Dispersivity y [L]         : -0.001  0.011  0.085  0.210 -0.070 -0.006  0.780 -0.451 -0.154 -0.179  0.276  0.000
 Dispersivity z [L]         : -0.001  0.015  0.063  0.245 -0.150  0.203 -0.380  0.049 -0.733 -0.317  0.296  0.000
 Eigenvalues                : -3e+02  1e-08  4e-07  2e-05  4e-05  1e-04  6e-04  3e-02  1e-01  6e+01  4e+03  2e+18
-Eigen vactors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
 
 Number of parameters           : 12
 Number of observations         : 20
@@ -525,6 +543,6 @@ Simulation time = 0 seconds
 Functional evaluations = 131
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Nov 14 16:39:55 2013
-Execution completed on Thu Nov 14 16:39:55 2013
-Execution date & time stamp: 20131114-163955
+Execution  started  on Sat Mar  8 10:54:53 2014
+Execution completed on Sat Mar  8 10:54:53 2014
+Execution date & time stamp: 20140308-105453
