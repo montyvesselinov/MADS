@@ -58,7 +58,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140308-105453
+Execution date & time stamp: 20140314-165611
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -94,6 +94,8 @@ Intermediate results stored (example/contamination/s01-multi_source.intermediate
 Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 Computed initial lambda 10
 OF 15774 lambda 10
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (15774 << 50549)
 
 Jacobian #2: Linear solves 1 Evaluations 26 OF 15774 lambda 9.46888
@@ -124,6 +126,8 @@ Intermediate residuals stored (example/contamination/s01-multi_source.intermedia
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (8.13717)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 5871.2 lambda 9.46888
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (5871.2 << 15774)
 
 Jacobian #3: Linear solves 2 Evaluations 39 OF 5871.2 lambda 9.31079
@@ -154,6 +158,8 @@ Intermediate residuals stored (example/contamination/s01-multi_source.intermedia
 Parameter with maximum estimate change between jacobian iterations: Contaminant flux [M/T] #3      (0.081996)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 48.7932 lambda 9.31079
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (48.7932 << 5871.2)
 
 Jacobian #4: Linear solves 3 Evaluations 52 OF 48.7932 lambda 3.1036
@@ -184,6 +190,8 @@ Intermediate residuals stored (example/contamination/s01-multi_source.intermedia
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (7.18605)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.0148728 lambda 3.1036
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.0148728 << 48.7932)
 
 Jacobian #5: Linear solves 4 Evaluations 65 OF 0.0148728 lambda 1.03453
@@ -214,6 +222,8 @@ Intermediate residuals stored (example/contamination/s01-multi_source.intermedia
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-1.00263)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.000749027 lambda 1.03453
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.000749027 << 0.0148728)
 
 Jacobian #6: Linear solves 5 Evaluations 78 OF 0.000749027 lambda 0.344844
@@ -244,9 +254,17 @@ Intermediate residuals stored (example/contamination/s01-multi_source.intermedia
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.363648)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.00188595 lambda 0.344844
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000631347 lambda 0.689688
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.0008821 lambda 0.688083
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000540311 lambda 1.37617
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #7: Linear solves 9 Evaluations 94 OF 0.000540311 lambda 0.458722
@@ -277,9 +295,17 @@ Intermediate residuals stored (example/contamination/s01-multi_source.intermedia
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.272461)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.000838213 lambda 0.458722
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000546027 lambda 0.917444
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000531833 lambda 3.66978
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000536384 lambda 1.22326
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #8: Linear solves 13 Evaluations 110 OF 0.000531833 lambda 2.44652
@@ -310,9 +336,17 @@ Intermediate residuals stored (example/contamination/s01-multi_source.intermedia
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.0276654)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.000528348 lambda 2.44652
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.00053283 lambda 1.30439
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000524767 lambda 2.60879
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000539195 lambda 1.03518
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #9: Linear solves 17 Evaluations 126 OF 0.000524767 lambda 2.07036
@@ -343,9 +377,17 @@ Intermediate residuals stored (example/contamination/s01-multi_source.intermedia
 Parameter with maximum estimate change between jacobian iterations: Source x coordinate [L] #1     (-0.0850497)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T] #1              (0)
 OF 0.000520906 lambda 2.07036
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000522926 lambda 1.42509
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000517374 lambda 2.85018
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 OF 0.000534094 lambda 0.950059
+Intermediate results stored (example/contamination/s01-multi_source.intermediate_results)
+Intermediate residuals stored (example/contamination/s01-multi_source.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 
@@ -543,6 +585,6 @@ Simulation time = 0 seconds
 Functional evaluations = 131
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sat Mar  8 10:54:53 2014
-Execution completed on Sat Mar  8 10:54:53 2014
-Execution date & time stamp: 20140308-105453
+Execution  started  on Fri Mar 14 16:56:11 2014
+Execution completed on Fri Mar 14 16:56:11 2014
+Execution date & time stamp: 20140314-165611

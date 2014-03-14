@@ -795,6 +795,11 @@ int LEVMAR_DER2(
 				for( i = 0 ; i < m; i++ ) /* update p's estimate */
 					p_old[i] = pDp[i];
 			}
+			DeTransform( pDp, op, jac_min );
+			for( i = 0; i < op->pd->nOptParam; i++ )
+				op->pd->var[op->pd->var_index[i]] = jac_min[i];
+			op->phi = pDp_eL2;
+			save_results( 0, "", op, op->gd );
 			phi2[phi2c++] = pDp_eL2;
 			if( phi2c > op->cd->lm_nlamof )
 			{
