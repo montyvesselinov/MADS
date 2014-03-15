@@ -517,7 +517,7 @@ int main( int argn, char *argv[] )
 			sprintf( filename, "%s.results", op.root ); if( Ftest( filename ) != 0 ) tprintf( "MADS results file \'%40s\' last modified on %s\n", filename, Fdatetime( filename, 0 ) );
 			tprintf( "MADS restart file \'%40s\' last modified on %s\n", cd.restart_zip_file, Fdatetime( cd.restart_zip_file, 0 ) );
 			tprintf( "ZIP file (%s) with restart information is unzipped ... \n", cd.restart_zip_file );
-			sprintf( buf, "%s \"rm -fR ../%s* %s.restart_info; unzip -o -u -: %s >& /dev/null\"", SHELL, cd.mydir_hosts, op.root, cd.restart_zip_file ); // the input file name was temporarily in buf; not any more ...
+			sprintf( buf, "%s \"( set nonomatch; rm -fR ../%s* %s.restart_info; unzip -o -u -: %s ) >& /dev/null\"", SHELL, cd.mydir_hosts, op.root, cd.restart_zip_file ); // the input file name was temporarily in buf; not any more ...
 			system( buf );
 			sprintf( filename, "%s.restart_info", op.root );
 			in = Fread( filename );
@@ -1059,7 +1059,7 @@ int main( int argn, char *argv[] )
 	ptr_ts = localtime( &time_end );
 	tprintf( "Execution completed on %s", asctime( ptr_ts ) );
 	tprintf( "Execution date & time stamp: %s\n", op.datetime_stamp );
-	sprintf( buf, "rm -f %s.running", op.root ); system( buf );
+	sprintf( buf, "%s \"rm -f %s.running\"", SHELL, op.root ); system( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
 	free( cd.solution_id );
 	free( cd.solution_type );
@@ -3139,6 +3139,6 @@ void mads_quits( char *root )
 	char buf[100];
 	buf[0] = 0;
 	tprintf( "MADS Quits!\n" );
-	sprintf( buf, "rm -f %s.running", root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+	sprintf( buf, "%s \"rm -f %s.running\"", SHELL, root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 	exit( 1 );
 }
