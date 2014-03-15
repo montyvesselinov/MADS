@@ -454,6 +454,8 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	pd->var_dx = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->var_min = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->var_max = ( double * ) malloc( num_param * sizeof( double ) );
+	pd->var_init_min = ( double * ) malloc( num_param * sizeof( double ) );
+	pd->var_init_max = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->var_range = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->param_expressions_index = ( int * ) malloc( num_param * sizeof( int ) );
 	pd->param_expression = ( void ** ) malloc( num_param * sizeof( void * ) );
@@ -554,7 +556,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			strcpy( pd->var_id[index], node_par->data );
 		}
 		expvar_count = 0;
-		pd->var_min[index] = -HUGE_VAL; pd->var_max[index] = HUGE_VAL; pd->var[index] = 0; pd->var_opt[index] = 1; pd->var_log[index] = 0;
+		pd->var_init_min[index] = pd->var_min[index] = -HUGE_VAL; pd->var_init_max[index] = pd->var_max[index] = HUGE_VAL; pd->var[index] = 0; pd->var_opt[index] = 1; pd->var_log[index] = 0;
 		for( k = 0; k < g_node_n_children( node_par ); k++ )  // Number of parameter arguments
 		{
 			node_key = g_node_nth_child( node_par, k );
@@ -569,8 +571,10 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			}
 			if( !strcasecmp( ( char * ) node_key->data, "init" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "step" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_dx[index] );
-			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_min[index] );
-			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_max[index] );
+			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) { sscanf( ( char * ) node_value->data, "%lf", &pd->var_min[index] ); pd->var_init_min[index] = pd->var_min[index]; }
+			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) { sscanf( ( char * ) node_value->data, "%lf", &pd->var_max[index] ); pd->var_init_max[index] = pd->var_max[index]; }
+			if( !strcasecmp( ( char * ) node_key->data, "init_min" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_init_min[index] );
+			if( !strcasecmp( ( char * ) node_key->data, "init_max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_init_max[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "exp" ) )
 			{
 				pd->var_opt[index] = pd->var_log[index] = 0;
@@ -656,6 +660,8 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 				pd->var[index] = log10( pd->var[index] );
 				pd->var_min[index] = log10( pd->var_min[index] );
 				pd->var_max[index] = log10( pd->var_max[index] );
+				pd->var_init_min[index] = log10( pd->var_init_min[index] );
+				pd->var_init_max[index] = log10( pd->var_init_max[index] );
 				if( pd->var_dx[index] < 2 ) pd->var_dx[index] = ( pd->var_max[index] - pd->var_min[index] ) / d;
 				else pd->var_dx[index] = log10( pd->var_dx[index] );
 			}

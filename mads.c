@@ -1254,7 +1254,7 @@ int optimize_lm( struct opt_data *op )
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					k = op->pd->var_index[i];
-					opt_params[i] = var_lhs[i + count_set * nParam] * op->pd->var_range[k] + op->pd->var_min[k];
+					opt_params[i] = var_lhs[i + count_set * nParam] * ( op->pd->var_init_max[k] - op->pd->var_init_min[k] ) + op->pd->var_init_min[k];
 					if( debug > 1 )
 					{
 						if( op->pd->var_log[k] ) tprintf( "%s %.15g\n", op->pd->var_name[k], pow( 10, opt_params[i] ) );
@@ -1929,7 +1929,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 			for( k = i = 0; i < op->pd->nParam; i++ )
 				if( op->pd->var_opt[i] == 2 || ( op->pd->var_opt[i] == 1 && op->pd->nFlgParam == 0 ) )
 				{
-					v = var_lhs[k + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
+					v = var_lhs[k + count * npar] * ( op->pd->var_init_max[i] - op->pd->var_init_min[i] ) + op->pd->var_init_min[i];
 					if( op->pd->var_log[i] == 0 ) fprintf( out, "%.15g ", v );
 					else fprintf( out, "%.15g ", pow( 10, v ) );
 					k++;
@@ -1972,7 +1972,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 		for( k = i = 0; i < op->pd->nParam; i++ )
 			if( op->pd->var_opt[i] == 2 || ( op->pd->var_opt[i] == 1 && op->pd->nFlgParam == 0 ) )
 			{
-				op->pd->var[i] = var_lhs[k + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
+				op->pd->var[i] = var_lhs[k + count * npar] * ( op->pd->var_init_max[i] - op->pd->var_init_min[i] ) + op->pd->var_init_min[i];
 				if( op->pd->var_log[i] )
 				{
 					if( op->cd->mdebug || op->cd->nreal == 1 ) tprintf( "%s %.15g\n", op->pd->var_name[i], pow( 10, op->pd->var[i] ) );
@@ -2008,7 +2008,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 		else
 		{
 			for( i = 0; i < op->pd->nParam; i++ )
-				op->pd->var[i] = var_lhs[i + count * npar] * op->pd->var_range[i] + op->pd->var_min[i];
+				op->pd->var[i] = var_lhs[i + count * npar] * ( op->pd->var_init_max[i] - op->pd->var_init_min[i] ) + op->pd->var_init_min[i];
 			if( op->cd->mdebug ) { tprintf( "Forward run ... \n" ); debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 			func_global( op->pd->var, op, op->od->res ); // op->pd->var is a dummy variable because op->pd->nOptParam == 0
 			if( op->cd->mdebug ) op->cd->fdebug = debug_level;

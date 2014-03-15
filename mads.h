@@ -203,6 +203,8 @@ struct param_data // data structure for model parameters
 	double *var_dx; // parameter increase/decrease step (discretization/derivatives)
 	double *var_min; // parameter min value
 	double *var_max; // parameter max value
+	double *var_init_min; // parameter min value for initialization
+	double *var_init_max; // parameter max value for initialization
 	double *var_range; // parameter range: range = max - min
 	double *var_current; // parameter value (current)
 	double *var_best; // parameter value (current best)

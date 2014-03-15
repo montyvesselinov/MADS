@@ -8,6 +8,8 @@ Debug/*
 .cproject
 *.exe
 *.results
+*.intermediate_residuals
+*.intermediate_results
 *-rerun.mads
 *-error.mads
 *-truth.mads

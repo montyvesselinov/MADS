@@ -184,8 +184,12 @@ void init_params( struct opt_data *op )
 	pd->var_opt[k + TSCALE_DISP] = 0; pd->var_opt[k + TSCALE_ADV] = 0; pd->var_opt[k + TSCALE_REACT] = 0;
 	pd->var_log[k + TSCALE_DISP] = 0; pd->var_log[k + TSCALE_ADV] = 0; pd->var_log[k + TSCALE_REACT] = 0;
 	pd->var_dx[k + TSCALE_DISP] = 0.1; pd->var_dx[k + TSCALE_ADV] = 0.1; pd->var_dx[k + TSCALE_REACT] = 0.1;
-	pd->var_min[k + TSCALE_DISP] = 0.1; pd->var_min[k + TSCALE_ADV] = 0.1; pd->var_min[k + TSCALE_REACT] = 0.1;
-	pd->var_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_ADV] = 10; pd->var_max[k + TSCALE_REACT] = 10;
+	pd->var_init_min[k + TSCALE_DISP] = pd->var_min[k + TSCALE_DISP] = 0.1;
+	pd->var_init_min[k + TSCALE_ADV] = pd->var_min[k + TSCALE_ADV] = 0.1;
+	pd->var_init_min[k + TSCALE_REACT] = pd->var_min[k + TSCALE_REACT] = 0.1;
+	pd->var_init_max[k + TSCALE_DISP] = 10; pd->var_max[k + TSCALE_DISP] = 10;
+	pd->var_init_max[k + TSCALE_ADV] =  pd->var_max[k + TSCALE_ADV] = 10;
+	pd->var_init_max[k + TSCALE_REACT] = pd->var_max[k + TSCALE_REACT] = 10;
 	cd->var[k + ALPHA] = pd->var[k + ALPHA] = 2.;
 	cd->var[k + BETA] = pd->var[k + BETA] = 0.;
 	cd->var[k + NLC0] = pd->var[k + NLC0] = 0.;
@@ -193,8 +197,14 @@ void init_params( struct opt_data *op )
 	pd->var_opt[k + ALPHA] = 0; pd->var_opt[k + BETA] = 0; pd->var_opt[k + NLC0] = 0; pd->var_opt[k + NLC1] = 0;
 	pd->var_log[k + ALPHA] = 0; pd->var_log[k + BETA] = 0; pd->var_log[k + NLC0] = 0; pd->var_log[k + NLC1] = 0;
 	pd->var_dx[k + ALPHA] = 0.1; pd->var_dx[k + BETA] = 0.1; pd->var_dx[k + NLC0] = 0.1; pd->var_dx[k + NLC1] = 1.;
-	pd->var_min[k + ALPHA] = 1.1; pd->var_min[k + BETA] = -1.; pd->var_min[k + NLC0] = -1.; pd->var_min[k + NLC1] = 0.1;
-	pd->var_max[k + ALPHA] = 2; pd->var_max[k + BETA] = 1.; pd->var_max[k + NLC0] = 1.; pd->var_max[k + NLC1] = 10.;
+	pd->var_init_min[k + ALPHA] = pd->var_min[k + ALPHA] = 1.1;
+	pd->var_init_min[k + BETA] = pd->var_min[k + BETA] = -1.;
+	pd->var_init_min[k + NLC0] = pd->var_min[k + NLC0] = -1.;
+	pd->var_init_min[k + NLC1] = pd->var_min[k + NLC1] = 0.1;
+	pd->var_init_max[k + ALPHA] = pd->var_max[k + ALPHA] = 2;
+	pd->var_init_max[k + BETA] = pd->var_max[k + BETA] = 1.;
+	pd->var_init_max[k + NLC0] = pd->var_max[k + NLC0] = 1.;
+	pd->var_init_max[k + NLC1] = pd->var_max[k + NLC1] = 10.;
 }
 
 int parse_cmd_init( int argn, char *argv[], struct calc_data *cd )
@@ -743,6 +753,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		pd->var_dx = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->var_min = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->var_max = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
+		pd->var_init_min = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
+		pd->var_init_max = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->var_range = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->param_expressions_index = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
 		pd->param_expression = ( void ** ) malloc( pd->nAnalParam  * sizeof( void * ) );
@@ -759,6 +771,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		pd->var_dx = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		pd->var_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		pd->var_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
+		pd->var_init_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
+		pd->var_init_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		pd->param_expressions_index = ( int * ) malloc( pd->nParam * sizeof( int ) );
 		pd->param_expression = ( void ** ) malloc( pd->nParam * sizeof( void * ) );
@@ -781,6 +795,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 				bad_data = 1;
 				return( -1 );
 			}
+			pd->var_init_min[i] = pd->var_min[i];
+			pd->var_init_max[i] = pd->var_max[i];
 			cd->var[i] = pd->var[i];
 			if( cd->debug ) tprintf( "init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[i], pd->var_opt[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 			if( pd->var_opt[i] == 1 ) pd->nOptParam++;
@@ -820,6 +836,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 					pd->var[i] = log10( pd->var[i] );
 					pd->var_min[i] = log10( pd->var_min[i] );
 					pd->var_max[i] = log10( pd->var_max[i] );
+					pd->var_init_min[i] = log10( pd->var_init_min[i] );
+					pd->var_init_max[i] = log10( pd->var_init_max[i] );
 					if( pd->var_dx[i] < 2 ) pd->var_dx[i] = ( pd->var_max[i] - pd->var_min[i] ) / d;
 					else pd->var_dx[i] = log10( pd->var_dx[i] );
 				}

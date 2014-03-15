@@ -81,6 +81,8 @@ int set_test_problems( struct opt_data *op )
 	pd->var_dx = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_init_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
+	pd->var_init_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
 	pd->var_index = ( int * ) malloc( pd->nOptParam * sizeof( int ) );
 	pd->var_current = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
@@ -91,7 +93,7 @@ int set_test_problems( struct opt_data *op )
 		sprintf( pd->var_name[d], "Parameter #%d", d + 1 );
 		sprintf( pd->var_id[d], "p%d", d + 1 );
 		pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0;
-		pd->var_max[d] = cd->pardomain; pd->var_min[d] = -pd->var_max[d]; pd->var_log[d] = 0; pd->var_opt[d] = 1;
+		pd->var_max[d] = cd->pardomain; pd->var_min[d] = -cd->pardomain; pd->var_log[d] = 0; pd->var_opt[d] = 1;
 		pd->var_dx[d] = cd->pardx;
 		pd->var_range[d] = pd->var_max[d] - pd->var_min[d];
 		pd->var_index[d] = d;
@@ -354,6 +356,11 @@ int set_test_problems( struct opt_data *op )
 									+ pd->var_truth[3] * exp( -( dx - pd->var_truth[10] ) * ( dx - pd->var_truth[10] ) * pd->var_truth[7] );
 			}
 			break;
+	}
+	for( d = 0; d < pd->nOptParam; d++ )
+	{
+		pd->var_init_min[d] = pd->var_min[d];
+		pd->var_init_max[d] = pd->var_max[d];
 	}
 	if( od->nTObs > 0 )
 	{
