@@ -285,6 +285,7 @@ int mprun( int nJob, void *data )
 			if( cJob > nJob ) continue;
 			if( ( return_fork = fork() ) == 0 )
 			{
+				sleep( 1 );
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
