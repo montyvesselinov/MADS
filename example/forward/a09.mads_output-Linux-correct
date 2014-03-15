@@ -52,7 +52,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140109-133210
+Execution date & time stamp: 20140315-161958
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -106,9 +106,9 @@ W-14b     (  50):          30 -      37.9497 =     -7.94972 (    -7.94972) succe
 W-14c     (  50):          10 -      190.529 =     -180.529 (          -0) success 1 range            0 -           20
 Objective function: 63.7497 Success: 1
 All the predictions are within acceptable ranges!
-Simulation time = 1.53333 minutes
+Simulation time = 1.35 minutes
 Functional evaluations = 1
 Functional evaluations per day = 0
-Execution  started  on Thu Jan  9 13:32:10 2014
-Execution completed on Thu Jan  9 13:33:42 2014
-Execution date & time stamp: 20140109-133210
+Execution  started  on Sat Mar 15 16:19:58 2014
+Execution completed on Sat Mar 15 16:21:19 2014
+Execution date & time stamp: 20140315-161958
