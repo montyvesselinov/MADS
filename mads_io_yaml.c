@@ -571,8 +571,8 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			}
 			if( !strcasecmp( ( char * ) node_key->data, "init" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "step" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_dx[index] );
-			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) { sscanf( ( char * ) node_value->data, "%lf", &pd->var_min[index] ); pd->var_init_min[index] = pd->var_min[index]; }
-			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) { sscanf( ( char * ) node_value->data, "%lf", &pd->var_max[index] ); pd->var_init_max[index] = pd->var_max[index]; }
+			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_min[index] );
+			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_max[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "init_min" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_init_min[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "init_max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_init_max[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "exp" ) )
@@ -588,6 +588,8 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 #endif
 			}
 		}
+		if( ( pd->var_init_min[index] - pd->var_min[index] ) > COMPARE_EPSILON ) pd->var_init_min[index] = pd->var_min[index];
+		if( ( pd->var_init_max[index] - pd->var_max[index] ) > COMPARE_EPSILON ) pd->var_init_max[index] = pd->var_max[index];
 		if( expvar_count > 0 )
 		{
 			pd->var_opt[index] = -1;
