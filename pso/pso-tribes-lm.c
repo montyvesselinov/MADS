@@ -1087,19 +1087,12 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 				}
 			}
 			break;
-		case 2: // On the corners
-			for( k = 0; k < ( *pb ).D; k++ )
-			{
-				if( random_double( 0, 1 ) < 0.5 )( *P ).x.x[k] = ( *pb ).init_min[k];
-				else( *P ).x.x[k] = ( *pb ).init_max[k];
-			}
-			break;
 		case 3: // Biggest empty hyper-parallelepiped (Binary Search)
 			// TODO: TO TRY for multi-objective, one may use the archive instead of (*S) as the list of known positions
 			for( k = 0; k < ( *pb ).D; k++ )
 			{
-				sort_vec[0] = ( *pb ).init_min[k]; // List of known coordinates
-				sort_vec[1] = ( *pb ).init_max[k]; // List of known coordinates
+				sort_vec[0] = ( *pb ).min[k]; // List of known coordinates
+				sort_vec[1] = ( *pb ).max[k]; // List of known coordinates
 				count = 2;
 				// tprintf( "swarm size %d:", ( *S ).size);
 				for( it = 0; it < ( *S ).size; it++ )
@@ -1154,6 +1147,20 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 					}
 				if( count > 1 ) mean /= count;
 				( *P ).x.x[k] = mean;
+			}
+			break;
+		case 2: // On the initialization range corners
+			for( k = 0; k < ( *pb ).D; k++ )
+			{
+				if( random_double( 0, 1 ) < 0.5 )( *P ).x.x[k] = ( *pb ).init_min[k];
+				else( *P ).x.x[k] = ( *pb ).init_max[k];
+			}
+			break;
+		case 7: // On the parameter range corners //TODO add
+			for( k = 0; k < ( *pb ).D; k++ )
+			{
+				if( random_double( 0, 1 ) < 0.5 )( *P ).x.x[k] = ( *pb ).min[k];
+				else( *P ).x.x[k] = ( *pb ).max[k];
 			}
 			break;
 	}
