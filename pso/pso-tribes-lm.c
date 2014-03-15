@@ -477,41 +477,52 @@ void position_eval( struct problem *pb, struct position *pos )
 void problem_init( struct opt_data *op, struct problem *pb )
 {
 	int d;
-	double *opt_var, *tr_var;
 	( *pb ).D = op->pd->nOptParam;
-	if( ( opt_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
-	if( ( tr_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root );}
 	if( ( pb->ival = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	if( ( pb->min = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	if( ( pb->max = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( pb->init_min = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+	if( ( pb->init_max = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	if( ( pb->dx = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	if( ( pb->valSize = ( int * ) malloc( ( *pb ).D * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	if( ( pb->objective = ( double * ) malloc( MAXPHI * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	if( ( pb->code = ( int * ) malloc( MAXPHI * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	pb->val = double_matrix( ( *pb ).D, MAXVALUES );
 	set_objfunc( pb, &pb->maxError );
-	for( d = 0; d < ( *pb ).D; d++ )
-		opt_var[d] = op->pd->var[ op->pd->var_index[d] ];
-	Transform( opt_var, op, tr_var );
 	// op->cd->fdebug = 10; func_global( tr_var, op, op->od->res ); op->cd->fdebug = 0;
-	if( op->cd->sintrans == 0 )
-		for( d = 0; d < ( *pb ).D; d++ ) // typically used for test problems
+	if( op->cd->sintrans == 0 ) // typically used for test problems
+		for( d = 0; d < ( *pb ).D; d++ )
 		{
-			( *pb ).ival[d] = tr_var[d];
+			( *pb ).ival[d] = op->pd->var[ op->pd->var_index[d] ];
 			( *pb ).min[d] = op->pd->var_min[op->pd->var_index[d]];
 			( *pb ).max[d] = op->pd->var_max[op->pd->var_index[d]];
+			( *pb ).init_min[d] = op->pd->var_min[op->pd->var_index[d]];
+			( *pb ).init_max[d] = op->pd->var_max[op->pd->var_index[d]];
 			( *pb ).dx[d] = op->pd->var_dx[op->pd->var_index[d]]; // defines discretization
 			( *pb ).valSize[d] = 0;
 		}
-	else
-		for( d = 0; d < ( *pb ).D; d++ ) // typically used for actual problems
+	else // typically used for actual problems
+	{
+		double *opt_var;
+		if( ( opt_var = ( double * ) malloc( ( *pb ).D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
+		for( d = 0; d < ( *pb ).D; d++ )
+			opt_var[d] = op->pd->var[ op->pd->var_index[d] ];
+		Transform( opt_var, op, pb->ival );
+		for( d = 0; d < ( *pb ).D; d++ )
+			opt_var[d] = op->pd->var_init_min[ op->pd->var_index[d] ];
+		Transform( opt_var, op, pb->init_min );
+		for( d = 0; d < ( *pb ).D; d++ )
+			opt_var[d] = op->pd->var_init_max[ op->pd->var_index[d] ];
+		Transform( opt_var, op, pb->init_max );
+		for( d = 0; d < ( *pb ).D; d++ )
 		{
-			( *pb ).ival[d] = tr_var[d];
 			( *pb ).min[d] = -M_PI / 2;
 			( *pb ).max[d] = M_PI / 2;
 			( *pb ).dx[d] = 0; // defines discretization
 			( *pb ).valSize[d] = 0;
 		}
+		free( opt_var );
+	}
 	if( ( *pb ).nPhi > MAXPHI - 1 )
 	{
 		tprintf( "ERROR: Too many multi-objective functions: %i (max %i) \n", ( *pb ).nPhi, MAXPHI );
@@ -532,7 +543,6 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	}
 	debug_level = op->cd->pdebug;
 	multiObj = FALSE;
-	free( opt_var ); free( tr_var );
 }
 
 double random_double( double a, double b )
@@ -1060,7 +1070,7 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 		default:
 		case 0: // Random position
 			for( k = 0; k < ( *pb ).D; k++ )
-				( *P ).x.x[k] = random_double( ( *pb ).min[k], ( *pb ).max[k] );
+				( *P ).x.x[k] = random_double( ( *pb ).init_min[k], ( *pb ).init_max[k] );
 			break;
 		case 1: // Guided
 			for( k = 0; k < ( *pb ).D; k++ )
@@ -1080,16 +1090,16 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 		case 2: // On the corners
 			for( k = 0; k < ( *pb ).D; k++ )
 			{
-				if( random_double( 0, 1 ) < 0.5 )( *P ).x.x[k] = ( *pb ).min[k];
-				else( *P ).x.x[k] = ( *pb ).max[k];
+				if( random_double( 0, 1 ) < 0.5 )( *P ).x.x[k] = ( *pb ).init_min[k];
+				else( *P ).x.x[k] = ( *pb ).init_max[k];
 			}
 			break;
 		case 3: // Biggest empty hyper-parallelepiped (Binary Search)
 			// TODO: TO TRY for multi-objective, one may use the archive instead of (*S) as the list of known positions
 			for( k = 0; k < ( *pb ).D; k++ )
 			{
-				sort_vec[0] = ( *pb ).min[k]; // List of known coordinates
-				sort_vec[1] = ( *pb ).max[k]; // List of known coordinates
+				sort_vec[0] = ( *pb ).init_min[k]; // List of known coordinates
+				sort_vec[1] = ( *pb ).init_max[k]; // List of known coordinates
 				count = 2;
 				// tprintf( "swarm size %d:", ( *S ).size);
 				for( it = 0; it < ( *S ).size; it++ )
@@ -1117,8 +1127,8 @@ void particle_init( struct problem *pb, int initOption, struct position *guide1,
 		case 4: // Centered in the model domain EXPERIMENT NOT USED AT THE MOMENT
 			for( k = 0; k < ( *pb ).D; k++ )
 			{
-				mean = random_double( ( *pb ).min[k], ( *pb ).max[k] );
-				range = ( 1. / 3 ) * maxXY( ( *pb ).max[k] - mean, mean - ( *pb ).min[k] );
+				mean = random_double( ( *pb ).init_min[k], ( *pb ).init_max[k] );
+				range = ( 1. / 3 ) * maxXY( ( *pb ).init_max[k] - mean, mean - ( *pb ).init_min[k] );
 				( *P ).x.x[k] = random_gaussian( mean, range );
 			}
 			break;
@@ -1242,7 +1252,7 @@ void position_update( struct problem *pb, struct particle *P, struct particle in
 	{
 		case -1: // Random
 			for( d = 0; d < ( *pb ).D; d++ )
-				( *P ).x.x[d] = random_double( ( *pb ).min[d], ( *pb ).max[d] ); // Try something within the range
+				( *P ).x.x[d] = random_double( ( *pb ).init_min[d], ( *pb ).init_max[d] ); // Try something within the range
 			( *P ).strategy = 0;
 			break;
 		default:
@@ -1252,7 +1262,7 @@ void position_update( struct problem *pb, struct particle *P, struct particle in
 				dx = w1 * fabs( informer.xBest.x[d] - ( *P ).xBest.x[d] );
 				if( dx < DBL_EPSILON ) // informer = current particle; i.e. no informer
 				{
-					dx = maxXY( fabs( ( *P ).xBest.x[d] - ( *pb ).min[d] ), fabs( ( *P ).xBest.x[d] - ( *pb ).max[d] ) );
+					dx = maxXY( fabs( ( *P ).xBest.x[d] - ( *pb ).init_min[d] ), fabs( ( *P ).xBest.x[d] - ( *pb ).init_max[d] ) );
 					( *P ).x.x[d] = random_gaussian( informer.xBest.x[d], dx ); // informer.xBest.x[d] = ( *P ).xBest.x[d]
 				}
 				else // there is an informer
@@ -1282,7 +1292,7 @@ void position_update( struct problem *pb, struct particle *P, struct particle in
 			{
 				for( d = 0; d < ( *P ).xBest.size; d++ )
 				{
-					radius = maxXY( fabs( ( *P ).xBest.x[d] - ( *pb ).min[d] ), fabs( ( *P ).xBest.x[d] - ( *pb ).max[d] ) );
+					radius = maxXY( fabs( ( *P ).xBest.x[d] - ( *pb ).init_min[d] ), fabs( ( *P ).xBest.x[d] - ( *pb ).init_max[d] ) );
 					dx = ( double ) 3.0 * radius;
 					( *P ).x.x[d] = random_gaussian( ( *P ).xBest.x[d], dx );
 				}
@@ -1542,7 +1552,7 @@ void swarm_adapt( struct problem *pb, struct swarm( *S ), int compare_type )
 						while( pa == ( *S ).trib[tr].best ); // Do not disturb the best one ...
 						d = random_int( 0, ( *pb ).D - 1 );
 						// d = tribeVarianceMin(St.trib[tr]); // EXPERIMENT
-						( *S ).trib[tr].part[pa].x.x[d] = random_double( ( *pb ).min[d], ( *pb ).max[d] );
+						( *S ).trib[tr].part[pa].x.x[d] = random_double( ( *pb ).init_min[d], ( *pb ).init_max[d] );
 						position_check( pb, &( *S ).trib[tr].part[pa].x );
 						position_eval( pb, &( *S ).trib[tr].part[pa].x );
 						// tprintf( "mmm %i %i\n", pa, ( *S ).trib[tr].best );

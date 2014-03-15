@@ -68,6 +68,8 @@ struct problem
 	double lm_factor;
 	double *min;
 	double *max;
+	double *init_min;
+	double *init_max;
 	double *dx;
 	int nPhi;
 	int *code;
