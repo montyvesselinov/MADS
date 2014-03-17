@@ -283,9 +283,9 @@ int mprun( int nJob, void *data )
 		{
 			if( kidhost[child][0] == 0 ) continue;
 			if( cJob > nJob ) continue;
+			sleep( 1 );
 			if( ( return_fork = fork() ) == 0 )
 			{
-				sleep( 1 );
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );

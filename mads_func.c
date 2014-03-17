@@ -140,13 +140,16 @@ int func_extrn( double *x, void *data, double *f )
 	for( i = 0; i < p->ed->ntpl; i++ )
 		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug ) == -1 )
 			mads_quits( p->root );
-	sprintf( buf, "%s \"rm -f ", SHELL );
-	for( i = 0; i < p->ed->nins; i++ )
+	if( p->ed->nins > 0 )
 	{
-		strcat( buf, p->ed->fn_obs[i] );
-		strcat( buf, " " );
+		sprintf( buf, "%s \"rm -f ", SHELL );
+		for( i = 0; i < p->ed->nins; i++ )
+		{
+			strcat( buf, p->ed->fn_obs[i] );
+			strcat( buf, " " );
+		}
+		strcat( buf, " >& /dev/null\"" );
 	}
-	strcat( buf, " >& /dev/null\"" );
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "\nDelete the expected output files before execution (\'%s\')\n", buf );
 	system( buf );
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
@@ -308,15 +311,19 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
 	// Delete expected output files in the root directory to prevent the creation of links to these files in the "child" directories
-	sprintf( buf, "%s \"rm -f ", SHELL );
-	for( i = 0; i < p->ed->nins; i++ )
+	if( p->ed->nins > 0 )
 	{
-		strcat( buf, p->ed->fn_obs[i] );
-		strcat( buf, " " );
+		sprintf( buf, "%s \"rm -f ", SHELL );
+		for( i = 0; i < p->ed->nins; i++ )
+		{
+			strcat( buf, p->ed->fn_obs[i] );
+			strcat( buf, " " );
+		}
+		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
+		else strcat( buf, "\"" );
+		if( p->cd->pardebug > 2 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
+		system( buf );
 	}
-	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
-	if( p->cd->pardebug > 2 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
-	system( buf );
 	create_mprun_dir( dir ); // Create the child directory for parallel runs with link to the files in the working root directory
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
@@ -336,15 +343,19 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
 	if( p->cd->restart == 0 ) // Do not delete if restart is attempted
 	{
-		sprintf( buf, "%s \"cd ../%s; rm -f ", SHELL, dir ); // Delete expected output files in the hosts directories
-		for( i = 0; i < p->ed->nins; i++ )
+		if( p->ed->nins > 0 )
 		{
-			strcat( buf, p->ed->fn_obs[i] );
-			strcat( buf, " " );
+			sprintf( buf, "%s \"cd ../%s; rm -f ", SHELL, dir ); // Delete expected output files in the hosts directories
+			for( i = 0; i < p->ed->nins; i++ )
+			{
+				strcat( buf, p->ed->fn_obs[i] );
+				strcat( buf, " " );
+			}
+			if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
+			else strcat( buf, "\"" );
+			if( p->cd->pardebug > 2 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
+			system( buf );
 		}
-		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
-		if( p->cd->pardebug > 2 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
-		system( buf );
 	}
 	else // Just in case; the restart file should have been already extracted
 	{
@@ -352,6 +363,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		for( i = 0; i < p->ed->nins; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
+		else strcat( buf, "\"" );
 		if( p->cd->pardebug > 2 ) tprintf( "Extract the expected output files before execution (\'%s\')\n", buf );
 		system( buf );
 	}
