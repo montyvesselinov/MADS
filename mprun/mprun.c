@@ -241,7 +241,7 @@ int mprun( int nJob, void *data )
 					next = 0;
 					refork = 1;
 					refresh = 0;
-//					sleep( kidattempt[child] );
+					sleep( kidattempt[child] * 2 );
 				}
 			}
 			else { if( p->cd->pardebug > 1 ) tprintf( "killed internally!\n" ); continue; }
