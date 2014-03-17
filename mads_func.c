@@ -338,6 +338,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		for( i = 0; i < p->ed->ntpl; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
 		if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
+		else strcat( buf, "\"" );
 		system( buf );
 	}
 	if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
@@ -466,6 +467,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	for( i = 0; i < p->ed->nins; i++ )
 		sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 	if( p->cd->pardebug <= 3 ) strcat( buf, " >& /dev/null\"" );
+	else strcat( buf, "\"" );
 	system( buf );
 	if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
