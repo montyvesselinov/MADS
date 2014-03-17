@@ -91,6 +91,9 @@ int mprun( int nJob, void *data )
 		else
 			tprintf( "Restart: %d jobs out of %d will be skipped because it appear to be already completed!\n", done, nJob );
 	}
+	else
+		for( i = 0; i < nJob; i++ )
+			skip_job[i] = 0;
 	debug = ( p->cd->pardebug > 3 ) ? 1 : 0; // Debug level
 	act.sa_handler = handler; // POSIX process handler
 	sigemptyset( &act.sa_mask );
@@ -241,7 +244,7 @@ int mprun( int nJob, void *data )
 					next = 0;
 					refork = 1;
 					refresh = 0;
-					sleep( kidattempt[child] * 2 );
+					sleep( kidattempt[child] );
 				}
 			}
 			else { if( p->cd->pardebug > 1 ) tprintf( "killed internally!\n" ); continue; }
@@ -283,7 +286,6 @@ int mprun( int nJob, void *data )
 		{
 			if( kidhost[child][0] == 0 ) continue;
 			if( cJob > nJob ) continue;
-			sleep( 1 );
 			if( ( return_fork = fork() ) == 0 )
 			{
 				pid = getpid();
