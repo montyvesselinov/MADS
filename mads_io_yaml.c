@@ -588,8 +588,10 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 #endif
 			}
 		}
-		if( fabs( pd->var_init_min[index] - pd->var_min[index] ) > COMPARE_EPSILON ) pd->var_init_min[index] = pd->var_min[index];
-		if( fabs( pd->var_init_max[index] - pd->var_max[index] ) > COMPARE_EPSILON ) pd->var_init_max[index] = pd->var_max[index];
+		if( fabs( pd->var_init_min[index] + HUGE_VAL ) <= COMPARE_EPSILON ) pd->var_init_min[index] = pd->var_min[index];
+		else if( fabs( pd->var_min[index] + HUGE_VAL ) <= COMPARE_EPSILON ) pd->var_min[index] = pd->var_init_min[index];
+		if( fabs( pd->var_init_max[index] - HUGE_VAL ) <= COMPARE_EPSILON ) pd->var_init_max[index] = pd->var_max[index];
+		else if( fabs( pd->var_max[index] - HUGE_VAL ) <= COMPARE_EPSILON ) pd->var_max[index] = pd->var_init_max[index];
 		if( expvar_count > 0 )
 		{
 			pd->var_opt[index] = -1;

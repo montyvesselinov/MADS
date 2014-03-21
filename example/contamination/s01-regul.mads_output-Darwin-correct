@@ -190,7 +190,7 @@ Grid Maximums: 500200 539400 0.1
 Breakthrough-curve time window: 0 0 1 number of time steps: 1
 
 
-Execution date & time stamp: 20140314-170137
+Execution date & time stamp: 20140320-213327
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -932,11 +932,10 @@ Objective function: 50126.2 Success: 0 (0)
 
 Model predictions for not calibration targets:
 W-14c     (  50):          10 -      346.363 =     -336.363 success 0 range            0 -           20
-Simulation time = 1 seconds
+Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 58
-Execution  started  on Fri Mar 14 17:01:37 2014
-Execution completed on Fri Mar 14 17:01:38 2014
-Execution date & time stamp: 20140314-170137
+Execution  started  on Thu Mar 20 21:33:27 2014
+Execution completed on Thu Mar 20 21:33:27 2014
+Execution date & time stamp: 20140320-213327

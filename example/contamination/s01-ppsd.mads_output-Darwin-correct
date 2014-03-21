@@ -40,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140314-165612
+Execution date & time stamp: 20140320-213328
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -49,91 +49,47 @@ SEQUENTIAL RUN #1:
 Discretized parameters:
 Source x coordinate [L] 210
 Source y coordinate [L] 1230
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.27159e+06 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.26441e+06 (retries=1) Objective function: 1.26441e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.27159e+06 -> 1.26441e+06 (retries=1) Objective function: 1.26441e+06 Success: 0
 SEQUENTIAL RUN #2:
 Discretized parameters:
 Source x coordinate [L] 1210
 Source y coordinate [L] 1230
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 5.69628e+06 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.27778e+06 (retries=1) Objective function: 1.27778e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 5.69628e+06 -> 1.27778e+06 (retries=1) Objective function: 1.27778e+06 Success: 0
 SEQUENTIAL RUN #3:
 Discretized parameters:
 Source x coordinate [L] 1460
 Source y coordinate [L] 1230
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 2.54434e+07 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.27828e+06 (retries=1) Objective function: 1.27828e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 2.54434e+07 -> 1.27828e+06 (retries=1) Objective function: 1.27828e+06 Success: 0
 SEQUENTIAL RUN #4:
 Discretized parameters:
 Source x coordinate [L] 210
 Source y coordinate [L] 1730
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.30216e+06 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.27828e+06 (retries=1) Objective function: 1.27828e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.30216e+06 -> 1.27828e+06 (retries=1) Objective function: 1.27828e+06 Success: 0
 SEQUENTIAL RUN #5:
 Discretized parameters:
 Source x coordinate [L] 1210
 Source y coordinate [L] 1730
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.17419e+06 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.17419e+06 (retries=1) Objective function: 1.17419e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.17419e+06 -> 1.17419e+06 (retries=1) Objective function: 1.17419e+06 Success: 0
 SEQUENTIAL RUN #6:
 Discretized parameters:
 Source x coordinate [L] 1460
 Source y coordinate [L] 1730
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 3.65298e+06 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.34226e+06 (retries=1) Objective function: 1.34226e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 3.65298e+06 -> 1.34226e+06 (retries=1) Objective function: 1.34226e+06 Success: 0
 SEQUENTIAL RUN #7:
 Discretized parameters:
 Source x coordinate [L] 210
 Source y coordinate [L] 1930
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.27828e+06 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.27822e+06 (retries=1) Objective function: 1.27822e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.27828e+06 -> 1.27822e+06 (retries=1) Objective function: 1.27822e+06 Success: 0
 SEQUENTIAL RUN #8:
 Discretized parameters:
 Source x coordinate [L] 1210
 Source y coordinate [L] 1930
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 4.00872e+06 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.51902e+06 (retries=1) Objective function: 1.51902e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 4.00872e+06 -> 1.51902e+06 (retries=1) Objective function: 1.51902e+06 Success: 0
 SEQUENTIAL RUN #9:
 Discretized parameters:
 Source x coordinate [L] 1460
 Source y coordinate [L] 1930
-Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.07241e+07 -> Intermediate results stored (example/contamination/s01-ppsd.intermediate_results)
-Intermediate residuals stored (example/contamination/s01-ppsd.intermediate_residuals)
-1.27828e+06 (retries=1) Objective function: 1.27828e+06 Success: 0
+Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.07241e+07 -> 1.27828e+06 (retries=1) Objective function: 1.27828e+06 Success: 0
 Total number of evaluations = 130
 Total number of jacobians = 9
 None of the 9 sequential calibration runs produced predictions within calibration ranges!
@@ -142,6 +98,6 @@ Simulation time = 0 seconds
 Functional evaluations = 130
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
-Execution  started  on Fri Mar 14 16:56:12 2014
-Execution completed on Fri Mar 14 16:56:12 2014
-Execution date & time stamp: 20140314-165612
+Execution  started  on Thu Mar 20 21:33:28 2014
+Execution completed on Thu Mar 20 21:33:28 2014
+Execution date & time stamp: 20140320-213328

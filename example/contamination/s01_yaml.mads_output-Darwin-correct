@@ -181,7 +181,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140314-170436
+Execution date & time stamp: 20140320-213326
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -1481,10 +1481,11 @@ Objective function: 0.00106082 Success: 1 (1)
 
 Model predictions for not calibration targets:
 W-14c     (  50):          10 -      165.171 =     -155.171 success 0 range            0 -           20
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Fri Mar 14 17:04:36 2014
-Execution completed on Fri Mar 14 17:04:36 2014
-Execution date & time stamp: 20140314-170436
+Functional evaluations per second = 111
+Execution  started  on Thu Mar 20 21:33:26 2014
+Execution completed on Thu Mar 20 21:33:27 2014
+Execution date & time stamp: 20140320-213326

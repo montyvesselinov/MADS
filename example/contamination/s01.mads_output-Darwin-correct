@@ -40,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140314-170721
+Execution date & time stamp: 20140320-213326
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -71,12 +71,8 @@ Pore x velocity [L/T]      :            5 stddev      27.9346 (        0.01 -   
 Dispersivity x [L]         :           70 stddev      40.9115 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :           15 stddev      133.278 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :          0.3 stddev       152.16 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 Computed initial lambda 10
 OF 0.869272 lambda 10
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.869272 << 63.7496)
 
 Jacobian #2: Linear solves 1 Evaluations 24 OF 0.869272 lambda 3.33333
@@ -101,13 +97,9 @@ Pore x velocity [L/T]      :      5.19632 stddev     0.880522 (        0.01 -   
 Dispersivity x [L]         :      66.1008 stddev      3.15523 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      15.4336 stddev       8.2527 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.290911 stddev      4.83105 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y coordinate [L]        (-5.00372)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.0122956 lambda 3.33333
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.0122956 << 0.869272)
 
 Jacobian #3: Linear solves 2 Evaluations 36 OF 0.0122956 lambda 1.11111
@@ -132,16 +124,10 @@ Pore x velocity [L/T]      :      5.21061 stddev     0.215567 (    0.477415 -   
 Dispersivity x [L]         :      65.2371 stddev     0.406568 (     20.2306 -      135.762)
 Dispersivity y [L]         :      15.4195 stddev      1.04323 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.288968 stddev      1.25775 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-3.32055)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00888811 lambda 1.11111
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00438246 lambda 1.16786
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.00438246 << 0.0122956)
 
 Jacobian #4: Linear solves 4 Evaluations 49 OF 0.00438246 lambda 1.16208
@@ -166,13 +152,9 @@ Pore x velocity [L/T]      :      5.15931 stddev    0.0874734 (     1.96598 -   
 Dispersivity x [L]         :      65.1306 stddev     0.262829 (     30.2827 -      115.816)
 Dispersivity y [L]         :      15.3273 stddev     0.621725 (     1.70473 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.288087 stddev     0.546124 (    0.103776 -     0.906262)
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-6.39001)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00114406 lambda 1.16208
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.00114406 << 0.00438246)
 
 Jacobian #5: Linear solves 5 Evaluations 61 OF 0.00114406 lambda 0.387359
@@ -197,22 +179,12 @@ Pore x velocity [L/T]      :      5.14865 stddev    0.0345439 (     3.53127 -   
 Dispersivity x [L]         :       65.134 stddev     0.120106 (     46.2833 -      88.0099)
 Dispersivity y [L]         :      15.3167 stddev     0.326658 (     4.70475 -      29.1645)
 Dispersivity z [L]         :     0.288001 stddev     0.154066 (    0.195729 -     0.428562)
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-1.13541)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00110848 lambda 0.387359
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00108674 lambda 0.384368
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00107841 lambda 0.322501
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00108768 lambda 0.140342
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #6: Linear solves 9 Evaluations 76 OF 0.00107841 lambda 0.280683
@@ -237,22 +209,12 @@ Pore x velocity [L/T]      :       5.1277 stddev     0.124592 (     1.28931 -   
 Dispersivity x [L]         :      65.2359 stddev     0.173522 (     39.5666 -      98.8385)
 Dispersivity y [L]         :      15.3753 stddev     0.367836 (     4.04066 -      29.8097)
 Dispersivity z [L]         :     0.288419 stddev      1.01962 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-1.60983)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (-2.38698e-15)
 OF 0.0010751 lambda 0.280683
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00110255 lambda 0.0987938
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00107221 lambda 0.197588
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00107279 lambda 0.186003
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #7: Linear solves 13 Evaluations 91 OF 0.00107221 lambda 0.372006
@@ -277,22 +239,12 @@ Pore x velocity [L/T]      :      5.11701 stddev    0.0489959 (     2.99157 -   
 Dispersivity x [L]         :      65.3478 stddev     0.113868 (     47.3086 -      87.0052)
 Dispersivity y [L]         :      15.4559 stddev     0.317462 (     4.92931 -       29.033)
 Dispersivity z [L]         :      0.28902 stddev     0.148203 (    0.199118 -     0.423735)
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.558955)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00106897 lambda 0.372006
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.0010766 lambda 0.124002
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00106627 lambda 0.248004
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00106791 lambda 0.166284
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #8: Linear solves 17 Evaluations 106 OF 0.00106627 lambda 0.332568
@@ -317,22 +269,12 @@ Pore x velocity [L/T]      :      5.10891 stddev    0.0427913 (     3.19889 -   
 Dispersivity x [L]         :      65.4347 stddev     0.118384 (     46.7521 -      88.0059)
 Dispersivity y [L]         :      15.5189 stddev     0.341523 (     4.51823 -      29.5108)
 Dispersivity z [L]         :     0.289489 stddev     0.159393 (     0.19419 -     0.436488)
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.439086)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00106364 lambda 0.332568
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00107789 lambda 0.110856
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00106082 lambda 0.221712
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 OF 0.00106157 lambda 0.178963
-Intermediate results stored (example/contamination/s01.intermediate_results)
-Intermediate residuals stored (example/contamination/s01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 
@@ -505,6 +447,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Fri Mar 14 17:07:21 2014
-Execution completed on Fri Mar 14 17:07:21 2014
-Execution date & time stamp: 20140314-170721
+Execution  started  on Thu Mar 20 21:33:26 2014
+Execution completed on Thu Mar 20 21:33:26 2014
+Execution date & time stamp: 20140320-213326

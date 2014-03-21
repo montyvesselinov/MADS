@@ -3021,7 +3021,7 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 	{
 		strcpy( filename, fileroot );
 		strcat( filename, ".intermediate_results" );
-		tprintf( "Intermediate results stored (%s)\n", filename );
+		if( op->cd->debug ) tprintf( "Intermediate results stored (%s)\n", filename );
 	}
 	out = Fwrite( filename );
 	fprintf( out, "Model parameters:\n" );
@@ -3067,7 +3067,7 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 		{
 			strcpy( filename, fileroot );
 			strcat( filename, ".intermediate_residuals" );
-			tprintf( "Intermediate residuals stored (%s)\n", filename );
+			if( op->cd->debug ) tprintf( "Intermediate residuals stored (%s)\n", filename );
 		}
 		out2 = Fwrite( filename );
 		save_residuals( op, &success_all, out, out2 );
