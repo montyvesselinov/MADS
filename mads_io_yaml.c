@@ -878,7 +878,7 @@ int load_yaml_observations( GNode *node, gpointer data )
 		}
 		if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 		if( cd->obsdomain > DBL_EPSILON && &od->obs_weight[i] > 0 ) { od->obs_min[i] = od->obs_target[i] - cd->obsdomain; od->obs_max[i] = od->obs_target[i] + cd->obsdomain; }
-		if( od->obs_max[i] < od->obs_target[i] || od->obs_min[i] > od->obs_target[i] )
+		if( (od->obs_max[i] < od->obs_target[i] || od->obs_min[i] > od->obs_target[i]) && od->obs_weight[i] >= 0 )
 		{
 			tprintf( "ERROR: Observation target is outside the specified min/max range! " );
 			tprintf( "Observation %s: %g min %g max %g\n", od->obs_id[i], od->obs_target[i], od->obs_min[i], od->obs_max[i] );
