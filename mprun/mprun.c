@@ -65,9 +65,12 @@ int mprun( int nJob, void *data )
 	exec_name = p->ed->cmdline; // Executable / Execution command line
 	ieval = p->cd->neval; // Current number of model evaluations
 	kidhost = p->cd->paral_hosts; // List of processors/hosts
-	if( nJob > 1 ) tprintf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
-	else           tprintf( "Parallel execution of 1 job ... " );
-	if( p->cd->pardebug ) tprintf( "\n" );
+	if( p->cd->pardebug )
+	{
+		if( nJob > 1 ) tprintf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
+		else           tprintf( "Parallel execution of 1 job ... " );
+		tprintf( "\n" );
+	}
 	skip_job = ( int * ) malloc( nJob * sizeof( int ) );
 	if( p->cd->restart ) // Check for already computed jobs (smart restart)
 	{
@@ -85,11 +88,11 @@ int mprun( int nJob, void *data )
 		{
 			p->cd->neval += nJob;
 			free( skip_job );
-			tprintf( "Restart: All %d jobs are already completed!\n", nJob );
+			if( p->cd->pardebug ) tprintf( "Restart: All %d jobs are already completed!\n", nJob );
 			return( 1 );
 		}
 		else
-			tprintf( "Restart: %d jobs out of %d will be skipped because it appear to be already completed!\n", done, nJob );
+			tprintf( "WARNING Restart: %d jobs out of %d will be skipped because it appear to be already completed!\n", done, nJob );
 	}
 	else
 		for( i = 0; i < nJob; i++ )
@@ -120,7 +123,7 @@ int mprun( int nJob, void *data )
 //		if( rJob >= nJob || nProc <= 0 )
 		if( rJob > nJob || nProc <= 0 )
 		{
-			tprintf( "None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
+			tprintf( "ERROR: None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 			free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
