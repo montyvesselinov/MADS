@@ -408,11 +408,28 @@ int main( int argn, char *argv[] )
 	else if( cd.num_proc > 1 )
 	{
 		tprintf( "\nLocal parallel execution is requested using %d processors (np=%d)\n", cd.num_proc, cd.num_proc );
-		cwd = getenv( "OSTYPE" ); tprintf( "OS type: %s\n", cwd );
-		if( strncasecmp( cwd, "darwin", 6 ) == 0 )
-			sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", SHELL );  // MAC OS
+		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
+		{
+			tprintf( "OS type: %s\n", cwd );
+			if( strncasecmp( cwd, "darwin", 6 ) == 0 )
+				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", SHELL );  // MAC OS
+			else
+				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", SHELL ); // LINUX
+		}
 		else
-			sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", SHELL ); // LINUX
+		{
+			if( access( "/proc/cpuinfo", R_OK ) == -1 )
+			{
+				tprintf( "OS type: OS X (assumed) \n" );
+				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", SHELL );  // MAC OS
+			}
+			else
+			{
+				tprintf( "OS type: Linux (assumed) \n" );
+				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", SHELL ); // LINUX
+			}
+		}
+		// tprintf( buf );
 		system( buf );
 		in = Fread( "num_proc" );
 		fscanf( in, "%d", &k );
