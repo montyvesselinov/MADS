@@ -87,9 +87,9 @@ void metrop( double **xnew, double *p_xnew, double *log_p_x, double *integrand_n
 void CalcDelta( struct MCMC *MCMCPar, double *delta_normX, double **CRS, double *delta_tot );
 void AdaptpCR( struct MCMC *MCMCPar, double *delta_tot, double **lCR, double **pCR );
 
-double **double_matrix( int maxCols, int maxRows );
-int **int_matrix( int maxRows, int maxCols );
-void free_matrix( void **matrix, int maxCols );
+double **double_matrix_cpp( int maxCols, int maxRows );
+int **int_matrix_cpp( int maxRows, int maxCols );
+void free_matrix_cpp( void **matrix, int maxCols );
 int cum_seq_size = 0;
 double **meanseqsum;
 double **meanseqsum2;
@@ -133,7 +133,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	MCMCPar->z = NULL;
 	MCMCPar->seq = 5;                        // Number of Markov Chains / sequences
 	MCMCPar->DEpairs = 1;                    // Number of chain pairs to generate candidate points
-	MCMCPar->CR = double_matrix( MCMCPar->DEpairs, MCMCPar->seq );
+	MCMCPar->CR = double_matrix_cpp( MCMCPar->DEpairs, MCMCPar->seq );
 	MCMCPar->gamma = 0;                      // Kurtosis parameter Bayesian Inference Scheme
 	MCMCPar->nCR = MCMCPar->seq;              // Number of crossover values used
 	MCMCPar->m0 = 10 * MCMCPar->n;            // Initial size of Z
@@ -187,7 +187,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// make ModPred pointer to pass back and forth from functions
 	double *ModPred = new double[Measurement.N];
 	// make Zinit pointer to pass back and forth from functions
-	double **Zinit = double_matrix( MCMCPar->m0 + MCMCPar->seq, MCMCPar->n );
+	double **Zinit = double_matrix_cpp( MCMCPar->m0 + MCMCPar->seq, MCMCPar->n );
 	// make 3dArray Sequences pointer to pass back and forth from functions
 	double ** *Sequences = NULL;
 	if( MCMCPar->save_in_memory )
@@ -195,7 +195,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 		Sequences = ( double ** * ) malloc( sizeof( double ** ) * MCMCPar->seq );
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			Sequences[row] = double_matrix( MCMCPar->seq_length, MCMCPar->np3 );
+			Sequences[row] = double_matrix_cpp( MCMCPar->seq_length, MCMCPar->np3 );
 		}
 	}
 	// make 3dArray Sequences pointer to pass back and forth from functions
@@ -205,21 +205,21 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 		Reduced_Seq = new double **[MCMCPar->seq];
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			Reduced_Seq[row] = double_matrix( MCMCPar->reduced_seq_length, MCMCPar->np3 );
+			Reduced_Seq[row] = double_matrix_cpp( MCMCPar->reduced_seq_length, MCMCPar->np3 );
 		}
 	}
 	// make 2dArray lCR pointer to pass back and forth from functions
-	double **lCR = double_matrix( 1, MCMCPar->nCR );
+	double **lCR = double_matrix_cpp( 1, MCMCPar->nCR );
 	// make 2dArray lCRnew pointer to pass back and forth from functions
-	double **lCRnew = double_matrix( 1, MCMCPar->nCR );
+	double **lCRnew = double_matrix_cpp( 1, MCMCPar->nCR );
 	// make 2dArray log_p pointer to pass back and forth from functions
-	double **pCR = double_matrix( 1, MCMCPar->nCR );
+	double **pCR = double_matrix_cpp( 1, MCMCPar->nCR );
 	// make 1dArray delta_tot pointer to pass back and forth from functions
 	double *delta_tot = new double [MCMCPar->nCR];
 	// make 2dArray xnew pointer to pass back and forth from functions
-	double **xnew = double_matrix( MCMCPar->seq, MCMCPar->n );
+	double **xnew = double_matrix_cpp( MCMCPar->seq, MCMCPar->n );
 	// make 2dArray xold pointer to pass back and forth from functions
-	double **xold = double_matrix( MCMCPar->seq, MCMCPar->n );
+	double **xold = double_matrix_cpp( MCMCPar->seq, MCMCPar->n );
 	// make 2dArray p pointer to pass back and forth from functions
 	double *p = new double[MCMCPar->seq];
 	// make 2dArray log_p pointer to pass back and forth from functions
@@ -233,9 +233,9 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// make 1dArray RandArray pointer to pass back and forth from functions
 	int *RandArray = new int [MCMCPar->nzoff]; // MCMCPar->nzoff * MCMCPar->DEpairs * MCMCPar->seq
 	// make 2dArray CRS pointer to pass back and forth from functions
-	double **CRS = double_matrix( MCMCPar->nCR, MCMCPar->steps );
+	double **CRS = double_matrix_cpp( MCMCPar->nCR, MCMCPar->steps );
 	// make 2dArray DEversion pointer to pass back and forth from functions
-	int **DEversion = int_matrix( MCMCPar->seq, MCMCPar->DEpairs );
+	int **DEversion = int_matrix_cpp( MCMCPar->seq, MCMCPar->DEpairs );
 	// make 1dArray alpha_s pointer to pass back and forth from functions
 	double *alpha_s = new double [MCMCPar->seq];
 	// make 2dArray xnew pointer to pass back and forth from functions
@@ -248,17 +248,17 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// make 1dArray R_stat pointer to pass back and forth from functions
 	double *R_stat = new double [MCMCPar->n];
 	// make 2dArray Table_JumpRate pointer to pass back and forth from functions
-	double **Table_JumpRate = double_matrix( MCMCPar->n, MCMCPar->DEpairs );
-	double **Zee = double_matrix( MCMCPar->nzee, MCMCPar->np3 );
+	double **Table_JumpRate = double_matrix_cpp( MCMCPar->n, MCMCPar->DEpairs );
+	double **Zee = double_matrix_cpp( MCMCPar->nzee, MCMCPar->np3 );
 	// output arrays
 	int outlines = MCMCPar->ndraw / MCMCPar->seq + MCMCPar->seq;
 	output.nEval = new int[ outlines ];
 	output.Acceptance_Rate = new double[ outlines ];
-	output.CR = double_matrix( outlines, MCMCPar->nCR );
-	output.R_stat = double_matrix( outlines, MCMCPar->n );
-	meanseqsum = double_matrix( MCMCPar->seq, MCMCPar->n );
-	meanseqsum2 = double_matrix( MCMCPar->seq, MCMCPar->n );
-	varseqsum = double_matrix( MCMCPar->seq, MCMCPar->n );
+	output.CR = double_matrix_cpp( outlines, MCMCPar->nCR );
+	output.R_stat = double_matrix_cpp( outlines, MCMCPar->n );
+	meanseqsum = double_matrix_cpp( MCMCPar->seq, MCMCPar->n );
+	meanseqsum2 = double_matrix_cpp( MCMCPar->seq, MCMCPar->n );
+	varseqsum = double_matrix_cpp( MCMCPar->seq, MCMCPar->n );
 	for( int row = 0; row < MCMCPar->seq; row++ )
 		for( int col = 0; col < MCMCPar->n; col++ )
 			meanseqsum[row][col] = meanseqsum2[row][col] = varseqsum[row][col] = 0;
@@ -269,12 +269,12 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// There are a lot of frees and deletes that still need to be implemented
 	delete Measurement.MeasData;
 	delete ModPred;
-	free_matrix( ( void ** ) Zinit, MCMCPar->m0 + MCMCPar->seq );
+	free_matrix_cpp( ( void ** ) Zinit, MCMCPar->m0 + MCMCPar->seq );
 	if( MCMCPar->save_in_memory )
 	{
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			free_matrix( ( void ** ) Sequences[row], MCMCPar->seq_length );
+			free_matrix_cpp( ( void ** ) Sequences[row], MCMCPar->seq_length );
 		}
 		free( Sequences );
 	}
@@ -282,16 +282,16 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	{
 		for( int row = 0; row < MCMCPar->seq; row++ )
 		{
-			free_matrix( ( void ** ) Reduced_Seq[row], MCMCPar->reduced_seq_length );
+			free_matrix_cpp( ( void ** ) Reduced_Seq[row], MCMCPar->reduced_seq_length );
 		}
 		delete Reduced_Seq;
 	}
-	free_matrix( ( void ** ) lCR, 1 );
-	free_matrix( ( void ** ) lCRnew, 1 );
-	free_matrix( ( void ** ) pCR, 1 );
+	free_matrix_cpp( ( void ** ) lCR, 1 );
+	free_matrix_cpp( ( void ** ) lCRnew, 1 );
+	free_matrix_cpp( ( void ** ) pCR, 1 );
 	delete delta_tot;
-	free_matrix( ( void ** ) xnew, MCMCPar->seq );
-	free_matrix( ( void ** ) xold, MCMCPar->seq );
+	free_matrix_cpp( ( void ** ) xnew, MCMCPar->seq );
+	free_matrix_cpp( ( void ** ) xold, MCMCPar->seq );
 	delete p;
 	delete log_p;
 	delete integrand;
@@ -299,26 +299,26 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	delete log_p_xold;
 	delete integrand_old;
 	delete RandArray;
-	free_matrix( ( void ** ) CRS, MCMCPar->nCR );
-	free_matrix( ( void ** ) DEversion, MCMCPar->seq );
+	free_matrix_cpp( ( void ** ) CRS, MCMCPar->nCR );
+	free_matrix_cpp( ( void ** ) DEversion, MCMCPar->seq );
 	delete alpha_s;
 	delete p_xnew;
 	delete log_p_xnew;
 	delete integrand_new;
 	delete accept;
 	delete R_stat;
-	free_matrix( ( void ** ) Table_JumpRate, MCMCPar->n );
+	free_matrix_cpp( ( void ** ) Table_JumpRate, MCMCPar->n );
 	//don't free Zee, because we're sending it back to the calling function
 	MCMCPar->z = Zee;//this is how we send the samples back to the caller
 	free( ParRange.minn );
 	free( ParRange.maxn );
 	delete output.nEval;
 	delete output.Acceptance_Rate;
-	free_matrix( ( void ** ) output.CR, MCMCPar->nCR );
-	free_matrix( ( void ** ) output.R_stat, MCMCPar->n );
-	free_matrix( ( void ** ) meanseqsum, MCMCPar->n );
-	free_matrix( ( void ** ) meanseqsum2, MCMCPar->n );
-	free_matrix( ( void ** ) varseqsum, MCMCPar->n );
+	free_matrix_cpp( ( void ** ) output.CR, MCMCPar->nCR );
+	free_matrix_cpp( ( void ** ) output.R_stat, MCMCPar->n );
+	free_matrix_cpp( ( void ** ) meanseqsum, MCMCPar->n );
+	free_matrix_cpp( ( void ** ) meanseqsum2, MCMCPar->n );
+	free_matrix_cpp( ( void ** ) varseqsum, MCMCPar->n );
 	return MCMCPar;
 }
 
@@ -355,14 +355,14 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		}
 	}
 	double **Zoff;
-	Zoff = double_matrix( MCMCPar->nzoff, MCMCPar->np3 );
+	Zoff = double_matrix_cpp( MCMCPar->nzoff, MCMCPar->np3 );
 	// Define initial MCMCPar->m0 rows of Z to be initial sample -- posterior density is not needed and thus not evaluated!!
 	for( int row = 0; row < MCMCPar->m0; row++ )
 		for( int col = 0; col < MCMCPar->n; col++ )
 			Zee[row][col] = Zinit[row][col];
 	// Define initial population from last MCMCPar->seq samples of Zinit
 	double **X2;
-	X2 = double_matrix( MCMCPar->seq, MCMCPar->np3 ); // MCMCPar->np3 = MCMCPar->n or 5+2
+	X2 = double_matrix_cpp( MCMCPar->seq, MCMCPar->np3 ); // MCMCPar->np3 = MCMCPar->n or 5+2
 	if( 1 ) // real random case
 	{
 		for( int row = 0; row < MCMCPar->seq; row++ )
@@ -372,7 +372,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 	else // test case
 	{
 		double **ex;
-		ex = double_matrix( MCMCPar->seq, MCMCPar->n );
+		ex = double_matrix_cpp( MCMCPar->seq, MCMCPar->n );
 		ex[0][0] = 232.1355; // use "ex" for testing onlt
 		ex[0][1] = 0.5516;
 		ex[0][2] =  0.1130;
@@ -391,7 +391,7 @@ void dream_zs( struct MCMC *MCMCPar, Range ParRange, Measure Measurement, struct
 		for( int row = 0; row < MCMCPar->seq; row++ )
 			for( int col = 0; col < MCMCPar->n; col++ )
 				X2[row][col] = ex[row][col];
-		free_matrix( ( void ** ) ex, MCMCPar->seq );
+		free_matrix_cpp( ( void ** ) ex, MCMCPar->seq );
 	}
 	// Calculate posterior density associated with each value of X
 	comp_likelihood( X2, MCMCPar, Measurement, od, ModPred, p, log_p, integrand );
@@ -988,7 +988,7 @@ void GenCR( struct MCMC *MCMCPar, double **lCR, double **pCR, double **CRS )
 	int m = 1;
 	double L2[MCMCPar->nCR];
 	double **Y;
-	Y = double_matrix( m, MCMCPar->nCR );
+	Y = double_matrix_cpp( m, MCMCPar->nCR );
 	int nn = MCMCPar->seq * MCMCPar->steps;
 	// How many candidate points for each crossover value?
 	multrnd( nn, m, MCMCPar->nCR, lCR, Y, pCR ); // TODO why 1 ?!
@@ -1147,7 +1147,7 @@ void Gelman( struct MCMC *MCMCPar, double *R_stat, double ***Sequences, int star
 	}
 	double sum;
 	double **meanSeq;
-	meanSeq = double_matrix( MCMCPar->seq, MCMCPar->n );
+	meanSeq = double_matrix_cpp( MCMCPar->seq, MCMCPar->n );
 	// Step 1: Determine the sequence means
 	if( verbose ) tprintf( "mean sequence\n" );
 	for( k = 0; k < MCMCPar->seq; k++ )
@@ -1263,7 +1263,7 @@ void GelmanCum( struct MCMC *MCMCPar, double *R_stat, double **X2 )
 	// Compute R-statistics
 	// Write the current Sequences
 	double **meanSeq;
-	meanSeq = double_matrix( MCMCPar->seq, MCMCPar->n );
+	meanSeq = double_matrix_cpp( MCMCPar->seq, MCMCPar->n );
 	// Step 1: Determine the sequence means
 	if( verbose ) tprintf( "mean sequence\n" );
 	for( k = 0; k < MCMCPar->seq; k++ )
@@ -1901,7 +1901,7 @@ void AdaptpCR( struct MCMC *MCMCPar, double *delta_tot, double **lCR, double **p
 		pCR[0][col] = pCR[0][col] / sum;
 }
 
-double **double_matrix( int maxRows, int maxCols )
+double **double_matrix_cpp( int maxRows, int maxCols )
 {
 	double **matrix;
 	//matrix = new double* [maxRows];
@@ -1914,7 +1914,7 @@ double **double_matrix( int maxRows, int maxCols )
 	return( matrix );
 }
 
-int **int_matrix( int maxRows, int maxCols )
+int **int_matrix_cpp( int maxRows, int maxCols )
 {
 	int **matrix;
 	//matrix = new int* [maxRows];
@@ -1927,7 +1927,7 @@ int **int_matrix( int maxRows, int maxCols )
 	return( matrix );
 }
 
-void free_matrix( void **matrix, int maxCols )
+void free_matrix_cpp( void **matrix, int maxCols )
 {
 	int i;
 	for( i = 0; i < maxCols; i++ )
@@ -1937,7 +1937,7 @@ void free_matrix( void **matrix, int maxCols )
 
 extern "C" void free_mcmc( struct MCMC *mcmc )
 {
-	free_matrix( ( void ** ) mcmc->z, mcmc->nzee );
-	free_matrix( ( void ** ) mcmc->CR, mcmc->DEpairs );
+	free_matrix_cpp( ( void ** ) mcmc->z, mcmc->nzee );
+	free_matrix_cpp( ( void ** ) mcmc->CR, mcmc->DEpairs );
 	free( mcmc );
 }
