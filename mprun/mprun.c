@@ -55,7 +55,7 @@ int mprun( int nJob, void *data )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	struct sigaction act;
-	int i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
+	int w, i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
 	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], *atime;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
@@ -71,7 +71,7 @@ int mprun( int nJob, void *data )
 		else           tprintf( "Parallel execution of 1 job ... " );
 		tprintf( "\n" );
 	}
-	skip_job = ( int * ) malloc( nJob * sizeof( int ) );
+	skip_job = ( int * ) malloc( nJob * sizeof( int ) ); memset( ( int * ) skip_job, ( int ) 0, nProc * sizeof( int ) );
 	if( p->cd->restart ) // Check for already computed jobs (smart restart)
 	{
 		done = 0;
@@ -118,6 +118,8 @@ int mprun( int nJob, void *data )
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
 	}
+	for( w = 0; w < nProc; w++ )
+		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d skip_job %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], skip_job[w], kiddir[w], rerundir[w], kidhost[w] );
 	nFailed = 0; nKids = 0; cJob = 0; rJob = 0; wait = 0; done = 0;
 	while( 1 ) // Main loop
 	{
@@ -133,6 +135,8 @@ int mprun( int nJob, void *data )
 			return( -1 );
 		}
 		job_wait = 1;
+		for( w = 0; w < nProc; w++ )
+			tprintf( "%i: kidids %10i kidstatus %d kidattempt %d skip_job %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], skip_job[w], kiddir[w], rerundir[w], kidhost[w] );
 		if( rJob > 0 && nKids < ( nHosts - nFailed ) )
 		{
 			if( p->cd->pardebug > 1 )
@@ -292,6 +296,8 @@ int mprun( int nJob, void *data )
 			if( cJob > nJob ) continue;
 			if( ( return_fork = fork() ) == 0 )
 			{
+				for( w = 0; w < nProc; w++ )
+					tprintf( "%i: kidids %10i kidstatus %d kidattempt %d skip_job %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], skip_job[w], kiddir[w], rerundir[w], kidhost[w] );
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
