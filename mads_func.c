@@ -339,9 +339,10 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
 		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
 		else strcat( buf, "\"" );
+		if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
 		system( buf );
+		if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
 	}
-	if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
 	if( p->cd->restart == 0 ) // Do not delete if restart is attempted
 	{
 		if( p->ed->nins > 0 )
@@ -463,13 +464,17 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 	}
 	if( bad_data ) return( bad_data );
-	sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive output files
-	for( i = 0; i < p->ed->nins; i++ )
-		sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
-	if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
-	else strcat( buf, "\"" );
-	system( buf );
-	if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
+	if( p->cd->restart )
+	{
+		sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive output files
+		for( i = 0; i < p->ed->nins; i++ )
+			sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
+		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
+		else strcat( buf, "\"" );
+		if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
+		system( buf );
+		if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
+	}
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
 #ifdef MATHEVAL
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
