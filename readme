@@ -57,7 +57,7 @@ RHEL/CentOS/Fedora installation of required libraries:
 	sudo yum install gsl glib2 libyaml libmatheval atlas pkgconfig git tcsh
 
 Ubuntu/Debian installation of required libraries:
-	sudo apt-get install libgsl0-dev libglib2.0-0 libyaml-0-2 libmatheval1 atlas pkg-config git tcsh
+	sudo apt-get install g++ libgsl0-dev libglib2.0 libyaml-dev libmatheval-dev liblapack-dev gfortran pkg-config git tcsh
 
 Compilation:
 	make
