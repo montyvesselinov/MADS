@@ -380,7 +380,7 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "\nWorking directory: ../%s\n", dir );
 	if( p->cd->pardebug > 2 )
 	{
-		sprintf( buf, "cd ../%s; ls -altr", dir ); // Check directory content
+		sprintf( buf, "%s \"cd ../%s; ls -altr\"", SHELL, dir ); // Check directory content
 		system( buf );
 	}
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
@@ -399,7 +399,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	if( p->cd->pardebug > 2 )
 	{
-		sprintf( buf, "cd ../%s; ls -altr", dir ); // Check directory content
+		sprintf( buf, "%s \"cd ../%s; ls -altr\"", SHELL, dir ); // Check directory content
 		system( buf );
 	}
 	for( i = 0; i < p->ed->nins; i++ )

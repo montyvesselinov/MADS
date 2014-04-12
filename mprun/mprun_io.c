@@ -46,10 +46,10 @@ int create_mprun_dir( char *dir )
 	int r;
 	sprintf( buf, "%s \"mkdir ../%s >& /dev/null\"", SHELL, dir );
 	r = system( buf );
-	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to create dir failed (%d)!\n", r ); return( -1 ); }
+	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to create dir ../%s failed (%d)!\n", dir, r ); return( -1 ); }
 	sprintf( buf, "%s \"ln -s $PWD/* ../%s >& /dev/null\"", SHELL, dir );
 	r = system( buf );
-	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to link file failed (%d)!\n", r ); return( -1 ); }
+	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to link files in ../%s failed (%d)!\n", dir, r ); return( -1 ); }
 	return( 0 );
 }
 
@@ -59,7 +59,7 @@ int delete_mprun_dir( char *dir )
 	int r;
 	sprintf( buf, "%s \"rm -fR ../%s >& /dev/null\"", SHELL, dir );
 	r = system( buf );
-	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to delete dir failed!\n" ); return( -1 ); }
+	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to delete dir ../%s failed (%d)!\n", dir, r ); return( -1 ); }
 	return( 0 );
 }
 
