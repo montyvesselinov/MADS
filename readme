@@ -72,6 +72,13 @@ Verification (TCSH shell is needed to run verification scripts):
 	make verify-parallel (parallel inverse analysis)
 	make verify-sa (global sensitivity analysis)
 
+WELLS code:
+	WELlS code is needed to run some of the example problems
+	git clone git@gitlab.com:mads/wells.git
+	cd wells
+	make
+	make wells globally executable (add wells directory in $PATH)
+
 Examples:
 	make examples (the code WELLS is needed; http://wells.lanl.gov)
 	In addition, several examples can be found in directory 'example' (check the 'readme' files in the directory 'example')
