@@ -92,7 +92,8 @@ int mprun( int nJob, void *data )
 			return( 1 );
 		}
 		else
-			tprintf( "WARNING Restart: %d jobs out of %d will be skipped because it appear to be already completed!\n", done, nJob );
+			if( done > 0 )
+				tprintf( "WARNING Restart: %d jobs out of %d will be skipped because it appears to be already completed!\n", done, nJob );
 	}
 	else
 		for( i = 0; i < nJob; i++ )
