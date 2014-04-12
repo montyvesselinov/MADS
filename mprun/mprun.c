@@ -201,7 +201,7 @@ int mprun( int nJob, void *data )
 		if( kidstatus[child] == 0 ) // kid suspended
 		{
 			if( done && !rerun ) { if( p->cd->pardebug > 1 ) tprintf( "suspended; will be killed! " ); kiddir[child][0] = 0; destroy = 1; }
-			else { if( p->cd->pardebug > 1 ) tprintf( "suspended; new job " ); refork = 0; refresh = 1; }
+			else { if( p->cd->pardebug > 1 ) tprintf( "suspended; new job " ); refork = 0; refresh = 1; }:
 		}
 		else if( kidstatus[child] == -1 ) // kid finished
 		{

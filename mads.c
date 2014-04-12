@@ -405,7 +405,7 @@ int main( int argn, char *argv[] )
 			}
 		}
 	}
-	else if( cd.num_proc > 1 )
+	else if( cd.num_proc > 0 )
 	{
 		tprintf( "\nLocal parallel execution is requested using %d processors (np=%d)\n", cd.num_proc, cd.num_proc );
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
