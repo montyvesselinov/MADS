@@ -57,7 +57,7 @@ int mprun( int nJob, void *data )
 	struct sigaction act;
 	int i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
-	char *exec_name, **kidhost, **kiddir, **rerundir, dir[255], buf[255], *atime;
+	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], *atime;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
 	else if( p->cd->paral_hosts == NULL ) { if( p->cd->pardebug > 3 ) tprintf( "\nWARNING: Local runs using %d processors! No parallel hosts!\n", p->cd->num_proc ); type = 0; }
 	else { if( p->cd->pardebug ) tprintf( "Parallel runs using %d hosts!\n", p->cd->num_proc ); type = 1; }
@@ -109,10 +109,10 @@ int mprun( int nJob, void *data )
 		return( -1 );
 	}
 	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset( ( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
-	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset( ( int * ) kidstatus, ( int ) - 1, nProc * sizeof( int ) ); // Status of external jobs
-	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset( ( int * ) kidattempt, ( int ) - 1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
-	kiddir = char_matrix( nProc, 95 ); // Directories for external jobs
-	rerundir = char_matrix( nProc, 95 ); // Rerun directories for external jobs
+	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset( ( int * ) kidstatus, ( int ) -1, nProc * sizeof( int ) ); // Status of external jobs
+	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset( ( int * ) kidattempt, ( int ) -1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
+	kiddir = char_matrix( nProc, 1025 ); // Directories for external jobs
+	rerundir = char_matrix( nProc, 1025 ); // Rerun directories for external jobs
 	if( type == 0 )
 	{
 		kidhost = char_matrix( nProc, 95 );

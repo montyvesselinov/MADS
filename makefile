@@ -3,8 +3,8 @@ CMP = ./compare-results # MADS testing
 OUTPUT = > /dev/null
 # OUTPUT = mads-debug-output
 # OUTPUT =
-DBG = valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
-DBG = gdb
+DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
+DBG = gdb --args
 DBG =
 # CMP = cp -f # Save current results for future testing DANGEROUS!
 
