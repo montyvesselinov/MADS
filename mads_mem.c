@@ -103,9 +103,10 @@ void free_matrix( void **matrix, int maxCols )
 
 void zero_double_matrix( double **matrix, int maxCols, int maxRows )
 {
-	int i;
+	int i, j;
 	for( i = 0; i < maxCols; i++ )
-		memset( matrix[i], 0, maxRows * sizeof( double ) );
+		for( j = 0; j < maxRows; j++ )
+			matrix[i][j] = 0;
 }
 
 void *malloc_check( const char *what, size_t n )

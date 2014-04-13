@@ -110,11 +110,16 @@ int mprun( int nJob, void *data )
 		free( skip_job );
 		return( -1 );
 	}
-	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); memset( ( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
-	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); memset( ( int * ) kidstatus, ( int ) -1, nProc * sizeof( int ) ); // Status of external jobs
-	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); memset( ( int * ) kidattempt, ( int ) -1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
+	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); // memset( ( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
+	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); // memset( ( int * ) kidstatus, ( int ) -1, nProc * sizeof( int ) ); // Status of external jobs
+	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); // memset( ( int * ) kidattempt, ( int ) -1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
 	kiddir = char_matrix( nProc, 1025 ); // Directories for external jobs
 	rerundir = char_matrix( nProc, 1025 ); // Rerun directories for external jobs
+	for( w = 0; w < nProc; w++ )
+	{
+		kidids[w] = 0;
+		kidstatus[w] = kidattempt[w] = -1;
+	}
 	if( type == 0 )
 	{
 		kidhost = char_matrix( nProc, 95 );
@@ -336,7 +341,9 @@ int mprun( int nJob, void *data )
 	}
 	tprintf( "Done.\n" );
 	for( w = 0; w < nProc; w++ )
-		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d skip_job %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], skip_job[w], kiddir[w], rerundir[w], kidhost[w] );
+		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
+	for( w = 0; w < nJob; w++ )
+		tprintf( "skip_job %d\n", skip_job[w] );
 	free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
 	free( skip_job );
 	free_matrix( ( void ** ) kiddir, nProc );
