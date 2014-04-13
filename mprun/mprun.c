@@ -55,7 +55,7 @@ int mprun( int nJob, void *data )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	struct sigaction act;
-	volatile int w, i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
+	int w, i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
 	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], *atime;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
@@ -71,12 +71,11 @@ int mprun( int nJob, void *data )
 		else           tprintf( "Parallel execution of 1 job ... " );
 		tprintf( "\n" );
 	}
-	tprintf( "nJob %d\n", nJob );
 	if( ( skip_job = ( int * ) malloc( nJob * sizeof( int ) ) ) == NULL ) tprintf( "ERROR!!!\n" );
 	for( i = 0; i < nJob; i++ )
 		skip_job[i] = 0;
-	for( w = 0; w < nJob; w++ )
-		tprintf( "%d: init skip_job %d\n", w, skip_job[w] );
+	// for( w = 0; w < nJob; w++ )
+		// tprintf( "%d: init skip_job %d\n", w, skip_job[w] );
 	if( p->cd->restart ) // Check for already computed jobs (smart restart)
 	{
 		done = 0;
@@ -96,20 +95,10 @@ int mprun( int nJob, void *data )
 			if( p->cd->pardebug ) tprintf( "Restart: All %d jobs are already completed!\n", nJob );
 			return( 1 );
 		}
-		else
-			if( done > 0 )
-				tprintf( "WARNING Restart: %d jobs out of %d will be skipped because it appears to be already completed!\n", done, nJob );
+		else if( done > 0 )
+			tprintf( "WARNING Restart: %d jobs out of %d will be skipped because it appears to be already completed!\n", done, nJob );
 	}
 	debug = ( p->cd->pardebug > 3 ) ? 1 : 0; // Debug level
-	act.sa_handler = handler; // POSIX process handler
-	sigemptyset( &act.sa_mask );
-	act.sa_flags = 0;
-	if( sigaction( SIGCHLD, &act, NULL ) < 0 )
-	{
-		tprintf( "sigaction failed!!!\n" );
-		free( skip_job );
-		return( -1 );
-	}
 	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); // memset( ( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
 	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); // memset( ( int * ) kidstatus, ( int ) -1, nProc * sizeof( int ) ); // Status of external jobs
 	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); // memset( ( int * ) kidattempt, ( int ) -1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
@@ -125,10 +114,21 @@ int mprun( int nJob, void *data )
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
 	}
+	/*
 	for( w = 0; w < nProc; w++ )
 		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
 	for( w = 0; w < nJob; w++ )
 		tprintf( "skip_job %d\n", skip_job[w] );
+	*/
+	act.sa_handler = handler; // POSIX process handler
+	sigemptyset( &act.sa_mask );
+	act.sa_flags = 0;
+	if( sigaction( SIGCHLD, &act, NULL ) < 0 )
+	{
+		tprintf( "sigaction failed!!!\n" );
+		free( skip_job );
+		return( -1 );
+	}
 	nFailed = 0; nKids = 0; cJob = 0; rJob = 0; wait = 0; done = 0;
 	while( 1 ) // Main loop
 	{
@@ -144,10 +144,12 @@ int mprun( int nJob, void *data )
 			return( -1 );
 		}
 		job_wait = 1;
-	for( w = 0; w < nProc; w++ )
-		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
-	for( w = 0; w < nJob; w++ )
-		tprintf( "skip_job %d\n", skip_job[w] );
+		/*
+		for( w = 0; w < nProc; w++ )
+			tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
+		for( w = 0; w < nJob; w++ )
+			tprintf( "skip_job %d\n", skip_job[w] );
+		*/
 		if( rJob > 0 && nKids < ( nHosts - nFailed ) )
 		{
 			if( p->cd->pardebug > 1 )
@@ -307,10 +309,12 @@ int mprun( int nJob, void *data )
 			if( cJob > nJob ) continue;
 			if( ( return_fork = fork() ) == 0 )
 			{
-	for( w = 0; w < nProc; w++ )
-		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
-	for( w = 0; w < nJob; w++ )
-		tprintf( "skip_job %d\n", skip_job[w] );
+				/*
+				for( w = 0; w < nProc; w++ )
+					tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
+				for( w = 0; w < nJob; w++ )
+					tprintf( "skip_job %d\n", skip_job[w] );
+				*/
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
@@ -339,12 +343,17 @@ int mprun( int nJob, void *data )
 			kill( kidids[child] * -1, SIGCONT );
 		}
 	}
-	tprintf( "Done.\n" );
+	/*
 	for( w = 0; w < nProc; w++ )
 		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
 	for( w = 0; w < nJob; w++ )
 		tprintf( "skip_job %d\n", skip_job[w] );
-	free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
+	*/
+	act.sa_handler = SIG_DFL; // Default handler
+	sigaction( SIGCHLD, &act, NULL );
+	free( ( void * ) kidids );
+	free( ( void * ) kidstatus );
+	free( ( void * ) kidattempt );
 	free( skip_job );
 	free_matrix( ( void ** ) kiddir, nProc );
 	free_matrix( ( void ** ) rerundir, nProc );
