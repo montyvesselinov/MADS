@@ -1878,7 +1878,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 		   *var_lhs, v;
 	char filename[255], buf[255];
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
-	FILE *out, *out2;
+	FILE *out, *out2, *seedfile;
 	opt_params_min = opt_params_max = opt_params_avg = sel_params_min = sel_params_max = sel_params_avg = NULL;
 	char ESC = 27; // Escape
 	strcpy( op->label, "igrnd" );
@@ -1981,6 +1981,11 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 	else op->cd->lmstandalone = 0;
 	for( count = k; count < op->cd->nreal; count++ )
 	{
+		//Dump out a seed that can be used by external programs
+		sprintf( filename, "%s.seed", op->root );
+		seedfile = fopen( filename, "w" );
+		fprintf( seedfile, "%d\n", op->cd->seed + count );
+		fclose( seedfile );
 		op->cd->neval = op->cd->njac = 0;
 		fprintf( out, "%d : init var", count + 1 );
 		tprintf( "\nRandom set #%d: ", count + 1 );
