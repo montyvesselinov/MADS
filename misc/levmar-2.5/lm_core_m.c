@@ -971,7 +971,7 @@ int LEVMAR_DER2(
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 			jacTjac[i * m + i] = diag_jacTjac[i];
 	} // END OF OPTIMIZATION LOOP
-	op->phi = p_eL2 = pDp_eL2 = best_p_eL2;
+	op->phi = p_eL2 = best_p_eL2;
 	for( i = 0; i < m; ++i )
 		p[i] = p_best[i];
 	if( op->cd->ldebug > 3 ) //TODO I am not sure do we need this ...
@@ -1044,7 +1044,7 @@ int LEVMAR_DER2(
 	}
 	if( freework ) free( work );
 	free( hx1 ); free( hx2 ); free( phDp_plus ); free( phDp_minus ); free( ephdp_plus ); free( ephdp_minus );
-	free( vvddr ); free( jacTvv ); free( a ); free( jac_min ); free( jac_max ); free( jac_zero ); free( jac_zero_obs ); free( p_old ); free( p_old2 );
+	free( vvddr ); free( jacTvv ); free( a ); free( jac_min ); free( jac_max ); free( jac_zero ); free( jac_zero_obs ); free( p_old ); free( p_old2 ); free( p_best );
 	if( op->cd->lm_eigen ) gsl_matrix_free( gsl_jacobian );
 #ifdef LINSOLVERS_RETAIN_MEMORY
 	if( linsolver )( *linsolver )( NULL, NULL, NULL, 0 );
