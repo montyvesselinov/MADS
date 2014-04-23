@@ -328,7 +328,6 @@ int LEVMAR_DER2(
 				if( j >= op->cd->lm_njacof )
 				{
 					if( op->cd->ldebug ) tprintf( "\nCONVERGED: %d Jacobian OF estimates are very close to the best current OF (%g)\n", j, tmp );
-					if( fabs( tmp - p_eL2 ) > COMPARE_EPSILON ) tprintf( "\ERROR: OF (%g != %g )\n", tmp, p_eL2 );
 					stop = 9;
 					break;
 				}
