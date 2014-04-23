@@ -101,7 +101,8 @@ int LEVMAR_DER2(
 			*hx2,        /* used in acceleration comp (nx1) */
 			*jac_min,
 			*jac_max,
-			*p_old, *p_old2,      /* old parameter set */
+			*p_old, *p_old2,     /* old parameter set */
+			*p_best, /* best parameter set */
 			*jacTe,      /* J^T e_i mx1 */
 			*jac,        /* nxm */
 			*jacTjac,    /* mxm */
@@ -129,7 +130,7 @@ int LEVMAR_DER2(
 	LM_REAL p_eL2, p_eL2_old, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
 	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, a_L2, dF, Dpa_L2, dL;
 	LM_REAL tau, eps1, eps2, eps2_sq, eps3, delta;
-	LM_REAL init_p_eL2;
+	LM_REAL init_p_eL2, best_p_eL2;
 	int nu, nu2, stop = 0, nfev, njap = 0, nlss = 0, K = ( m >= 10 ) ? m : 10, updjac, updp = 1, newjac;
 	LM_REAL phi1[itmax], phi2[K];
 	int phi1c, phi2c;
@@ -207,12 +208,13 @@ int LEVMAR_DER2(
 	jac_zero_obs = ( int * )malloc( n * sizeof( int ) );
 	p_old = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_old2 = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
+	p_best = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); }
 	else gsl_jacobian = NULL;
 	/* compute e=x - f(p) and its L2 norm */
 	maxnfev = op->cd->maxeval - op->cd->neval;
 	for( i = 0; i < m; ++i )
-		p_old[i] = p_old2[i] = pDp[i] = p[i];
+		p_old[i] = p_old2[i] = p_best[i] = pDp[i] = p[i];
 	( *func )( p, hx, m, n, adata ); nfev = 1;
 	if( op->cd->check_success && op->success )
 	{
@@ -251,7 +253,7 @@ int LEVMAR_DER2(
 		if( op->cd->lm_indir ) tprintf( "LM with indirect computation of lambda changes\n" );
 		else tprintf( "LM with direct computation of lambda changes\n" );
 	}
-	init_p_eL2 = p_eL2_old = p_eL2;
+	init_p_eL2 = best_p_eL2 = p_eL2_old = p_eL2;
 	if( !LM_FINITE( p_eL2 ) ) stop = 7;
 	nu = 20; /* force computation of J */
 	if( op->cd->check_success ) success = 1; else success = 0;
@@ -326,6 +328,7 @@ int LEVMAR_DER2(
 				if( j >= op->cd->lm_njacof )
 				{
 					if( op->cd->ldebug ) tprintf( "\nCONVERGED: %d Jacobian OF estimates are very close to the best current OF (%g)\n", j, tmp );
+					if( fabs( tmp - p_eL2 ) > COMPARE_EPSILON ) tprintf( "\ERROR: OF (%g != %g )\n", tmp, p_eL2 );
 					stop = 9;
 					break;
 				}
@@ -742,6 +745,12 @@ int LEVMAR_DER2(
 #endif
 			}
 #endif
+			if( pDp_eL2 < best_p_eL2 )
+			{
+				best_p_eL2 = pDp_eL2;
+				for( i = 0; i < m; ++i )
+					p_best[i] = pDp[i];
+			}
 			if( op->cd->ldebug == 1 ) tprintf( "OF %g lambda %g\n", pDp_eL2, mu );
 			else if( op->cd->ldebug > 1 )
 			{
@@ -963,7 +972,10 @@ int LEVMAR_DER2(
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 			jacTjac[i * m + i] = diag_jacTjac[i];
 	} // END OF OPTIMIZATION LOOP
-	if( op->cd->ldebug > 3 )
+	op->phi = p_eL2 = pDp_eL2 = best_p_eL2;
+	for( i = 0; i < m; ++i )
+		p[i] = p_best[i];
+	if( op->cd->ldebug > 3 ) //TODO I am not sure do we need this ...
 	{
 		DeTransform( pDp, op, jac_min );
 		DeTransform( p_old, op, jac_max );
@@ -979,8 +991,6 @@ int LEVMAR_DER2(
 		}
 		tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
 		tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
-		for( i = 0 ; i < m; ++i ) /* update p's estimate */
-			p_old[i] = pDp[i];
 	}
 	if( k >= kmax && stop == 0 ) stop = 3;
 	for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
