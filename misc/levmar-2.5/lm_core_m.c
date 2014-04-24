@@ -16,6 +16,36 @@
 //  GNU General Public License for more details.
 //
 /////////////////////////////////////////////////////////////////////////////////
+//
+// MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+//
+// Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
+// Dan O'Malley, omalled@lanl.gov
+//
+// http://mads.lanl.gov
+// http://www.ees.lanl.gov/staff/monty/codes/mads
+// http://gitlab.com/monty/mads
+//
+// Licensing: GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
+//
+// LA-CC-10-055; LA-CC-11-035
+//
+// Copyright 2011.  Los Alamos National Security, LLC.  All rights reserved.
+// This material was produced under U.S. Government contract DE-AC52-06NA25396 for
+// Los Alamos National Laboratory, which is operated by Los Alamos National Security, LLC for
+// the U.S. Department of Energy. The Government is granted for itself and others acting on its
+// behalf a paid-up, nonexclusive, irrevocable worldwide license in this material to reproduce,
+// prepare derivative works, and perform publicly and display publicly. Beginning five (5) years after
+// --------------- March 11, 2011, -------------------------------------------------------------------
+// subject to additional five-year worldwide renewals, the Government is granted for itself and
+// others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this
+// material to reproduce, prepare derivative works, distribute copies to the public, perform
+// publicly and display publicly, and to permit others to do so.
+//
+// NEITHER THE UNITED STATES NOR THE UNITED STATES DEPARTMENT OF ENERGY, NOR LOS ALAMOS NATIONAL SECURITY, LLC,
+// NOR ANY OF THEIR EMPLOYEES, MAKES ANY WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LEGAL LIABILITY OR
+// RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
+// PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
 /* precision-specific definitions */
 #include <string.h>

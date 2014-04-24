@@ -4,8 +4,11 @@
 // Dan O'Malley, omalled@lanl.gov
 // Dylan Harp, dharp@lanl.gov
 //
-// http://mads.lanl.gov/
+// http://mads.lanl.gov
 // http://www.ees.lanl.gov/staff/monty/codes/mads
+// http://gitlab.com/monty/mads
+//
+// Licensing: GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
 //
 // LA-CC-10-055; LA-CC-11-035
 //
