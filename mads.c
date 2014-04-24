@@ -1979,12 +1979,17 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 	else k = 0;
 	if( op->cd->debug || op->cd->mdebug ) op->cd->lmstandalone = 1;
 	else op->cd->lmstandalone = 0;
+	//Dump out a seed the initial seed
+	sprintf( filename, "%s.seed0", op->root );
+	seedfile = fopen( filename, "w" );
+	fprintf( seedfile, "%d\n", op->cd->seed_init - 1 );
+	fclose( seedfile );
 	for( count = k; count < op->cd->nreal; count++ )
 	{
 		//Dump out a seed that can be used by external programs
 		sprintf( filename, "%s.seed", op->root );
 		seedfile = fopen( filename, "w" );
-		fprintf( seedfile, "%d\n", op->cd->seed + count );
+		fprintf( seedfile, "%d\n", op->cd->seed_init + count );
 		fclose( seedfile );
 		op->cd->neval = op->cd->njac = 0;
 		fprintf( out, "%d : init var", count + 1 );
