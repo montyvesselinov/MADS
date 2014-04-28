@@ -75,7 +75,7 @@ int mprun( int nJob, void *data )
 	for( i = 0; i < nJob; i++ )
 		skip_job[i] = 0;
 	// for( w = 0; w < nJob; w++ )
-		// tprintf( "%d: init skip_job %d\n", w, skip_job[w] );
+	// tprintf( "%d: init skip_job %d\n", w, skip_job[w] );
 	if( p->cd->restart ) // Check for already computed jobs (smart restart)
 	{
 		done = 0;
@@ -315,6 +315,7 @@ int mprun( int nJob, void *data )
 				for( w = 0; w < nJob; w++ )
 					tprintf( "skip_job %d\n", skip_job[w] );
 				*/
+				sleep( 1 );
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
