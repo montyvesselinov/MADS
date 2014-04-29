@@ -170,6 +170,35 @@ int mprun( int nJob, void *data )
 		}
 		if( job_wait )
 		{
+			// double check
+			j = nKids;
+			w = 0;
+			for( i = 0; i < nHosts; i++ )
+			{
+				if( kidstatus[i] == 1 && kidids[i] > 0 )
+				{
+					if( p->cd->pardebug > 1 ) tprintf( "Processor %i [%d] : status = %d %d", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
+					if( kill( kidids[i], 0 ) == 0 )
+					{
+						if( p->cd->pardebug > 1 ) tprintf( " is running!\n" );
+						w++;
+					}
+					else if( errno == ESRCH )
+					{
+						if( p->cd->pardebug > 1 ) tprintf( " does not exist!\n" );
+						tprintf( "ERROR: Processor %i [%d] : status = %d %d does not exist\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
+						kidstatus[child] = -1;
+						kidids[child] = 0;
+						j--;
+					}
+					else
+					{
+						if( p->cd->pardebug > 1 ) tprintf( " there is a problem to determine the status!\n" );
+					}
+				}
+			}
+			if( j < nKids ) { tprintf( "ERROR: %d missing jobs!\n", nKids - j ); }
+			if( w < nKids ) { tprintf( "ERROR: job count mismatch (%d < %d); number of running jobs is %d!\n", w, nKids, w ); nKids = w; }
 			if( !done )
 			{
 				if( nKids >= nProc )
@@ -183,32 +212,6 @@ int mprun( int nJob, void *data )
 			else
 			{
 				if( wait != 2 && p->cd->pardebug > 1 ) tprintf( "All the jobs are started!\n" );
-				j = nKids;
-				w = 0;
-				for( i = 0; i < nHosts; i++ )
-				{
-					if( kidstatus[i] == 1 && kidids[i] > 0 )
-					{
-						if( p->cd->pardebug > 1 ) tprintf( "Processor %i [%d] : status = %d %d", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
-						if( kill( kidids[i], 0 ) == 0 )
-						{
-							if( p->cd->pardebug > 1 ) tprintf( " is running!\n" );
-							w++;
-						}
-						else if( errno == ESRCH )
-						{
-							if( p->cd->pardebug > 1 ) tprintf( " does not exist!\n" );
-							tprintf( "ERROR: Processor %i [%d] : status = %d %d does not exist\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
-							j--;
-						}
-						else
-						{
-							if( p->cd->pardebug > 1 ) tprintf( " there is a problem to determine the status!\n" );
-						}
-					}
-				}
-				if( w != nKids ) { tprintf( "WARNING: job count mismatch (%d, %d)\n", w, nKids ); }
-				if( j == 0 ) { tprintf( "ERROR: %d missing jobs\n", nKids ); nKids = 0; }
 				if( nKids > 0 )
 				{
 					wait = 2;
@@ -346,7 +349,8 @@ int mprun( int nJob, void *data )
 				for( w = 0; w < nJob; w++ )
 					tprintf( "skip_job %d\n", skip_job[w] );
 				*/
-				sleep( 1 );
+				// TODO sleep below can be important; try to run without; if it fails, comment it out
+				// sleep( 1 );
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );

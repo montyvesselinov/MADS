@@ -324,7 +324,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		}
 		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
 		else strcat( buf, "\"" );
-		if( p->cd->pardebug > 2 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
+		if( p->cd->pardebug > 3 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
 		system( buf );
 	}
 	create_mprun_dir( dir ); // Create the child directory for parallel runs with link to the files in the working root directory
@@ -358,7 +358,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 			}
 			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
 			else strcat( buf, "\"" );
-			if( p->cd->pardebug > 2 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
+			if( p->cd->pardebug > 3 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
 			system( buf );
 		}
 	}
