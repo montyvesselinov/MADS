@@ -171,7 +171,7 @@ int mprun( int nJob, void *data )
 		{
 			for( i = 0; i < nHosts; i++ )
 			{
-				if( kidstatus[i] == 1 )
+				if( kidstatus[i] == 1 && kidids[i] > 0 )
 				{
 					if( p->cd->pardebug > 1 ) tprintf( "Processor %i [%d] : status = %d %d", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
 					if( kill( kidids[i], 0 ) == 0 )
@@ -182,6 +182,7 @@ int mprun( int nJob, void *data )
 					{
 						if( p->cd->pardebug > 1 ) tprintf( " does not exist!\n" );
 						tprintf( "ERROR: Processor %i [%d] : status = %d %d does not exist\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
+						kidids[i] = 0;
 						kidstatus[i] = -1;
 						nKids--;
 					}
@@ -244,7 +245,7 @@ int mprun( int nJob, void *data )
 			{
 				kiddir[child][0] = 0;
 				kidhost[child][0] = 0;
-				kidstatus[child] = 0;
+				kidstatus[child] = 1;
 				kidattempt[child] = 0;
 				kidids[child] = 0;
 				if( p->cd->pardebug > 1 ) tprintf( "finished!\n" );
