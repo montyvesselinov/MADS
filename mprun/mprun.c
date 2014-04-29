@@ -171,24 +171,24 @@ int mprun( int nJob, void *data )
 		{
 			for( i = 0; i < nHosts; i++ )
 			{
-				if( p->cd->pardebug > 1 ) tprintf( "Processor %i [%d] : status = %d %d", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
-				if( kill( kidids[i], 0 ) == 0 )
+				if( kidstatus[i] == 1 )
 				{
-					if( p->cd->pardebug > 1 ) tprintf( " is running!\n" );
-				}
-				else if( errno == ESRCH )
-				{
-					if( p->cd->pardebug > 1 ) tprintf( " does not exist!\n" );
-					if( kidstatus[i] == 1 )
+					if( p->cd->pardebug > 1 ) tprintf( "Processor %i [%d] : status = %d %d", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
+					if( kill( kidids[i], 0 ) == 0 )
 					{
+						if( p->cd->pardebug > 1 ) tprintf( " is running!\n" );
+					}
+					else if( errno == ESRCH )
+					{
+						if( p->cd->pardebug > 1 ) tprintf( " does not exist!\n" );
 						tprintf( "ERROR: Processor %i [%d] : status = %d %d does not exist\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
 						kidstatus[i] = -1;
 						nKids--;
 					}
-				}
-				else
-				{
-					if( p->cd->pardebug > 1 ) tprintf( " there is a problem to determine the status!\n" );
+					else
+					{
+						if( p->cd->pardebug > 1 ) tprintf( " there is a problem to determine the status!\n" );
+					}
 				}
 			}
 			if( !done )
