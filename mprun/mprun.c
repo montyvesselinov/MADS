@@ -187,8 +187,8 @@ int mprun( int nJob, void *data )
 					{
 						if( p->cd->pardebug > 1 ) tprintf( " does not exist!\n" );
 						tprintf( "ERROR: Processor %i [%d] : status = %d %d does not exist\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
-						kidstatus[child] = -1;
-						kidids[child] = 0;
+						kidstatus[i] = -1;
+						kidids[i] = 0;
 						j--;
 					}
 					else
