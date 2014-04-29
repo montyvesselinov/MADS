@@ -244,8 +244,9 @@ int mprun( int nJob, void *data )
 			{
 				kiddir[child][0] = 0;
 				kidhost[child][0] = 0;
-				kidstatus[child] = 1;
+				kidstatus[child] = 0;
 				kidattempt[child] = 0;
+				kidids[child] = 0;
 				if( p->cd->pardebug > 1 ) tprintf( "finished!\n" );
 				continue;
 			}
@@ -254,6 +255,7 @@ int mprun( int nJob, void *data )
 				nKids++;
 				refork = 1;  // refork; do not refresh
 				refresh = 0;
+				kidids[child] = 0;
 				if( kidattempt[child] == -1 ) { if( p->cd->pardebug > 1 ) tprintf( "Initializing " ); }
 				else                          { if( p->cd->pardebug > 1 ) tprintf( "finished; Starting " ); }
 				kidattempt[child] = 1;
