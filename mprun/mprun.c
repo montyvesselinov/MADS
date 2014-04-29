@@ -183,7 +183,8 @@ int mprun( int nJob, void *data )
 			else
 			{
 				if( wait != 2 && p->cd->pardebug > 1 ) tprintf( "All the jobs are started!\n" );
-				/* TODO this needs work
+				j = nKids;
+				w = 0;
 				for( i = 0; i < nHosts; i++ )
 				{
 					if( kidstatus[i] == 1 && kidids[i] > 0 )
@@ -192,14 +193,13 @@ int mprun( int nJob, void *data )
 						if( kill( kidids[i], 0 ) == 0 )
 						{
 							if( p->cd->pardebug > 1 ) tprintf( " is running!\n" );
+							w++;
 						}
 						else if( errno == ESRCH )
 						{
 							if( p->cd->pardebug > 1 ) tprintf( " does not exist!\n" );
 							tprintf( "ERROR: Processor %i [%d] : status = %d %d does not exist\n", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
-							kidids[i] = 0;
-							kidstatus[i] = -1;
-							nKids--;
+							j--;
 						}
 						else
 						{
@@ -207,7 +207,8 @@ int mprun( int nJob, void *data )
 						}
 					}
 				}
-				*/
+				if( w != nKids ) { tprintf( "WARNING: job count mismatch (%d, %d)\n", w, nKids ); }
+				if( j == 0 ) { tprintf( "ERROR: %d missing jobs\n", nKids ); nKids = 0; }
 				if( nKids > 0 )
 				{
 					wait = 2;
@@ -280,6 +281,7 @@ int mprun( int nJob, void *data )
 					kiddir[child][0] = 0;
 					kidhost[child][0] = 0;
 					kidstatus[child] = 1;
+					kidids[child] = 0;
 					tprintf( "WARNING: The number of currently used processors is decreased: %d of %d!\n", nProc, nHosts );
 					continue;
 				}
@@ -293,6 +295,7 @@ int mprun( int nJob, void *data )
 					next = 0;
 					refork = 1;
 					refresh = 0;
+					kidids[child] = 0;
 					sleep( kidattempt[child] );
 				}
 			}
