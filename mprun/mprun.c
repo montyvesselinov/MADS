@@ -42,8 +42,9 @@ static void handler( int sig );
 
 #define MAXATTEMPTS 5
 
-volatile int nProc, nKids, nHosts, *kidstatus, debug;
-volatile pid_t *kidids;
+volatile int nProc, nKids, nHosts, debug;
+int *kidstatus;
+pid_t *kidids;
 
 /* Functions elsewhere */
 char **char_matrix( int maxCols, int maxRows );
@@ -99,9 +100,9 @@ int mprun( int nJob, void *data )
 			tprintf( "WARNING Restart: %d jobs out of %d will be skipped because it appears to be already completed!\n", done, nJob );
 	}
 	debug = ( p->cd->pardebug > 3 ) ? 1 : 0; // Debug level
-	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); // memset( ( pid_t * ) kidids, ( pid_t ) 0, nProc * sizeof( pid_t ) ); // ID's of external jobs
-	kidstatus = ( int * ) malloc( nProc * sizeof( int ) ); // memset( ( int * ) kidstatus, ( int ) -1, nProc * sizeof( int ) ); // Status of external jobs
-	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); // memset( ( int * ) kidattempt, ( int ) -1, nProc * sizeof( int ) ); // Number of attempts to execute each external job
+	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); // ID's of external jobs
+	kidstatus = ( int * ) malloc( nProc * sizeof( int ) );  // Status of external jobs
+	kidattempt = ( int * ) malloc( nProc * sizeof( int ) ); // Number of attempts to execute each external job
 	kiddir = char_matrix( nProc, 1025 ); // Directories for external jobs
 	rerundir = char_matrix( nProc, 1025 ); // Rerun directories for external jobs
 	for( w = 0; w < nProc; w++ )
@@ -407,6 +408,7 @@ static void handler( int sig )
 		if( WIFEXITED( status ) )
 		{
 			nKids--;
+			kidids[child] = 0;
 			if( debug ) tprintf( "finished (exit %d)\n", WEXITSTATUS( status ) );
 			if( WEXITSTATUS( status ) == 1 ) kidstatus[child] = -2;
 			else kidstatus[child] = -1;
@@ -414,6 +416,7 @@ static void handler( int sig )
 		else if( WIFSIGNALED( status ) )
 		{
 			nKids--;
+			kidids[child] = 0;
 			if( debug ) tprintf( "killed (signal %d)\n", WTERMSIG( status ) );
 			kidstatus[child] = -2;
 		}
