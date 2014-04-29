@@ -35,6 +35,7 @@ Debug/*
 *.runs
 *.phi
 *.seed
+*.seed0
 *debug*
 *.running
 *.s_point
