@@ -42,7 +42,7 @@ static void handler( int sig );
 
 #define MAXATTEMPTS 5
 
-volatile int nProc, nKids, nHosts, debug;
+int nProc, nKids, nHosts, debug;
 int *kidstatus;
 pid_t *kidids;
 
@@ -178,7 +178,7 @@ int mprun( int nJob, void *data )
 				if( kidstatus[i] == 1 && kidids[i] > 0 )
 				{
 					if( p->cd->pardebug > 1 ) tprintf( "Processor %i [%d] : status = %d %d", i + 1, kidids[i], kidstatus[i], kidattempt[i] );
-					if( kill( kidids[i], 0 ) == 0 )
+					if( kidids[i] > 0 && kill( kidids[i], 0 ) == 0 )
 					{
 						if( p->cd->pardebug > 1 ) tprintf( " is running!\n" );
 						w++;
@@ -304,10 +304,10 @@ int mprun( int nJob, void *data )
 			}
 			else { if( p->cd->pardebug > 1 ) tprintf( "killed internally!\n" ); continue; }
 		}
-		if( destroy )
+		if( destroy && kidids[child] > 0 )
 		{
-			sleep( 1 );
-			kill( kidids[child] * -1, SIGCONT );
+			if( kidids[child] > 0 ) kill( kidids[child] * -1, SIGCONT );
+			else tprintf( "ERROR: something is wrong destroying process %d\n!", child1 );
 			if( p->cd->pardebug > 1 ) tprintf( "\n" );
 			continue;
 		}
@@ -376,7 +376,8 @@ int mprun( int nJob, void *data )
 			strcpy( kiddir[child], dir );
 			tprintf( "Refreshed Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], kidids[child], exec_name, kiddir[child] );
 			sleep( 1 );
-			kill( kidids[child] * -1, SIGCONT );
+			if( kidids[child] > 0 ) kill( kidids[child] * -1, SIGCONT );
+			else tprintf( "ERROR: something is wrong destroying process\n!" );
 		}
 	}
 	/*
@@ -415,17 +416,17 @@ static void handler( int sig )
 		if( WIFEXITED( status ) )
 		{
 			nKids--;
-			kidids[child] = 0;
 			if( debug ) tprintf( "finished (exit %d)\n", WEXITSTATUS( status ) );
 			if( WEXITSTATUS( status ) == 1 ) kidstatus[child] = -2;
 			else kidstatus[child] = -1;
+			kidids[child] = 0;
 		}
 		else if( WIFSIGNALED( status ) )
 		{
 			nKids--;
-			kidids[child] = 0;
 			if( debug ) tprintf( "killed (signal %d)\n", WTERMSIG( status ) );
 			kidstatus[child] = -2;
+			kidids[child] = 0;
 		}
 		else { if( debug ) tprintf( "EXIT STATUS IS NOT UNDERSTOOD?!?\n" ); }
 	}
