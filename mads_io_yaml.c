@@ -516,7 +516,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 	pd = op->pd;
 	rd = op->rd;
 	rd->nRegul = 0;
-	int i, index, k, num_param, internal, found, bad_data = 0;
+	int i, index, k, num_param, internal, found, bad_data = 0, set_min, set_max;
 	if( num_keys <= 0 ) internal = 0;
 	else internal = 1;
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
@@ -560,6 +560,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		}
 		expvar_count = 0;
 		pd->var_init_min[index] = pd->var_min[index] = -HUGE_VAL; pd->var_init_max[index] = pd->var_max[index] = HUGE_VAL; pd->var[index] = 0; pd->var_opt[index] = 1; pd->var_log[index] = 0;
+		set_min = set_max = 0;
 		for( k = 0; k < g_node_n_children( node_par ); k++ )  // Number of parameter arguments
 		{
 			node_key = g_node_nth_child( node_par, k );
@@ -574,8 +575,8 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			}
 			if( !strcasecmp( ( char * ) node_key->data, "init" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "step" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_dx[index] );
-			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_min[index] );
-			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_max[index] );
+			if( !strcasecmp( ( char * ) node_key->data, "min" ) ) { sscanf( ( char * ) node_value->data, "%lf", &pd->var_min[index] ); set_max = 1; }
+			if( !strcasecmp( ( char * ) node_key->data, "max" ) ) { sscanf( ( char * ) node_value->data, "%lf", &pd->var_max[index] ); set_min = 1; }
 			if( !strcasecmp( ( char * ) node_key->data, "init_min" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_init_min[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "init_max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_init_max[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "exp" ) )
@@ -591,10 +592,10 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 #endif
 			}
 		}
-		if( fabs( pd->var_init_min[index] + HUGE_VAL ) <= COMPARE_EPSILON ) pd->var_init_min[index] = pd->var_min[index];
-		else if( fabs( pd->var_min[index] + HUGE_VAL ) <= COMPARE_EPSILON ) pd->var_min[index] = pd->var_init_min[index];
-		if( fabs( pd->var_init_max[index] - HUGE_VAL ) <= COMPARE_EPSILON ) pd->var_init_max[index] = pd->var_max[index];
-		else if( fabs( pd->var_max[index] - HUGE_VAL ) <= COMPARE_EPSILON ) pd->var_max[index] = pd->var_init_max[index];
+		if( set_min ) { if( pd->var_init_min[index] < pd->var_min[index] ) pd->var_init_min[index] = pd->var_min[index]; }
+		else          { if( pd->var_min[index] < pd->var_init_min[index] ) pd->var_min[index] = pd->var_init_min[index]; }
+		if( set_max ) { if( pd->var_init_max[index] > pd->var_max[index] ) pd->var_init_max[index] = pd->var_max[index]; }
+		else          { if( pd->var_max[index] > pd->var_init_max[index] ) pd->var_max[index] = pd->var_init_max[index]; }
 		if( expvar_count > 0 )
 		{
 			pd->var_opt[index] = -1;
@@ -606,7 +607,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		{
 			tprintf( "%-27s:%-6s ", pd->var_name[index], pd->var_id[index] );
 			if( pd->var_opt[index] > -1 )
-				tprintf( ": init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_min[index], pd->var_max[index] );
+				tprintf( ": init %9g opt %1d log %1d step %7g min %9g imax %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
 			else
 			{
 				tprintf( "= %s ", evaluator_get_string( pd->param_expression[pd->nExpParam - 1] ) );
@@ -1428,8 +1429,8 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	fprintf( outfile, "Problem: { " );
 	switch( cd->problem_type )
 	{
-		case CREATE: fprintf( outfile, "create" ); break;
-		case FORWARD: fprintf( outfile, "forward" ); break;
+		case CREATE: fprintf( outfile, "calibration" ); break; // FORWARD is not needed
+		case FORWARD: fprintf( outfile, "calibration" ); break; // FORWARD is not needed
 		case CALIBRATE: fprintf( outfile, "calibration" ); break;
 		case LOCALSENS: fprintf( outfile, "lsens" ); break;
 		case GLOBALSENS: fprintf( outfile, "gsens" ); break;

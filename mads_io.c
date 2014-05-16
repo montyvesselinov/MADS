@@ -499,7 +499,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	{
 		if( cd->paranoid ) tprintf( "Multi-Start Levenberg-Marquardt optimization\n" );
 		else tprintf( "Levenberg-Marquardt optimization\n" );
-		if( cd->calib_type == SIMPLE && cd->nretries <= 1 && !( fabs( cd->obsstep ) > DBL_EPSILON ) ) cd->ldebug = cd->lm_eigen = 1;
+		// if( cd->calib_type == SIMPLE && cd->nretries <= 1 && !( fabs( cd->obsstep ) > DBL_EPSILON ) ) cd->ldebug = cd->lm_eigen = 1;
 	}
 	else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
 	{
@@ -1565,8 +1565,8 @@ int save_problem_text( char *filename, struct opt_data *op )
 	fprintf( outfile, "Problem: " );
 	switch( cd->problem_type )
 	{
-		case CREATE: fprintf( outfile, "create" ); break;
-		case FORWARD: fprintf( outfile, "forward" ); break;
+		// case CREATE: fprintf( outfile, "create" ); break; // This is not needed
+		// case FORWARD: fprintf( outfile, "forward" ); break; // This is not needed
 		case CALIBRATE: fprintf( outfile, "calibration" ); break;
 		case LOCALSENS: fprintf( outfile, "lsens" ); break;
 		case GLOBALSENS: fprintf( outfile, "gsens" ); break;
