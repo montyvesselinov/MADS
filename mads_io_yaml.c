@@ -607,7 +607,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		{
 			tprintf( "%-27s:%-6s ", pd->var_name[index], pd->var_id[index] );
 			if( pd->var_opt[index] > -1 )
-				tprintf( ": init %9g opt %1d log %1d step %7g min %9g imax %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
+				tprintf( ": init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
 			else
 			{
 				tprintf( "= %s ", evaluator_get_string( pd->param_expression[pd->nExpParam - 1] ) );
