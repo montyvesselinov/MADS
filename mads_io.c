@@ -841,8 +841,9 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 					pd->var_max[i] = log10( pd->var_max[i] );
 					pd->var_init_min[i] = log10( pd->var_init_min[i] );
 					pd->var_init_max[i] = log10( pd->var_init_max[i] );
-					if( pd->var_dx[i] < 2 ) pd->var_dx[i] = ( pd->var_max[i] - pd->var_min[i] ) / d;
-					else pd->var_dx[i] = log10( pd->var_dx[i] );
+					// TODO we may need to revisit the parameter stepping ....
+					// if( pd->var_dx[i] < 2 ) pd->var_dx[i] = ( pd->var_max[i] - pd->var_min[i] ) / d;
+					// else pd->var_dx[i] = log10( pd->var_dx[i] );
 				}
 				pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
 				if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON

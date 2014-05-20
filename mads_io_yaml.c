@@ -670,8 +670,9 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 				pd->var_max[index] = log10( pd->var_max[index] );
 				pd->var_init_min[index] = log10( pd->var_init_min[index] );
 				pd->var_init_max[index] = log10( pd->var_init_max[index] );
-				if( pd->var_dx[index] < 2 ) pd->var_dx[index] = ( pd->var_max[index] - pd->var_min[index] ) / d;
-				else pd->var_dx[index] = log10( pd->var_dx[index] );
+				// TODO we may need to revisit the parameter stepping ....
+				// if( pd->var_dx[index] < 2 ) pd->var_dx[index] = ( pd->var_max[index] - pd->var_min[index] ) / d;
+				// else pd->var_dx[index] = log10( pd->var_dx[index] );
 			}
 			pd->var_range[index] = pd->var_max[index] - pd->var_min[index];
 			if( pd->var_dx[index] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
