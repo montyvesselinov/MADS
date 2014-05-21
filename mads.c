@@ -826,14 +826,14 @@ int main( int argn, char *argv[] )
 					if( c > -1 )
 					{
 						// tprintf( "Par #%d %s\n", c + 1, word );
-						if( cd.calib_type == PPSD ) while( pd.var_opt[i] == 2 || pd.var_opt[i] == 0 ) i++;
-						else while( pd.var_opt[i] == 0 ) i++;
+						if( cd.calib_type == PPSD ) while( pd.var_opt[i] == 2 || pd.var_opt[i] == 0 || pd.var_opt[i] == -1 ) { if( cd.debug ) tprintf( "h0 %s %g %d ... skipped\n", pd.var_name[i], pd.var[i], pd.var_opt[i] ); i++; }
+						else while( pd.var_opt[i] <= 0 ) { if( cd.debug ) tprintf( "%s %g %d ... skipped\n", pd.var_name[i], pd.var[i], pd.var_opt[i] ); i++; }
 						if( i >= pd.nParam ) break;
 						sscanf( word, "%lf", &pd.var[i] );
 						k++;
 						if( pd.var_log[i] ) pd.var[i] = log10( pd.var[i] );
 						cd.var[i] = pd.var[i];
-						if( cd.debug ) tprintf( "%s %g\n", pd.var_name[i], pd.var[i] );
+						if( cd.debug ) tprintf( "%s %g %d ... initialized\n", pd.var_name[i], pd.var[i], pd.var_opt[i] );
 						i++;
 					}
 				}
