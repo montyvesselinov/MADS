@@ -586,7 +586,6 @@ struct position archiveCrowDistSelect( int size )
 	// the bigger the CD, the higher the probability
 	// Also the bigger the number of tribes (i.e. "size")
 	// the "sharper" the distribution
-
 	int n;
 	double pr;
 	archive_crowding_dist(); // Compute the Crowding Distances
@@ -635,10 +634,8 @@ struct objfunc archive_phi_var( struct problem *pb ) // Variance of the archive 
 	double mean, var, z;
 	struct objfunc var_phi;
 	int m, n;
-
 	set_objfunc( pb, &var_phi );
 	var_phi.size = multiobj_archive[0].x.f.size;
-
 	for( n = 0; n < var_phi.size; n++ )
 	{
 		mean = 0;

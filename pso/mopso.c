@@ -477,12 +477,11 @@ static struct fitness position_eval( struct problem pb, struct position x )
 	struct fitness fit;
 	double f;
 	int i;
-
 	eval++;
 	fit.size = pb.fNb;
 	func_global( x.x, gop, res ); // evaluation ... either internal of external
 	f = 0;
-	for( i = 0; i < gop->od->nTObs; i++ ) f += res[i] *res[i];
+	for( i = 0; i < gop->od->nTObs; i++ ) f += res[i] * res[i];
 	fit.f[0] = fabs( f - pb.objective[0] );
 	for( i = 0; i < pb.fNb; i++ ) // Save the min and the max fitness ever found
 	{
@@ -510,7 +509,6 @@ static struct problem problemset( struct opt_data *op )
 	int d;
 	struct problem pb;
 	double *opt_var, *tr_var;
-
 	pb.D = op->pd->nOptParam;
 	if( pb.D > DMax )
 	{
@@ -518,8 +516,8 @@ static struct problem problemset( struct opt_data *op )
 		fprintf( stderr, "\nYou may increase DMax (%i)\n", DMax );
 		exit( 1 );
 	}
-	if( ( opt_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( tr_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( opt_var = ( double * ) malloc( pb.D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( tr_var = ( double * ) malloc( pb.D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	for( d = 0; d < pb.D; d++ )
 		opt_var[d] = op->pd->var[ op->pd->var_index[d] ];
 	Transform( opt_var, op, tr_var );
@@ -556,7 +554,6 @@ static struct problem problemset( struct opt_data *op )
 	if( op->cd->nretries == 0 ) pb.repeat = 1;
 	else pb.repeat = op->cd->nretries;
 	op->cd->lmstandalone = 0;
-
 	if( pb.repeat > rMax )
 	{
 		fprintf( stderr, "Too many runs (max %i) \n", rMax );
@@ -607,7 +604,6 @@ static struct position archiveCrowDistSelect( int size )
 	// the bigger the CD, the higher the probability
 	// Also the bigger the number of tribes (i.e. "size")
 	// the "sharper" the distribution
-
 	int n;
 	double pr;
 	archive_crowding_dist(); // Compute the Crowding Distances
@@ -658,9 +654,7 @@ static struct fitness archiveFitnessVar()
 	double mean, var, z;
 	int m, n;
 	struct fitness varF;
-
 	varF.size = multiobj_archive[0].x.f.size;
-
 	for( n = 0; n < varF.size; n++ )
 	{
 		mean = 0;
@@ -946,14 +940,12 @@ static struct position particle_check( struct problem pb, struct position pos )
 {
 	struct position posG;
 	int rank, d, n;
-
 	posG = pos;
 	// Granularity
 	for( d = 0; d < pb.D; d++ )
 		if( pb.valSize[d] == 0 )
 			if( pb.dx[d] > 0 )
 				posG.x[d] = granularity( pos.x[d], pb.dx[d] );
-
 	// Clamping
 	for( d = 0; d < pb.D; d++ )
 	{
@@ -1091,9 +1083,8 @@ static double minXY( double x, double y )
 static struct particle particle_init( struct problem pb, int initOption, struct position guide1, struct position guide2, struct swarm S )
 {
 	struct particle part = {0};
-	double mean, range, sort_vec[2 * tribMax *partMax];
+	double mean, range, sort_vec[2 * tribMax * partMax];
 	int i, ip, it, k, count, rank;
-
 	part.x.size = pb.D; // Initial number of particles equal number of dimensions (optimized variables)
 	switch( initOption )
 	{
@@ -1260,16 +1251,13 @@ static struct position position_update( struct problem pb, struct particle par, 
 	double radius;
 //	int strat[3];
 	int type;
-
 	double w1 = 0.74; // => gaussian fifty-fifty
 	double w2 = 0.72; // < 1/(2*ln(2)) Just for tests
 	double c = 1.19; // < 0.5 + ln(2) Just for tests
-
 	// Define the three strategies
 //	strat[0] = 0; // For good particle
 //	strat[1] = 1; // For neutral particle
 //	strat[2] = 2; // For bad particle
-
 	pos.size = pb.D;
 	Dim = informer.xBest.size; // May be zero if there is no informer
 	switch( par.strategy )
@@ -1341,7 +1329,6 @@ static struct position position_lm( struct opt_data *op, struct problem pb, stru
 {
 	struct position p;
 	int d;
-
 	p = pos;
 	for( d = 0; d < pb.D; d++ )
 		op->pd->var[op->pd->var_index[d]] = p.x[d];
@@ -1389,7 +1376,6 @@ static struct swarm pso_solver( struct problem pb, int compare_type, int run )
 {
 	int n, tr, stop = 0;
 	struct swarm S = {0};
-
 	for( n = 0; n < pb.fNb; n++ ) wF[n] = 1; // Initials penalties (for multi-objective)
 	iterLocalSearchNb = 0; // Prepare local search (for multi-objective)
 	S = swarm_init( pb, compare_type ); //Initialization of the swarm
@@ -1446,7 +1432,6 @@ static struct swarm swarm_adapt( struct problem pb, struct swarm S0, int compare
 	int tr;
 	int tribeNb;
 	int trWorst;
-
 	St = S0;
 	tribeNb = St.size;
 	for( tr = 0; tr < St.size; tr++ )
@@ -1649,7 +1634,6 @@ static struct swarm swarm_init( struct problem pb, int compare_type )
 	int partNb;
 	int tr;
 	int tribNb;
-
 	tribNb = 1; // Initial number of tribes
 	partNb = 1; // Initial number of particles in each tribe
 	for( tr = 0; tr < tribNb; tr++ )
@@ -1689,7 +1673,6 @@ static struct swarm swarm_local_search( struct problem pb, struct swarm S )
 	//	double w2=0.74;
 	double z;
 	int option = 1;
-
 	St = S;
 	xNew.size = pb.D;
 	switch( option )
@@ -1791,7 +1774,6 @@ static struct swarm swarm_move( struct problem pb, struct swarm S, int compare_t
 	int shList[tribMax];
 	struct swarm St;
 	int tr;
-
 	St = S;
 	modify_weights( pb.fNb, run ); // Penalties (global variable wF)
 	St.fBestPrev = S.best.f; // Save the currenr best result of the whole swarm
@@ -1916,7 +1898,6 @@ static struct tribe tribe_init( struct problem pb, int partNb, int compare_type,
 	struct tribe newTribe;
 	struct position dumm;
 	int ip, init_option;
-
 	newTribe.best = 0;
 	newTribe.status = 0;
 	newTribe.size = ( int ) minXY( ( double ) partNb, ( double ) partMax );

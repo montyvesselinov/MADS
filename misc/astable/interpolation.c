@@ -164,7 +164,6 @@ struct interpolant_params *automate_interpolant( double alpha, double beta, doub
 	double left;
 	double right;
 	struct interpolant_params *ip;
-
 	right = 1;
 	while( standard_astable_cdf( right, alpha, beta ) < 1. - percentile )
 	{
@@ -175,12 +174,10 @@ struct interpolant_params *automate_interpolant( double alpha, double beta, doub
 	{
 		left *= 2;
 	}
-
 	//the 100 + 10. / sqrt(abserr) gives a very rough approximation of the number of node points needed to acheive the desired accuracy
 	//the sqrt arises because the truncation error associated with linear interpolation is O(h^2)
 	//the approximation will likely be problematic for small alpha and beta near +-1
 	ip = setup_interpolant( alpha, beta, left, right, 100 + 10. / sqrt( abserr ), CDF_OR_PDF );
-
 	return ip;
 }
 
@@ -376,12 +373,9 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 	struct interpolant_params *ip;
 	double *x_sorted;
 	double *y_sorted;
-
 	x_sorted = ( double * )malloc( ( N + 1 ) * sizeof( double ) );
 	y_sorted = ( double * )malloc( ( N + 1 ) * sizeof( double ) );
-
 	get_sorted_vals( alpha, beta, left, right, N, CDF_OR_PDF, x_sorted, y_sorted );
-
 	ip = ( struct interpolant_params * )malloc( sizeof( struct interpolant_params ) );
 	ip->alpha = alpha;
 	ip->beta = beta;
@@ -391,12 +385,10 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 	ip->acc = gsl_interp_accel_alloc();
 	ip->spline = gsl_spline_alloc( gsl_interp_linear, N + 1 );
 	gsl_spline_init( ip->spline, x_sorted, y_sorted, N + 1 );
-	ip->limiting_coefficient = sin( M_PI *alpha / 2. ) *gsl_sf_gamma( alpha ) / M_PI;
+	ip->limiting_coefficient = sin( M_PI * alpha / 2. ) * gsl_sf_gamma( alpha ) / M_PI;
 	ip->cdf_or_pdf = CDF_OR_PDF;
-
 	free( x_sorted );
 	free( y_sorted );
-
 	return ip;
 }
 

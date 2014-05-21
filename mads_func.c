@@ -99,7 +99,7 @@ int func_extrn( double *x, void *data, double *f )
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
 		if( p->cd->fdebug >= 3 )
-			tprintf( "%s %.12g\n", p->pd->var_name[k], p->cd->var[k] );
+			tprintf( "%s %.12g log %d\n", p->pd->var_name[k], p->cd->var[k], p->pd->var_log[k] );
 	}
 	if( p->pd->nExpParam > 0 )
 	{
@@ -271,7 +271,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
 		if( p->cd->fdebug >= 3 )
-			tprintf( "%s %.12g\n", p->pd->var_name[k], p->cd->var[k] );
+			tprintf( "%s %.12g log %d\n", p->pd->var_name[k], p->cd->var[k], p->pd->var_log[k] );
 	}
 	if( p->pd->nExpParam > 0 )
 	{
@@ -580,7 +580,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
 		else p->cd->var[k] = p->pd->var_current[i];
-		if( p->cd->fdebug >= 3 ) tprintf( "%s %.12g\n", p->pd->var_name[k], p->cd->var[k] );
+		if( p->cd->fdebug >= 3 ) tprintf( "%s %.12g log %d\n", p->pd->var_name[k], p->cd->var[k], p->pd->var_log[k] );
 	}
 	if( p->pd->nExpParam > 0 )
 	{

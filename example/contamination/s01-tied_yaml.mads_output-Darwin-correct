@@ -46,26 +46,26 @@ Process Solution ... Number of solution components: 1
 
 Process Sources ... Number of sources: 1
 Source #1 type: box ... Number of parameters: 9
-Source x coordinate [L]    :x      : init      1124 opt 1 log 0 step      25 min       210 max      1460
-Source y coordinate [L]    :y      : init      1393 opt 1 log 0 step      25 min      1230 max      1930
-Source z coordinate [L]    :z      : init         0 opt 0 log 0 step       1 min         0 max       100
-Source x dimension [L]     :dx     : init       258 opt 1 log 0 step       1 min         1 max       500
-Source y dimension [L]     :dy     : init       273 opt 1 log 0 step       1 min         1 max       500
+Source x coordinate [L]    :x      : init      1124 opt 1 step      25 min       210 max      1460
+Source y coordinate [L]    :y      : init      1393 opt 1 step      25 min      1230 max      1930
+Source z coordinate [L]    :z      : init         0 opt 0 step       1 min         0 max       100
+Source x dimension [L]     :dx     : init       258 opt 1 step       1 min         1 max       500
+Source y dimension [L]     :dy     : init       273 opt 1 step       1 min         1 max       500
 Source z dimension [L]     :dz     = (z+5) -> variables: z
 Contaminant flux [M/T]     :f      = (4000/(49-t0)) -> variables: t0
-Start Time [T]             :t0     : init         0 opt 1 log 0 step       1 min         0 max        43
+Start Time [T]             :t0     : init         0 opt 1 step       1 min         0 max        43
 End Time [T]               :t1     = (t0+13) -> variables: t0
 Model: internal box contaminant source | Gaussian dispersion
 Process Parameters ... Number of parameters: 10
 WARNING: The number of provided parameters (10) is different than the number of expected parameters (17)
-Porosity [L3/L3]           :n      : init       0.1 opt 0 log 1 step     0.1 min         0 max         1
-Retardation Factor [-]     :rf     : init         1 opt 0 log 0 step       1 min         1 max        10
-Half-life decay [1/T]      :lambda : init         0 opt 0 log 0 step       1 min         0 max         1
-Flow Angle [degrees]       :theta  : init         3 opt 1 log 0 step       5 min       -30 max        30
-Pore x velocity [L/T]      :vx     : init         5 opt 1 log 1 step       1 min      0.01 max       200
-Pore y velocity [L/T]      :vy     : init         0 opt 0 log 0 step       1 min         0 max         1
-Pore z velocity [L/T]      :vz     : init         0 opt 0 log 0 step       1 min         0 max         1
-Dispersivity x [L]         :ax     : init        70 opt 1 log 1 step       5 min        10 max       140
+Porosity [L3/L3]           :n      : init       0.1 opt 0 step     0.1 min         0 max         1
+Retardation Factor [-]     :rf     : init         1 opt 0 step       1 min         1 max        10
+Half-life decay [1/T]      :lambda : init         0 opt 0 step       1 min         0 max         1
+Flow Angle [degrees]       :theta  : init         3 opt 1 step       5 min       -30 max        30
+Pore x velocity [L/T]      :vx     : init         5 opt 1 step       1 min      0.01 max       200
+Pore y velocity [L/T]      :vy     : init         0 opt 0 step       1 min         0 max         1
+Pore z velocity [L/T]      :vz     : init         0 opt 0 step       1 min         0 max         1
+Dispersivity x [L]         :ax     : init        70 opt 1 step       5 min        10 max       140
 Dispersivity y [L]         :ay     = (ax/10) -> variables: ax
 Dispersivity z [L]         :az     = (ay/10) -> variables: ay
 
@@ -183,7 +183,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140320-213327
+Execution date & time stamp: 20140520-195945
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -1436,6 +1436,6 @@ Simulation time = 0 seconds
 Functional evaluations = 103
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Mar 20 21:33:27 2014
-Execution completed on Thu Mar 20 21:33:27 2014
-Execution date & time stamp: 20140320-213327
+Execution  started  on Tue May 20 19:59:45 2014
+Execution completed on Tue May 20 19:59:45 2014
+Execution date & time stamp: 20140520-195945

@@ -112,17 +112,14 @@ static void free_resnode( struct res_node * );
 struct kdtree *kd_create( int k )
 {
 	struct kdtree *tree;
-
-	if( !( tree = ( struct kdtree * ) malloc( sizeof *tree ) ) )
+	if( !( tree = ( struct kdtree * ) malloc( sizeof * tree ) ) )
 	{
 		return 0;
 	}
-
 	tree->dim = k;
 	tree->root = 0;
 	tree->destr = 0;
 	tree->rect = 0;
-
 	return tree;
 }
 
@@ -372,12 +369,10 @@ struct kdres *kd_nearest( struct kdtree *kd, const double *pos )
 	struct kdres *rset;
 	double dist_sq;
 	int i;
-
 	if( !kd ) return 0;
 	if( !kd->rect ) return 0;
-
 	/* Allocate result set */
-	if( !( rset = ( struct kdres * ) malloc( sizeof *rset ) ) )
+	if( !( rset = ( struct kdres * ) malloc( sizeof * rset ) ) )
 	{
 		return 0;
 	}
@@ -388,26 +383,21 @@ struct kdres *kd_nearest( struct kdtree *kd, const double *pos )
 	}
 	rset->rlist->next = 0;
 	rset->tree = kd;
-
 	/* Duplicate the bounding hyperrectangle, we will work on the copy */
 	if( !( rect = hyperrect_duplicate( kd->rect ) ) )
 	{
 		kd_res_free( rset );
 		return 0;
 	}
-
 	/* Our first guesstimate is the root node */
 	result = kd->root;
 	dist_sq = 0;
 	for( i = 0; i < kd->dim; i++ )
 		dist_sq += SQ( result->pos[i] - pos[i] );
-
 	/* Search for the nearest neighbour recursively */
 	kd_nearest_i( kd->root, pos, &result, &dist_sq, rect );
-
 	/* Free the copy of the hyperrect */
 	hyperrect_free( rect );
-
 	/* Store the result */
 	if( result )
 	{
@@ -433,7 +423,6 @@ struct kdres *kd_nearestf( struct kdtree *tree, const float *pos )
 	double *bptr, *buf = 0;
 	int dim = tree->dim;
 	struct kdres *res;
-
 	if( dim > 16 )
 	{
 #ifndef NO_ALLOCA
@@ -450,12 +439,10 @@ struct kdres *kd_nearestf( struct kdtree *tree, const float *pos )
 	{
 		bptr = sbuf;
 	}
-
 	while( dim-- > 0 )
 	{
 		*bptr++ = *pos++;
 	}
-
 	res = kd_nearest( tree, buf );
 #ifndef NO_ALLOCA
 	if( tree->dim > 256 )
@@ -488,8 +475,7 @@ struct kdres *kd_nearest_range( struct kdtree *kd, const double *pos, double ran
 {
 	int ret;
 	struct kdres *rset;
-
-	if( !( rset = ( struct kdres * ) malloc( sizeof *rset ) ) )
+	if( !( rset = ( struct kdres * ) malloc( sizeof * rset ) ) )
 	{
 		return 0;
 	}
@@ -500,7 +486,6 @@ struct kdres *kd_nearest_range( struct kdtree *kd, const double *pos, double ran
 	}
 	rset->rlist->next = 0;
 	rset->tree = kd;
-
 	if( ( ret = find_nearest( kd->root, pos, range, rset->rlist, 0, kd->dim ) ) == -1 )
 	{
 		kd_res_free( rset );
@@ -517,7 +502,6 @@ struct kdres *kd_nearest_rangef( struct kdtree *kd, const float *pos, float rang
 	double *bptr, *buf = 0;
 	int dim = kd->dim;
 	struct kdres *res;
-
 	if( dim > 16 )
 	{
 #ifndef NO_ALLOCA
@@ -534,12 +518,10 @@ struct kdres *kd_nearest_rangef( struct kdtree *kd, const float *pos, float rang
 	{
 		bptr = sbuf;
 	}
-
 	while( dim-- > 0 )
 	{
 		*bptr++ = *pos++;
 	}
-
 	res = kd_nearest_range( kd, buf, range );
 #ifndef NO_ALLOCA
 	if( kd->dim > 256 )
@@ -656,14 +638,12 @@ void *kd_res_item_data( struct kdres *set )
 /* ---- hyperrectangle helpers ---- */
 static struct kdhyperrect *hyperrect_create( int dim, const double *min, const double *max )
 {
-	size_t size = dim *sizeof( double );
+	size_t size = dim * sizeof( double );
 	struct kdhyperrect *rect = 0;
-
 	if( !( rect = ( struct kdhyperrect * ) malloc( sizeof( struct kdhyperrect ) ) ) )
 	{
 		return 0;
 	}
-
 	rect->dim = dim;
 	if( !( rect->min = ( double * ) malloc( size ) ) )
 	{
@@ -678,7 +658,6 @@ static struct kdhyperrect *hyperrect_create( int dim, const double *min, const d
 	}
 	memcpy( rect->min, min, size );
 	memcpy( rect->max, max, size );
-
 	return rect;
 }
 
@@ -741,11 +720,9 @@ static pthread_mutex_t alloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 static struct res_node *alloc_resnode( void )
 {
 	struct res_node *node;
-
 #ifndef NO_PTHREADS
 	pthread_mutex_lock( &alloc_mutex );
 #endif
-
 	if( !free_nodes )
 	{
 		node = ( struct res_node * ) malloc( sizeof * node );
@@ -756,11 +733,9 @@ static struct res_node *alloc_resnode( void )
 		free_nodes = free_nodes->next;
 		node->next = 0;
 	}
-
 #ifndef NO_PTHREADS
 	pthread_mutex_unlock( &alloc_mutex );
 #endif
-
 	return node;
 }
 

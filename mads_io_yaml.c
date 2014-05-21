@@ -607,7 +607,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		{
 			tprintf( "%-27s:%-6s ", pd->var_name[index], pd->var_id[index] );
 			if( pd->var_opt[index] > -1 )
-				tprintf( ": init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
+				tprintf( ": init %9g opt %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
 			else
 			{
 				tprintf( "= %s ", evaluator_get_string( pd->param_expression[pd->nExpParam - 1] ) );
@@ -656,10 +656,11 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 			{
 				if( pd->var_min[index] < 0 || pd->var[index] < 0 )
 				{
-					tprintf( "ERROR: Parameter cannot be log transformed (negative values)!\n" );
+					tprintf( "WARNING: Parameter cannot be log transformed (negative values)!\n" );
 					tprintf( "Parameter %s: min %g max %g\n", pd->var_name[index], pd->var_min[index], pd->var_max[index] );
-					if( cd->plogtrans ) { pd->var_log[index] = 0; pd->var_range[index] = pd->var_max[index] - pd->var_min[index]; continue; }
-					else bad_data = 1;
+					// if( cd->plogtrans == 1 ) { pd->var_log[index] = 0; pd->var_range[index] = pd->var_max[index] - pd->var_min[index]; }
+					// else bad_data = 1;
+					continue;
 				}
 				double d = 0;
 				if( pd->var_dx[index] < 2 ) d = ( pd->var_max[index] - pd->var_min[index] ) / pd->var_dx[index];
@@ -670,9 +671,8 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 				pd->var_max[index] = log10( pd->var_max[index] );
 				pd->var_init_min[index] = log10( pd->var_init_min[index] );
 				pd->var_init_max[index] = log10( pd->var_init_max[index] );
-				// TODO we may need to revisit the parameter stepping ....
-				// if( pd->var_dx[index] < 2 ) pd->var_dx[index] = ( pd->var_max[index] - pd->var_min[index] ) / d;
-				// else pd->var_dx[index] = log10( pd->var_dx[index] );
+				if( pd->var_dx[index] < 2 ) pd->var_dx[index] = ( pd->var_max[index] - pd->var_min[index] ) / d;
+				else pd->var_dx[index] = log10( pd->var_dx[index] );
 			}
 			pd->var_range[index] = pd->var_max[index] - pd->var_min[index];
 			if( pd->var_dx[index] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON

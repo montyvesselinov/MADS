@@ -2435,6 +2435,7 @@ int ppsd( struct opt_data *op )
 				op->cd->var[i] = op->pd->var[i] = orig_params[i]; // these are the true original parameters
 				if( op->pd->var_opt[i] == 2 ) // Print only flagged parameters
 				{
+					if( op->pd->var_log[i] ) op->cd->var[i] = pow( 10, op->cd->var[i] );
 					tprintf( "%s %g\n", op->pd->var_name[i], op->cd->var[i] );
 					fprintf( out, "%g ", op->cd->var[i] );
 				}

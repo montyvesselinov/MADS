@@ -830,8 +830,9 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 					{
 						tprintf( "ERROR: Parameter cannot be log transformed (negative values)!\n" );
 						tprintf( "Parameter %s: min %g max %g\n", pd->var_name[i], pd->var_min[i], pd->var_max[i] );
-						if( cd->plogtrans ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; continue; }
-						else bad_data = 1;
+						// if( cd->plogtrans == 1 ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; }
+						// else bad_data = 1;
+						continue;
 					}
 					if( pd->var_dx[i] < 2 ) d = ( pd->var_max[i] - pd->var_min[i] ) / pd->var_dx[i];
 					if( pd->var[i] < DBL_EPSILON ) pd->var[i] = DBL_EPSILON;
@@ -841,9 +842,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 					pd->var_max[i] = log10( pd->var_max[i] );
 					pd->var_init_min[i] = log10( pd->var_init_min[i] );
 					pd->var_init_max[i] = log10( pd->var_init_max[i] );
-					// TODO we may need to revisit the parameter stepping ....
-					// if( pd->var_dx[i] < 2 ) pd->var_dx[i] = ( pd->var_max[i] - pd->var_min[i] ) / d;
-					// else pd->var_dx[i] = log10( pd->var_dx[i] );
+					if( pd->var_dx[i] < 2 ) pd->var_dx[i] = ( pd->var_max[i] - pd->var_min[i] ) / d;
+					else pd->var_dx[i] = log10( pd->var_dx[i] );
 				}
 				pd->var_range[i] = pd->var_max[i] - pd->var_min[i];
 				if( pd->var_dx[i] > DBL_EPSILON ) cd->pardx = 1; // discretization is ON
@@ -2076,7 +2076,7 @@ int set_optimized_params( struct opt_data *op )
 	for( k = i = 0; i < pd->nParam; i++ )
 		if( pd->var_opt[i] == 1 || ( pd->var_opt[i] > 1 && cd->calib_type != PPSD ) )
 		{
-			if( cd->debug ) tprintf( "%-27s:%-6s: init %9g step %8.3g min %9g max %9g\n", pd->var_name[i], pd->var_id[i], pd->var[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+			if( cd->debug ) tprintf( "%-27s:%-6s: init %9g log %1d step %8.3g min %9g max %9g\n", pd->var_name[i], pd->var_id[i], pd->var[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 			pd->var_index[k++] = i;
 		}
 	if( cd->debug ) tprintf( "\n" );
@@ -2085,7 +2085,7 @@ int set_optimized_params( struct opt_data *op )
 	{
 		for( i = 0; i < pd->nParam; i++ )
 			if( pd->var_opt[i] == 2 )
-				tprintf( "%-27s:%-6s: init %9g step %6g min %9g max %9g\n", pd->var_name[i], pd->var[i], pd->var_id[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
+				tprintf( "%-27s:%-6s: init %9g log %1d step %6g min %9g max %9g\n", pd->var_name[i], pd->var[i], pd->var_id[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 	}
 	pd->nIgnParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
