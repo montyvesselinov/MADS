@@ -607,7 +607,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		{
 			tprintf( "%-27s:%-6s ", pd->var_name[index], pd->var_id[index] );
 			if( pd->var_opt[index] > -1 )
-				tprintf( ": init %9g opt %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
+				tprintf( ": init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
 			else
 			{
 				tprintf( "= %s ", evaluator_get_string( pd->param_expression[pd->nExpParam - 1] ) );
@@ -1421,7 +1421,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	ed = op->ed;
 	set_param_names( op, 0 );
 	FILE *outfile;
-	int  i, j, count_param_expressions, count_param, param_limit;
+	int  i, j, k, count_param, param_limit;
 	if( ( outfile = fopen( filename, "w" ) ) == NULL )
 	{
 		tprintf( "File \'%s\' cannot be opened to save the problem information!\n", filename );
@@ -1499,7 +1499,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	if( cd->solution_type[0] == EXTERNAL ) fprintf( outfile, "external\n" );
 	else if( cd->solution_type[0] == TEST ) fprintf( outfile, "test\n" );
 	else fprintf( outfile, "internal\n" );
-	count_param_expressions = count_param = 0;
+	count_param = 0;
 	if( cd->solution_type[0] != EXTERNAL && cd->solution_type[0] != TEST )
 	{
 		fprintf( outfile, "Sources:\n" );
@@ -1511,11 +1511,20 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 				fprintf( outfile, "  %-3s: {", pd->var_id[count_param] );
 				if( pd->var_name[count_param] != NULL || pd->var_name[count_param][0] != 0 ) fprintf( outfile, " longname: \"%s\", ", pd->var_name[count_param] );
 				if( pd->var_opt[count_param] == -1 ) // tied parameter
+				{
 #ifdef MATHEVAL
-					fprintf( outfile, "exp: \"%s\"", evaluator_get_string( pd->param_expression[count_param_expressions++] ) );
+					for( k = 0; k < pd->nExpParam; k++ )
+						if( count_param == pd->param_expressions_index[k] )
+						{
+							fprintf( outfile, "exp: \"%s\"", evaluator_get_string( pd->param_expression[k] ) );
+							break;
+						}
+					if( k == pd->nExpParam )
+						fprintf( outfile, "exp: \"ERROR: expression cannot be found\"" );
 #else
 					fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
 #endif
+				}
 				else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
 					fprintf( outfile, "init: %.15g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
 				else // fixed or not log-transformed parameter
@@ -1536,11 +1545,20 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 		fflush( outfile );
 		if( pd->var_name[count_param] != NULL || pd->var_name[count_param][0] != 0 ) fprintf( outfile, " longname: \"%s\", ", pd->var_name[count_param] );
 		if( pd->var_opt[count_param] == -1 ) // tied parameter
+		{
 #ifdef MATHEVAL
-			fprintf( outfile, "exp: \"%s\"", evaluator_get_string( pd->param_expression[count_param_expressions++] ) );
+			for( k = 0; k < pd->nExpParam; k++ )
+				if( count_param == pd->param_expressions_index[k] )
+				{
+					fprintf( outfile, "exp: \"%s\"", evaluator_get_string( pd->param_expression[k] ) );
+					break;
+				}
+			if( k == pd->nExpParam )
+				fprintf( outfile, "exp: \"ERROR: expression cannot be found\"" );
 #else
 			fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
 #endif
+		}
 		else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
 			fprintf( outfile, "init: %.15g, type: %s, log: %s, step: %g, min: %g, max: %g", pow( 10, pd->var[count_param] ), key_var_opt( pd->var_opt[count_param] ), key_yes_no( pd->var_log[count_param] ), pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[count_param] ), pow( 10, pd->var_max[count_param] ) );
 		else // fixed or not log-transformed parameter

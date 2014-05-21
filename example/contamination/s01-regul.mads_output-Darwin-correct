@@ -79,17 +79,17 @@ Parameter ID's:
 
 
 Number of optimized parameters = 11
-Source x coordinate [L]    :x     : init      1124 step       25 min       210 max      1460
-Source y coordinate [L]    :y     : init      1393 step       25 min      1230 max      1930
-Source x dimension [L]     :dx    : init       258 step        1 min         1 max       500
-Source y dimension [L]     :dy    : init       273 step        1 min         1 max       500
-Contaminant flux [M/T]     :f     : init   1.77815 step        1 min        -2 max         2
-Start Time [T]             :t0    : init         0 step        1 min         0 max        43
-Flow Angle [degrees]       :theta : init         3 step        5 min       -30 max        30
-Pore x velocity [L/T]      :vx    : init   0.69897 step   0.0217 min        -2 max   2.30103
-Dispersivity x [L]         :ax    : init   2.11394 step    0.699 min         1 max   2.14613
-Dispersivity y [L]         :ay    : init   1.17609 step   0.0509 min         0 max   1.47712
-Dispersivity z [L]         :az    : init -0.522879 step    0.111 min        -1 max         0
+Source x coordinate [L]    :x     : init      1124 log 0 step       25 min       210 max      1460
+Source y coordinate [L]    :y     : init      1393 log 0 step       25 min      1230 max      1930
+Source x dimension [L]     :dx    : init       258 log 0 step        1 min         1 max       500
+Source y dimension [L]     :dy    : init       273 log 0 step        1 min         1 max       500
+Contaminant flux [M/T]     :f     : init   1.77815 log 1 step        1 min        -2 max         2
+Start Time [T]             :t0    : init         0 log 0 step        1 min         0 max        43
+Flow Angle [degrees]       :theta : init         3 log 0 step        5 min       -30 max        30
+Pore x velocity [L/T]      :vx    : init   0.69897 log 1 step   0.0217 min        -2 max   2.30103
+Dispersivity x [L]         :ax    : init   2.11394 log 1 step    0.699 min         1 max   2.14613
+Dispersivity y [L]         :ay    : init   1.17609 log 1 step   0.0509 min         0 max   1.47712
+Dispersivity z [L]         :az    : init -0.522879 log 1 step    0.111 min        -1 max         0
 
 Number of flagged parameters = 0
 
@@ -190,7 +190,7 @@ Grid Maximums: 500200 539400 0.1
 Breakthrough-curve time window: 0 0 1 number of time steps: 1
 
 
-Execution date & time stamp: 20140320-213327
+Execution date & time stamp: 20140520-225703
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -936,6 +936,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Mar 20 21:33:27 2014
-Execution completed on Thu Mar 20 21:33:27 2014
-Execution date & time stamp: 20140320-213327
+Execution  started  on Tue May 20 22:57:03 2014
+Execution completed on Tue May 20 22:57:03 2014
+Execution date & time stamp: 20140520-225703
