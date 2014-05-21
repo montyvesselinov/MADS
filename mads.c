@@ -702,9 +702,10 @@ int main( int argn, char *argv[] )
 			int lines = 0, caseid;
 			while( !feof( infile2 ) )
 			{
+				bigbuffer[0] = 0; caseid = 0;
 				if( fgets( bigbuffer, sizeof bigbuffer, infile2 ) == NULL )
 					break;
-				if( sscanf( bigbuffer, "%d", &caseid ) ) lines++;
+				if( sscanf( bigbuffer, "%d : ", &caseid ) ) if( caseid > 0 ) lines++;
 			}
 			tprintf( "\nModel parameters will be initiated based on previously saved results in file %s (total number of cases %d)\n", cd.resultsfile, lines );
 			if( cd.calib_type == PPSD ) tprintf( "PPSD format assumed\n" );
@@ -727,7 +728,7 @@ int main( int argn, char *argv[] )
 		}
 		if( cd.resultscase < 0 )
 		{
-			FILE *infile2;
+			FILE *infile2, *outfile2;
 			char bigbuffer[5000], bigbufferorig[5000], dummy[50], *start, *word, *separator = " ";
 			int cases = cd.resultscase * -1;
 			int caseid;
@@ -736,6 +737,8 @@ int main( int argn, char *argv[] )
 			double *res;
 			if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			if( ( res = ( double * ) malloc( od.nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			sprintf( filename, "%s.phi", op.root );
+			outfile2 = Fwrite( filename );
 			for( j = 0; j < cases; j++ )
 			{
 				if( feof( infile2 ) )
@@ -850,6 +853,7 @@ int main( int argn, char *argv[] )
 				tprintf( "Rerun results:\n" );
 				tprintf( "Objective function = %g\n", op.phi );
 				tprintf( "Success = %d\n", op.success );
+				fprintf( outfile2, "%g\n", op.phi );
 				if( cd.debug )
 				{
 					tprintf( "\n" );
@@ -880,6 +884,7 @@ int main( int argn, char *argv[] )
 			free( opt_params );
 			free( res );
 			fclose( infile2 );
+			fclose( outfile2 );
 			predict = 0;
 		}
 		else
