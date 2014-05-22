@@ -613,7 +613,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			{
 				sum1 = 0;
 				for( d = 0; d < 2; d++ )
-					sum1 += ( x[d] - a2[d][j] );
+					sum1 += ( x[d] - a2[j][d] );
 				f += o[j] = ( double ) - 1.0 / ( sum1 + c[j] );
 			}
 			break;
@@ -622,7 +622,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			{
 				sum1 = 0;
 				for( d = 0; d < 5; d++ )
-					sum1 += ( x[d] - a2[d][j] );
+					sum1 += ( x[d] - a2[j][d] );
 				f += o[j] = ( double ) - 1.0 / ( sum1 + c[j] );
 			}
 			break;
@@ -631,7 +631,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 			{
 				sum1 = 0;
 				for( d = 0; d < 10; d++ )
-					sum1 += ( x[d] - a2[d][j] );
+					sum1 += ( x[d] - a2[j][d] );
 				f += o[j] = ( double ) - 1.0 / ( sum1 + c[j] );
 			}
 			break;
