@@ -462,7 +462,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		tprintf( "Dummy observation: %s\n", dummy_var );
 		if( comment[0] ) tprintf( "Comment: %s\n", comment );
 	}
-	buf_data[0] = 0; word_data = pnt_data = NULL;
+	buf_data[0] = 0; word_data = NULL;
 	while( !feof( infile_inst ) )
 	{
 		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of instruction file (%s).\n", buf_inst ); break; }
@@ -472,6 +472,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		if( debug > 1 ) tprintf( "\n\nCurrent instruction line: %s\n", pnt_inst );
 		if( comment[0] && pnt_inst[0] == comment[0] ) { if( debug > 1 ) tprintf( "Comment; skip this line.\n" ); continue; } // Instruction line is a comment
 		if( strlen( pnt_inst ) == 0 ) { if( debug ) tprintf( "Empty line; will be skipped.\n" ); continue; }
+		pnt_data = NULL;
 		if( pnt_inst[0] == 'l' ) // skip lines in the "data" file
 		{
 			sscanf( &pnt_inst[1], "%d", &c );
@@ -486,6 +487,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		}
 		if( pnt_data == NULL ) // if there was no "l" (skip line) command, read the next "data" line
 		{
+			if( debug > 1 ) tprintf( "No \'l\' (skip line) command, read the next \'data\'line\n" );
 			fgets( buf_data, 1000, infile_data );
 			white_trim( buf_data );
 			pnt_data = &buf_data[0];
