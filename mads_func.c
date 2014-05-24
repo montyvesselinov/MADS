@@ -936,7 +936,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	free( jacobian );
 }
 
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op )
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
 	int i, j, k, count, debug_level = 0;
 	double *opt_params;
