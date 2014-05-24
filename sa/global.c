@@ -61,6 +61,7 @@
 
 /* Functions here */
 int sa_sobol( struct opt_data *op );
+int func_set( int n_sub, int n_obs, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
 int sa_saltelli( struct opt_data *op );
 int sa_moat( struct opt_data *op );
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
@@ -74,16 +75,18 @@ char *Fdatetime( char *filename, int debug );
 
 int sa_sobol( struct opt_data *op )
 {
-	int i, j, k, count, n_sub, n_obs;
-	double *opt_params, **var_a_lhs, **var_b_lhs, *var_a_lhs_local, *var_b_lhs_local;
+	int i, j, k, count, n_sub, n_obs, n_obs1, n_phi;
+	double *opt_params, **var_a_lhs, **var_b_lhs, **var_c_lhs, *var_a_lhs_local, *var_b_lhs_local;
 	char filename[255], buf[255];
 	FILE *out, *out2;
 	strcpy( op->label, "sobol" );
 	double *fhat, *fhat2, gfhat, gfhat2, *phis_full, *t1, *t2;
-	double *var_y, **f_a, **f_b, **sens_index, **sens_total, D_hat_t, f_hat_0, f_hat_a, f_hat_b, ep;
+	double *var_y, **f_a, **f_b, **f_c, **sens_index, **sens_total, D_hat_t, f_hat_0, f_hat_a, f_hat_b, ep;
 	//		gsl_qrng *q = gsl_qrng_alloc( gsl_qrng_sobol, op->pd->nOptParam );
 	n_sub = op->cd->nreal / 2; //  number of samples for subsets a and b; set to half of user specified reals
-	n_obs = op->od->nTObs + 1; // nmuber of observation + objective function
+	n_obs = op->od->nTObs;
+	n_obs1 = op->od->nTObs + 1; // number of observation + objective function
+	n_phi = n_obs;
 	out = out2 = NULL;
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( phis_full = ( double * ) malloc( 2 * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -91,15 +94,17 @@ int sa_sobol( struct opt_data *op )
 	if( ( var_b_lhs_local = ( double * ) malloc( op->pd->nOptParam * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( var_a_lhs = double_matrix( n_sub, op->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( var_b_lhs = double_matrix( n_sub, op->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( var_y = ( double * ) malloc( n_obs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( fhat = ( double * ) malloc( n_obs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( fhat2 = ( double * ) malloc( n_obs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( t1 = ( double * ) malloc( n_obs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( t2 = ( double * ) malloc( n_obs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( f_a = double_matrix( n_sub, n_obs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( f_b = double_matrix( n_sub, n_obs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( sens_index = double_matrix( op->pd->nOptParam, n_obs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( sens_total = double_matrix( op->pd->nOptParam, n_obs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( var_c_lhs = double_matrix( n_sub, op->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( var_y = ( double * ) malloc( n_obs1 * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( fhat = ( double * ) malloc( n_obs1 * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( fhat2 = ( double * ) malloc( n_obs1 * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( t1 = ( double * ) malloc( n_obs1 * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( t2 = ( double * ) malloc( n_obs1 * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( f_a = double_matrix( n_sub, n_obs1 ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( f_b = double_matrix( n_sub, n_obs1 ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( f_c = double_matrix( n_sub, n_obs1 ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( sens_index = double_matrix( op->pd->nOptParam, n_obs1 ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( sens_total = double_matrix( op->pd->nOptParam, n_obs1 ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	tprintf( "\nGlobal sensitivity analysis (Sobol) using random sampling:\n" );
 	tprintf( "Number of analyzed parameters %d\n", op->pd->nOptParam );
 	tprintf( "Number of analyzed observations %d\n", n_obs );
@@ -157,77 +162,45 @@ int sa_sobol( struct opt_data *op )
 	// Accumulate phis into fhat and fhat2 for total output mean and variance
 	tprintf( "Computing model outputs to calculate total output mean and variance ... Sample A ... \n" );
 	gfhat = gfhat2 = 0;
-	for( j = 0; j < n_obs; j++ )
+	for( j = 0; j < n_obs1; j++ )
 		fhat[j] = fhat2[j] = 0;
 	// Compute sample a phis
+	func_set( n_sub, n_obs, var_a_lhs, phis_full, f_a, out, op );
 	for( count = 0; count < n_sub; count++ )
 	{
-		for( i = 0; i < op->pd->nOptParam; i++ )
+		op->phi = phis_full[count];
+		gfhat = fhat[n_phi] += op->phi;
+		gfhat2 = fhat2[n_phi] += op->phi * op->phi;
+		f_a[count][n_phi] = op->phi;
+		for( j = 0; j < n_obs; j++ )
 		{
-			k = op->pd->var_index[i];
-			opt_params[i] = op->pd->var[k] = var_a_lhs[count][i];
-		}
-		Transform( opt_params, op, opt_params );
-		func_global( opt_params, op, op->od->res );
-		gfhat = fhat[0] += op->phi;
-		gfhat2 = fhat2[0] += op->phi * op->phi;
-		f_a[count][0] = phis_full[count] = op->phi;
-		for( j = 1; j < n_obs; j++ )
-		{
-			fhat[j] += f_a[count][j] = op->od->res[j - 1];
-			fhat2[j] += op->od->res[j - 1] * op->od->res[j - 1];
-		}
-		if( op->cd->mdebug > 1 )
-		{
-			// save to results file
-			fprintf( out, "%d : ", count + 1 ); // counter
-			fprintf( out, "%g :", op->phi );
-			for( i = 0; i < op->pd->nParam; i++ )
-				if( op->pd->var_opt[i] >= 1 )
-					fprintf( out, " %g", op->pd->var[i] );
-			fprintf( out, "\n" );
-			fflush( out );
+			fhat[j] += f_a[count][j];
+			fhat2[j] += f_a[count][j] * f_a[count][j];
 		}
 	}
-	for( j = 0; j < n_obs; j++ )
+	for( j = 0; j < n_obs1; j++ )
 		var_y[j] = fhat2[j] / n_sub - ( fhat[j] * fhat[j] / ( ( double ) n_sub * n_sub ) );
-	f_hat_a = fhat[0] / n_sub;
-	D_hat_t = fhat2[0] / n_sub - f_hat_a * f_hat_a;
+	f_hat_a = fhat[n_phi] / n_sub;
+	D_hat_t = fhat2[n_phi] / n_sub - f_hat_a * f_hat_a;
 	tprintf( "Sample A output mean     (simple) = %g\n", f_hat_a );
 	tprintf( "Sample A output variance (simple) = %g\n", D_hat_t );
 	// Compute sample b phis
 	tprintf( "Computing model outputs to calculate total output mean and variance ... Sample B ... \n" );
-	for( j = 0; j < n_obs; j++ )
+	for( j = 0; j < n_obs1; j++ )
 		fhat[j] = fhat2[j] = 0;
+	func_set( n_sub, n_obs, var_b_lhs, &phis_full[n_sub], f_b, out, op );
 	for( count = 0; count < n_sub; count++ )
 	{
-		for( i = 0; i < op->pd->nOptParam; i++ )
-		{
-			k = op->pd->var_index[i];
-			opt_params[i] = op->pd->var[k] = var_b_lhs[count][i];
-		}
-		Transform( opt_params, op, opt_params );
-		func_global( opt_params, op, op->od->res );
-		fhat[0] += op->phi;
+		op->phi = phis_full[n_sub + count];
+		fhat[n_phi] += op->phi;
 		gfhat += op->phi;
-		fhat2[0] += op->phi * op->phi;
+		fhat2[n_phi] += op->phi * op->phi;
 		gfhat2 += op->phi * op->phi;
-		f_b[count][0] = phis_full[n_sub + count] = op->phi;
-		for( j = 1; j < n_obs; j++ )
+		f_b[count][n_phi] = op->phi;
+		for( j = 0; j < n_obs; j++ )
 		{
-			fhat[j] += f_b[count][j] = op->od->res[j - 1];
-			fhat2[j] += op->od->res[j - 1] * op->od->res[j - 1];
-		}
-		if( op->cd->mdebug > 1 )
-		{
-			// save to results file
-			fprintf( out, "%d : ", n_sub + count + 1 ); // counter
-			fprintf( out, "%g :", op->phi );
-			for( i = 0; i < op->pd->nParam; i++ )
-				if( op->pd->var_opt[i] >= 1 )
-					fprintf( out, " %.15g", op->pd->var[i] );
-			fprintf( out, "\n" );
-			fflush( out );
+			fhat[j] += f_b[count][j];
+			fhat2[j] += f_b[count][j] * f_b[count][j];
 		}
 	}
 	if( op->cd->mdebug > 1 )
@@ -236,8 +209,8 @@ int sa_sobol( struct opt_data *op )
 		fclose( out );
 	}
 	// Calculate total output mean and variance based on sample a
-	f_hat_b = fhat[0] / n_sub;
-	D_hat_t = fhat2[0] / n_sub - f_hat_b * f_hat_b;
+	f_hat_b = fhat[n_phi] / n_sub;
+	D_hat_t = fhat2[n_phi] / n_sub - f_hat_b * f_hat_b;
 	tprintf( "Sample B output mean     (simple) = %g\n", f_hat_b );
 	tprintf( "Sample B output variance (simple) = %g\n", D_hat_t );
 	f_hat_0 = gfhat / ( 2 * n_sub );
@@ -252,7 +225,6 @@ int sa_sobol( struct opt_data *op )
 	var_sorted( phis_full, phis_full, n_sub * 2, f_hat_0, ep, &D_hat_t );
 	tprintf( "Total output mean         (nr) = %g abs 1st moment = %g\n", f_hat_0, ep );
 	tprintf( "Total output variance     (nr) = %g\n", D_hat_t );
-	free( phis_full );
 	/*
 	// Collect matrix of phis for fmat_a
 	for( i = 0; i < op->pd->nOptParam; i++ )
@@ -279,7 +251,7 @@ int sa_sobol( struct opt_data *op )
 	tprintf( "Computing sensitivity indices:\n" );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
-		for( j = 0; j < n_obs; j++ )
+		for( j = 0; j < n_obs1; j++ )
 			t1[j] = t2[j] = 0;
 		k = op->pd->var_index[i];
 		tprintf( "Processing parameter %d out of %d ... %s ... ", i + 1, op->pd->nOptParam, op->pd->var_name[k] );
@@ -287,29 +259,31 @@ int sa_sobol( struct opt_data *op )
 		{
 			for( j = 0; j < op->pd->nOptParam; j++ )
 			{
-				k = op->pd->var_index[j];
-				if( i == j ) // then select from sample b
-					opt_params[j] = op->pd->var[k] = var_b_lhs[count][j];
-				else // else select from sample a
-					opt_params[j] = op->pd->var[k] = var_a_lhs[count][j];
-			}
-			Transform( opt_params, op, opt_params );
-			func_global( opt_params, op, op->od->res );
-			t1[0] += pow( f_b[count][0] - op->phi, 2 ); //t1 = sum in eq. 18
-			t2[0] += pow( f_a[count][0] - op->phi, 2 ); //t2 = sum in eq. 19
-			for( j = 1; j < n_obs; j++ )
-			{
-				t1[j] += pow( f_b[count][j] - op->od->res[j - 1], 2 ); //t1 = sum in eq. 18
-				t2[j] += pow( f_a[count][j] - op->od->res[j - 1], 2 ); //t2 = sum in eq. 19
+				if( i == j ) var_c_lhs[count][j] = var_b_lhs[count][j]; // then select from sample b
+				else         var_c_lhs[count][j] = var_a_lhs[count][j]; // else select from sample a
 			}
 		}
-		for( j = 0; j < n_obs; j++ )
+		func_set( n_sub, n_obs, var_c_lhs, phis_full, f_c, out, op );
+		for( count = 0; count < n_sub; count++ )
 		{
-			sens_index[i][j] = ( double ) 1 - t1[j] / ( 2 * n_sub ) / var_y[j]; //var_y * eq. 18
-			sens_total[i][j] = t2[j] / ( 2 * n_sub ) / var_y[j]; // var_y * eq. 19
+			t1[n_phi] += pow( f_b[count][n_phi] - phis_full[count], 2 ); // t1 = sum in eq. 18
+			t2[n_phi] += pow( f_a[count][n_phi] - phis_full[count], 2 ); // t2 = sum in eq. 19
+			for( j = 0; j < n_obs; j++ )
+			{
+				t1[j] += pow( f_b[count][j] - f_c[count][j], 2 ); // t1 = sum in eq. 18
+				t2[j] += pow( f_a[count][j] - f_c[count][j], 2 ); // t2 = sum in eq. 19
+			}
+		}
+		for( j = 0; j < n_obs1; j++ )
+		{
+			if( fabs( var_y[j] ) > COMPARE_EPSILON )
+			{
+				sens_index[i][j] = ( double ) 1 - t1[j] / ( 2 * n_sub ) / var_y[j]; // var_y * eq. 18
+				sens_total[i][j] = t2[j] / ( 2 * n_sub ) / var_y[j]; // var_y * eq. 19
+			}
 		}
 		k = op->pd->var_index[i];
-		tprintf( " %g (total) %g\n", sens_index[i][0], sens_total[i][0] );
+		tprintf( " %g (total) %g\n", sens_index[i][n_phi], sens_total[i][n_phi] );
 	}
 	tprintf( "done.\n" );
 	// Print sensitivity indices
@@ -317,19 +291,19 @@ int sa_sobol( struct opt_data *op )
 	for( i = 0; i < op->pd->nOptParam; i++ )
 	{
 		k = op->pd->var_index[i];
-		tprintf( "%-39s: %g (total) %g\n", op->pd->var_name[k], sens_index[i][0], sens_total[i][0] );
+		tprintf( "%-39s: %g (total) %g\n", op->pd->var_name[k], sens_index[i][n_phi], sens_total[i][n_phi] );
 	}
-	if( n_obs > 1 )
+	if( n_obs1 > 1 )
 	{
 		sprintf( filename, "%s.sobol_sens_index", op->root );
 		out = Fwrite( filename );
 		fprintf( out, "OF: " );
 		for( i = 0; i < op->pd->nOptParam; i++ )
-			fprintf( out, " %g", ( double ) sens_index[i][0] );
+			fprintf( out, " %g", ( double ) sens_index[i][n_phi] );
 		fprintf( out, "\n" );
-		for( j = 1; j < n_obs; j++ )
+		for( j = 0; j < n_obs; j++ )
 		{
-			fprintf( out, "%s: ", op->od->obs_id[j - 1] );
+			fprintf( out, "%s: ", op->od->obs_id[j] );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 				fprintf( out, " %g", ( double ) sens_index[i][j] );
 			fprintf( out, "\n" );
@@ -339,26 +313,30 @@ int sa_sobol( struct opt_data *op )
 		out = Fwrite( filename );
 		fprintf( out, "OF: " );
 		for( i = 0; i < op->pd->nOptParam; i++ )
-			fprintf( out, " %g", ( double ) sens_total[i][0] );
+			fprintf( out, " %g", ( double ) sens_total[i][n_phi] );
 		fprintf( out, "\n" );
-		for( j = 1; j < n_obs; j++ )
+		for( j = 0; j < n_obs; j++ )
 		{
-			fprintf( out, "%s: ", op->od->obs_id[j - 1] );
+			fprintf( out, "%s: ", op->od->obs_id[j] );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 				fprintf( out, " %g", ( double ) sens_total[i][j] );
 			fprintf( out, "\n" );
 		}
 		fclose( out );
 	}
+	free( phis_full );
 	free( opt_params ); free( t1 ); free( t2 ); free( fhat ); free( fhat2 );
 	free_matrix( ( void ** ) f_a, n_sub );
 	free_matrix( ( void ** ) f_b, n_sub );
-	free_matrix( ( void ** ) sens_index, op->pd->nOptParam );
-	free_matrix( ( void ** ) sens_total, op->pd->nOptParam );
+	free_matrix( ( void ** ) f_c, n_sub );
 	free_matrix( ( void ** ) var_a_lhs, n_sub );
 	free_matrix( ( void ** ) var_b_lhs, n_sub );
+	free_matrix( ( void ** ) var_c_lhs, n_sub );
+	free_matrix( ( void ** ) sens_index, op->pd->nOptParam );
+	free_matrix( ( void ** ) sens_total, op->pd->nOptParam );
 	return( 1 );
 }
+
 
 //Computes the marginal pdf after integrating out the variable associated with special_index
 double param_pdf_marginal( struct opt_data *op, double *x, int special_index )

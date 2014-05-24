@@ -517,11 +517,23 @@ verify-sa:
 	@echo " Sensitivity analyses "
 	@echo "**************************************************************************************"
 	@echo "TEST 10: Global and local sensitivity analyses ..."
-	@echo "TEST 10.1: Sobol analysis ... "
+	@echo "TEST 10.1: Sobol internal analysis ... "
 	rm -f example/sa/a01.mads_output example/sa/a01.sobol_sens_index example/sa/a01.sobol_sens_total example/sa/a01.running
 	cd example/sa; $(DBG) ../../mads a01 test=111 gsens dim=8 real=10000 smp=lhs pardomain=0.5 seed=1517604820 $(OUTPUT)
 	@$(CMP) example/sa/a01.sobol_sens_index example/sa/a01.sobol_sens_index-$(OS)-correct
 	@$(CMP) example/sa/a01.sobol_sens_total example/sa/a01.sobol_sens_total-$(OS)-correct
+	@echo ""
+	@echo "TEST 10.2: Sobol external analysis  ..."
+	rm -f example/wells-short/w01.sobol_sens_index example/wells-short/w01.sobol_sens_total example/wells-short/w01.running
+	cd example/wells-short; $(DBG) ../../mads w01 gsens real=100 seed=1066732675 $(OUTPUT)
+	@$(CMP) example/wells-short/w01.sobol_sens_index example/wells-short/w01.sobol_sens_index-$(OS)-correct
+	@$(CMP) example/wells-short/w01.sobol_sens_total example/wells-short/w01.sobol_sens_total-$(OS)-correct
+	@echo ""
+	@echo "TEST 10.2: Sobol external analysis  ..."
+	rm -f example/wells-short/w01.sobol_sens_index example/wells-short/w01.sobol_sens_total example/wells-short/w01.running example/wells-short/w01.restart*
+	cd example/wells-short; $(DBG) ../../mads w01 gsens real=100 seed=1066732675 np=2 $(OUTPUT)
+	@$(CMP) example/wells-short/w01.sobol_sens_index example/wells-short/w01.sobol_sens_index-$(OS)-correct
+	@$(CMP) example/wells-short/w01.sobol_sens_total example/wells-short/w01.sobol_sens_total-$(OS)-correct
 	@echo ""
 	@echo "TEST 10: DONE"
 	@echo ""

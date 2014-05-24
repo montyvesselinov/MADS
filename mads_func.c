@@ -935,6 +935,118 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	free( jacobian );
 }
 
+int func_set( int n_sub, int n_obs, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op )
+{
+	int i, j, k, count, bad_data, debug_level = 0;
+	double *opt_params;
+	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 ) // Parallel job
+	{
+		int ieval = op->cd->neval;
+		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );
+		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
+		for( count = 0; count < n_sub; count ++ ) // Write all the files
+		{
+			if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
+			if( op->cd->mdebug ) tprintf( "\n" );
+			tprintf( "Random set #%d: ", count + 1 );
+			for( i = 0; i < op->pd->nOptParam; i++ )
+			{
+				k = op->pd->var_index[i];
+				opt_params[i] = op->pd->var[k] = var_mat[count][i];
+			}
+			if( op->cd->mdebug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+			Transform( opt_params, op, opt_params );
+			func_extrn_write( ++ieval, opt_params, op );
+			tprintf( "external model input file(s) generated ...\n" );
+			if( op->cd->mdebug ) op->cd->fdebug = debug_level;
+			if( op->cd->mdebug )
+			{
+				tprintf( "\nRandom parameter values:\n" );
+				for( i = 0; i < op->pd->nOptParam; i++ )
+					if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
+					else tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );
+			}
+			if( out != NULL )
+			{
+				for( i = 0; i < op->pd->nParam; i++ )
+					if( op->pd->var_opt[i] >= 1 )
+					{
+						if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
+						else fprintf( out, " %.15g", op->pd->var[i] );
+					}
+				fprintf( out, "\n" );
+			}
+		}
+		if( op->cd->pardebug > 4 )
+		{
+			ieval -= n_sub;
+			for( count = 0; count < n_sub; count ++ ) // Perform all the runs in serial model (for testing)
+			{
+				ieval++;
+				tprintf( "Execute model #%d ... ", ieval );
+				func_extrn_exec_serial( ieval, op );
+				tprintf( "done!\n" );
+			}
+		}
+		else if( mprun( n_sub, op ) < 0 ) // Perform all the runs in parallel
+		{
+			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
+			return( 0 );
+		}
+		ieval -= n_sub;
+		for( count = 0; count < n_sub; count ++ ) // Read all the files
+		{
+			if( op->cd->debug || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
+			ieval++;
+			if( out != NULL )
+			{
+				fprintf( out, "%d : ", ieval ); // counter
+				for( i = 0; i < op->pd->nOptParam; i++ ) // re
+				{
+					k = op->pd->var_index[i];
+					op->pd->var[k] = var_mat[count][i];
+				}
+				fflush( out );
+			}
+			bad_data = 0;
+			bad_data = func_extrn_read( ieval, op, op->od->res );
+			if( bad_data ) return( 0 );
+			phi[count] = op->phi;
+			for( j = 0; j < n_obs; j++ )
+				f[count][j] = op->od->res[j];
+		}
+	}
+	else // Serial job
+	{
+		for( count = 0; count < n_sub; count++ )
+		{
+			for( i = 0; i < op->pd->nOptParam; i++ )
+			{
+				k = op->pd->var_index[i];
+				opt_params[i] = op->pd->var[k] = var_mat[count][i];
+			}
+			Transform( opt_params, op, opt_params );
+			func_global( opt_params, op, op->od->res );
+			phi[count] = op->phi;
+			for( j = 0; j < n_obs; j++ )
+				f[count][j] = op->od->res[j];
+			if( op->cd->mdebug > 1 && out != NULL )
+			{
+				// save to results file
+				fprintf( out, "%d : ", count + 1 ); // counter
+				fprintf( out, "%g :", op->phi );
+				for( i = 0; i < op->pd->nParam; i++ )
+					if( op->pd->var_opt[i] >= 1 )
+						fprintf( out, " %g", op->pd->var[i] );
+				fprintf( out, "\n" );
+				fflush( out );
+			}
+		}
+	}
+	return( 1 );
+}
+
 int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
 {
 	struct opt_data *p = ( struct opt_data * )data;

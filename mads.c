@@ -2614,13 +2614,13 @@ int montecarlo( struct opt_data *op )
 	sprintf( buf, "%s \"mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.mcrnd.results", op->root );
 	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.mcrnd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	out = Fwrite( filename );
 	phi_global = success_global = success_all = 0;
 	phi_min = HUGE_VAL;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1;
 	else k = 0;
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 && k == 0 ) // Parallel job
 	{
+		out = Fwrite( filename );
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
 		for( count = 0; count < op->cd->nreal; count ++ ) // Write all the files
@@ -2718,6 +2718,7 @@ int montecarlo( struct opt_data *op )
 	}
 	else // Serial job
 	{
+		out = Fwrite( filename );
 		for( count = k; count < op->cd->nreal; count ++ )
 		{
 			op->counter = count + 1;
