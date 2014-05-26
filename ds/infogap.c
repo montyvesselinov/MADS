@@ -95,7 +95,7 @@ int infogap_obs( struct opt_data *op )
 		tprintf( "\nInfo-gap analysis #%d\n", ++count );
 		tprintf( "%-20s: info-gap target %12g weight %12g range %12g - %12g\n", op->od->obs_id[ig_index], op->od->obs_target[ig_index], op->od->obs_weight[ig_index], op->od->obs_min[ig_index], op->od->obs_max[ig_index] );
 		op->cd->neval = op->cd->njac = 0;
-		if( op->cd->calib_type == IGRND ) status = igrnd( op );
+		if( op->cd->analysis_type == IGRND ) status = igrnd( op );
 		else status = optimize_func( op );
 		neval_total += op->cd->neval;
 		njac_total += op->cd->njac;

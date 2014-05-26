@@ -634,7 +634,7 @@ int load_yaml_params( GNode *node, gpointer data, int num_keys, char **keywords,
 		else if( pd->var_opt[index] == 2 )
 		{
 			pd->nFlgParam++;
-			if( cd->calib_type != PPSD ) pd->nOptParam++;
+			if( cd->analysis_type != PPSD ) pd->nOptParam++;
 		}
 		if( pd->var_opt[index] >= 1 )
 		{
@@ -1459,7 +1459,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	else { if( cd->lindx > DBL_EPSILON ) fprintf( outfile, ", lindx: %g", cd->lindx ); }
 	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, ", pardx: %g", cd->pardx ); // TODO when to print this?
 	if( cd->check_success ) fprintf( outfile, ", obsrange" );
-	switch( cd->calib_type )
+	switch( cd->analysis_type )
 	{
 		case SIMPLE: fprintf( outfile, ", single" ); break;
 		case PPSD: fprintf( outfile, ", ppsd" ); break;

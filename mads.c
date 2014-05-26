@@ -313,7 +313,7 @@ int main( int argn, char *argv[] )
 			}
 			mads_quits( op.root );
 		}
-		if( cd.opt_method[0] == 0 ) { strcpy( cd.opt_method, "lm" ); cd.calib_type = SIMPLE; cd.problem_type = CALIBRATE; }
+		if( cd.opt_method[0] == 0 ) { strcpy( cd.opt_method, "lm" ); cd.analysis_type = SIMPLE; cd.problem_type = CALIBRATE; }
 		cd.solution_type[0] = EXTERNAL; func_global = func_extrn;
 		buf[0] = 0;
 		for( i = 2; i < argn; i++ ) { strcat( buf, " " ); strcat( buf, argv[i] ); }
@@ -583,13 +583,13 @@ int main( int argn, char *argv[] )
 		status = check( &op );
 	// ------------------------------------------------------------------------------------------------ INFO-GAP
 	// ------------------------------------------------------------------------------------------------ IGRND
-	if( cd.problem_type == CALIBRATE && cd.calib_type == IGRND ) /* Calibration analysis using random initial guessed */
+	if( cd.analysis_type == IGRND ) /* Analysis using random initial guessed */
 		status = igrnd( &op );
 	// ------------------------------------------------------------------------------------------------ IGPD
-	if( cd.problem_type == CALIBRATE && cd.calib_type == IGPD ) /* Calibration analysis using discretized initial guesses */
+	if( cd.analysis_type == IGPD ) /* Analysis using discretized initial guesses */
 		status = igpd( &op );
 	// ------------------------------------------------------------------------------------------------ PPSD
-	if( cd.problem_type == CALIBRATE && cd.calib_type == PPSD ) /* Calibration analysis using discretized parameters */
+	if( cd.analysis_type == PPSD ) /* Analysis using discretized parameters */
 		status = ppsd( &op );
 	// ------------------------------------------------------------------------------------------------ MONTECARLO
 	if( cd.problem_type == MONTECARLO ) /* Monte Carlo analysis */
@@ -606,7 +606,7 @@ int main( int argn, char *argv[] )
 		}
 	}
 	// ------------------------------------------------------------------------------------------------ SIMPLE CALIBRATION
-	if( cd.problem_type == CALIBRATE && cd.calib_type == SIMPLE ) /* Inverse analysis */
+	if( cd.problem_type == CALIBRATE && cd.analysis_type == SIMPLE ) /* Inverse analysis */
 	{
 		if( cd.nretries > 1 || cd.paranoid ) tprintf( "\nMULTI-START CALIBRATION using a series of random initial guesses:\n" );
 		else tprintf( "\nSINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:\n" );
@@ -708,8 +708,8 @@ int main( int argn, char *argv[] )
 				if( sscanf( bigbuffer, "%d : ", &caseid ) ) if( caseid > 0 ) lines++;
 			}
 			tprintf( "\nModel parameters will be initiated based on previously saved results in file %s (total number of cases %d)\n", cd.resultsfile, lines );
-			if( cd.calib_type == PPSD ) tprintf( "PPSD format assumed\n" );
-			else if( cd.calib_type == IGRND ) tprintf( "IGRND format assumed\n" );
+			if( cd.analysis_type == PPSD ) tprintf( "PPSD format assumed\n" );
+			else if( cd.analysis_type == IGRND ) tprintf( "IGRND format assumed\n" );
 			if( cd.resultscase < 0 ) tprintf( "Forward runs based on first %d cases.", -cd.resultscase );
 			else
 			{
@@ -758,7 +758,7 @@ int main( int argn, char *argv[] )
 				// if( cd.debug ) tprintf( "\n" );
 				tprintf( "Case ID %d in %s (case %d)\n", caseid, cd.resultsfile, j + 1 );
 				k = 0;
-				if( cd.calib_type == PPSD )
+				if( cd.analysis_type == PPSD )
 				{
 					start = strstr( bigbuffer, ":" );
 					word = strtok( start, separator ); // skip :
@@ -826,7 +826,7 @@ int main( int argn, char *argv[] )
 					if( c > -1 )
 					{
 						// tprintf( "Par #%d %s\n", c + 1, word );
-						if( cd.calib_type == PPSD ) while( pd.var_opt[i] == 2 || pd.var_opt[i] == 0 || pd.var_opt[i] == -1 ) { if( cd.debug ) tprintf( "h0 %s %g %d ... skipped\n", pd.var_name[i], pd.var[i], pd.var_opt[i] ); i++; }
+						if( cd.analysis_type == PPSD ) while( pd.var_opt[i] == 2 || pd.var_opt[i] == 0 || pd.var_opt[i] == -1 ) { if( cd.debug ) tprintf( "h0 %s %g %d ... skipped\n", pd.var_name[i], pd.var[i], pd.var_opt[i] ); i++; }
 						else while( pd.var_opt[i] <= 0 ) { if( cd.debug ) tprintf( "%s %g %d ... skipped\n", pd.var_name[i], pd.var[i], pd.var_opt[i] ); i++; }
 						if( i >= pd.nParam ) break;
 						sscanf( word, "%lf", &pd.var[i] );
@@ -1182,11 +1182,11 @@ int optimize_lm( struct opt_data *op )
 	debug = MAX( op->cd->debug, op->cd->ldebug );
 	standalone = op->cd->lmstandalone;
 	nParam = op->pd->nOptParam;
-	if( debug == 0 && standalone && op->cd->calib_type != PPSD ) op->cd->lmstandalone = 2;
+	if( debug == 0 && standalone && op->cd->analysis_type != PPSD ) op->cd->lmstandalone = 2;
 	if( op->cd->squads ) standalone = op->cd->lmstandalone = 0;
 	if( op->od->nTObs == 0 ) { tprintf( "ERROR: Number of observations is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
 	if( op->pd->nOptParam == 0 ) { tprintf( "ERROR: Number of optimized model parameters is equal to zero! Levenberg-Marquardt Optimization cannot be performed!\n" ); return( 0 ); }
-	if( ( op->pd->nOptParam > op->od->nTObs ) && ( !op->cd->squads && op->cd->calib_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nTObs ); }
+	if( ( op->pd->nOptParam > op->od->nTObs ) && ( !op->cd->squads && op->cd->analysis_type == SIMPLE ) ) { tprintf( "WARNING: Number of optimized model parameters is greater than number of observations (%d>%d)\n", op->pd->nOptParam, op->od->nTObs ); }
 	gsl_matrix *gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam );
 	gsl_matrix *gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
@@ -1240,7 +1240,7 @@ int optimize_lm( struct opt_data *op )
 			op->cd->retry_ind = count;
 			if( count == 1 )
 			{
-				if( op->cd->calib_type == IGRND )
+				if( op->cd->analysis_type == IGRND )
 				{
 					if( debug ) tprintf( "\nCALIBRATION %d: initial guesses from IGRND random set: ", count );
 					for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1454,10 +1454,10 @@ int optimize_lm( struct opt_data *op )
 		Transform( opt_params_best, op, opt_params );
 		func_global( opt_params, op, op->od->res );
 	}
-	if( ( op->cd->lm_eigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->calib_type == SIMPLE )
+	if( ( op->cd->lm_eigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->analysis_type == SIMPLE )
 		if( eigen( op, op->od->res, gsl_jacobian, NULL ) == 0 ) // Eigen analysis
 			return( 0 );
-	if( !debug && standalone && op->cd->calib_type == SIMPLE ) tprintf( "\n" );
+	if( !debug && standalone && op->cd->analysis_type == SIMPLE ) tprintf( "\n" );
 	if( op->cd->paranoid ) free( var_lhs );
 	free( opt_params ); free( opt_params_best ); free( x_c ); free( res );
 	gsl_matrix_free( gsl_jacobian ); gsl_matrix_free( gsl_covar ); gsl_vector_free( gsl_opt_params );
@@ -2025,9 +2025,9 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 				if( op->cd->solution_type[0] != TEST && op->cd->solution_type[0] != EXTERNAL )
 				{
 					sprintf( filename, "%s-igrnd.%d.mads", op->root, count + 1 );
-					op->cd->calib_type = SIMPLE;
+					op->cd->analysis_type = SIMPLE;
 					save_problem( filename, op );
-					op->cd->calib_type = IGRND;
+					op->cd->analysis_type = IGRND;
 					continue;
 				}
 			}
@@ -2277,14 +2277,24 @@ int igpd( struct opt_data *op )
 			}
 			if( op->pd->nOptParam > 0 && op->pd->nFlgParam > 0 )
 			{
-				status = optimize_func( op ); // Optimize
+				if( op->cd->problem_type == EIGEN )
+				{
+					tprintf( "Eigen analysis run ... \n" );
+					status = eigen( op, NULL, NULL, NULL ); // Eigen or sensitivity analysis run
+				}
+				else
+				{
+					tprintf( "Optimization run ... \n" );
+					status = optimize_func( op ); // Optimize
+				}
 				if( status == 0 ) { return( 0 ); }
 			}
 			else
 			{
-				if( op->cd->debug ) { tprintf( "Forward run ... \n" ); debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+				tprintf( "Forward run ... \n" );
+				if( op->cd->debug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 				func_global( op->pd->var, op, op->od->res ); // op->pd->var is dummy because op->pd->nOptParam == 0
-				if( op->cd->debug ) op->cd->fdebug = debug_level;
+				if( op->cd->debug > 1 ) op->cd->fdebug = debug_level;
 			}
 			neval_total += op->cd->neval;
 			njac_total += op->cd->njac;
@@ -2391,7 +2401,12 @@ int ppsd( struct opt_data *op )
 	if( op->pd->nFlgParam == 0 )
 		tprintf( "WARNING: No flagged parameters! Discretization of the initial guesses cannot be performed!\n" );
 	if( op->pd->nOptParam == 0 )
-		tprintf( "WARNING: No parameters to optimize! Forward runs performed instead\n" );
+		tprintf( "WARNING: No parameters to optimize! Forward runs performed instead!\n" );
+	else
+	{
+		if( op->cd->pargen &&  op->cd->solution_type[0] != TEST && op->cd->solution_type[0] != EXTERNAL )
+			tprintf( "WARNING: No analyses will be performed!\nMADS input file in the form \'%s-ppsd.000x.mads\' will be generated instead \n", op->root );
+	}
 	for( i = 0; i < op->pd->nParam; i++ ) orig_params[i] = op->pd->var[i]; // Save original initial values for all parameters
 	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 	else optimize_func = optimize_pso; // Define optimization method: PSO
@@ -2451,8 +2466,9 @@ int ppsd( struct opt_data *op )
 				{
 					if( op->cd->solution_type[0] != TEST && op->cd->solution_type[0] != EXTERNAL )
 					{
+						tprintf( "Discretized parameters:\n" );
 						sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
-						op->cd->calib_type = SIMPLE;
+						op->cd->analysis_type = SIMPLE;
 						save_problem( filename, op );
 						for( i = 0; i < op->pd->nParam; i++ )
 							if( orig_opt[i] == 2 )
@@ -2479,9 +2495,18 @@ int ppsd( struct opt_data *op )
 			}
 			else
 			{
-				if( op->cd->debug ) { tprintf( "Forward run ... \n" ); debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-				func_global( op->pd->var, op, op->od->res ); // op->pd->var is dummy because op->pd->nOptParam == 0
-				if( op->cd->debug ) op->cd->fdebug = debug_level;
+				if( op->cd->problem_type == EIGEN || op->cd->problem_type == LOCALSENS )
+				{
+					tprintf( "Eigen analysis run ... \n" );
+					status = eigen( op, NULL, NULL, NULL ); // Eigen or sensitivity analysis run
+				}
+				else
+				{
+					tprintf( "Forward run ... \n" );
+					if( op->cd->debug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+					func_global( op->pd->var, op, op->od->res ); // op->pd->var is dummy because op->pd->nOptParam == 0
+					if( op->cd->debug > 1 ) op->cd->fdebug = debug_level;
+				}
 			}
 			if( op->phi < op->cd->phi_cutoff ) phi_global++;
 			neval_total += op->cd->neval;
@@ -2516,7 +2541,7 @@ int ppsd( struct opt_data *op )
 			if( op->f_ofe != NULL ) { fclose( op->f_ofe ); op->f_ofe = NULL; }
 			if( op->success && op->cd->save )
 			{
-				op->cd->calib_type = SIMPLE;
+				op->cd->analysis_type = SIMPLE;
 				sprintf( filename, "%s-ppsd.%d.mads", op->root, count + 1 );
 				save_problem( filename, op );
 				save_results( 1, "ppsd", op, op->gd );

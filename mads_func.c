@@ -124,7 +124,7 @@ int func_extrn( double *x, void *data, double *f )
 		{
 			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
-				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
+				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->analysis_type == PPSD ) )
 					tprintf( "%s %.12g\n", p->pd->var_name[i], p->cd->var[i] );
 		}
 	}
@@ -296,7 +296,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		{
 			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
-				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
+				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->analysis_type == PPSD ) )
 					tprintf( "%s %.12g\n", p->pd->var_name[i], p->cd->var[i] );
 		}
 	}
@@ -605,7 +605,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 		{
 			tprintf( "Fixed model parameters (%d):\n", p->pd->nFixParam );
 			for( i = 0; i < p->pd->nParam; i++ )
-				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->calib_type == PPSD ) )
+				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->analysis_type == PPSD ) )
 					tprintf( "%s %.12g\n", p->pd->var_name[i], p->cd->var[i] );
 		}
 	}

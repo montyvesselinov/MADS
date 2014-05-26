@@ -241,7 +241,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->restart_zip_file = ( char * ) malloc( 255 * sizeof( char ) ); cd->restart_zip_file[0] = 0;
 	strcpy( cd->opt_method, "lm" );
 	cd->problem_type = UNKNOWN;
-	cd->calib_type = SIMPLE;
+	cd->analysis_type = SIMPLE;
 	cd->solution_type[0] = EXTERNAL;
 	cd->levy = NO_LEVY;
 	cd->objfunc_type = SSR;
@@ -330,11 +330,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "infogap", 7 ) ) { w = 1; cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "bayes", 5 ) ) { w = 1; cd->problem_type = BAYES; }
 		if( !strncasecmp( word, "postpua", 7 ) ) { w = 1; cd->problem_type = POSTPUA; }
-		if( !strncasecmp( word, "single", 6 ) ) { w = 1; cd->calib_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
-		if( !strncasecmp( word, "simple", 6 ) ) { w = 1; cd->calib_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
-		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->calib_type = IGPD; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
-		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->calib_type = PPSD; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
-		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->calib_type = IGRND; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "single", 6 ) ) { w = 1; cd->analysis_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "simple", 6 ) ) { w = 1; cd->analysis_type = SIMPLE; if( cd->problem_type == UNKNOWN ) cd->problem_type = CALIBRATE; }
+		if( !strncasecmp( word, "igpd", 4 ) ) { w = 1; cd->analysis_type = IGPD; }
+		if( !strncasecmp( word, "ppsd", 4 ) ) { w = 1; cd->analysis_type = PPSD; }
+		if( !strncasecmp( word, "igrnd", 5 ) ) { w = 1; cd->analysis_type = IGRND; }
 		if( !strncasecmp( word, "energy=", 7 ) ) { w = 1; sscanf( word, "energy=%d", &cd->energy ); }
 		if( !strncasecmp( word, "background=", 11 ) ) { w = 1; sscanf( word, "background=%lf", &cd->c_background ); }
 		if( !strncasecmp( word, "lmfactor=", 9 ) ) { w = 1; sscanf( word, "lmfactor=%lf", &cd->lm_factor ); }
@@ -419,8 +419,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	}
 	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
 	if( cd->seed_init != 0 ) cd->seed_init *= -1; // Modify the seed to show that is imported
-	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->calib_type = SIMPLE; }
-	if( cd->nreal == 0 && ( cd->problem_type == MONTECARLO || cd->calib_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) ) cd->nreal = 100;
+	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->analysis_type = SIMPLE; }
+	if( cd->nreal == 0 && ( cd->problem_type == MONTECARLO || cd->analysis_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) ) cd->nreal = 100;
 	if( cd->nretries > 0 && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) cd->paranoid = 1;
 	if( cd->test_func > 0 )
 	{
@@ -477,13 +477,13 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->problem_type == CALIBRATE )
 	{
 		tprintf( "\nCalibration technique: " );
-		switch( cd->calib_type )
+		switch( cd->analysis_type )
 		{
 			case IGRND: tprintf( "sequential calibration using a set of random initial values (realizations = %d)", cd->nreal ); break;
 			case IGPD: tprintf( "sequential calibration using a set discretized initial values" ); break;
 			case PPSD: tprintf( "sequential calibration using partial parameter parameter discretization" ); break;
 			case SIMPLE: tprintf( "single calibration using initial guesses provided in the input file" ); break;
-			default: tprintf( "WARNING: unknown calibration type!\nASSUMED: single calibration using initial guesses provided in the input file" ); cd->calib_type = SIMPLE; break;
+			default: tprintf( "WARNING: unknown calibration type!\nASSUMED: single calibration using initial guesses provided in the input file" ); cd->analysis_type = SIMPLE; break;
 		}
 		tprintf( "\n" );
 		if( cd->lm_eigen > 0 ) tprintf( "Eigen analysis will be performed for the final optimization results\n" );
@@ -499,7 +499,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	{
 		if( cd->paranoid ) tprintf( "Multi-Start Levenberg-Marquardt optimization\n" );
 		else tprintf( "Levenberg-Marquardt optimization\n" );
-		if( cd->problem_type == CALIBRATE && cd->calib_type == SIMPLE && cd->nretries <= 1 && !( fabs( cd->obsstep ) > DBL_EPSILON ) ) cd->ldebug = cd->lm_eigen = 1;
+		if( cd->problem_type == CALIBRATE && cd->analysis_type == SIMPLE && cd->nretries <= 1 && !( fabs( cd->obsstep ) > DBL_EPSILON ) ) cd->ldebug = cd->lm_eigen = 1;
 	}
 	else if( strcasestr( cd->opt_method, "pso" ) || strncasecmp( cd->opt_method, "swarm", 5 ) == 0 || strncasecmp( cd->opt_method, "tribe", 5 ) == 0 )
 	{
@@ -806,7 +806,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 			else if( pd->var_opt[i] == 2 )
 			{
 				pd->nFlgParam++;
-				if( cd->calib_type != PPSD ) pd->nOptParam++;
+				if( cd->analysis_type != PPSD ) pd->nOptParam++;
 			}
 			if( pd->var_opt[i] >= 1 )
 			{
@@ -1596,7 +1596,7 @@ int save_problem_text( char *filename, struct opt_data *op )
 	// if( cd->pardx > DBL_EPSILON ) fprintf( outfile, ", pardx=%g", cd->pardx ); // TODO when to print this?
 	if( cd->check_success ) fprintf( outfile, " obsrange" );
 	fprintf( outfile, " " );
-	switch( cd->calib_type )
+	switch( cd->analysis_type )
 	{
 		case SIMPLE: fprintf( outfile, "single" ); break;
 		case PPSD: fprintf( outfile, "ppsd" ); break;
@@ -2057,12 +2057,12 @@ int set_optimized_params( struct opt_data *op )
 	pd = op->pd;
 	if( cd->problem_type == CALIBRATE && pd->nFlgParam == 0 )
 	{
-		if( cd->calib_type == PPSD )
+		if( cd->analysis_type == PPSD )
 		{
 			tprintf( "\nERROR: Partial parameter-space discretization (PPSD) is selected.\nHowever no parameters are flagged! Use optimization code value = 2 to flag model parameters.\n\n" );
 			bad_data = 1;
 		}
-		if( cd->calib_type == IGPD )
+		if( cd->analysis_type == IGPD )
 		{
 			tprintf( "\nERROR: Partial parameter-space discretization of initial guesses (IGPD) is selected.\nHowever no parameters are flagged! Use optimization code value = 2 to flag model parameters.\n\n" );
 			bad_data = 1;
@@ -2074,7 +2074,7 @@ int set_optimized_params( struct opt_data *op )
 	pd->var_current = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
 	pd->var_best = ( double * ) malloc( pd->nOptParam * sizeof( double ) );
 	for( k = i = 0; i < pd->nParam; i++ )
-		if( pd->var_opt[i] == 1 || ( pd->var_opt[i] > 1 && cd->calib_type != PPSD ) )
+		if( pd->var_opt[i] == 1 || ( pd->var_opt[i] > 1 && cd->analysis_type != PPSD ) )
 		{
 			if( cd->debug ) tprintf( "%-27s:%-6s: init %9g log %1d step %8.3g min %9g max %9g\n", pd->var_name[i], pd->var_id[i], pd->var[i], pd->var_log[i], pd->var_dx[i], pd->var_min[i], pd->var_max[i] );
 			pd->var_index[k++] = i;
