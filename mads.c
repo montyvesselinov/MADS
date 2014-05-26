@@ -2489,24 +2489,25 @@ int ppsd( struct opt_data *op )
 				}
 				else
 				{
-					status = optimize_func( op ); // Optimize
+					if( op->cd->problem_type == EIGEN )
+					{
+						tprintf( "Eigen analysis run ... \n" );
+						status = eigen( op, NULL, NULL, NULL ); // Eigen or sensitivity analysis run
+					}
+					else
+					{
+						tprintf( "Optimization run ... \n" );
+						status = optimize_func( op ); // Optimize
+					}
 					if( status == 0 ) return( 0 );
 				}
 			}
 			else
 			{
-				if( op->cd->problem_type == EIGEN || op->cd->problem_type == LOCALSENS )
-				{
-					tprintf( "Eigen analysis run ... \n" );
-					status = eigen( op, NULL, NULL, NULL ); // Eigen or sensitivity analysis run
-				}
-				else
-				{
 					tprintf( "Forward run ... \n" );
 					if( op->cd->debug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 					func_global( op->pd->var, op, op->od->res ); // op->pd->var is dummy because op->pd->nOptParam == 0
 					if( op->cd->debug > 1 ) op->cd->fdebug = debug_level;
-				}
 			}
 			if( op->phi < op->cd->phi_cutoff ) phi_global++;
 			neval_total += op->cd->neval;
