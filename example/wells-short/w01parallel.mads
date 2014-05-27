@@ -15,7 +15,7 @@ o8	9.31	1	0	9.26	9.36
 o9	9.38	1	0	9.33	9.43
 o10	9.41	1	0	9.36	9.46
 o11	9.45	1	0	9.40	9.50
-Execution command: wells w01 >& /dev/null
+Execution command: ./wells w01 >& /dev/null
 Template files to create model input files: 1
 w01.tpl w01.wells
 Instruction files to read model outpus files: 1

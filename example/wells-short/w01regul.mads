@@ -19,7 +19,7 @@ Number of regularization terms: 3
 2 + k = 0 1 0 -1 1
 4 + S = 0 1 0 -1 1
 o10 - o2 = 4 1 0 0 10
-Execution command: wells w01 >& /dev/null
+Execution command: ./wells w01 >& /dev/null
 Template files to create model input files: 1
 w01.tpl w01.wells
 Instruction files to read model outpus files: 1
