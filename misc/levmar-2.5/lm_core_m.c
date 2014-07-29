@@ -389,11 +389,12 @@ int LEVMAR_DER2(
 				if( op->cd->ldebug >= 6 ) tprintf( "\nWeighted Jacobian matrix:\n" );
 				else tprintf( "\nWeighted Jacobian matrix (observations with zero sensitivities are skipped):\n" );
 				char *s;
-				tprintf( "Parameters:" ); for( i = 0; i < op->pd->nOptParam; i++ )
+				tprintf( "Parameters:" );
+				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					s = op->pd->var_name[op->pd->var_index[i]];
 					if( strlen( s ) < 7 ) tprintf( " %s", s );
-					else tprintf( " p%d", i );
+					else tprintf( " p%d", i + 1 );
 				}
 				for( l = j = 0; j < op->od->nTObs; j++ )
 				{
@@ -1381,11 +1382,12 @@ int LEVMAR_DER(
 				if( op->cd->ldebug >= 6 ) tprintf( "\nWeighted Jacobian matrix:\n" );
 				else tprintf( "\nWeighted Jacobian matrix (observations with zero sensitivities are skipped):\n" );
 				char *s;
-				tprintf( "Parameters:" ); for( i = 0; i < op->pd->nOptParam; i++ )
+				tprintf( "Parameters:" );
+				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					s = op->pd->var_name[op->pd->var_index[i]];
 					if( strlen( s ) < 7 ) tprintf( " %s", s );
-					else tprintf( " p%d", i );
+					else tprintf( " p%d", i + 1 );
 				}
 				for( l = j = 0; j < op->od->nTObs; j++ )
 				{
