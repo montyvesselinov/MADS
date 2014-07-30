@@ -217,7 +217,7 @@ int func_extrn( double *x, void *data, double *f )
 			}
 			else if( p->cd->objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 			if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-			if( c < min ) err += min - c;
+			if( c < min ) err += c - min;
 			else if( c > max ) err += c - max;
 			// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
 			if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[i]; max = p->od->obs_max[i]; }
@@ -517,7 +517,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			}
 			else if( p->cd->objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 			if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-			if( c < min ) err += min - c;
+			if( c < min ) err += c - min;
 			else if( c > max ) err += c - max;
 			// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
 			if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[i]; max = p->od->obs_max[i]; }
@@ -858,7 +858,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				}
 				else if( p->cd->objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 				if( p->cd->objfunc_type == SSDX ) { dx = max - min; if( p->cd->obsdomain > DBL_EPSILON && p->cd->obsdomain < dx ) dx = p->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-				if( c < min ) err += min - c;
+				if( c < min ) err += c - min;
 				else if( c > max ) err += c - max;
 				// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
 				if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[k]; max = p->od->obs_max[k]; }
