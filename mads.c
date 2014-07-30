@@ -128,7 +128,7 @@ void lhs_random( int nvar, int npoint, int *seed, double x[] );
 void smp_random( int nvar, int npoint, int *seed, double x[] );
 int get_seed( );
 // YAML
-#ifdef YAML
+#ifdef MADS_YAML
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 #endif
 // Memory
@@ -321,19 +321,32 @@ int main( int argn, char *argv[] )
 	}
 	else // MADS Problem
 	{
-		if( check_mads_problem( filename ) == 1 ) cd.ioml = IO_YAML;
-		else cd.ioml = IO_TEXT;
+		ier = cd.ioml = check_mads_problem( filename );
 		if( cd.ioml == IO_YAML ) // YAML format
 		{
-#ifdef YAML
+#ifdef MADS_YAML
+			tprintf( "MADS input file in YAML format.\n" );
 			ier = load_yaml_problem( filename, argn, argv, &op );
 #else
-			tprintf( "\nERROR: YAML format is not supported in the compiled version of MADS. Recompile with YAML libraries.\n" );
+			tprintf( "\nERROR: YAML format is not supported in the compiled version of MADS. Recompile with the YAML libraries.\n" );
 			mads_quits( op.root );
 #endif
 		}
-		else if( cd.ioml == IO_XML ) {} // XML format
-		else ier = load_problem_text( filename, argn, argv, &op ); // MADS plain text format or "NO FILE"
+		else if( cd.ioml == IO_XML ) // XML format
+		{
+#ifdef MADS_XML
+			tprintf( "MADS input file in XML format.\n" );
+			ier = load_xml_problem( filename, argn, argv, &op );
+#else
+			tprintf( "\nERROR: XML format is not supported in the compiled version of MADS. Recompile with the XML libraries.\n" );
+			mads_quits( op.root );
+#endif
+		}
+		else if( cd.ioml == IO_TEXT ) // Plain TEXT format
+		{
+			tprintf( "MADS input file in Plain TEXT format.\n" );
+			ier = load_problem_text( filename, argn, argv, &op );
+		}
 		if( ier <= 0 )
 		{
 			tprintf( "\nERROR: Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
@@ -2504,10 +2517,10 @@ int ppsd( struct opt_data *op )
 			}
 			else
 			{
-					tprintf( "Forward run ... \n" );
-					if( op->cd->debug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-					func_global( op->pd->var, op, op->od->res ); // op->pd->var is dummy because op->pd->nOptParam == 0
-					if( op->cd->debug > 1 ) op->cd->fdebug = debug_level;
+				tprintf( "Forward run ... \n" );
+				if( op->cd->debug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+				func_global( op->pd->var, op, op->od->res ); // op->pd->var is dummy because op->pd->nOptParam == 0
+				if( op->cd->debug > 1 ) op->cd->fdebug = debug_level;
 			}
 			if( op->phi < op->cd->phi_cutoff ) phi_global++;
 			neval_total += op->cd->neval;

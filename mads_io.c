@@ -90,7 +90,7 @@ FILE *Fread( char *filename );
 void removeChars( char *str, char *garbage );
 char *white_trim( char *x );
 void white_skip( char **s );
-#ifdef YAML
+#ifdef MADS_YAML
 int save_problem_yaml( char *filename, struct opt_data *op );
 #endif
 
@@ -98,19 +98,21 @@ int check_mads_problem( char *filename )
 {
 	FILE *infile;
 	char buf[5000], *word;
-	char *separator = " \t\n";
+	char *separator = " \t\n?";
 	int c;
-	if( ( infile = fopen( filename, "r" ) ) == NULL ) return( 0 ); // No file
+	if( ( infile = fopen( filename, "r" ) ) == NULL ) return( -1 ); // No file
 	fscanf( infile, "%1000[^\n]s", buf );
 	fclose( infile );
 	// check the first line in the file
 	for( c = 0, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
 	{
-		if( !strncasecmp( word, "yaml", 4 ) ) return( 1 ); // YAML file
-		if( !strncmp( word, "---", 3 ) && c == 0 ) return( 1 ); // YAML file
-		if( !strncmp( word, "{", 1 ) ) return( 1 ); // YAML file
+		// tprintf( "S %s\n", word );
+		if( !strncasecmp( word, "xml", 3 ) ) return( IO_XML ); // XML file
+		if( !strncasecmp( word, "yaml", 4 ) ) return( IO_YAML ); // YAML file
+		if( !strncmp( word, "---", 3 ) && c == 0 ) return( IO_YAML ); // YAML file
+		if( !strncmp( word, "{", 1 ) ) return( IO_YAML ); // YAML file
 	}
-	return( 2 ); // Not YAML file
+	return( IO_TEXT ); // Not YAML / XML file; TEXT file assumed
 }
 
 int set_param_id( struct opt_data *op )
@@ -1511,7 +1513,7 @@ int save_problem( char *filename, struct opt_data *op )
 {
 	if( op->cd->ioml == IO_YAML )
 	{
-#ifdef YAML
+#ifdef MADS_YAML
 		save_problem_yaml( filename, op );
 #else
 		tprintf( "WARNING: YAML files cannot be saved! YAML libraries are not available.\n" );

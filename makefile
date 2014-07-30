@@ -43,9 +43,13 @@ DBG =
 ifndef MATHEVAL
 MATHEVAL = true
 endif
-# Support for YAML input files is optional 
+# Support for YAML input files 
 ifndef YAML
-YAML = false
+YAML = true
+endif
+# Support for XML input files
+ifdef XML
+XML = true
 endif
 OS = $(shell uname -s)
 ND = $(shell uname -n)
@@ -58,7 +62,6 @@ LDLIBS = -lgsl -llapack -lstdc++
 ifeq ($(OS),Linux)
 # Linux
 LDLIBS += -lgfortran -lgslcblas -lm -lblas
-YAML = true
 $(info LINUX)
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
@@ -84,7 +87,6 @@ ifeq ($(OS),Darwin)
 $(info MAC OS X)
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
-YAML = true
 ifeq ($(ND),bored.lanl.gov)
 LDLIBS += -latlas
 endif
@@ -120,8 +122,15 @@ OBJWELLS = wells/wells.o
 ifeq ($(YAML),true)
 $(info YAML Support included)
 OBJSMADS += ./mads_io_yaml.o
-CFLAGS += -DYAML `pkg-config --cflags glib-2.0`
+CFLAGS += -DMADS_YAML `pkg-config --cflags glib-2.0`
 LDLIBS += -lyaml `pkg-config --libs glib-2.0`
+endif
+
+ifeq ($(XML),true)
+    $(info XML Support included)
+    OBJSMADS += ./mads_io_xml.o
+    CFLAGS += -DMADS_XML
+    LDLIBS += -lxml2
 endif
 
 ifeq ($(MATHEVAL),true)
