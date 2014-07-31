@@ -965,7 +965,7 @@ int main( int argn, char *argv[] )
 				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				compare = 1;
 				c = od.obs_current[i];
-				err = od.obs_target[i] - c;
+				err = c - od.obs_target[i];
 				// err = od.res[i];
 				min = od.obs_min[i];
 				max = od.obs_max[i];
@@ -976,9 +976,9 @@ int main( int argn, char *argv[] )
 						err = sqrt( fabs( err ) );
 						if( c < od.obs_target[i] ) err *= -1;
 					}
-					else err = 0; // SSD0 & SSDX
+					else if( cd.objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 					if( cd.objfunc_type == SSDX ) { dx = max - min; if( cd.obsdomain > DBL_EPSILON && cd.obsdomain < dx ) dx = cd.obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-					if( c < min ) err += min - c;
+					if( c < min ) err += c - min;
 					else if( c > max ) err += c - max;
 					if( cd.objfunc_type == SSDX ) { min = od.obs_min[i]; max = od.obs_max[i]; }
 				}
@@ -999,7 +999,7 @@ int main( int argn, char *argv[] )
 					compare = 1;
 					c = func_solver( wd.x[i], wd.y[i], wd.z1[i], wd.z2[i], wd.obs_time[i][j], &cd );
 					if( wd.obs_weight[i][j] > DBL_EPSILON ) od.obs_current[k++] = c;
-					err = wd.obs_target[i][j] - c;
+					err = c - wd.obs_target[i][j];
 					min = wd.obs_min[i][j];
 					max = wd.obs_max[i][j];
 					if( cd.objfunc_type != SSR )
@@ -1009,9 +1009,9 @@ int main( int argn, char *argv[] )
 							err = sqrt( fabs( err ) );
 							if( c < wd.obs_target[i][j] ) err *= -1;
 						}
-						else err = 0; // SSD0 & SSDX
+						else if( cd.objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 						if( cd.objfunc_type == SSDX ) { dx = max - min; if( cd.obsdomain > DBL_EPSILON && cd.obsdomain < dx ) dx = cd.obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-						if( c < min ) err += min - c;
+						if( c < min ) err += c - min;
 						else if( c > max ) err += c - max;
 						if( cd.objfunc_type == SSDX ) { min = od.obs_min[i]; max = od.obs_max[i]; }
 					}
@@ -1993,7 +1993,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 	phi_min = HUGE_VAL;
 	solution_found = 0;
 	phi_global = success_global = neval_total = njac_total = 0;
-	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1; // applied if execution of a specific realization is requested (ncase)
+	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1; // applied if execution of a specific realization is requested (case)
 	else k = 0;
 	if( op->cd->debug || op->cd->mdebug ) op->cd->lmstandalone = 1;
 	else op->cd->lmstandalone = 0;
@@ -2915,7 +2915,7 @@ void print_results( struct opt_data *op, int verbosity )
 			{
 				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nCObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
+				err = c - op->od->obs_target[i];
 				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
@@ -2929,7 +2929,7 @@ void print_results( struct opt_data *op, int verbosity )
 			for( i = op->od->nObs; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
+				err = c - op->od->obs_target[i];
 				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
@@ -2945,7 +2945,7 @@ void print_results( struct opt_data *op, int verbosity )
 				{
 					if( op->wd->obs_weight[i][j] == 0 ) { predict = 1; continue; }
 					c = op->od->obs_current[k];
-					// err = op->wd->obs_target[i][j] - c;
+					// err = c - op->wd->obs_target[i][j];
 					err = op->od->res[k];
 					k++;
 					min = op->wd->obs_min[i][j];
@@ -2958,7 +2958,7 @@ void print_results( struct opt_data *op, int verbosity )
 			for( i = op->od->nObs; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				// err = op->od->obs_target[i] - c;
+				// err = c - op->od->obs_target[i];
 				err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
@@ -3001,7 +3001,7 @@ void print_results( struct opt_data *op, int verbosity )
 			{
 				if( op->od->obs_weight[i] != 0 ) { if( predict > 50 && j == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
-				err = op->od->obs_target[i] - c;
+				err = c - op->od->obs_target[i];
 				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
@@ -3020,7 +3020,7 @@ void print_results( struct opt_data *op, int verbosity )
 				{
 					if( op->wd->obs_weight[i][j] != 0 ) continue;
 					c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
-					err = op->wd->obs_target[i][j] - c;
+					err = c - op->wd->obs_target[i][j];
 					min = op->wd->obs_min[i][j];
 					max = op->wd->obs_max[i][j];
 					if( op->cd->objfunc_type != SSR )
@@ -3030,9 +3030,9 @@ void print_results( struct opt_data *op, int verbosity )
 							err = sqrt( fabs( err ) );
 							if( c < op->wd->obs_target[i][j] ) err *= -1;
 						}
-						else err = 0; // SSD0 & SSDX
+						else if( op->cd->objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 						if( op->cd->objfunc_type == SSDX ) { dx = max - min; if( op->cd->obsdomain > DBL_EPSILON && op->cd->obsdomain < dx ) dx = op->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-						if( c < min ) err += min - c;
+						if( c < min ) err += c - min;
 						else if( c > max ) err += c - max;
 						// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
 						if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }

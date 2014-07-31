@@ -223,7 +223,7 @@ int func_extrn( double *x, void *data, double *f )
 			if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[i]; max = p->od->obs_max[i]; }
 		}
 		f[i] = err * w;
-		if( p->cd->compute_phi ) phi += f[i] * f[i];
+		if( p->cd->compute_phi ) phi += err * err * w;
 		if( p->cd->obserror > DBL_EPSILON )
 		{
 			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
@@ -239,7 +239,7 @@ int func_extrn( double *x, void *data, double *f )
 			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
 				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, min, max );
 			if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
-			if( !p->cd->compute_phi ) phi += f[i] * f[i];
+			if( !p->cd->compute_phi ) phi += err * err * w;
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
@@ -523,7 +523,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[i]; max = p->od->obs_max[i]; }
 		}
 		f[i] = err * w;
-		if( p->cd->compute_phi ) phi += f[i] * f[i];
+		if( p->cd->compute_phi ) phi += err * err * w;
 		if( p->cd->obserror > DBL_EPSILON )
 		{
 			if( fabs( c - t ) > p->cd->obserror ) { success = 0; if( w > DBL_EPSILON ) success_all = 0; }
@@ -539,7 +539,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
 				tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[i], t, c, err, err * w, success, min, max );
 			if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
-			if( !p->cd->compute_phi ) phi += f[i] * f[i];
+			if( !p->cd->compute_phi ) phi += err * err * w;
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
@@ -729,7 +729,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 						dx = p->ad->var[AX]; dy = p->ad->var[AY]; dz = p->ad->var[AZ];
 						x1 = p->wd->x[i] - p->ad->var[SOURCE_X];
 						y1 = p->wd->y[i] - p->ad->var[SOURCE_Y];
-						z1 = ( p->wd->z1[i] + p->wd->z2[i] ) - p->ad->var[SOURCE_Z];
+						z1 = ( p->wd->z1[i] + p->wd->z2[i] ) / 2 - p->ad->var[SOURCE_Z];
 						dist = sqrt( x1 * x1 + y1 * y1 + z1 * z1 );
 						if( p->cd->fdebug >= 5 ) tprintf( "Scaled AX %.12g = %.12g * %.12g\n", p->ad->var[AX] * dist, p->ad->var[AX], dist );
 						p->ad->var[AX] *= dist;
@@ -811,12 +811,12 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 								if( p->cd->levy == FULL_LEVY )
 								{
 									c1 += box_source_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-									c2 += box_source_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+									c2 += box_source_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 								}
 								else if( p->cd->levy == SYM_LEVY )
 								{
 									c1 += box_source_sym_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
-									c2 += box_source_sym_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z1[i], p->wd->obs_time[i][j], ( void * ) p->ad );
+									c2 += box_source_sym_levy_dispersion( p->wd->x[i], p->wd->y[i], p->wd->z2[i], p->wd->obs_time[i][j], ( void * ) p->ad );
 								}
 								else
 								{
@@ -864,7 +864,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				if( p->cd->objfunc_type == SSDX ) { min = p->od->obs_min[k]; max = p->od->obs_max[k]; }
 			}
 			f[k] = err * w;
-			if( p->cd->compute_phi ) phi += f[k] * f[k];
+			if( p->cd->compute_phi ) phi += err * err * w;
 			if( p->cd->obserror > DBL_EPSILON )
 			{
 				if( fabs( c - t ) > p->cd->obserror ) { success = success_all = 0; } // weight should be > DBL_EPSILON by default; if( w > DBL_EPSILON ) is not needed
@@ -880,7 +880,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				if( p->od->nTObs < 50 || ( i < 20 || i > p->od->nTObs - 20 ) )
 					tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", p->od->obs_id[k], t, c, err, err * w, success, min , max );
 				if( p->od->nTObs > 50 && i == 21 ) tprintf( "...\n" );
-				if( !p->cd->compute_phi ) phi += f[i] * f[i];
+				if( !p->cd->compute_phi ) phi += err * err * w;
 			}
 			if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 		}

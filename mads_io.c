@@ -1611,6 +1611,11 @@ int save_problem_text( char *filename, struct opt_data *op )
 	}
 	fprintf( outfile, " eval=%d", cd->maxeval );
 	if( cd->opt_method[0] != 0 ) fprintf( outfile, " opt=%s", cd->opt_method );
+	if( cd->levy != 0 )
+	{
+		if( cd->levy == SYM_LEVY ) fprintf( outfile, " levy_sym" );
+		else fprintf( outfile, " levy" );
+	}
 	if( cd->c_background > 0 ) fprintf( outfile, " background=%g", cd->c_background );
 	if( cd->disp_tied ) fprintf( outfile, " disp_tied" );
 	if( cd->disp_scaled ) fprintf( outfile, " disp_scaled" );
@@ -2369,8 +2374,8 @@ int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2
 		for( i = 0; i < op->od->nTObs; i++ )
 		{
 			c = op->od->obs_current[i];
-			err = op->od->obs_target[i] - c;
-			// err = op->od->res[i];
+			// err = op->od->obs_target[i] - c;
+			err = op->od->res[i];
 			min = op->od->obs_min[i];
 			max = op->od->obs_max[i];
 			if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { if( op->od->obs_weight[i] != 0 ) *success_all = 0; success = 0; }
@@ -2405,9 +2410,9 @@ int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2
 						err = sqrt( fabs( err ) );
 						if( c < op->wd->obs_target[i][j] ) err *= -1;
 					}
-					else err = 0; // SSD0 & SSDX
+					else if( op->cd->objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 					if( op->cd->objfunc_type == SSDX ) { dx = max - min; if( op->cd->obsdomain > DBL_EPSILON && op->cd->obsdomain < dx ) dx = op->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-					if( c < min ) err += min - c;
+					if( c < min ) err += c - min;
 					else if( c > max ) err += c - max;
 					if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
 				}

@@ -1478,6 +1478,11 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	if( cd->c_background > 0 ) fprintf( outfile, ", background: %g", cd->c_background );
 	if( cd->disp_tied ) fprintf( outfile, ", disp_tied" );
 	if( cd->disp_scaled ) fprintf( outfile, ", disp_scaled" );
+	if( cd->levy != 0 )
+	{
+		if( cd->levy == SYM_LEVY ) fprintf( outfile, ", levy_sym" );
+		else fprintf( outfile, ", levy" );
+	}
 	if( cd->save ) fprintf( outfile, ", save" );
 	if( cd->seed_init < 0 ) fprintf( outfile, ", seed: %d", cd->seed_init * -1 );
 	if( cd->nretries > 0 ) fprintf( outfile, ", retry: %d", cd->nretries );
