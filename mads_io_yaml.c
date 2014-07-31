@@ -88,6 +88,7 @@ int set_param_id( struct opt_data *op );
 int set_param_names( struct opt_data *op, int flag );
 void init_params( struct opt_data *op );
 int parse_cmd( char *buf, struct calc_data *cd );
+int read_resultsfile( struct opt_data *op );
 int set_optimized_params( struct opt_data *op );
 int map_obs_regul( struct opt_data *op );
 int map_well_obs( struct opt_data *op );
@@ -272,6 +273,10 @@ int parse_gnode_classes( GNode *gnode_data, int argn, char *argv[], struct opt_d
 	}
 	else tprintf( "WARNING: Parameter class not found!\n" );
 	if( ier != 1 ) return( -1 );
+	// ------------------------------------------------------------ Reading parameters from previously saved results in a file ----------------------------------------------------------------
+	if( cd->resultscase > 0 ) ier = read_resultsfile( op );
+	if( ier != 1 ) return( -1 );
+	// Calibration targets
 	if( cd->solution_type[0] != EXTERNAL )
 	{
 		// Wells

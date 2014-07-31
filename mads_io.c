@@ -58,6 +58,7 @@ int parse_cmd_init( int argn, char *argv[], struct calc_data *cd );
 int parse_cmd( char *buf, struct calc_data *cd );
 int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op );
 int load_problem_xml( char *filename, int argn, char *argv[], struct opt_data *op );
+int read_resultsfile( struct opt_data *op );
 int save_problem( char *filename, struct opt_data *op );
 int save_problem_text( char *filename, struct opt_data *op );
 int save_problem_xml( char *filename, struct opt_data *op );
@@ -470,11 +471,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 			{
 				if( cd->resultscase == 0 ) cd->resultscase = 1;
 				if( cd->resultscase > 0 ) tprintf( "Model analyses for case #%d", cd->resultscase );
-				else tprintf( "Model analyses for first %d cases", cd->resultscase );
+				else tprintf( "Model analyses for the first %d cases", cd->resultscase );
 			}
 			tprintf( "\n" );
 		}
-		else { tprintf( "\nERROR Results file %s cannot be opened \n", cd->resultsfile ); cd->resultscase = 0; cd->resultsfile[0] = 0; }
+		else { tprintf( "\nERROR: Results file %s cannot be opened \n", cd->resultsfile ); cd->resultscase = 0; cd->resultsfile[0] = 0; }
 	}
 	if( cd->problem_type == CALIBRATE )
 	{
@@ -610,10 +611,10 @@ int parse_cmd( char *buf, struct calc_data *cd )
 
 int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *op )
 {
-	FILE *infile, *infile2;
+	FILE *infile;
 	//	FILE *infileb;
 	double d;
-	char buf[5000], *file, **path, exec[1000], *word, *start, charecter;
+	char buf[5000], *file, **path, exec[1000], *word, charecter;
 	char *separator = " \t\n";
 	int  i, j, k, c, l1, l2, bad_data, status, nofile = 0, skip = 0, short_names_printed;
 	struct calc_data *cd;
@@ -894,72 +895,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		}
 	}
 	// ------------------------------------------------------------ Reading parameters from previously saved results in a file ----------------------------------------------------------------
-	if( cd->resultscase > 0 )
-	{
-		bad_data = 0;
-		tprintf( "\nModel parameters initiated based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
-		infile2 = Fread( cd->resultsfile );
-		for( i = 0; i < cd->resultscase; i++ )
-		{
-			if( fgets( buf, sizeof buf, infile2 ) == NULL )
-			{
-				bad_data = 1;
-				tprintf( "ERROR reading model parameters initiated based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
-				return( 0 );
-			}
-			// else tprintf( "%s\n", buf );
-		}
-		fclose( infile2 );
-		int caseid;
-		sscanf( buf, "%d", &caseid );
-		tprintf( "Case ID %d in %s (case %d)\n", caseid, cd->resultsfile, cd->resultscase );
-		start = strstr( buf, ": OF" );
-		if( start == NULL ) tprintf( "WARNING Objective function value is missing in %s (case %d)\n", cd->resultsfile, cd->resultscase );
-		else
-		{
-			double phi;
-			sscanf( start, ": OF %lg", &phi );
-			tprintf( "Objective function = %g\n", phi );
-		}
-		start = strstr( buf, "success" );
-		if( start == NULL ) tprintf( "WARNING Success value is missing in %s (case %d)\n", cd->resultsfile, cd->resultscase );
-		else
-		{
-			int success;
-			sscanf( start, "success %d", &success );
-			tprintf( "Success = %d\n", success );
-		}
-		start = strstr( buf, "final var" );
-		if( start == NULL )
-		{
-			bad_data = 1;
-			tprintf( "ERROR Final model parameters cannot be located in %s (case %d)\n", cd->resultsfile, cd->resultscase );
-			return( 0 );
-		}
-		// tprintf( "%s\n", start );
-		strcpy( buf, start );
-		tprintf( "\nInitialized model parameters:\n" );
-		for( k = 0, i = 0, c = -2, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
-		{
-			if( c > -1 )
-			{
-				// tprintf( "Par #%d %s\n", c + 1, word );
-				while( pd->var_opt[i] == 0 ) i++;
-				sscanf( word, "%lf", &pd->var[i] );
-				k++;
-				if( pd->var_log[i] ) pd->var[i] = log10( pd->var[i] );
-				tprintf( "%s %g\n", pd->var_name[i], pd->var[i] );
-				i++;
-			}
-		}
-		tprintf( "Number of initialized parameters = %d\n\n", k );
-		if( pd->nOptParam != k )
-		{
-			bad_data = 1;
-			tprintf( "ERROR Number of optimized (%d) and initialized (%d) parameters in %s (case %d) do not match\n", pd->nOptParam, k, cd->resultsfile, cd->resultscase );
-			return( 0 );
-		}
-	}
+	if( cd->resultscase > 0 ) if( read_resultsfile( op ) == 0 ) bad_data = 1;
 	/*
 		if( (*cd).problem_type != 0 )
 		{
@@ -1498,6 +1434,78 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		else gd->dz = ( gd->max_z - gd->min_z ) / ( gd->nz - 1 );
 		gd->nt = 1 + ( int )( ( double )( gd->max_t - gd->min_t ) / gd->dt );
 		if( cd->debug ) tprintf( "Breakthrough-curve time window: %g %g %g number of time steps: %d\n", gd->min_t, gd->max_t, gd->dt, gd->nt );
+	}
+	return( 1 );
+}
+
+int read_resultsfile( struct opt_data *op )
+{
+	FILE *infile2;
+	char buf[5000], *word, *start;
+	char *separator = " \t\n";
+	int  i, k, c;
+	struct calc_data *cd;
+	struct param_data *pd;
+	cd = op->cd;
+	pd = op->pd;
+	tprintf( "\nModel parameters initiated based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
+	infile2 = Fread( cd->resultsfile );
+	for( i = 0; i < cd->resultscase; i++ )
+	{
+		if( fgets( buf, sizeof buf, infile2 ) == NULL )
+		{
+			tprintf( "ERROR: Cannot read model parameters initiated based on previously saved results in file %s (case %d)\n", cd->resultsfile, cd->resultscase );
+			return( 0 );
+		}
+		// else tprintf( "%s\n", buf );
+	}
+	fclose( infile2 );
+	int caseid;
+	sscanf( buf, "%d", &caseid );
+	tprintf( "Case ID %d in %s (case %d)\n", caseid, cd->resultsfile, cd->resultscase );
+	start = strstr( buf, ": OF" );
+	if( start == NULL ) tprintf( "WARNING: Objective function value is missing in %s (case %d)\n", cd->resultsfile, cd->resultscase );
+	else
+	{
+		double phi;
+		sscanf( start, ": OF %lg", &phi );
+		tprintf( "Objective function = %g\n", phi );
+	}
+	start = strstr( buf, "success" );
+	if( start == NULL ) tprintf( "WARNING: Success value is missing in %s (case %d)\n", cd->resultsfile, cd->resultscase );
+	else
+	{
+		int success;
+		sscanf( start, "success %d", &success );
+		tprintf( "Success = %d\n", success );
+	}
+	start = strstr( buf, "final var" );
+	if( start == NULL )
+	{
+		tprintf( "ERROR: Final model parameters cannot be located in %s (case %d)\n", cd->resultsfile, cd->resultscase );
+		return( 0 );
+	}
+	// tprintf( "%s\n", start );
+	strcpy( buf, start );
+	tprintf( "\nInitialized model parameters:\n" );
+	for( k = 0, i = 0, c = -2, word = strtok( buf, separator ); word; c++, word = strtok( NULL, separator ) )
+	{
+		if( c > -1 )
+		{
+			// tprintf( "Par #%d %s\n", c + 1, word );
+			while( pd->var_opt[i] == 0 ) i++;
+			sscanf( word, "%lf", &pd->var[i] );
+			k++;
+			if( pd->var_log[i] ) pd->var[i] = log10( pd->var[i] );
+			tprintf( "%s %g\n", pd->var_name[i], pd->var[i] );
+			i++;
+		}
+	}
+	tprintf( "Number of initialized parameters = %d\n\n", k );
+	if( pd->nOptParam != k )
+	{
+		tprintf( "ERROR: Number of optimized (%d) and initialized (%d) parameters in %s (case %d) do not match\n", pd->nOptParam, k, cd->resultsfile, cd->resultscase );
+		return( 0 );
 	}
 	return( 1 );
 }

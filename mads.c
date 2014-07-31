@@ -163,7 +163,7 @@ int main( int argn, char *argv[] )
 {
 	// TODO return status of the function calls is not always checked; needs to be checked
 	int i, j, k, ier, status, success, success_all, count,  predict = 0, compare, bad_data = 0, ignore_running = 0;
-	double c, err, min, max, dx, phi, *opt_params;
+	double c, w, err, min, max, dx, phi, *opt_params;
 	struct calc_data cd;
 	struct param_data pd;
 	struct regul_data rd;
@@ -283,6 +283,11 @@ int main( int argn, char *argv[] )
 	{
 		tprintf( " (YAML format expected)\n" );
 		cd.ioml = IO_YAML; // YAML format
+	}
+	if( strcasestr( filename, "xml" ) )
+	{
+		tprintf( " (XML format expected)\n" );
+		cd.ioml = IO_XML; // XML format
 	}
 	else if( strcasecmp( extension, "pst" ) == 0 )
 	{
@@ -965,6 +970,7 @@ int main( int argn, char *argv[] )
 				if( cd.problem_type == CALIBRATE && od.obs_weight[i] != 0 ) { if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				compare = 1;
 				c = od.obs_current[i];
+				w = od.obs_weight[i];
 				err = c - od.obs_target[i];
 				// err = od.res[i];
 				min = od.obs_min[i];
@@ -982,12 +988,12 @@ int main( int argn, char *argv[] )
 					else if( c > max ) err += c - max;
 					if( cd.objfunc_type == SSDX ) { min = od.obs_min[i]; max = od.obs_max[i]; }
 				}
-				phi += ( err * err ) * od.obs_weight[i];
+				phi += ( err * err ) * ( w * w );
 				if( ( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) && ( od.obs_weight[i] > 0.0 ) ) { success_all = 0; success = 0; }
 				else success = 1;
-				if( od.nTObs < 50 || ( i < 20 || i > od.nTObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, min, max );
+				if( od.nTObs < 50 || ( i < 20 || i > od.nTObs - 20 ) ) tprintf( "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * w, success, min, max );
 				if( od.nTObs > 50 && i == 21 ) tprintf( "...\n" );
-				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * od.obs_weight[i], success, min, max );
+				if( cd.problem_type != CREATE ) fprintf( out, "%-20s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", od.obs_id[i], od.obs_target[i], c, err, err * w, success, min, max );
 				else od.obs_target[i] = c; // Save computed values as calibration targets
 			}
 		}
@@ -1000,6 +1006,7 @@ int main( int argn, char *argv[] )
 					c = func_solver( wd.x[i], wd.y[i], wd.z1[i], wd.z2[i], wd.obs_time[i][j], &cd );
 					if( wd.obs_weight[i][j] > DBL_EPSILON ) od.obs_current[k++] = c;
 					err = c - wd.obs_target[i][j];
+					w = wd.obs_weight[i][j];
 					min = wd.obs_min[i][j];
 					max = wd.obs_max[i][j];
 					if( cd.objfunc_type != SSR )
@@ -1015,15 +1022,15 @@ int main( int argn, char *argv[] )
 						else if( c > max ) err += c - max;
 						if( cd.objfunc_type == SSDX ) { min = od.obs_min[i]; max = od.obs_max[i]; }
 					}
-					if( cd.problem_type != CALIBRATE ) phi += ( err * err ) * wd.obs_weight[i][j];
+					if( cd.problem_type != CALIBRATE ) phi += ( err * err ) * ( w * w );
 					else phi += ( err * err );
-					if( ( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) && ( wd.obs_weight[i][j] > 0.0 ) ) { success_all = 0; success = 0; }
+					if( ( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) && ( w > 0.0 ) ) { success_all = 0; success = 0; }
 					else success = 1;
 					if( cd.problem_type != CALIBRATE )
-						tprintf( "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success, min, max );
+						tprintf( "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * w, success, min, max );
 					else
 						tprintf( "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err, success, min, max );
-					if( cd.problem_type != CREATE ) fprintf( out, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * wd.obs_weight[i][j], success );
+					if( cd.problem_type != CREATE ) fprintf( out, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d\n", wd.id[i], wd.obs_time[i][j], wd.obs_target[i][j], c, err, err * w, success );
 					else wd.obs_target[i][j] = c; // Save computed values as calibration targets
 					if( cd.problem_type == FORWARD ) fprintf( out2, "%s(%g) %g\n", wd.id[i], wd.obs_time[i][j], c ); // Forward run
 				}
