@@ -130,7 +130,7 @@ ifeq ($(XML),true)
     $(info XML Support included)
     OBJSMADS += ./mads_io_xml.o
     CFLAGS += -DMADS_XML
-    LDLIBS += -lxml2
+    LDLIBS += `xml2-config --libs`
 endif
 
 ifeq ($(MATHEVAL),true)
@@ -417,6 +417,11 @@ verify-external-short:
 	rm -f example/wells-short/w01_yaml.results example/wells-short/w01_yaml.running
 	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01_yaml $(OUTPUT)
 	@$(CMP) example/wells-short/w01_yaml.results example/wells-short/w01.results-$(OS)-correct
+	@echo ""
+	@echo "TEST 6.6: Problem example/wells-short/w01 (XML input format) ..."
+	rm -f example/wells-short/w01_xml.results example/wells-short/w01_xml.running
+	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01_xml $(OUTPUT)
+	@$(CMP) example/wells-short/w01_xml.results example/wells-short/w01.results-$(OS)-correct
 	@echo "**************************************************************************************"
 	@echo "TEST 6: DONE"
 	@echo ""

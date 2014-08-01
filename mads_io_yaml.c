@@ -58,7 +58,7 @@ enum storage_flags { VAR, VAL, SEQ }; // "Store as" switch
 
 /* Functions here */
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-void yaml_parse_layer( yaml_parser_t *parser, GNode *data, int debug );
+void parse_yaml( yaml_parser_t *parser, GNode *data, int debug );
 gboolean gnode_tree_dump( GNode *node, gpointer data );
 void gnode_tree_dump_classes( GNode *node, gpointer data );
 void gnode_tree_parse_classes( GNode *node, gpointer data );
@@ -104,8 +104,9 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	FILE *infile;
 	int ier;
 	struct calc_data *cd;
-	GNode *gnode_data = g_node_new( filename );
 	yaml_parser_t parser;
+	GNode *gnode_data = g_node_new( filename );
+	if( !gnode_data ) { tprintf( "ERROR: GNode array cannot be created.\n" ); mads_quits( 0 ); }
 	cd = op->cd;
 	op->gd->min_t = op->gd->time = 0;
 	op->od->include_predictions = 1;
@@ -119,7 +120,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	}
 	yaml_parser_initialize( &parser );
 	yaml_parser_set_input_file( &parser, infile );
-	yaml_parse_layer( &parser, gnode_data, ( int )( op->cd->debug > 5 ) );  // Recursive parsing into GNODE data
+	parse_yaml( &parser, gnode_data, ( int )( op->cd->debug > 5 ) );  // Recursive parsing into GNODE data
 	yaml_parser_delete( &parser ); // Destroy YAML parser
 	fclose( infile );
 	if( cd->debug > 5 )
@@ -337,7 +338,7 @@ int parse_gnode_classes( GNode *gnode_data, int argn, char *argv[], struct opt_d
 	return( ier );
 }
 
-void yaml_parse_layer( yaml_parser_t *parser, GNode *data, int debug )
+void parse_yaml( yaml_parser_t *parser, GNode *data, int debug )
 {
 	GNode *last_leaf = data;
 	yaml_event_t event;
@@ -358,7 +359,7 @@ void yaml_parse_layer( yaml_parser_t *parser, GNode *data, int debug )
 		// depth += 1
 		else if( event.type == YAML_MAPPING_START_EVENT )
 		{
-			yaml_parse_layer( parser, last_leaf, debug );
+			parse_yaml( parser, last_leaf, debug );
 			storage ^= VAL; // Flip VAR/VAL, without touching SEQ
 			// storage = VAR; // Var should be expected ...
 		}

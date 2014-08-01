@@ -131,6 +131,10 @@ int get_seed( );
 #ifdef MADS_YAML
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
 #endif
+// XML
+#ifdef MADS_XML
+int load_xml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
+#endif
 // Memory
 char *white_trim( char *x );
 char **char_matrix( int maxCols, int maxRows );
@@ -284,7 +288,7 @@ int main( int argn, char *argv[] )
 		tprintf( " (YAML format expected)\n" );
 		cd.ioml = IO_YAML; // YAML format
 	}
-	if( strcasestr( filename, "xml" ) )
+	else if( strcasestr( filename, "xml" ) )
 	{
 		tprintf( " (XML format expected)\n" );
 		cd.ioml = IO_XML; // XML format
@@ -297,7 +301,7 @@ int main( int argn, char *argv[] )
 	else
 	{
 		tprintf( "\n" );
-		cd.ioml = IO_TEXT; // MADS plain text format expected; it can be still YAML format
+		cd.ioml = IO_TEXT; // MADS plain text format expected; it can be still YAML or XML format
 	}
 	cd.time_infile = Fdatetime_t( filename, 0 );
 	cd.datetime_infile = Fdatetime( filename, 0 );
@@ -309,12 +313,12 @@ int main( int argn, char *argv[] )
 		tprintf( "PEST problem:\n" );
 		if( ( ier = load_pst( filename, &op ) ) <= 0 )
 		{
-			tprintf( "\nMADS quits! Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
+			tprintf( "ERROR: Input file \'%s\' cannot be processed (PEST format expected).\n", filename );
 			if( ier == 0 )
 			{
-				sprintf( filename, "%s-error.mads", op.root );
+				sprintf( filename, "%serror.mads", op.root );
 				save_problem( filename, &op );
-				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
+				tprintf( "MADS problem file named %serror.mads is created to debug.\n", op.root );
 			}
 			mads_quits( op.root );
 		}
@@ -326,7 +330,8 @@ int main( int argn, char *argv[] )
 	}
 	else // MADS Problem
 	{
-		ier = cd.ioml = check_mads_problem( filename );
+		cd.ioml = check_mads_problem( filename );
+		ier = 1;
 		if( cd.ioml == IO_YAML ) // YAML format
 		{
 #ifdef MADS_YAML
@@ -354,12 +359,12 @@ int main( int argn, char *argv[] )
 		}
 		if( ier <= 0 )
 		{
-			tprintf( "\nERROR: Data input problem!\nExecute \'mads\' without any arguments to check the acceptable command-line keywords and options.\n" );
+			tprintf( "ERROR: Input file \'%s\' cannot be processed.\n", filename );
 			if( ier == 0 )
 			{
-				sprintf( filename, "%s-error.mads", op.root );
+				sprintf( filename, "%serror.mads", op.root );
 				save_problem( filename, &op );
-				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
+				tprintf( "MADS problem file named %serror.mads is created to debug.\n", op.root );
 			}
 			mads_quits( op.root );
 		}
@@ -971,7 +976,7 @@ int main( int argn, char *argv[] )
 				compare = 1;
 				c = od.obs_current[i];
 				w = od.obs_weight[i];
-				err = c - od.obs_target[i];
+				err = od.obs_target[i] - c;
 				// err = od.res[i];
 				min = od.obs_min[i];
 				max = od.obs_max[i];
@@ -984,8 +989,8 @@ int main( int argn, char *argv[] )
 					}
 					else if( cd.objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 					if( cd.objfunc_type == SSDX ) { dx = max - min; if( cd.obsdomain > DBL_EPSILON && cd.obsdomain < dx ) dx = cd.obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-					if( c < min ) err += c - min;
-					else if( c > max ) err += c - max;
+					if( c < min ) err += min - c;
+					else if( c > max ) err += max - c;
 					if( cd.objfunc_type == SSDX ) { min = od.obs_min[i]; max = od.obs_max[i]; }
 				}
 				phi += ( err * err ) * ( w * w );
@@ -1005,7 +1010,7 @@ int main( int argn, char *argv[] )
 					compare = 1;
 					c = func_solver( wd.x[i], wd.y[i], wd.z1[i], wd.z2[i], wd.obs_time[i][j], &cd );
 					if( wd.obs_weight[i][j] > DBL_EPSILON ) od.obs_current[k++] = c;
-					err = c - wd.obs_target[i][j];
+					err = wd.obs_target[i][j] - c;
 					w = wd.obs_weight[i][j];
 					min = wd.obs_min[i][j];
 					max = wd.obs_max[i][j];
@@ -1018,8 +1023,8 @@ int main( int argn, char *argv[] )
 						}
 						else if( cd.objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 						if( cd.objfunc_type == SSDX ) { dx = max - min; if( cd.obsdomain > DBL_EPSILON && cd.obsdomain < dx ) dx = cd.obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-						if( c < min ) err += c - min;
-						else if( c > max ) err += c - max;
+						if( c < min ) err += min - c;
+						else if( c > max ) err += max - c;
 						if( cd.objfunc_type == SSDX ) { min = od.obs_min[i]; max = od.obs_max[i]; }
 					}
 					if( cd.problem_type != CALIBRATE ) phi += ( err * err ) * ( w * w );
@@ -2922,7 +2927,7 @@ void print_results( struct opt_data *op, int verbosity )
 			{
 				if( op->od->obs_weight[i] == 0 ) { predict = 1; if( op->od->nCObs > 50 && i == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
-				err = c - op->od->obs_target[i];
+				err = op->od->obs_target[i] - c;
 				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
@@ -2936,7 +2941,7 @@ void print_results( struct opt_data *op, int verbosity )
 			for( i = op->od->nObs; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				err = c - op->od->obs_target[i];
+				err = op->od->obs_target[i] - c;
 				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
@@ -2952,8 +2957,8 @@ void print_results( struct opt_data *op, int verbosity )
 				{
 					if( op->wd->obs_weight[i][j] == 0 ) { predict = 1; continue; }
 					c = op->od->obs_current[k];
-					// err = c - op->wd->obs_target[i][j];
-					err = op->od->res[k];
+					err = op->wd->obs_target[i][j] - c;
+					// err = op->od->res[k];
 					k++;
 					min = op->wd->obs_min[i][j];
 					max = op->wd->obs_max[i][j];
@@ -2965,13 +2970,13 @@ void print_results( struct opt_data *op, int verbosity )
 			for( i = op->od->nObs; i < op->od->nTObs; i++ )
 			{
 				c = op->od->obs_current[i];
-				// err = c - op->od->obs_target[i];
-				err = op->od->res[i];
+				err = op->od->obs_target[i] - c;
+				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
 				if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { success_all = 0; success = 0; }
 				else success = 1;
-				tprintf( "%-17s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
+				tprintf( "%-16s:%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->od->obs_id[i], op->od->obs_target[i], c, err, err * op->od->obs_weight[i], success, min, max );
 			}
 		}
 	}
@@ -3008,7 +3013,7 @@ void print_results( struct opt_data *op, int verbosity )
 			{
 				if( op->od->obs_weight[i] != 0 ) { if( predict > 50 && j == 21 ) tprintf( "...\n" ); continue; }
 				c = op->od->obs_current[i];
-				err = c - op->od->obs_target[i];
+				err = op->od->obs_target[i] - c;
 				// err = op->od->res[i];
 				min = op->od->obs_min[i];
 				max = op->od->obs_max[i];
@@ -3027,7 +3032,7 @@ void print_results( struct opt_data *op, int verbosity )
 				{
 					if( op->wd->obs_weight[i][j] != 0 ) continue;
 					c = func_solver( op->wd->x[i], op->wd->y[i], op->wd->z1[i], op->wd->z2[i], op->wd->obs_time[i][j], op->cd );
-					err = c - op->wd->obs_target[i][j];
+					err = op->wd->obs_target[i][j] - c;
 					min = op->wd->obs_min[i][j];
 					max = op->wd->obs_max[i][j];
 					if( op->cd->objfunc_type != SSR )
@@ -3039,8 +3044,8 @@ void print_results( struct opt_data *op, int verbosity )
 						}
 						else if( op->cd->objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 						if( op->cd->objfunc_type == SSDX ) { dx = max - min; if( op->cd->obsdomain > DBL_EPSILON && op->cd->obsdomain < dx ) dx = op->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-						if( c < min ) err += c - min;
-						else if( c > max ) err += c - max;
+						if( c < min ) err += min - c;
+						else if( c > max ) err += max - c;
 						// tprintf( "%g %g %g %g\n", err, c, min - c, c - max );
 						if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
 					}

@@ -16,7 +16,7 @@ endif
 grep -v Execution $1 | grep -v "Functional evaluations per" | grep -v "Simulation time" | grep -v "running exists" | grep -v "WARNING: The number of provided parameters" >! $1_e_$$
 grep -v Execution $2 | grep -v "Functional evaluations per" | grep -v "Simulation time" | grep -v "running exists" | grep -v "WARNING: The number of provided parameters" >! $2_e_$$
 # keeep this lines together
-sdiff --ignore-blank-lines $1_e_$$ $2_e_$$ > $1_$$
+sdiff --width 180 --ignore-blank-lines $1_e_$$ $2_e_$$ > $1_$$
 set a = $?
 # keeep this lines together
 \rm -f $1_e_$$ $2_e_$$

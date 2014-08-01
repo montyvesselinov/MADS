@@ -43,22 +43,23 @@ Required libraries:
 	GSL:        http://www.gnu.org/s/gsl (version 1.16 or later)
 	LAPACK:     http://www.netlib.org/lapack/
 	BLAS:       http://www.netlib.org/blas/
-	ATLAS:      (of LAPACK or BLAS are not available) http://www.netlib.org/atlas
+	ATLAS:      (if LAPACK or BLAS are not available) http://www.netlib.org/atlas
 	MATHEVAL:   http://www.gnu.org/software/libmatheval/
 	YAML:       http://pyyaml.org/wiki/LibYAML; http://www.yaml.org
+	XML:        http://xmlsoft.org
 	GLIB:       http://developer.gnome.org/glib/
 	PKG-CONFIG: http://www.freedesktop.org/wiki/Software/pkg-config/
 	TCSH:       http://www.tcsh.org
 
 MAC OS X installation of required libraries:
-	sudo port install gcc48 gsl glib2 libyaml libmatheval atlas pkgconfig git tcsh
+	sudo port install gcc48 gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh
 	sudo port select gcc mp-gcc48
 	
 RHEL/CentOS/Fedora installation of required libraries:	
-	sudo yum install gsl glib2 libyaml libmatheval atlas pkgconfig git tcsh
+	sudo yum install gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh
 
 Ubuntu/Debian installation of required libraries:
-	sudo apt-get install g++ libgsl0-dev libglib2.0 libyaml-dev libmatheval-dev liblapack-dev gfortran pkg-config git tcsh
+	sudo apt-get install g++ libgsl0-dev libglib2.0 libyaml-dev libxml2 libmatheval-dev liblapack-dev gfortran pkg-config git tcsh
 
 Compilation:
 	make

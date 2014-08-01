@@ -101,7 +101,7 @@ int check_mads_problem( char *filename )
 	char buf[5000], *word;
 	char *separator = " \t\n?";
 	int c;
-	if( ( infile = fopen( filename, "r" ) ) == NULL ) return( -1 ); // No file
+	if( ( infile = fopen( filename, "r" ) ) == NULL ) return( IO_TEXT ); // No file; evoke IO_TEXT to parse command-line arguments and check for TEST problem
 	fscanf( infile, "%1000[^\n]s", buf );
 	fclose( infile );
 	// check the first line in the file
@@ -113,7 +113,7 @@ int check_mads_problem( char *filename )
 		if( !strncmp( word, "---", 3 ) && c == 0 ) return( IO_YAML ); // YAML file
 		if( !strncmp( word, "{", 1 ) ) return( IO_YAML ); // YAML file
 	}
-	return( IO_TEXT ); // Not YAML / XML file; TEXT file assumed
+	return( IO_TEXT ); // Not YAML / XML file; TEXT file is assumed
 }
 
 int set_param_id( struct opt_data *op )
@@ -1524,7 +1524,7 @@ int save_problem( char *filename, struct opt_data *op )
 #ifdef MADS_YAML
 		save_problem_yaml( filename, op );
 #else
-		tprintf( "WARNING: YAML files cannot be saved! YAML libraries are not available.\n" );
+		tprintf( "WARNING: YAML problem files cannot be saved! YAML libraries are not available.\n" );
 		tprintf( "WARNING: Outputs will be saved in TEXT format files cannot be saved!\n" );
 		save_problem_text( filename, op );
 #endif
@@ -1536,8 +1536,9 @@ int save_problem( char *filename, struct opt_data *op )
 
 int save_problem_xml( char *filename, struct opt_data *op )
 {
-	tprintf( "ERROR: XML files cannot be saved yet!\n" );
-	mads_quits( op->root );
+	tprintf( "ERROR: XML problem files cannot be saved yet!\n" );
+	tprintf( "WARNING: YAML file be saved instead!\n" );
+	save_problem_yaml( filename, op );
 	return( 1 );
 }
 
@@ -2382,8 +2383,8 @@ int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2
 		for( i = 0; i < op->od->nTObs; i++ )
 		{
 			c = op->od->obs_current[i];
-			// err = op->od->obs_target[i] - c;
-			err = op->od->res[i];
+			err = op->od->obs_target[i] - c;
+			// err = op->od->res[i];
 			min = op->od->obs_min[i];
 			max = op->od->obs_max[i];
 			if( min - c > COMPARE_EPSILON || c - max > COMPARE_EPSILON ) { if( op->od->obs_weight[i] != 0 ) *success_all = 0; success = 0; }
@@ -2420,8 +2421,8 @@ int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2
 					}
 					else if( op->cd->objfunc_type != SSDR ) err = 0; // SSD0 & SSDX
 					if( op->cd->objfunc_type == SSDX ) { dx = max - min; if( op->cd->obsdomain > DBL_EPSILON && op->cd->obsdomain < dx ) dx = op->cd->obsdomain; if( dx > DBL_EPSILON ) { dx /= 10; min += dx; max -= dx; } }
-					if( c < min ) err += c - min;
-					else if( c > max ) err += c - max;
+					if( c < min ) err += min - c;
+					else if( c > max ) err += max - c;
 					if( op->cd->objfunc_type == SSDX ) { min = op->wd->obs_min[i][j]; max = op->wd->obs_max[i][j]; }
 				}
 				fprintf( out, "%-10s(%4g):%12g - %12g = %12g (%12g) success %d range %12g - %12g\n", op->wd->id[i], op->wd->obs_time[i][j], op->wd->obs_target[i][j], c, err, err * op->wd->obs_weight[i][j], success, min, max );

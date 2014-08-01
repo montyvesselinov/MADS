@@ -86,17 +86,10 @@
         </ins1>
     </Instructions>
     <Problem>
-        <particles />
-        <lmeigen>1</lmeigen>
-        <calibration />
-        <eval>5000</eval>
+        <calibrate />
         <opt>lm_levmar</opt>
-        <sindx>0.1</sindx>
-        <ldebug>1</ldebug>
-        <single />
-        <ssr />
     </Problem>
-    <Command>./wells w01 >& /dev/null</Command>
+    <Command>./wells w01 &gt;&amp; /dev/null</Command>
     <Solution>external</Solution>
     <Templates>
         <tmp1>
@@ -106,18 +99,20 @@
     </Templates>
     <Parameters>
         <k>
-            <longname>k</longname>
+            <init_max>1</init_max>
             <min>-5</min>
-            <init>-1.7799017535900301</init>
+            <init>1</init>
+            <init_min>-1</init_min>
             <log>false</log>
             <max>5</max>
             <type>opt</type>
-            <step>0.1</step>
+	    <step>0.1</step>
         </k>
         <S>
-            <longname>S</longname>
+            <init_max>1</init_max>
             <min>-5</min>
-            <init>-4.8167400106849</init>
+            <init>1</init>
+            <init_min>-1</init_min>
             <log>false</log>
             <max>5</max>
             <type>opt</type>
