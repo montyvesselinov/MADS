@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: example/contamination/s01-ppsd.mads
 Problem root name: example/contamination/s01-ppsd
+MADS input file in Plain TEXT format.
 
 Problem type: calibration
 
@@ -40,7 +41,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140527-120428
+Execution date & time stamp: 20140801-102515
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -107,6 +108,6 @@ Simulation time = 0 seconds
 Functional evaluations = 130
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
-Execution  started  on Tue May 27 12:04:28 2014
-Execution completed on Tue May 27 12:04:28 2014
-Execution date & time stamp: 20140527-120428
+Execution  started  on Fri Aug  1 10:25:15 2014
+Execution completed on Fri Aug  1 10:25:15 2014
+Execution date & time stamp: 20140801-102515

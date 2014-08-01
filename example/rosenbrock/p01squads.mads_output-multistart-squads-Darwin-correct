@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: p01squads.mads
 Problem root name: p01squads
+MADS input file in Plain TEXT format.
 
 Test Function 3 Dimensionality 3 
 
@@ -30,7 +31,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20140320-213326
+Execution date & time stamp: 20140801-102513
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -69,10 +70,11 @@ Parameter #2 0.999979
 Parameter #3 0.999957
 Objective function: 9.9808e-10 Success: 1 (1)
 SUCCESS: Objective function is below the predefined cutoff value (9.9808e-10 < 0.001)!
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 3773
 Jacobian evaluations = 552
 Levenberg-Marquardt optimizations = 78
-Execution  started  on Thu Mar 20 21:33:26 2014
-Execution completed on Thu Mar 20 21:33:26 2014
-Execution date & time stamp: 20140320-213326
+Functional evaluations per second = 3773
+Execution  started  on Fri Aug  1 10:25:13 2014
+Execution completed on Fri Aug  1 10:25:14 2014
+Execution date & time stamp: 20140801-102513

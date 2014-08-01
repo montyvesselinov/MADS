@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: w01.mads
 Problem root name: w01
+MADS input file in Plain TEXT format.
 
 Problem type: calibration
 
@@ -36,7 +37,7 @@ Number of total observations = 4951
 Number of calibration targets = 1441
 Number of regularization terms = 0
 Number of predictions = 0
-Execution command: wells w01 >& /dev/null
+Execution command: ./wells w01 >& /dev/null
 External files:
 - to provide current model parameters:
 w01.tpl -> w01.wells
@@ -50,7 +51,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20140320-213328
+Execution date & time stamp: 20140801-102515
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -211,8 +212,8 @@ Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
 Observations               : o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 ... o4943 o4944 o4945 o4946 o4947 o4948 o4949 o4950 o4951
-k                          :    0.0   -4.7   -2.2    2.6    7.4   11.9   16.0   19.8   23.2   26.3 ...    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0
-S                          :    0.0   -7.0  -11.4  -13.5  -14.7  -15.5  -16.1  -16.5  -16.8  -17.0 ...   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0
+k                          :    0.0    4.7    2.2   -2.6   -7.4  -11.9  -16.0  -19.8  -23.2  -26.3 ...    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0
+S                          :    0.0    7.0   11.4   13.5   14.7   15.5   16.1   16.5   16.8   17.0 ...    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0
 Jacobian matrix stored (w01.jacobian)
 
 Covariance matrix
@@ -361,6 +362,6 @@ Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 7
-Execution  started  on Thu Mar 20 21:33:28 2014
-Execution completed on Thu Mar 20 21:33:34 2014
-Execution date & time stamp: 20140320-213328
+Execution  started  on Fri Aug  1 10:25:15 2014
+Execution completed on Fri Aug  1 10:25:21 2014
+Execution date & time stamp: 20140801-102515

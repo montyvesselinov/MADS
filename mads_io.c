@@ -1308,7 +1308,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		map_obs_regul( op ); // add regularizations to the observations
 		if( cd->debug )
 			for( i = 0; i < rd->nRegul; i++ )
-				tprintf( "%s: %g weight %g", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
+				tprintf( "%s: %g weight %g\n", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i] );
 	}
 	// ------------------------------------------------------------ Set predictions ----------------------------------------------------------------
 	if( !set_predictions( op ) ) return ( 0 );

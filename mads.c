@@ -3225,5 +3225,5 @@ void mads_quits( char *root )
 	buf[0] = 0;
 	tprintf( "MADS Quits!\n" );
 	sprintf( buf, "%s \"rm -f %s.running\"", SHELL, root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
-	exit( 1 );
+	exit( 0 );
 }

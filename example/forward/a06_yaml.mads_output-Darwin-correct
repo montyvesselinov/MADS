@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a06_yaml.mads
 Problem root name: a06_yaml (YAML format expected)
+MADS input file in YAML format.
 Number of YAML classes 7
 YAML Classes:
  Problem -> 3 components
@@ -52,7 +53,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140320-213346
+Execution date & time stamp: 20140801-102539
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -108,6 +109,6 @@ Objective function: 52697.7 Success: 0
 At least one of the predictions is outside acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Thu Mar 20 21:33:46 2014
-Execution completed on Thu Mar 20 21:33:46 2014
-Execution date & time stamp: 20140320-213346
+Execution  started  on Fri Aug  1 10:25:39 2014
+Execution completed on Fri Aug  1 10:25:39 2014
+Execution date & time stamp: 20140801-102539

@@ -54,6 +54,8 @@ endif
 OS = $(shell uname -s)
 ND = $(shell uname -n)
 # Compilation setup
+$(info MADS computationlal framework)
+$(info -----------------------------)
 $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
@@ -196,6 +198,9 @@ misc/astable/pqueue.o: misc/astable/pqueue.c misc/astable/pqueue.h
 wells/wells.o: wells/wells.c wells/design.h wells/wells.h
 bayes/dream.o: bayes/dream.cpp bayes/dream.h mads.h misc/astable/interpolation.o
 	g++ $(CFLAGS) -c -o bayes/dream.o bayes/dream.cpp -lmisc/astable/interpolation.o
+
+$(info -----------------------------)
+$(info MADS testing and verification)
 
 examples:
 	@echo "**************************************************************************************"
