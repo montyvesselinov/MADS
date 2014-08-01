@@ -5,6 +5,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: example/contamination/s01-multi_source.mads
 Problem root name: example/contamination/s01-multi_source
+MADS input file in YAML format.
 Number of YAML classes 7
 YAML Classes:
  Problem -> 1 components
@@ -58,7 +59,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140320-213327
+Execution date & time stamp: 20140801-085837
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -338,18 +339,18 @@ Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
 Observations               : W1_49 W2_49 W3_49 W4_44 W4_49 W5_49 W6_49 W7_49 W8_49 W9_49 W10#1_49 W10#2_49 W11#1_49 W11#2_49 W12#1_49 W12#2_49 W13#1_50 W13#2_50 W14a_50 W14b_50
-Source x coordinate [L] #1 :    0.0    0.0   -0.0  741.3  756.9    0.0    0.0    0.0    0.0 -9e+03  -13.4   -1.0  188.1    2.6  102.0    1.0  239.5    0.6   -0.0 -214.6
-Source y coordinate [L] #1 :    0.0    0.0   -0.0  1e+03  1e+03   -0.0    0.0    0.0    0.0  401.1    7.0    0.5  -18.9   -0.3   84.1    0.9 -578.0   -1.8   -0.0 -267.8
-Contaminant flux [M/T] #1  :    0.0    0.0    0.0  747.1  787.0    0.0    0.0    0.0    0.0  411.9    2.3    0.3   70.7    1.1   47.2    0.5  179.4    0.8    0.0   39.2
-Start Time [T] #1          :   -0.0   -0.0    0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0    0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0    0.0   -0.0
-End Time [T] #1            :    0.0    0.0    0.0   22.5   40.7    0.0    0.0    0.0    0.0  552.5    0.1    0.0   13.7    0.1    9.5    0.1   20.8    0.1    0.0    6.0
-Contaminant flux [M/T] #2  :    0.0    0.0    0.0  346.2  460.8   -0.0   -0.0   -0.0   -0.0  685.6    1.1    0.1    5.7    0.0    4.8    0.0   56.9    0.1    0.0   34.6
-Contaminant flux [M/T] #3  :    0.0   -0.0    0.0  189.3  352.6   -0.0   -0.0   -0.0   -0.0  3e+03    0.6    0.0    0.4    0.0    0.5    0.0   23.6    0.0    0.0   39.2
-Flow Angle [degrees]       :    0.0    0.0    0.0  405.6  499.8   -0.0    0.0    0.0    0.0  323.7   -2.3   -0.2  -19.0   -0.3   72.6    0.8 -320.2   -1.0    0.0   32.9
-Pore x velocity [L/T]      :    0.0    0.0    0.0  2e+03  2e+03    0.0    0.0    0.0    0.0 -3e+03    6.6    1.3  608.2   14.6  366.4    6.9  747.3    8.2    0.0   33.9
-Dispersivity x [L]         :   -0.0    0.0    0.0  -84.9 -124.8    0.0    0.0    0.0    0.0  786.5    6.1    0.5   75.9    1.0   34.8    0.3   -7.9   -0.1    0.0   53.5
-Dispersivity y [L]         :    0.0   -0.0    0.0  -29.6  -36.6    0.0    0.0    0.0    0.0 -119.7    1.4    0.1   -5.5   -0.1   14.5    0.1  173.8    0.5    0.0   58.4
-Dispersivity z [L]         :   -0.0    0.0   -0.0  304.8  341.5    0.0    0.0    0.0   -0.0  -48.7   -0.4    0.2   -8.3    1.4   -6.7    0.7  -33.0    1.3   -0.0  -12.7
+Source x coordinate [L] #1 :   -0.0   -0.0    0.0 -741.3 -756.9   -0.0   -0.0   -0.0   -0.0  9e+03   13.4    1.0 -188.1   -2.6 -102.0   -1.0 -239.5   -0.6    0.0  214.6
+Source y coordinate [L] #1 :   -0.0   -0.0    0.0 -1e+03 -1e+03    0.0   -0.0   -0.0   -0.0 -401.1   -7.0   -0.5   18.9    0.3  -84.1   -0.9  578.0    1.8    0.0  267.8
+Contaminant flux [M/T] #1  :   -0.0   -0.0   -0.0 -747.1 -787.0   -0.0   -0.0   -0.0   -0.0 -411.9   -2.3   -0.3  -70.7   -1.1  -47.2   -0.5 -179.4   -0.8   -0.0  -39.2
+Start Time [T] #1          :    0.0    0.0   -0.0    0.0    0.0    0.0    0.0    0.0    0.0   -0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0   -0.0    0.0
+End Time [T] #1            :   -0.0   -0.0   -0.0  -22.5  -40.7   -0.0   -0.0   -0.0   -0.0 -552.5   -0.1   -0.0  -13.7   -0.1   -9.5   -0.1  -20.8   -0.1   -0.0   -6.0
+Contaminant flux [M/T] #2  :   -0.0   -0.0   -0.0 -346.2 -460.8    0.0    0.0    0.0    0.0 -685.6   -1.1   -0.1   -5.7   -0.0   -4.8   -0.0  -56.9   -0.1   -0.0  -34.6
+Contaminant flux [M/T] #3  :   -0.0    0.0   -0.0 -189.3 -352.6    0.0    0.0    0.0    0.0 -3e+03   -0.6   -0.0   -0.4   -0.0   -0.5   -0.0  -23.6   -0.0   -0.0  -39.2
+Flow Angle [degrees]       :   -0.0   -0.0   -0.0 -405.6 -499.8    0.0   -0.0   -0.0   -0.0 -323.7    2.3    0.2   19.0    0.3  -72.6   -0.8  320.2    1.0   -0.0  -32.9
+Pore x velocity [L/T]      :   -0.0   -0.0   -0.0 -2e+03 -2e+03   -0.0   -0.0   -0.0   -0.0  3e+03   -6.6   -1.3 -608.2  -14.6 -366.4   -6.9 -747.3   -8.2   -0.0  -33.9
+Dispersivity x [L]         :    0.0   -0.0   -0.0   84.9  124.8   -0.0   -0.0   -0.0   -0.0 -786.5   -6.1   -0.5  -75.9   -1.0  -34.8   -0.3    7.9    0.1   -0.0  -53.5
+Dispersivity y [L]         :   -0.0    0.0   -0.0   29.6   36.6   -0.0   -0.0   -0.0   -0.0  119.7   -1.4   -0.1    5.5    0.1  -14.5   -0.1 -173.8   -0.5   -0.0  -58.4
+Dispersivity z [L]         :    0.0   -0.0    0.0 -304.8 -341.5   -0.0   -0.0   -0.0    0.0   48.7    0.4   -0.2    8.3   -1.4    6.7   -0.7   33.0   -1.3    0.0   12.7
 Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
 
 Covariance matrix
@@ -416,7 +417,7 @@ Eigen vectors and eigen values stored (example/contamination/s01-multi_source.ei
 Number of parameters           : 12
 Number of observations         : 20
 Number of degrees of freedom   : 8
-Objective function             : 0.000517374
+Objective function             : 0.000517375
 Posterior measurement variance : 6.46718e-05
 
 Optimality metrics based on covariance matrix of observation errors:
@@ -427,43 +428,43 @@ D-optimality (matrix determinant)         : 9.59849e-08
 
 Determinant of covariance matrix of observation errors : 9.59849e-08     ( ln(det S) = -16.1591 )
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
-Determinant of covariance matrix of measurement errors : 5.35275e-51     ( ln(det V) = -115.754 )
+Determinant of covariance matrix of measurement errors : 5.35282e-51     ( ln(det V) = -115.754 )
 
 Log likelihood function             : 35.4983
 Maximum likelihood                  : -70.9967
 AIC (Akaike information criterion)  : -46.9967
 BIC                                 : -35.0479
-CIC                                 : -44.6642
-KIC (Kashyap Information Criterion) : -40.9434
+CIC                                 : -44.6641
+KIC (Kashyap Information Criterion) : -40.9433
 
 Obtained fit is relatively good (chi^2/dof = 6.46718e-05 < 200)
 Optimized model parameters:
 Transformed space (applied during optimization):
 Source x coordinate [L] #1 :      0.46002 stddev     0.115102 (    0.194595 -     0.725445)
 Source y coordinate [L] #1 :    -0.545552 stddev   0.00670245 (   -0.561008 -    -0.530096)
-Contaminant flux [M/T] #1  :     0.725102 stddev     0.449576 (    -0.31162 -       1.5708) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #1  :     0.725102 stddev     0.449576 (   -0.311621 -       1.5708) Uncertainty ranges constrained by prior bounds
 Start Time [T] #1          :      -1.5708 stddev  1.03575e+07 (     -1.5708 -       1.5708) Uncertainty ranges constrained by prior bounds
-End Time [T] #1            :    -0.946832 stddev     0.727431 (     -1.5708 -     0.730624) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :    -0.946832 stddev     0.727432 (     -1.5708 -     0.730625) Uncertainty ranges constrained by prior bounds
 Contaminant flux [M/T] #2  :       0.4544 stddev     0.889582 (     -1.5708 -       1.5708) Uncertainty ranges constrained by prior bounds
-Contaminant flux [M/T] #3  :     0.592941 stddev     0.484075 (   -0.523335 -       1.5708) Uncertainty ranges constrained by prior bounds
+Contaminant flux [M/T] #3  :     0.592941 stddev     0.484075 (   -0.523336 -       1.5708) Uncertainty ranges constrained by prior bounds
 Flow Angle [degrees]       :    0.0751457 stddev   0.00784558 (   0.0570538 -    0.0932376)
 Pore x velocity [L/T]      :     0.267065 stddev    0.0606093 (      0.1273 -      0.40683)
 Dispersivity x [L]         :     0.402509 stddev     0.352519 (   -0.410399 -      1.21542)
-Dispersivity y [L]         :     0.602362 stddev     0.280295 (  -0.0439996 -      1.24872)
+Dispersivity y [L]         :     0.602362 stddev     0.280296 (  -0.0439999 -      1.24872)
 Dispersivity z [L]         :     -0.12069 stddev     0.321429 (   -0.861905 -     0.620524)
 Untransformed space:
 Source x coordinate [L] #1 :      1112.48 stddev     0.115102 (     955.856 -      1249.67)
 Source y coordinate [L] #1 :      1398.39 stddev   0.00670245 (     1393.79 -      1403.03)
 Contaminant flux [M/T] #1  :      21.2043 stddev     0.449576 (    0.243667 -          100) Uncertainty ranges constrained by prior bounds
 Start Time [T] #1          :            0 stddev  1.03575e+07 (           0 -           43) Uncertainty ranges constrained by prior bounds
-End Time [T] #1            :      10.3273 stddev     0.727431 (           1 -       83.533) Uncertainty ranges constrained by prior bounds
+End Time [T] #1            :      10.3273 stddev     0.727432 (           1 -      83.5331) Uncertainty ranges constrained by prior bounds
 Contaminant flux [M/T] #2  :      7.54826 stddev     0.889582 (        0.01 -          100) Uncertainty ranges constrained by prior bounds
 Contaminant flux [M/T] #3  :      13.1101 stddev     0.484075 (    0.100105 -          100) Uncertainty ranges constrained by prior bounds
 Flow Angle [degrees]       :      2.25225 stddev   0.00784558 (     1.71069 -      2.79308)
 Pore x velocity [L/T]      :      5.22444 stddev    0.0606093 (     2.65178 -       10.034)
 Dispersivity x [L]         :      62.7407 stddev     0.352519 (     22.1017 -       128.92)
-Dispersivity y [L]         :      14.3556 stddev     0.280295 (     5.08247 -      27.4881)
-Dispersivity z [L]         :     0.275297 stddev     0.321429 (    0.131965 -     0.617633)
+Dispersivity y [L]         :      14.3556 stddev     0.280296 (     5.08247 -      27.4881)
+Dispersivity z [L]         :     0.275297 stddev     0.321429 (    0.131965 -     0.617634)
 
 Optimized model parameters:
 Source x coordinate [L] #1 1112.48
@@ -497,34 +498,35 @@ Start Time [T] #3 = (t0_2+t1_1) = 20.6547
 End Time [T] #3 = (t0_2+(2*t1_1)) = 30.982
 
 Model calibration targets:
-W-1       (  49):           0 -  0.000246796 =  0.000246796 ( 0.000246796) success 1 range            0 -           25
-W-2       (  49):           0 -  0.000562587 =  0.000562587 ( 0.000562587) success 1 range            0 -           10
-W-3       (  49):           0 -  3.80906e-07 =  3.80906e-07 ( 3.80906e-07) success 1 range            0 -           25
-W-4       (  44):         350 -          350 = -3.27352e-05 (-3.27352e-05) success 1 range          300 -          700
-W-4       (  49):         432 -          432 =   7.8518e-05 (  7.8518e-05) success 1 range          300 -          700
-W-5       (  49):           0 -   2.8529e-25 =   2.8529e-25 (  2.8529e-25) success 1 range            0 -           10
-W-6       (  49):           0 -  1.29146e-26 =  1.29146e-26 ( 1.29146e-26) success 1 range            0 -           10
-W-7       (  49):           0 -  1.48476e-18 =  1.48476e-18 ( 1.48476e-18) success 1 range            0 -           10
-W-8       (  49):           0 -  1.99915e-20 =  1.99915e-20 ( 1.99915e-20) success 1 range            0 -           10
-W-9       (  49):         981 -          981 = -0.000415757 (-0.000415757) success 1 range          600 -         1200
-W-10#1    (  49):         1.1 -      1.10048 =  0.000482711 ( 0.000482711) success 1 range            0 -            5
-W-10#2    (  49):         0.1 -    0.0911102 =   -0.0088898 (  -0.0088898) success 1 range            0 -            5
-W-11#1    (  49):          22 -      21.9998 = -0.000216642 (-0.000216642) success 1 range            3 -           25
-W-11#2    (  49):         0.3 -      0.31532 =    0.0153197 (   0.0153197) success 1 range            0 -            5
-W-12#1    (  49):          15 -      15.0001 =  0.000107552 ( 0.000107552) success 1 range            3 -           25
-W-12#2    (  49):        0.17 -     0.159385 =   -0.0106152 (  -0.0106152) success 1 range            0 -            5
-W-13#1    (  50):          72 -           72 = -1.65582e-05 (-1.65582e-05) success 1 range           40 -          100
-W-13#2    (  50):        0.26 -     0.250508 =  -0.00949177 ( -0.00949177) success 1 range            0 -           20
-W-14a     (  50):           0 -   0.00016822 =   0.00016822 (  0.00016822) success 1 range            0 -            5
-W-14b     (  50):          30 -           30 =  2.20744e-05 ( 2.20744e-05) success 1 range            0 -           50
-Objective function: 0.000517374 Success: 1 (1)
+W-1       (  49):           0 -  0.000246796 = -0.000246796 (-0.000246796) success 1 range            0 -           25
+W-2       (  49):           0 -  0.000562587 = -0.000562587 (-0.000562587) success 1 range            0 -           10
+W-3       (  49):           0 -  3.80906e-07 = -3.80906e-07 (-3.80906e-07) success 1 range            0 -           25
+W-4       (  44):         350 -          350 =  3.27352e-05 ( 3.27352e-05) success 1 range          300 -          700
+W-4       (  49):         432 -          432 =  -7.8518e-05 ( -7.8518e-05) success 1 range          300 -          700
+W-5       (  49):           0 -   2.8529e-25 =  -2.8529e-25 ( -2.8529e-25) success 1 range            0 -           10
+W-6       (  49):           0 -  1.29146e-26 = -1.29146e-26 (-1.29146e-26) success 1 range            0 -           10
+W-7       (  49):           0 -  1.48476e-18 = -1.48476e-18 (-1.48476e-18) success 1 range            0 -           10
+W-8       (  49):           0 -  1.99915e-20 = -1.99915e-20 (-1.99915e-20) success 1 range            0 -           10
+W-9       (  49):         981 -          981 =  0.000415757 ( 0.000415757) success 1 range          600 -         1200
+W-10#1    (  49):         1.1 -      1.10048 = -0.000482711 (-0.000482711) success 1 range            0 -            5
+W-10#2    (  49):         0.1 -    0.0911102 =    0.0088898 (   0.0088898) success 1 range            0 -            5
+W-11#1    (  49):          22 -      21.9998 =  0.000216642 ( 0.000216642) success 1 range            3 -           25
+W-11#2    (  49):         0.3 -      0.31532 =   -0.0153197 (  -0.0153197) success 1 range            0 -            5
+W-12#1    (  49):          15 -      15.0001 = -0.000107552 (-0.000107552) success 1 range            3 -           25
+W-12#2    (  49):        0.17 -     0.159385 =    0.0106152 (   0.0106152) success 1 range            0 -            5
+W-13#1    (  50):          72 -           72 =  1.65582e-05 ( 1.65582e-05) success 1 range           40 -          100
+W-13#2    (  50):        0.26 -     0.250508 =   0.00949177 (  0.00949177) success 1 range            0 -           20
+W-14a     (  50):           0 -   0.00016822 =  -0.00016822 ( -0.00016822) success 1 range            0 -            5
+W-14b     (  50):          30 -           30 = -2.20744e-05 (-2.20744e-05) success 1 range            0 -           50
+Objective function: 0.000517375 Success: 1 (1)
 
 Model predictions for not calibration targets:
 W-14c     (  50):          10 -      169.476 =     -159.476 success 0 range            0 -           20
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 131
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Mar 20 21:33:27 2014
-Execution completed on Thu Mar 20 21:33:27 2014
-Execution date & time stamp: 20140320-213327
+Functional evaluations per second = 131
+Execution  started  on Fri Aug  1 08:58:37 2014
+Execution completed on Fri Aug  1 08:58:38 2014
+Execution date & time stamp: 20140801-085837
