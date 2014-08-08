@@ -1,10 +1,11 @@
-MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.640f2b0) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a04.mads
 Problem root name: a04
+MADS input file in Plain TEXT format.
 
 Problem type: forward run (no calibration)
 
@@ -38,7 +39,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140315-161834
+Execution date & time stamp: 20140808-125717
 
 Model parameter values:
 Source x coordinate [L] 0
@@ -70,6 +71,6 @@ Objective function: 11470.3 Success: 0
 At least one of the predictions is outside acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Sat Mar 15 16:18:34 2014
-Execution completed on Sat Mar 15 16:18:34 2014
-Execution date & time stamp: 20140315-161834
+Execution  started  on Fri Aug  8 12:57:17 2014
+Execution completed on Fri Aug  8 12:57:17 2014
+Execution date & time stamp: 20140808-125717

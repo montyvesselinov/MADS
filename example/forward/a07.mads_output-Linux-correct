@@ -1,10 +1,11 @@
-MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.640f2b0) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a07.mads
 Problem root name: a07
+MADS input file in YAML format.
 Number of YAML classes 7
 YAML Classes:
  Problem -> 3 components
@@ -52,7 +53,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140315-161836
+Execution date & time stamp: 20140808-125719
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -106,9 +107,9 @@ W-14b     (  50):          30 -      124.862 =     -94.8623 (    -94.8623) succe
 W-14c     (  50):          10 -      348.239 =     -338.239 (          -0) success 1 range            0 -           20
 Objective function: 52697.8 Success: 0
 At least one of the predictions is outside acceptable ranges!
-Simulation time = 1.35 minutes
+Simulation time = 1.5 minutes
 Functional evaluations = 1
 Functional evaluations per day = 0
-Execution  started  on Sat Mar 15 16:18:36 2014
-Execution completed on Sat Mar 15 16:19:57 2014
-Execution date & time stamp: 20140315-161836
+Execution  started  on Fri Aug  8 12:57:19 2014
+Execution completed on Fri Aug  8 12:58:49 2014
+Execution date & time stamp: 20140808-125719

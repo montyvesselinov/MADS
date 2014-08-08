@@ -1,10 +1,11 @@
-MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.640f2b0) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: w01.mads
 Problem root name: w01
+MADS input file in Plain TEXT format.
 
 Problem type: calibration
 
@@ -36,7 +37,7 @@ Number of total observations = 4951
 Number of calibration targets = 1441
 Number of regularization terms = 0
 Number of predictions = 0
-Execution command: wells w01 >& /dev/null
+Execution command: ./wells w01 >& /dev/null
 External files:
 - to provide current model parameters:
 w01.tpl -> w01.wells
@@ -50,7 +51,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20140315-161641
+Execution date & time stamp: 20140808-125445
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -72,21 +73,11 @@ Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
 Optimized model parameters:
 k                          :            1 stddev      13.5908 (          -5 -            5) Uncertainty ranges constrained by prior bounds
 S                          :            1 stddev      29.1219 (          -5 -            5) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 Computed initial lambda 0.00167603
 OF 79780.1 lambda 0.00167603
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 79781.6 lambda 0.00335207
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 79781.6 lambda 0.0134083
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 79781.6 lambda 0.107266
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #2: Linear solves 4 Evaluations 9 OF 79661 lambda 1.71626
@@ -102,21 +93,12 @@ Obtained fit is relatively good (chi^2/dof = 55.3586 < 200)
 Optimized model parameters:
 k                          :            1 stddev      13.5908 (          -5 -            5) Uncertainty ranges constrained by prior bounds
 S                          :            1 stddev      29.1219 (          -5 -            5) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 Parameters did not change between last two jacobian iterations.
 OF 79757 lambda 1.71626
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 79781.6 lambda 3.43252
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
+WARNING: The parameter does not fit the requested field (0.63071761389963932 length 19 > 18)!
 OF 79781 lambda 13.7301
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 46410.9 lambda 109.84
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #3: Linear solves 8 Evaluations 15 OF 46410.9 lambda 36.6135
@@ -132,19 +114,11 @@ Obtained fit is relatively good (chi^2/dof = 32.2522 < 200)
 Optimized model parameters:
 k                          :      -1.0073 stddev    0.0252182 (    -1.24805 -      -0.7641)
 S                          :      -4.7429 stddev      1.29608 (          -5 -      4.80637) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: S                              (5.7429)
 Parameter with minimum estimate change between jacobian iterations: k                              (2.0073)
 OF 79781.6 lambda 36.6135
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 79781.6 lambda 73.227
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 3470.76 lambda 292.908
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (3470.76 << 46410.9)
 
 Jacobian #4: Linear solves 11 Evaluations 20 OF 3470.76 lambda 97.636
@@ -160,22 +134,12 @@ Obtained fit is relatively good (chi^2/dof = 2.41192 < 200)
 Optimized model parameters:
 k                          :     -1.84872 stddev   0.00116428 (    -1.85931 -     -1.83811)
 S                          :     -3.00178 stddev    0.0109224 (    -3.08669 -     -2.91549)
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: S                              (-1.74113)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.841414)
 OF 3076.62 lambda 97.636
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2868.28 lambda 96.0585
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2844.72 lambda 47.5402
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2844.72 lambda 15.8467
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #5: Linear solves 15 Evaluations 26 OF 2844.72 lambda 31.6935
@@ -191,22 +155,12 @@ Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
 Optimized model parameters:
 k                          :     -1.93197 stddev  0.000911836 (    -1.94021 -     -1.92373)
 S                          :     -2.80097 stddev   0.00719816 (    -2.85913 -     -2.74226)
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.200806)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.083255)
 OF 2845.29 lambda 31.6935
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2845.29 lambda 63.387
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2845.28 lambda 253.548
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2845.2 lambda 2028.38
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #6: Linear solves 19 Evaluations 32 OF 2844.72 lambda 32454.1
@@ -222,21 +176,11 @@ Obtained fit is relatively good (chi^2/dof = 1.97687 < 200)
 Optimized model parameters:
 k                          :     -1.93197 stddev  0.000911836 (    -1.94021 -     -1.92373)
 S                          :     -2.80097 stddev   0.00719816 (    -2.85913 -     -2.74226)
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 Parameters did not change between last two jacobian iterations.
 OF 2844.71 lambda 32454.1
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2844.61 lambda 62642.2
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2844.71 lambda 60057.7
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2844.6 lambda 120115
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #7: Linear solves 23 Evaluations 38 OF 2844.6 lambda 137910
@@ -252,22 +196,12 @@ Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
 Optimized model parameters:
 k                          :     -1.93403 stddev  0.000909453 (    -1.94225 -     -1.92581)
 S                          :     -2.79024 stddev   0.00712231 (    -2.84788 -     -2.73205)
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: S                              (-0.0107376)
 Parameter with minimum estimate change between jacobian iterations: k                              (0.00205928)
 OF 2844.63 lambda 137910
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2844.61 lambda 275820
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2844.61 lambda 1.10328e+06
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 OF 2844.6 lambda 8.82625e+06
-Intermediate results stored (w01.intermediate_results)
-Intermediate residuals stored (w01.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 
@@ -278,8 +212,8 @@ Analyzed state provided externally.
 
 Jacobian matrix (provided externally)
 Observations               : o1 o2 o3 o4 o5 o6 o7 o8 o9 o10 ... o4943 o4944 o4945 o4946 o4947 o4948 o4949 o4950 o4951
-k                          :    0.0   -4.7   -2.2    2.6    7.4   11.9   16.0   19.8   23.2   26.3 ...    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0
-S                          :    0.0   -7.0  -11.4  -13.5  -14.7  -15.5  -16.1  -16.5  -16.8  -17.0 ...   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0   -0.0
+k                          :    0.0    4.7    2.2   -2.6   -7.4  -11.9  -16.0  -19.8  -23.2  -26.3 ...    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0
+S                          :    0.0    7.0   11.4   13.5   14.7   15.5   16.1   16.5   16.8   17.0 ...    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0    0.0
 Jacobian matrix stored (w01.jacobian)
 
 Covariance matrix
@@ -423,11 +357,11 @@ o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range 
 o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
 o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
 o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
-Simulation time = 16 seconds
+Simulation time = 19 seconds
 Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 2
-Execution  started  on Sat Mar 15 16:16:41 2014
-Execution completed on Sat Mar 15 16:16:57 2014
-Execution date & time stamp: 20140315-161641
+Execution  started  on Fri Aug  8 12:54:45 2014
+Execution completed on Fri Aug  8 12:55:04 2014
+Execution date & time stamp: 20140808-125445

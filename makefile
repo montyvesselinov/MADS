@@ -238,7 +238,7 @@ examples:
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 
-verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-external-short verify-parallel verify-forward verify-sa
+verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-external-short verify-external-short2 verify-parallel verify-forward verify-sa
 	@echo "$(OK_COLOR)"
 	@echo VERIFICATION DONE
 	@echo "$(NO_COLOR)"
@@ -484,6 +484,8 @@ verify-external-short:
 	@echo "**************************************************************************************"
 	@echo "TEST 6: DONE"
 	@echo "$(OK_COLOR)"
+
+verify-external-short2:
 	@echo "**************************************************************************************"
 	@echo " External problems "
 	@echo "**************************************************************************************"
