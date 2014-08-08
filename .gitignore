@@ -2,6 +2,7 @@ syntax: glob
 # MADS files
 mads
 wells
+mads_gitversion.c
 latex/*
 html/*
 Debug/*

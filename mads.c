@@ -183,7 +183,8 @@ int main( int argn, char *argv[] )
 	char filename[255], filename2[255], root[255], extension[255], buf[1000], *root_dot, *cwd;
 	int ( *optimize_func )( struct opt_data * op ); // function pointer to optimization function (LM or PSO)
 	char *host, *nodelist, *hostlist, *proclist, *lsblist, *beowlist; // parallel variables
-	strcpy( version_id, "1.1.14" );
+	strcpy( version_id, "1.1.14." );
+	strcat( version_id, gitversion );
 	FILE *in, *out, *out2;
 	out2 = NULL;
 	time_t time_start, time_end, time_elapsed;

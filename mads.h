@@ -58,6 +58,7 @@ void tprintf( char const *fmt, ... );
 FILE *mads_output;
 int quiet;
 char version_id[80];
+extern const char *gitversion;
 
 #define COMPARE_EPSILON pow( FLT_EPSILON, (double) 1/2 ) // EPSILON FOR BOUND COMPARISON
 

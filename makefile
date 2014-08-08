@@ -37,6 +37,7 @@ OUTPUT = > /dev/null
 DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
 DBG = gdb --args
 DBG =
+VER = $(shell git rev-parse --short HEAD)
 # CMP = cp -f # Save current results for future testing DANGEROUS!
 
 # MathEval required to evaluate expression for tied parameters and regularization terms
@@ -55,11 +56,12 @@ OS = $(shell uname -s)
 ND = $(shell uname -n)
 # Compilation setup
 $(info MADS computationlal framework)
+$(info Version -- $(VER))
 $(info -----------------------------)
 $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
-CFLAGS = -Wall -O1 -Winit-self
+CFLAGS = -Wall -O1 -Winit-self -DVER=$(VER)
 LDLIBS = -lgsl -llapack -lstdc++
 ifeq ($(OS),Linux)
 # Linux
@@ -109,7 +111,7 @@ endif
 endif
 endif
 # MADS files
-OBJSMADS = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o
+OBJSMADS = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o mads_gitversion.c
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o
 OBJSA = sa/abagus.o sa/postpua.o sa/global.o sa/do_miser.o
 OBJDS = ds/infogap.o ds/glue.o
@@ -159,8 +161,10 @@ $(WELLS): $(OBJWELLS)
 clean:
 	rm -f $(MADS) $(WELLS) $(OBJWELLS) $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE) $(OBJSBAYES)
 
+mads_gitversion.c: .git/HEAD .git/index
+	echo "const char *gitversion = \"$(VER)\";" > $@
 
-mads.o: mads.c mads.h misc/levmar-2.5/levmar.h
+mads.o: mads.c mads.h misc/levmar-2.5/levmar.h mads_gitversion.c
 mads_io.o: mads_io.c mads.h
 mads_io_yaml.o: mads_io_yaml.c mads.h
 mads_io_external.o: mads_io_external.c mads.h
