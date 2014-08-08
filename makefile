@@ -61,7 +61,7 @@ $(info -----------------------------)
 $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
-CFLAGS = -Wall -O1 -Winit-self -DVER=$(VER)
+CFLAGS = -Wall -O1 -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
 ifeq ($(OS),Linux)
 # Linux
