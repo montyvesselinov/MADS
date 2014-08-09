@@ -1,0 +1,8 @@
+#!/bin/bash
+git diff --quiet && git diff --cached --quiet
+status=$?
+if test $status -ne 0
+then
+    echo "uncommitted"
+    rm -f mads_gitversion.c
+fi

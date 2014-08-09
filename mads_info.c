@@ -216,6 +216,7 @@ void mads_info()
 	printf( "   mads example/contamination/s01 igrnd real=10 (Random Initial Guesses; all parameters)\n" );
 	printf( "   mads example/contamination/s01-flagged igrnd real=10 (Random Initial Guesses; only flagged parameters)\n" );
 	printf( "   mads example/contamination/s01 monte real=10 (Monte Carlo Analysis)\n" );
+	printf( "   mads w01.mads igrnd real=1 seed=501228648 eigen" );
 	printf( "   mads w01 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors; files associated with problem w01 are located in example/wells)\n" );
 	printf( "             (for w01 example, code WELLS can be obtained at http://wells.lanl.gov)\n" );
 	printf( "\nComparisons between local and global methods:\n" );

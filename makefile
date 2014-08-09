@@ -38,6 +38,7 @@ DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-ch
 DBG = gdb --args
 DBG =
 VER = $(shell git rev-parse --short HEAD)
+GIT_STATUS = $(shell check_git_status)
 # CMP = cp -f # Save current results for future testing DANGEROUS!
 
 # MathEval required to evaluate expression for tied parameters and regularization terms
@@ -56,7 +57,7 @@ OS = $(shell uname -s)
 ND = $(shell uname -n)
 # Compilation setup
 $(info MADS computationlal framework)
-$(info Version -- $(VER))
+$(info Version -- $(VER) + $(GIT_STATUS))
 $(info -----------------------------)
 $(info OS type -- $(OS))
 $(info Machine -- $(ND))
@@ -112,6 +113,7 @@ endif
 endif
 # MADS files
 OBJSMADS = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o mads_gitversion.c
+OBJSMADSSTYLE = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o
 OBJSA = sa/abagus.o sa/postpua.o sa/global.o sa/do_miser.o
 OBJDS = ds/infogap.o ds/glue.o
@@ -144,8 +146,8 @@ LDLIBS += -lmatheval
 endif
 
 SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
-SOURCESTYLE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
-SOURCESTYLEDEL = $(OBJSMADS:%.o=%.c.orig) $(OBJSPSO:%.o=%.c.orig) $(OBJSMPUN:%.o=%.c.orig) $(OBJSA:%.o=%.c.orig) $(OBJDS:%.o=%.c.orig) $(OBJSLEVMARSTYLE:%.o=%.c.orig) $(OBJSKDTREE:%.o=%.c.orig) $(OBJSASTABLE:%.o=%.c.orig) $(OBJSBAYES:%.o=%.cpp.orig)
+SOURCESTYLE = $(OBJSMADSSTYLE:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
+SOURCESTYLEDEL = $(OBJSMADSSTYLE:%.o=%.c.orig) $(OBJSPSO:%.o=%.c.orig) $(OBJSMPUN:%.o=%.c.orig) $(OBJSA:%.o=%.c.orig) $(OBJDS:%.o=%.c.orig) $(OBJSLEVMARSTYLE:%.o=%.c.orig) $(OBJSKDTREE:%.o=%.c.orig) $(OBJSASTABLE:%.o=%.c.orig) $(OBJSBAYES:%.o=%.cpp.orig)
 
 all: $(MADS) $(WELLS)
 
@@ -162,7 +164,7 @@ clean:
 	rm -f $(MADS) $(WELLS) $(OBJWELLS) $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE) $(OBJSBAYES)
 
 mads_gitversion.c: .git/HEAD .git/index
-	echo "const char *gitversion = \"$(VER)\";" > $@
+	echo "const char *gitversion = \"$(VER) + $(GIT_STATUS)\";" > $@
 
 mads.o: mads.c mads.h misc/levmar-2.5/levmar.h mads_gitversion.c
 mads_io.o: mads_io.c mads.h
@@ -644,7 +646,8 @@ compare-os:
 	./compare-results-os Linux Darwin
 
 clean-example:
-	rm -f example/*/*.mads_output_* example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running example/*/*-rerun.mads example/*/*-error.mads
+	find . -name "*.mads_output_*" -print0 | xargs -0 rm
+	rm -f example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running example/*/*-rerun.mads example/*/*-error.mads
 	rm -fR example/wells-short_w01_*
 	rm -fR example/wells-short_w01parallel*
 	rm -f *.mads_output* *.running *.cmdline *.cmdline_hist

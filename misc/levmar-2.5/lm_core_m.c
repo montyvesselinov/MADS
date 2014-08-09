@@ -383,6 +383,7 @@ int LEVMAR_DER2(
 				if( op->cd->ldebug > 1 ) tprintf( "\n\n" );
 				if( k == 0 ) tprintf( "Jacobian #%d: Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, tau );
 				else tprintf( "Jacobian #%d: Linear solves %d Evaluations %d OF %g lambda %g\n", njap, nlss, nfev, p_eL2, mu );
+				if( fabs( best_p_eL2 - p_eL2 ) > COMPARE_EPSILON ) tprintf( "Best OF %g\n", best_p_eL2 );
 			}
 			if( op->cd->ldebug >= 4 )
 			{
@@ -864,6 +865,7 @@ int LEVMAR_DER2(
 				}
 				if( j >= op->cd->lm_nlamof )
 					computejac = 1; // New jacobian: Lambda search OF are very similar
+				p_eL2 = pDp_eL2; // TODO check is it needed
 			}
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
@@ -1002,6 +1004,7 @@ int LEVMAR_DER2(
 		for( i = 0; i < m; ++i ) /* restore diagonal J^T J entries */
 			jacTjac[i * m + i] = diag_jacTjac[i];
 	} // END OF OPTIMIZATION LOOP
+	if( fabs( best_p_eL2 - p_eL2 ) > COMPARE_EPSILON ) tprintf( "Best OF %g\n", best_p_eL2 );
 	op->phi = p_eL2 = best_p_eL2;
 	for( i = 0; i < m; ++i )
 		p[i] = p_best[i];
