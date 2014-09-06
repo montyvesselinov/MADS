@@ -1537,8 +1537,10 @@ int save_problem( char *filename, struct opt_data *op )
 int save_problem_xml( char *filename, struct opt_data *op )
 {
 	tprintf( "ERROR: XML problem files cannot be saved yet!\n" );
+#ifdef MADS_YAML
 	tprintf( "WARNING: YAML file be saved instead!\n" );
 	save_problem_yaml( filename, op );
+#endif
 	return( 1 );
 }
 

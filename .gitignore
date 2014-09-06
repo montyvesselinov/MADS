@@ -1,6 +1,7 @@
 syntax: glob
 # MADS files
 mads
+libmads*
 wells
 mads_gitversion.c
 latex/*

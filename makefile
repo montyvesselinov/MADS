@@ -53,17 +53,23 @@ endif
 ifdef XML
 XML = true
 endif
+
+# OS type
 OS = $(shell uname -s)
+# MACHINE name
 ND = $(shell uname -n)
+
 # Compilation setup
 $(info MADS computationlal framework)
-$(info Version -- $(VER) + $(GIT_STATUS))
+$(info Version -- $(VER)$(GIT_STATUS))
 $(info -----------------------------)
 $(info OS type -- $(OS))
 $(info Machine -- $(ND))
 CC = gcc
 CFLAGS = -Wall -O1 -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
+SONAME = soname
+
 ifeq ($(OS),Linux)
 # Linux
 LDLIBS += -lgfortran -lgslcblas -lm -lblas
@@ -82,14 +88,15 @@ $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -L/usr/local/lib
 endif
-else
+else #----------------------------------------------------
 ifeq ($(OS),Cygwin)
 # Cygwin
 $(info CYGWIN)
-else
+else #----------------------------------------------------
 ifeq ($(OS),Darwin)
 # Mac
 $(info MAC OS X)
+SONAME = install_name
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
 ifeq ($(ND),bored.lanl.gov)
@@ -106,13 +113,14 @@ $(info Machine -- Dazed)
 CFLAGS += -I/Users/monty/include
 LDLIBS += -lrefblas -lcblas -L/Users/monty/lib
 endif
-else
+else #----------------------------------------------------
 $(error UNKNOWN OS type -- $(OS)!)
 endif
 endif
 endif
+
 # MADS files
-OBJSMADS = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o mads_gitversion.c
+OBJSMADS = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o mads_gitversion.o
 OBJSMADSSTYLE = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o
 OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o
 OBJSA = sa/abagus.o sa/postpua.o sa/global.o sa/do_miser.o
@@ -145,6 +153,7 @@ CFLAGS += -DMATHEVAL
 LDLIBS += -lmatheval
 endif
 
+OBJECTS = $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE) $(OBJSBAYES)
 SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
 SOURCESTYLE = $(OBJSMADSSTYLE:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
 SOURCESTYLEDEL = $(OBJSMADSSTYLE:%.o=%.c.orig) $(OBJSPSO:%.o=%.c.orig) $(OBJSMPUN:%.o=%.c.orig) $(OBJSA:%.o=%.c.orig) $(OBJDS:%.o=%.c.orig) $(OBJSLEVMARSTYLE:%.o=%.c.orig) $(OBJSKDTREE:%.o=%.c.orig) $(OBJSASTABLE:%.o=%.c.orig) $(OBJSBAYES:%.o=%.cpp.orig)
@@ -156,15 +165,19 @@ release: $(MADS)
 debug: CFLAGS += -g
 debug: $(MADS)
 
-$(MADS): $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE) $(OBJSBAYES)
+lib: CFLAGS += -fPIC
+lib: $(OBJECTS)
+	gcc -shared -Wl,-$(SONAME),libmads.so.1 -o libmads.so.1.0.1 $(OBJECTS) -lc $(LDLIBS)
+
+$(MADS): $(OBJECTS)
 
 $(WELLS): $(OBJWELLS)
 
 clean:
-	rm -f $(MADS) $(WELLS) $(OBJWELLS) $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE) $(OBJSBAYES)
+	rm -f $(MADS) $(WELLS) $(OBJECTS)
 
 mads_gitversion.c: .git/HEAD .git/index
-	echo "const char *gitversion = \"$(VER) + $(GIT_STATUS)\";" > $@
+	@echo "const char *gitversion = \"$(VER)$(GIT_STATUS)\";" > $@
 
 mads.o: mads.c mads.h misc/levmar-2.5/levmar.h mads_gitversion.c
 mads_io.o: mads_io.c mads.h
