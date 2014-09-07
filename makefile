@@ -205,20 +205,27 @@ lib: $(MADS_LIB)
 
 $(MADS): $(OBJECTS_RELEASE)
 	@echo "Building MADS Release Version ..."
+	@mkdir -p $(BIN)
+	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
 	$(CC) $(OBJECTS_RELEASE) $(LDLIBS) -o $@
 
 $(MADS_DEBUG): $(OBJECTS_DEBUG)
 	@echo "Building MADS Debug Version ..."
+	@mkdir -p $(BIN)
+	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
 	$(CC) $(OBJECTS_DEBUG) $(LDLIBS) -o $@
 
 $(MADS_LIB): $(OBJECTS_LIB)
 	@echo "Building MADS Shared Library ..."
+	@mkdir -p $(BIN)
+	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
 	gcc -shared -Wl,-$(SONAME),libmads.so.1 -o $(MADS_LIB) $(OBJECTS_LIB) -lc $(LDLIBS)
 
 $(WELLS): $(OBJ_WELLS)
+	@mkdir -p $(BIN)
 	$(CC) $(LDFLAGS) $< -o $@
 
 $(OBJ_WELLS): $(SRC_WELLS)
@@ -245,6 +252,7 @@ $(SRC)/mads_gitversion.c: .git/HEAD .git/index
 	@echo "const char *gitversion = \"$(VER)$(GIT_STATUS)\";" > $@
 
 $(OBJ_DIR)/%.o: $(SRC)/%.c
+	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
