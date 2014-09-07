@@ -53,8 +53,8 @@
 
 /* Functions here */
 int load_xml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-static void print_xml_elements(xmlNode * xml_node);
-static void parse_xml( xmlDocPtr *xml_node, GNode *gdata, int debug );
+static void print_xml_elements( xmlNode *xml_node);
+static void parse_xml( xmlNodePtr xml_node, GNode *gdata, int debug );
 
 /* Functions in mads_io_yaml */
 gboolean gnode_tree_dump( GNode *node, gpointer data );
@@ -199,14 +199,14 @@ static void print_xml_elements( xmlNode *xml_node )
 	}
 }
 
-static void parse_xml( xmlDocPtr *xml_node, GNode *gdata, int debug )
+static void parse_xml( xmlNodePtr xml_node, GNode *gdata, int debug )
 {
 	GNode *last_leaf = gdata;
 	xmlNode *cur_node = NULL;
 	xmlChar *content;
 	int count;
 
-	for( cur_node = xml_node; cur_node; cur_node = cur_node->next )
+	for( cur_node = (xmlNode *) xml_node; cur_node; cur_node = cur_node->next )
 	{
 		if( cur_node->type == XML_ELEMENT_NODE )
 		{
