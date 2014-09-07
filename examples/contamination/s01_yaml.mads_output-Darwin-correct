@@ -1,10 +1,10 @@
-MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.58a10bf+uncommitted) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
-Input file name: example/contamination/s01_yaml.mads
-Problem root name: example/contamination/s01_yaml (YAML format expected)
+Input file name: ./examples/contamination/s01_yaml.mads
+Problem root name: ./examples/contamination/s01_yaml (YAML format expected)
 MADS input file in YAML format.
 Number of YAML classes 7
 YAML Classes:
@@ -182,7 +182,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140801-102514
+Execution date & time stamp: 20140907-100219
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -210,7 +210,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   80.4  119.8   -0.0   -0.0   -0.0   -0.0 -799.2   -5.6   -0.5  -74.0   -1.0  -34.0   -0.3    7.5    0.1   -0.0  -64.1
 Dispersivity y [L]         :   -0.0    0.0   -0.0   23.8   29.1   -0.0   -0.0   -0.0   -0.0  129.8   -1.6   -0.1    5.4    0.1  -13.7   -0.1 -174.0   -0.5   -0.0  -63.9
 Dispersivity z [L]         :    0.0   -0.0    0.0 -306.2 -341.8   -0.0   -0.0   -0.0    0.0   68.2    0.4   -0.2    8.6   -1.5    6.7   -0.7   33.5   -1.4    0.0   16.1
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   5e+02   7e+01   4e+03   4e+01  -4e+01   1e+10  -5e+01  -2e+02   3e+02   1e+03   1e+03
@@ -224,7 +224,7 @@ Pore x velocity [L/T]      :  -2e+02  -3e+01  -2e+03   2e+00   2e+01  -6e+09   2
 Dispersivity x [L]         :   3e+02   3e+01   2e+03  -1e+02  -8e+00   6e+09  -9e+00  -1e+02   2e+02   8e+02   7e+02
 Dispersivity y [L]         :   1e+03   1e+02   8e+03  -2e+02  -5e+01   3e+10  -6e+01  -5e+02   8e+02   3e+03   3e+03
 Dispersivity z [L]         :   1e+03   2e+02   1e+04   6e+01  -1e+02   3e+10  -1e+02  -6e+02   7e+02   3e+03   3e+03
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000  0.977  0.991  0.096 -0.734  0.980 -0.708 -0.994  0.826  0.925  0.999
@@ -238,7 +238,7 @@ Pore x velocity [L/T]      : -0.994 -0.949 -0.971  0.009  0.658 -0.953  0.629  1
 Dispersivity x [L]         :  0.826  0.686  0.743 -0.482 -0.223  0.696 -0.186 -0.881  1.000  0.978  0.846
 Dispersivity y [L]         :  0.925  0.822  0.866 -0.288 -0.421  0.830 -0.387 -0.960  0.978  1.000  0.939
 Dispersivity z [L]         :  0.999  0.968  0.985  0.059 -0.708  0.971 -0.681 -0.998  0.846  0.939  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.876 -0.083 -0.332 -0.001 -0.251  0.126 -0.077  0.132  0.000  0.118  0.000
@@ -267,7 +267,7 @@ Dispersivity x [L]         : -0.081  0.028  0.345  0.172 -0.332  0.092 -0.803 -0
 Dispersivity y [L]         :  0.011  0.076 -0.141 -0.016  0.581  0.286 -0.012 -0.201  0.001  0.717  0.000
 Dispersivity z [L]         :  0.018  0.056 -0.176  0.073 -0.076 -0.904 -0.005 -0.125  0.000  0.348  0.000
 Eigenvalues                :  1e-08  3e-07  1e-05  2e-05  4e-04  1e-03  3e-02  8e-01  6e+01  2e+03  4e+17
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -318,12 +318,12 @@ Pore x velocity [L/T]      :            5 stddev      27.9346 (        0.01 -   
 Dispersivity x [L]         :           70 stddev      40.9115 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :           15 stddev      133.278 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :          0.3 stddev       152.16 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Computed initial lambda 10
 OF 0.869272 lambda 10
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.869272 << 63.7496)
 
 Jacobian #2: Linear solves 1 Evaluations 24 OF 0.869272 lambda 3.33333
@@ -345,7 +345,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   84.4  124.5   -0.0   -0.0   -0.0   -0.0 -788.4   -6.2   -0.5  -73.4   -1.1  -34.1   -0.4    7.6    0.1   -0.0  -53.6
 Dispersivity y [L]         :   -0.0    0.0   -0.0   24.1   29.8   -0.0   -0.0   -0.0   -0.0  123.6   -1.4   -0.1    5.5    0.1  -13.9   -0.2 -169.2   -0.6   -0.0  -56.6
 Dispersivity z [L]         :    0.0   -0.0    0.0 -302.6 -337.4   -0.0   -0.0   -0.0    0.0   54.0    0.4   -0.2    8.4   -1.5    6.7   -0.8   33.5   -1.4    0.0   13.2
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   3e+01   2e+00   2e+02  -6e+01   8e+00   1e+09   2e+00  -1e+01   5e+01   1e+02   9e+01
@@ -359,7 +359,7 @@ Pore x velocity [L/T]      :  -1e+01  -2e-01  -4e+01   4e+01  -3e+00  -2e+08  -4
 Dispersivity x [L]         :   5e+01   2e+00   2e+02  -1e+02   1e+01   1e+09   1e+01  -3e+01   1e+02   3e+02   1e+02
 Dispersivity y [L]         :   1e+02   3e+00   4e+02  -4e+02   3e+01   2e+09   3e+01  -8e+01   3e+02   7e+02   4e+02
 Dispersivity z [L]         :   9e+01   6e+00   4e+02  -2e+02   2e+01   4e+09   8e+00  -4e+01   1e+02   4e+02   2e+02
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000  0.622  0.888 -0.665  0.997  0.669  0.229 -0.838  0.930  0.871  0.999
@@ -373,7 +373,7 @@ Pore x velocity [L/T]      : -0.838 -0.095 -0.492  0.965 -0.791 -0.154 -0.723  1
 Dispersivity x [L]         :  0.930  0.292  0.656 -0.893  0.897  0.349  0.571 -0.979  1.000  0.991  0.942
 Dispersivity y [L]         :  0.871  0.159  0.548 -0.946  0.829  0.219  0.677 -0.997  0.991  1.000  0.889
 Dispersivity z [L]         :  0.999  0.593  0.870 -0.692  0.993  0.642  0.264 -0.856  0.942  0.889  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.873 -0.086 -0.340 -0.011 -0.252  0.121 -0.073  0.133  0.000  0.118  0.000
@@ -402,7 +402,7 @@ Dispersivity x [L]         :  0.000 -0.079  0.025  0.353 -0.159 -0.365  0.093 -0
 Dispersivity y [L]         :  0.001  0.011  0.075 -0.138 -0.028  0.581  0.276 -0.042 -0.189  0.724  0.000
 Dispersivity z [L]         :  0.000  0.016  0.055 -0.167 -0.076 -0.069 -0.914 -0.020 -0.111  0.333  0.000
 Eigenvalues                : -3e+01  1e-08  3e-07  1e-05  3e-05  4e-04  1e-03  2e-02  9e-01  1e+03  1e+17
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -453,13 +453,13 @@ Pore x velocity [L/T]      :      5.19632 stddev     0.880522 (        0.01 -   
 Dispersivity x [L]         :      66.1008 stddev      3.15523 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      15.4336 stddev       8.2527 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.290911 stddev      4.83105 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y coordinate [L]        (-5.00372)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.0122956 lambda 3.33333
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.0122956 << 0.869272)
 
 Jacobian #3: Linear solves 2 Evaluations 36 OF 0.0122956 lambda 1.11111
@@ -481,7 +481,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   85.5  125.6   -0.0   -0.0   -0.0   -0.0 -783.3   -6.0   -0.5  -73.5   -1.1  -34.0   -0.3    7.9    0.1   -0.0  -52.6
 Dispersivity y [L]         :   -0.0    0.0   -0.0   23.3   28.9   -0.0   -0.0   -0.0   -0.0  123.7   -1.4   -0.1    5.5    0.1  -14.0   -0.2 -169.7   -0.5   -0.0  -55.6
 Dispersivity z [L]         :    0.0   -0.0    0.0 -304.1 -339.1   -0.0   -0.0   -0.0    0.0   49.7    0.4   -0.2    8.4   -1.5    6.7   -0.7   33.4   -1.4    0.0   12.8
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   2e+02   2e+01   2e+03   2e+02  -3e+01   7e+09  -3e+01  -9e+01  -3e+01   2e+02   5e+02
@@ -495,7 +495,7 @@ Pore x velocity [L/T]      :  -9e+01  -6e+00  -7e+02  -4e+01   8e+00  -3e+09   1
 Dispersivity x [L]         :  -3e+01  -7e+00  -6e+02  -2e+02   2e+01  -3e+09   3e+01  -2e+00   1e+02   2e+02  -4e+01
 Dispersivity y [L]         :   2e+02   1e+01   1e+03  -3e+02   7e+00   5e+09   1e+01  -1e+02   2e+02   8e+02   6e+02
 Dispersivity z [L]         :   5e+02   4e+01   4e+03   3e+02  -6e+01   2e+10  -7e+01  -2e+02  -4e+01   6e+02   1e+03
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000  0.948  0.978  0.476 -0.744  0.957 -0.706 -0.975 -0.193  0.586  0.997
@@ -509,7 +509,7 @@ Pore x velocity [L/T]      : -0.975 -0.854 -0.907 -0.268  0.577 -0.868  0.530  1
 Dispersivity x [L]         : -0.193 -0.493 -0.393 -0.954  0.799 -0.470  0.831 -0.031  1.000  0.682 -0.118
 Dispersivity y [L]         :  0.586  0.299  0.404 -0.434  0.105  0.324  0.161 -0.752  0.682  1.000  0.646
 Dispersivity z [L]         :  0.997  0.921  0.959  0.408 -0.692  0.932 -0.650 -0.989 -0.118  0.646  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.873 -0.088 -0.339 -0.012 -0.254  0.119 -0.071  0.134  0.000  0.119  0.000
@@ -538,7 +538,7 @@ Dispersivity x [L]         : -0.078  0.025  0.355 -0.159 -0.369  0.091 -0.793 -0
 Dispersivity y [L]         :  0.011  0.075 -0.140 -0.032  0.579  0.280 -0.047 -0.192  0.001  0.721  0.000
 Dispersivity z [L]         :  0.016  0.055 -0.168 -0.075 -0.064 -0.914 -0.020 -0.111  0.000  0.334  0.000
 Eigenvalues                :  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  9e-01  3e+01  1e+03  3e+17
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -589,16 +589,16 @@ Pore x velocity [L/T]      :      5.21061 stddev     0.215567 (    0.477415 -   
 Dispersivity x [L]         :      65.2371 stddev     0.406568 (     20.2306 -      135.762)
 Dispersivity y [L]         :      15.4195 stddev      1.04323 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.288968 stddev      1.25775 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-3.32055)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00888811 lambda 1.11111
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00438246 lambda 1.16786
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.00438246 << 0.0122956)
 
 Jacobian #4: Linear solves 4 Evaluations 49 OF 0.00438246 lambda 1.16208
@@ -620,7 +620,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   86.0  125.7   -0.0   -0.0   -0.0   -0.0 -768.5   -5.9   -0.5  -73.4   -1.0  -33.9   -0.3    8.0    0.1   -0.0  -52.1
 Dispersivity y [L]         :   -0.0    0.0   -0.0   25.0   30.8   -0.0   -0.0   -0.0   -0.0  121.0   -1.4   -0.1    5.5    0.1  -14.1   -0.1 -170.8   -0.5   -0.0  -55.7
 Dispersivity z [L]         :    0.0   -0.0    0.0 -309.8 -345.7   -0.0   -0.0   -0.0    0.0   46.3    0.4   -0.2    8.4   -1.4    6.7   -0.7   33.2   -1.3    0.0   12.7
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   1e+02   8e+00   9e+02   9e+01  -3e+00   6e+09  -2e+01  -4e+01  -1e+01   8e+01   3e+02
@@ -634,7 +634,7 @@ Pore x velocity [L/T]      :  -4e+01  -2e+00  -3e+02   5e+00  -1e+00  -2e+09   3
 Dispersivity x [L]         :  -1e+01  -5e+00  -5e+02  -3e+02   2e+01  -4e+09   3e+01  -2e+01   1e+02   3e+02   3e+00
 Dispersivity y [L]         :   8e+01  -4e+00  -1e+02  -5e+02   3e+01  -3e+09   6e+01  -7e+01   3e+02   8e+02   3e+02
 Dispersivity z [L]         :   3e+02   2e+01   2e+03   2e+02  -4e+00   1e+10  -4e+01  -9e+01   3e+00   3e+02   6e+02
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000  0.895  0.948  0.367 -0.223  0.903 -0.592 -0.909 -0.098  0.273  0.994
@@ -648,7 +648,7 @@ Pore x velocity [L/T]      : -0.909 -0.629 -0.729  0.054 -0.204 -0.642  0.202  1
 Dispersivity x [L]         : -0.098 -0.528 -0.409 -0.962  0.992 -0.516  0.860 -0.326  1.000  0.930  0.009
 Dispersivity y [L]         :  0.273 -0.182 -0.047 -0.794  0.876 -0.166  0.614 -0.649  0.930  1.000  0.375
 Dispersivity z [L]         :  0.994  0.842  0.908  0.265 -0.118  0.852 -0.502 -0.948  0.009  0.375  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.872 -0.085 -0.338 -0.012 -0.255  0.125 -0.068  0.137  0.000  0.119  0.000
@@ -677,7 +677,7 @@ Dispersivity x [L]         : -0.077  0.023  0.357 -0.153 -0.364  0.101 -0.793 -0
 Dispersivity y [L]         :  0.010  0.075 -0.138 -0.032  0.579  0.279 -0.037 -0.188  0.000  0.725 -0.000
 Dispersivity z [L]         :  0.015  0.058 -0.172 -0.077 -0.072 -0.911 -0.029 -0.101  0.000  0.338  0.000
 Eigenvalues                :  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  6e+01  1e+03  4e+17
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -728,13 +728,13 @@ Pore x velocity [L/T]      :      5.15931 stddev    0.0874734 (     1.96598 -   
 Dispersivity x [L]         :      65.1306 stddev     0.262829 (     30.2827 -      115.816)
 Dispersivity y [L]         :      15.3273 stddev     0.621725 (     1.70473 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.288087 stddev     0.546124 (    0.103776 -     0.906262)
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-6.39001)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00114406 lambda 1.16208
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (0.00114406 << 0.00438246)
 
 Jacobian #5: Linear solves 5 Evaluations 61 OF 0.00114406 lambda 0.387359
@@ -756,7 +756,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   86.1  125.7   -0.0   -0.0   -0.0   -0.0 -766.0   -5.9   -0.5  -73.4   -1.0  -33.9   -0.3    8.0    0.1   -0.0  -52.0
 Dispersivity y [L]         :   -0.0    0.0   -0.0   25.3   31.1   -0.0   -0.0   -0.0   -0.0  120.6   -1.3   -0.1    5.5    0.1  -14.1   -0.1 -171.0   -0.5   -0.0  -55.8
 Dispersivity z [L]         :    0.0   -0.0    0.0 -310.8 -346.9   -0.0   -0.0   -0.0    0.0   45.8    0.4   -0.2    8.3   -1.4    6.7   -0.7   33.2   -1.3    0.0   12.7
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   2e+01   1e+00   1e+02  -6e+01   4e+00   4e+08   4e+00  -1e+01   4e+01   1e+02   7e+01
@@ -770,7 +770,7 @@ Pore x velocity [L/T]      :  -1e+01   5e-02  -3e+01   5e+01  -3e+00   1e+07  -5
 Dispersivity x [L]         :   4e+01  -2e+00   5e+01  -2e+02   1e+01  -7e+08   2e+01  -3e+01   1e+02   3e+02   1e+02
 Dispersivity y [L]         :   1e+02  -6e+00   1e+02  -5e+02   3e+01  -2e+09   6e+01  -9e+01   3e+02   8e+02   3e+02
 Dispersivity z [L]         :   7e+01   3e+00   2e+02  -2e+02   1e+01   1e+09   1e+01  -4e+01   1e+02   3e+02   2e+02
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000  0.356  0.719 -0.596  0.797  0.368  0.349 -0.925  0.804  0.802  0.996
@@ -784,7 +784,7 @@ Pore x velocity [L/T]      : -0.925  0.024 -0.402  0.856 -0.967  0.013 -0.678  1
 Dispersivity x [L]         :  0.804 -0.268  0.165 -0.957  0.999 -0.256  0.837 -0.969  1.000  1.000  0.848
 Dispersivity y [L]         :  0.802 -0.272  0.162 -0.958  0.999 -0.260  0.839 -0.968  1.000  1.000  0.847
 Dispersivity z [L]         :  0.996  0.281  0.662 -0.658  0.841  0.294  0.422 -0.951  0.848  0.847  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.871  0.085 -0.338 -0.012  0.257 -0.124 -0.003  0.066  0.138  0.119  0.000
@@ -813,7 +813,7 @@ Dispersivity x [L]         : -0.126 -0.077 -0.023  0.358 -0.152  0.372 -0.096  0
 Dispersivity y [L]         : -0.041  0.010 -0.075 -0.138 -0.033 -0.575 -0.281  0.036 -0.187  0.725 -0.000
 Dispersivity z [L]         :  0.024  0.015 -0.058 -0.173 -0.077  0.067  0.911  0.030 -0.099  0.339  0.000
 Eigenvalues                : -2e-03  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  1e+03  6e+16
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -864,22 +864,22 @@ Pore x velocity [L/T]      :      5.14865 stddev    0.0345439 (     3.53127 -   
 Dispersivity x [L]         :       65.134 stddev     0.120106 (     46.2833 -      88.0099)
 Dispersivity y [L]         :      15.3167 stddev     0.326658 (     4.70475 -      29.1645)
 Dispersivity z [L]         :     0.288001 stddev     0.154066 (    0.195729 -     0.428562)
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-1.13541)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00110848 lambda 0.387359
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00108674 lambda 0.384368
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00107841 lambda 0.322501
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00108768 lambda 0.140342
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #6: Linear solves 9 Evaluations 76 OF 0.00107841 lambda 0.280683
@@ -901,7 +901,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   86.2  125.7   -0.0   -0.0   -0.0   -0.0 -763.4   -5.9   -0.5  -73.3   -1.0  -33.9   -0.3    8.0    0.1   -0.0  -51.9
 Dispersivity y [L]         :   -0.0    0.0   -0.0   25.0   30.8   -0.0   -0.0   -0.0   -0.0  120.7   -1.3   -0.1    5.5    0.1  -14.1   -0.1 -170.9   -0.5   -0.0  -55.7
 Dispersivity z [L]         :    0.0   -0.0    0.0 -312.1 -348.4   -0.0   -0.0   -0.0    0.0   45.6    0.4   -0.2    8.3   -1.4    6.7   -0.7   33.2   -1.3    0.0   12.7
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   2e+03   1e+02   1e+04   2e+03   6e+00   1e+11  -2e+02  -4e+02  -4e+02   8e+02   4e+03
@@ -915,7 +915,7 @@ Pore x velocity [L/T]      :  -4e+02  -4e+01  -4e+03  -4e+02  -4e+00  -3e+10   6
 Dispersivity x [L]         :  -4e+02  -4e+01  -4e+03  -7e+02   1e+01  -3e+10   9e+01   1e+02   3e+02   8e+01  -1e+03
 Dispersivity y [L]         :   8e+02   7e+01   6e+03   4e+02   3e+01   5e+10  -6e+01  -3e+02   8e+01   1e+03   2e+03
 Dispersivity z [L]         :   4e+03   3e+02   3e+04   4e+03   2e+01   2e+11  -5e+02  -1e+03  -1e+03   2e+03   9e+03
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000  0.993  0.996  0.892  0.147  0.993 -0.929 -0.988 -0.671  0.637  1.000
@@ -929,7 +929,7 @@ Pore x velocity [L/T]      : -0.988 -0.962 -0.971 -0.810 -0.300 -0.962  0.860  1
 Dispersivity x [L]         : -0.671 -0.755 -0.732 -0.934  0.634 -0.754  0.898  0.547  1.000  0.143 -0.654
 Dispersivity y [L]         :  0.637  0.541  0.569  0.220  0.855  0.542 -0.307 -0.750  0.143  1.000  0.655
 Dispersivity z [L]         :  1.000  0.990  0.994  0.881  0.170  0.990 -0.920 -0.991 -0.654  0.655  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.806  0.341  0.336 -0.012 -0.260  0.125 -0.011  0.065  0.139  0.119  0.000
@@ -958,7 +958,7 @@ Dispersivity x [L]         :  0.121 -0.067 -0.045 -0.359 -0.150 -0.374  0.098  0
 Dispersivity y [L]         :  0.052  0.035 -0.067  0.138 -0.032  0.574  0.283  0.035 -0.187  0.726  0.000
 Dispersivity z [L]         : -0.017  0.032 -0.051  0.174 -0.078 -0.067 -0.911  0.031 -0.097  0.339  0.000
 Eigenvalues                : -1e-03  1e-07  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  2e+03  7e+18
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -1009,22 +1009,22 @@ Pore x velocity [L/T]      :       5.1277 stddev     0.124592 (     1.28931 -   
 Dispersivity x [L]         :      65.2359 stddev     0.173522 (     39.5666 -      98.8385)
 Dispersivity y [L]         :      15.3753 stddev     0.367836 (     4.04066 -      29.8097)
 Dispersivity z [L]         :     0.288419 stddev      1.01962 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source x dimension [L]         (-1.60983)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (-2.38698e-15)
 OF 0.0010751 lambda 0.280683
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00110255 lambda 0.0987938
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00107221 lambda 0.197588
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00107279 lambda 0.186003
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #7: Linear solves 13 Evaluations 91 OF 0.00107221 lambda 0.372006
@@ -1046,7 +1046,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   86.2  125.6   -0.0   -0.0   -0.0   -0.0 -763.5   -5.9   -0.5  -73.3   -1.0  -33.8   -0.3    8.0    0.1   -0.0  -51.8
 Dispersivity y [L]         :   -0.0    0.0   -0.0   24.4   30.1   -0.0   -0.0   -0.0   -0.0  121.4   -1.3   -0.1    5.5    0.1  -14.1   -0.1 -170.7   -0.5   -0.0  -55.5
 Dispersivity z [L]         :    0.0   -0.0    0.0 -312.3 -348.5   -0.0   -0.0   -0.0    0.0   46.0    0.4   -0.2    8.3   -1.4    6.7   -0.7   33.2   -1.3    0.0   12.7
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   2e+01   8e-01   7e+01  -8e+01   2e-01  -1e+09   6e+00  -2e+01   5e+01   1e+02   7e+01
@@ -1060,7 +1060,7 @@ Pore x velocity [L/T]      :  -2e+01  -2e+00  -7e+01   5e+01   7e+00   2e+09  -2
 Dispersivity x [L]         :   5e+01   3e-01   1e+02  -2e+02   1e+01  -4e+08   2e+01  -3e+01   1e+02   3e+02   1e+02
 Dispersivity y [L]         :   1e+02   3e+00   4e+02  -5e+02   9e+00  -4e+09   4e+01  -1e+02   3e+02   8e+02   4e+02
 Dispersivity z [L]         :   7e+01   2e+00   2e+02  -2e+02   5e+00  -2e+09   2e+01  -5e+01   1e+02   4e+02   2e+02
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000  0.303  0.923 -0.965  0.012 -0.305  0.683 -0.879  0.967  0.996  0.995
@@ -1074,7 +1074,7 @@ Pore x velocity [L/T]      : -0.879 -0.719 -0.994  0.727  0.466  0.722 -0.254  1
 Dispersivity x [L]         :  0.967  0.051  0.794 -1.000  0.265 -0.054  0.846 -0.730  1.000  0.984  0.986
 Dispersivity y [L]         :  0.996  0.226  0.888 -0.984  0.090 -0.229  0.739 -0.839  0.984  1.000  1.000
 Dispersivity z [L]         :  0.995  0.215  0.883 -0.985  0.100 -0.219  0.746 -0.833  0.986  1.000  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.871 -0.086 -0.337 -0.011 -0.257  0.126 -0.067  0.139  0.000  0.119  0.000
@@ -1103,7 +1103,7 @@ Dispersivity x [L]         :  0.000 -0.077  0.023  0.359 -0.150 -0.363  0.100 -0
 Dispersivity y [L]         : -0.000  0.011  0.075 -0.139 -0.032  0.575  0.283 -0.035 -0.188  0.725  0.000
 Dispersivity z [L]         : -0.000  0.015  0.058 -0.174 -0.078 -0.068 -0.911 -0.030 -0.097  0.339  0.000
 Eigenvalues                : -6e+01  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  2e+03  4e+17
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -1154,22 +1154,22 @@ Pore x velocity [L/T]      :      5.11701 stddev    0.0489959 (     2.99157 -   
 Dispersivity x [L]         :      65.3478 stddev     0.113868 (     47.3086 -      87.0052)
 Dispersivity y [L]         :      15.4559 stddev     0.317462 (     4.92931 -       29.033)
 Dispersivity z [L]         :      0.28902 stddev     0.148203 (    0.199118 -     0.423735)
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.558955)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00106897 lambda 0.372006
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.0010766 lambda 0.124002
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00106627 lambda 0.248004
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00106791 lambda 0.166284
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #8: Linear solves 17 Evaluations 106 OF 0.00106627 lambda 0.332568
@@ -1191,7 +1191,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   86.2  125.6   -0.0   -0.0   -0.0   -0.0 -763.6   -5.9   -0.5  -73.3   -1.0  -33.8   -0.3    8.0    0.1   -0.0  -51.8
 Dispersivity y [L]         :   -0.0    0.0   -0.0   23.9   29.5   -0.0   -0.0   -0.0   -0.0  121.9   -1.3   -0.1    5.5    0.1  -14.0   -0.1 -170.5   -0.5   -0.0  -55.5
 Dispersivity z [L]         :    0.0   -0.0    0.0 -312.4 -348.6   -0.0   -0.0   -0.0    0.0   46.3    0.4   -0.2    8.3   -1.4    6.7   -0.7   33.2   -1.3    0.0   12.7
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   3e+01  -1e+00   1e+02  -5e+01   1e+01   2e+09   9e+00  -9e+00   4e+01   1e+02   8e+01
@@ -1205,7 +1205,7 @@ Pore x velocity [L/T]      :  -9e+00  -2e+00   3e+01   8e+01   4e+00   2e+09  -3
 Dispersivity x [L]         :   4e+01   2e+00   3e+01  -2e+02   2e+00  -3e+09   1e+01  -4e+01   1e+02   3e+02   1e+02
 Dispersivity y [L]         :   1e+02   9e+00  -4e+01  -6e+02  -8e+00  -1e+10   3e+01  -1e+02   3e+02   1e+03   3e+02
 Dispersivity z [L]         :   8e+01  -4e+00   3e+02  -1e+02   3e+01   6e+09   3e+01  -3e+01   1e+02   3e+02   2e+02
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000 -0.422  0.740 -0.485  0.714  0.423  0.999 -0.460  0.747  0.638  0.999
@@ -1219,7 +1219,7 @@ Pore x velocity [L/T]      : -0.460 -0.610  0.256  0.999  0.294  0.610 -0.460  1
 Dispersivity x [L]         :  0.747  0.285  0.107 -0.943  0.068 -0.285  0.748 -0.933  1.000  0.988  0.748
 Dispersivity y [L]         :  0.638  0.427 -0.046 -0.983 -0.084 -0.428  0.639 -0.977  0.988  1.000  0.639
 Dispersivity z [L]         :  0.999 -0.422  0.739 -0.487  0.713  0.422  1.000 -0.460  0.748  0.639  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.872 -0.086 -0.336 -0.011 -0.257  0.125 -0.067  0.139  0.000  0.119 -0.000
@@ -1248,7 +1248,7 @@ Dispersivity x [L]         :  0.000 -0.077  0.023  0.360 -0.150 -0.364  0.098 -0
 Dispersivity y [L]         : -0.000  0.011  0.075 -0.140 -0.032  0.574  0.284 -0.036 -0.189  0.725  0.000
 Dispersivity z [L]         : -0.000  0.016  0.058 -0.174 -0.078 -0.066 -0.911 -0.030 -0.097  0.340 -0.000
 Eigenvalues                : -1e+02  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  2e+03  9e+17
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -1299,22 +1299,22 @@ Pore x velocity [L/T]      :      5.10891 stddev    0.0427913 (     3.19889 -   
 Dispersivity x [L]         :      65.4347 stddev     0.118384 (     46.7521 -      88.0059)
 Dispersivity y [L]         :      15.5189 stddev     0.341523 (     4.51823 -      29.5108)
 Dispersivity z [L]         :     0.289489 stddev     0.159393 (     0.19419 -     0.436488)
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum estimate change between jacobian iterations: Source y dimension [L]         (0.439086)
 Parameter with minimum estimate change between jacobian iterations: Start Time [T]                 (0)
 OF 0.00106364 lambda 0.332568
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00107789 lambda 0.110856
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00106082 lambda 0.221712
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00106157 lambda 0.178963
-Intermediate results stored (example/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (example/contamination/s01_yaml.intermediate_residuals)
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 
@@ -1336,7 +1336,7 @@ Pore x velocity [L/T]      :   -0.0   -0.1   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   86.1  125.5   -0.0   -0.0   -0.0   -0.0 -763.2   -5.9   -0.5  -73.3   -1.0  -33.8   -0.3    8.0    0.1   -0.0  -51.8
 Dispersivity y [L]         :   -0.0    0.0   -0.0   23.7   29.3   -0.0   -0.0   -0.0   -0.0  122.9   -1.3   -0.1    5.4    0.1  -14.1   -0.1 -170.4   -0.5   -0.0  -55.4
 Dispersivity z [L]         :    0.0   -0.0    0.0 -312.4 -348.7   -0.0   -0.0   -0.0    0.0   46.8    0.4   -0.2    8.3   -1.4    6.7   -0.7   33.2   -1.3    0.0   12.7
-Jacobian matrix stored (example/contamination/s01_yaml.jacobian)
+Jacobian matrix stored (./examples/contamination/s01_yaml.jacobian)
 
 Covariance matrix
 Source x coordinate [L]    :   3e+01  -1e+00   1e+02  -5e+01   1e+01   2e+09   9e+00  -9e+00   4e+01   1e+02   8e+01
@@ -1350,7 +1350,7 @@ Pore x velocity [L/T]      :  -9e+00  -2e+00   3e+01   8e+01   4e+00   2e+09  -3
 Dispersivity x [L]         :   4e+01   2e+00   4e+01  -2e+02   2e+00  -3e+09   1e+01  -4e+01   1e+02   3e+02   1e+02
 Dispersivity y [L]         :   1e+02   9e+00  -4e+01  -6e+02  -8e+00  -1e+10   3e+01  -1e+02   3e+02   1e+03   3e+02
 Dispersivity z [L]         :   8e+01  -4e+00   3e+02  -1e+02   3e+01   6e+09   3e+01  -3e+01   1e+02   3e+02   2e+02
-Covariance matrix stored (example/contamination/s01_yaml.covariance)
+Covariance matrix stored (./examples/contamination/s01_yaml.covariance)
 
 Correlation matrix
 Source x coordinate [L]    :  1.000 -0.419  0.743 -0.487  0.713  0.423  0.999 -0.462  0.749  0.639  0.999
@@ -1364,7 +1364,7 @@ Pore x velocity [L/T]      : -0.462 -0.610  0.250  0.999  0.293  0.608 -0.460  1
 Dispersivity x [L]         :  0.749  0.286  0.113 -0.943  0.069 -0.283  0.747 -0.933  1.000  0.988  0.750
 Dispersivity y [L]         :  0.639  0.427 -0.040 -0.983 -0.083 -0.426  0.638 -0.977  0.988  1.000  0.640
 Dispersivity z [L]         :  0.999 -0.420  0.742 -0.488  0.712  0.422  1.000 -0.462  0.750  0.640  1.000
-Correlation matrix stored (example/contamination/s01_yaml.correlation)
+Correlation matrix stored (./examples/contamination/s01_yaml.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L]    :  0.872 -0.086 -0.336 -0.011 -0.258  0.125  0.067  0.139  0.000  0.119 -0.000
@@ -1393,7 +1393,7 @@ Dispersivity x [L]         : -0.077  0.023  0.360 -0.150 -0.364  0.098  0.793 -0
 Dispersivity y [L]         :  0.011  0.075 -0.140 -0.033  0.574  0.285  0.037 -0.190 -0.000  0.725  0.000
 Dispersivity z [L]         :  0.016  0.058 -0.174 -0.078 -0.066 -0.911  0.030 -0.097 -0.000  0.340 -0.000
 Eigenvalues                :  1e-08  3e-07  1e-05  4e-05  4e-04  1e-03  3e-02  1e+00  1e+02  2e+03  9e+17
-Eigen vectors and eigen values stored (example/contamination/s01_yaml.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01_yaml.eigen)
 
 Number of parameters           : 11
 Number of observations         : 20
@@ -1486,6 +1486,6 @@ Simulation time = 0 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Fri Aug  1 10:25:14 2014
-Execution completed on Fri Aug  1 10:25:14 2014
-Execution date & time stamp: 20140801-102514
+Execution  started  on Sun Sep  7 10:02:19 2014
+Execution completed on Sun Sep  7 10:02:19 2014
+Execution date & time stamp: 20140907-100219

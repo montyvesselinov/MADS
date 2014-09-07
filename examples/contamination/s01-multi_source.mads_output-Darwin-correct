@@ -1,10 +1,10 @@
-MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.58a10bf+uncommitted) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
-Input file name: example/contamination/s01-multi_source.mads
-Problem root name: example/contamination/s01-multi_source
+Input file name: ./examples/contamination/s01-multi_source.mads
+Problem root name: ./examples/contamination/s01-multi_source
 MADS input file in YAML format.
 Number of YAML classes 7
 YAML Classes:
@@ -59,7 +59,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20140801-102515
+Execution date & time stamp: 20140907-100220
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -72,10 +72,10 @@ Jacobian #1: Linear solves 0 Evaluations 13 OF 50549 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is not very good (chi^2/dof = 6318.62 > 200)
 Optimized model parameters:
@@ -99,10 +99,10 @@ Jacobian #2: Linear solves 1 Evaluations 26 OF 15774 lambda 9.46888
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is not very good (chi^2/dof = 1971.75 > 200)
 Optimized model parameters:
@@ -127,10 +127,10 @@ Jacobian #3: Linear solves 2 Evaluations 39 OF 5871.2 lambda 9.31079
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is not very good (chi^2/dof = 733.901 > 200)
 Optimized model parameters:
@@ -155,10 +155,10 @@ Jacobian #4: Linear solves 3 Evaluations 52 OF 48.7932 lambda 3.1036
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 6.09914 < 200)
 Optimized model parameters:
@@ -183,10 +183,10 @@ Jacobian #5: Linear solves 4 Evaluations 65 OF 0.0148728 lambda 1.03453
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 0.0018591 < 200)
 Optimized model parameters:
@@ -211,10 +211,10 @@ Jacobian #6: Linear solves 5 Evaluations 78 OF 0.000749027 lambda 0.344844
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 9.36284e-05 < 200)
 Optimized model parameters:
@@ -242,10 +242,10 @@ Jacobian #7: Linear solves 9 Evaluations 94 OF 0.000540311 lambda 0.458722
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 6.75388e-05 < 200)
 Optimized model parameters:
@@ -273,10 +273,10 @@ Jacobian #8: Linear solves 13 Evaluations 110 OF 0.000531833 lambda 2.44652
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 6.64791e-05 < 200)
 Optimized model parameters:
@@ -304,10 +304,10 @@ Jacobian #9: Linear solves 17 Evaluations 126 OF 0.000524767 lambda 2.07036
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
 Eigen analysis ...
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Obtained fit is relatively good (chi^2/dof = 6.55959e-05 < 200)
 Optimized model parameters:
@@ -351,7 +351,7 @@ Pore x velocity [L/T]      :   -0.0   -0.0   -0.0 -2e+03 -2e+03   -0.0   -0.0   
 Dispersivity x [L]         :    0.0   -0.0   -0.0   84.9  124.8   -0.0   -0.0   -0.0   -0.0 -786.5   -6.1   -0.5  -75.9   -1.0  -34.8   -0.3    7.9    0.1   -0.0  -53.5
 Dispersivity y [L]         :   -0.0    0.0   -0.0   29.6   36.6   -0.0   -0.0   -0.0   -0.0  119.7   -1.4   -0.1    5.5    0.1  -14.5   -0.1 -173.8   -0.5   -0.0  -58.4
 Dispersivity z [L]         :    0.0   -0.0    0.0 -304.8 -341.5   -0.0   -0.0   -0.0    0.0   48.7    0.4   -0.2    8.3   -1.4    6.7   -0.7   33.0   -1.3    0.0   12.7
-Jacobian matrix stored (example/contamination/s01-multi_source.jacobian)
+Jacobian matrix stored (./examples/contamination/s01-multi_source.jacobian)
 
 Covariance matrix
 Source x coordinate [L] #1 :   2e+02   1e+01   7e+02   1e+10  -1e+03  -2e+03   9e+02   1e+01  -1e+02   6e+02   5e+02   6e+02
@@ -366,7 +366,7 @@ Pore x velocity [L/T]      :  -1e+02  -5e+00  -4e+02  -7e+09   6e+02   8e+02  -4
 Dispersivity x [L]         :   6e+02   3e+01   2e+03   5e+10  -4e+03  -5e+03   3e+03   4e+01  -3e+02   2e+03   2e+03   2e+03
 Dispersivity y [L]         :   5e+02   3e+01   2e+03   4e+10  -3e+03  -4e+03   2e+03   3e+01  -3e+02   2e+03   1e+03   1e+03
 Dispersivity z [L]         :   6e+02   3e+01   2e+03   4e+10  -3e+03  -4e+03   2e+03   4e+01  -3e+02   2e+03   1e+03   2e+03
-Covariance matrix stored (example/contamination/s01-multi_source.covariance)
+Covariance matrix stored (./examples/contamination/s01-multi_source.covariance)
 
 Correlation matrix
 Source x coordinate [L] #1 :  1.000  0.910  0.902  0.808 -0.923 -0.964  0.991  0.997 -0.991  0.993  0.996  0.992
@@ -381,7 +381,7 @@ Pore x velocity [L/T]      : -0.991 -0.848 -0.838 -0.724  0.865  0.920 -0.964 -0
 Dispersivity x [L]         :  0.993  0.951  0.945  0.870 -0.959 -0.988  0.999  0.985 -0.970  1.000  1.000  1.000
 Dispersivity y [L]         :  0.996  0.942  0.936  0.855 -0.952 -0.983  0.998  0.989 -0.976  1.000  1.000  0.999
 Dispersivity z [L]         :  0.992  0.952  0.947  0.873 -0.959 -0.988  0.998  0.983 -0.969  1.000  0.999  1.000
-Correlation matrix stored (example/contamination/s01-multi_source.correlation)
+Correlation matrix stored (./examples/contamination/s01-multi_source.correlation)
 
 Eigenvectors (sorted by absolute values of eigenvalues)
 Source x coordinate [L] #1 :  0.876 -0.268  0.222 -0.033 -0.217 -0.106 -0.042  0.160 -0.091 -0.000  0.129  0.000
@@ -412,7 +412,7 @@ Dispersivity x [L]         : -0.001 -0.080  0.050 -0.454 -0.065 -0.045 -0.379 -0
 Dispersivity y [L]         : -0.001  0.011  0.085  0.210 -0.070 -0.006  0.780 -0.451 -0.154 -0.179  0.276  0.000
 Dispersivity z [L]         : -0.001  0.015  0.063  0.245 -0.150  0.203 -0.380  0.049 -0.733 -0.317  0.296  0.000
 Eigenvalues                : -3e+02  1e-08  4e-07  2e-05  4e-05  1e-04  6e-04  3e-02  1e-01  6e+01  4e+03  2e+18
-Eigen vectors and eigen values stored (example/contamination/s01-multi_source.eigen)
+Eigen vectors and eigen values stored (./examples/contamination/s01-multi_source.eigen)
 
 Number of parameters           : 12
 Number of observations         : 20
@@ -526,6 +526,6 @@ Simulation time = 0 seconds
 Functional evaluations = 131
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Fri Aug  1 10:25:15 2014
-Execution completed on Fri Aug  1 10:25:15 2014
-Execution date & time stamp: 20140801-102515
+Execution  started  on Sun Sep  7 10:02:20 2014
+Execution completed on Sun Sep  7 10:02:20 2014
+Execution date & time stamp: 20140907-100220
