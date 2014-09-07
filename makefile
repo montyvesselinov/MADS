@@ -68,7 +68,7 @@ ifndef YAML
 YAML = true
 endif
 # Support for XML input files
-ifdef XML
+ifndef XML
 XML = true
 endif
 
