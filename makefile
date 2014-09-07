@@ -31,21 +31,33 @@
 SRC = ./src
 OBJ = ./obj
 BIN = ./bin
+OBJ_DIR ?= $(OBJ)/Release
+ifeq ($(MAKECMDGOALS),debug)
+    OBJ_DIR = $(OBJ)/Debug
+else
+    ifeq ($(MAKECMDGOALS),lib)
+	OBJ_DIR = $(OBJ)/Lib
+    endif
+endif
 EXAMPLES = ./examples
 MADS = $(BIN)/Release/mads
 MADS_DEBUG = $(BIN)/Debug/mads
-MADS_LIB = $(BIN)/lib/libmads.so.1.1.14
+MADS_LIB = $(BIN)/Lib/libmads.so.1.1.14
 WELLS = $(BIN)/wells
+
 CMP = ./scripts/compare-results # MADS testing
+# CMP = cp -f # Save current results for future testing DANGEROUS!
+
 OUTPUT = > /dev/null
 # OUTPUT = mads-debug-output
 # OUTPUT =
+
 DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
 DBG = gdb --args
 DBG =
+
 VER = $(shell git rev-parse --short HEAD)
 GIT_STATUS = $(shell scripts/check_git_status)
-# CMP = cp -f # Save current results for future testing DANGEROUS!
 
 # MathEval required to evaluate expression for tied parameters and regularization terms
 ifndef MATHEVAL
@@ -70,7 +82,9 @@ $(info MADS computationlal framework)
 $(info Version -- $(VER)$(GIT_STATUS))
 $(info ----------------------------------------------------------------------)
 $(info OS type -- $(OS))
-$(info Machine -- $(ND) $(SRC))
+$(info Machine -- $(ND))
+$(info Target  -- $(MAKECMDGOALS) $(OBJ_DIR))
+
 CC = gcc
 CPP = g++
 CFLAGS = -Wall -O1 -Winit-self
@@ -172,33 +186,37 @@ OBJ_WELLS = $(addsuffix .o,$(basename $(SRC_WELLS)))
 
 all: mads wells
 
-OBJ_DIR = $(OBJ)/Release
 mads: $(MADS)
-	@echo "MADS built!"
+	@echo "MADS Release Version built!"
 
 wells: $(WELLS)
 	@echo "WELLS built!"
 
-release: OBJ_DIR = $(OBJ)/Release
-
 release: $(MADS)
-	@echo "MADS built!"
+	@echo "MADS Release Version built!"
 
-debug: OBJ_DIR = $(OBJ)/Debug
 debug: CFLAGS += -g
 debug: $(MADS_DEBUG)
+	@echo "MADS Debug Version built!"
 
-lib: OBJ_DIR = $(OBJ)/Lib
 lib: CFLAGS += -fPIC
 lib: $(MADS_LIB)
-
-$(MADS_LIB): $(OBJECTS_LIB)
-	gcc -shared -Wl,-$(SONAME),libmads.so.1 -o $(MADS_LIB) $(OBJECTS_LIB) -lc $(LDLIBS)
+	@echo "MADS Shared Library built!"
 
 $(MADS): $(OBJECTS_RELEASE)
-	@echo "Linking MADS Release Version ..."
+	@echo "Building MADS Release Version ..."
 	@mkdir -p $(dir $@)
 	$(CC) $(OBJECTS_RELEASE) $(LDLIBS) -o $@
+
+$(MADS_DEBUG): $(OBJECTS_DEBUG)
+	@echo "Building MADS Debug Version ..."
+	@mkdir -p $(dir $@)
+	$(CC) $(OBJECTS_DEBUG) $(LDLIBS) -o $@
+
+$(MADS_LIB): $(OBJECTS_LIB)
+	@echo "Building MADS Shared Library ..."
+	@mkdir -p $(dir $@)
+	gcc -shared -Wl,-$(SONAME),libmads.so.1 -o $(MADS_LIB) $(OBJECTS_LIB) -lc $(LDLIBS)
 
 $(WELLS): $(OBJ_WELLS)
 	$(CC) $(LDFLAGS) $< -o $@
@@ -273,14 +291,13 @@ $(OBJ_DIR)/bayes/dream.o: $(SRC)/bayes/dream.cpp $(SRC)/bayes/dream.h $(SRC)/mad
 	@mkdir -p $(dir $@)
 	$(CPP) $(CFLAGS) -c -o $(OBJ_DIR)/bayes/dream.o $(SRC)/bayes/dream.cpp -l$(OBJ_DIR)/misc/astable/interpolation.o
 
-
 ## Colordefinition
 NO_COLOR    = \x1b[0m
 OK_COLOR    = \x1b[32;01m
 WARN_COLOR  = \x1b[33;01m
 ERROR_COLOR = \x1b[31;01m
 
-examples:
+examples: mads wells
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "Example 1: Internal Rosenbrock Problem"
@@ -306,13 +323,17 @@ examples:
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 
-verify: verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-external-short verify-external-short2 verify-parallel verify-forward verify-sa
+verify: mads wells verify-start verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-external-short verify-external-short2 verify-parallel verify-forward verify-sa
 	@echo "$(OK_COLOR)"
 	@echo VERIFICATION DONE
 	@echo "$(NO_COLOR)"
 
+verify-start:
+	@echo "$(OK_COLOR)"
+	@echo VERIFICATION STARTING ...
+	@echo "$(NO_COLOR)"
 
-verify-internal:
+verify-internal: mads
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Internal test problems "
@@ -347,7 +368,7 @@ verify-internal:
 	@echo "**************************************************************************************"
 	@echo "TEST 1: DONE"
 
-verify-multistart1:
+verify-multistart1: mads
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Multistart (paranoid) problems "
@@ -372,7 +393,7 @@ verify-multistart1:
 	@echo "TEST 2: DONE"
 	@echo "$(NO_COLOR)"
 
-verify-contaminant:
+verify-contaminant: mads
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Internal contaminant transport problems "
@@ -452,7 +473,7 @@ verify-contaminant:
 	@echo "$(NO_COLOR)"
 	@echo "$(NO_COLOR)"
 
-verify-multistart2:
+verify-multistart2: mads
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Internal contaminant transport problems "
@@ -489,7 +510,7 @@ verify-multistart2:
 	@echo "$(NO_COLOR)"
 	@echo "$(NO_COLOR)"
 
-verify-external:
+verify-external: mads wells
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " External problems "
@@ -506,7 +527,7 @@ verify-external:
 	@echo "TEST 5: DONE"
 	@echo "$(NO_COLOR)"
 
-verify-external-short:
+verify-external-short: mads wells
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " External problems "
@@ -553,7 +574,7 @@ verify-external-short:
 	@echo "TEST 6: DONE"
 	@echo "$(OK_COLOR)"
 
-verify-external-short2:
+verify-external-short2: mads wells
 	@echo "**************************************************************************************"
 	@echo " External problems "
 	@echo "**************************************************************************************"
@@ -581,7 +602,7 @@ verify-external-short2:
 	@echo "TEST 7: DONE"
 	@echo "$(NO_COLOR)"
 
-verify-parallel:
+verify-parallel: mads wells
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Parallel execution of external problems "
@@ -604,7 +625,7 @@ verify-parallel:
 	@echo "TEST 8: DONE"
 	@echo "$(NO_COLOR)"
 
-verify-forward:
+verify-forward: mads
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Forward analytical contaminant modeling "
@@ -677,7 +698,7 @@ verify-forward:
 	@echo "TEST 9: DONE"
 	@echo "$(NO_COLOR)"
 
-verify-sa:
+verify-sa: mads wells
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Sensitivity analyses "
@@ -722,9 +743,9 @@ astyle:
 	astyle $(SOURCESTYLE)
 	rm -f $(SOURCESTYLEDEL)
 
-tar:
+tar: astyle
 	rm -f mads.git.tgz
 	tar -cvzf mads.git.tgz `git ls-files` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'` .git
 
-tarf:
+tarf: astyle
 	tar -cvzf mads.tgz `git ls-files` `find . \( -name "*.[ch]" -o -name "[Mm]akef*" -name "[Rr]eadme" \) -print | sed 's/\.\///'`
