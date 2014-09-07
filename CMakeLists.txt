@@ -1,15 +1,34 @@
-cmake_minimum_required (VERSION 2.6)
+# -*- mode: cmake -*-
+# MADS
+cmake_minimum_required (VERSION 2.8)
+enable_testing()
 project (mads)
+set(MADS_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH  ${MADS_MODULE_PATH})
 
-# brain dump below
-#TODO ascem/agni/Toolsets/tpls/cmake/*cmake may be an useful start
+find_package(LAPACK)
+find_package(BLAS)
+find_package(PkgConfig)
 
+# check to use if using GSL
+if (USE_GSL)
+    add_definitions(-DUSE_GSL)
+    set(TPL_LIBS ${TPL_LIBS}
+	gsl
+	gslcblas)
+endif (USE_GSL)
+
+find_package(LAPACK)
+find_package(BLAS)
+find_package(PkgConfig)
+
+set(CMAKE_CXX_FLAGS "-g -Wall")
 
 include(CheckLibraryExists)
 check_library_exists(dl dlopen "" LIBDL_FOUND)
 
-include(CheckTagLibFileName)
 
+include(CheckTagLibFileName)
 add_subdirectory (lm)
 add_subdirectory (lhs)
 add_subdirectory (misc)
@@ -132,6 +151,7 @@ include(ExternalProject)
 # Set default ExternalProject root directory
 set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/ThirdParty)
  
+# Add libXML2
 ExternalProject_Add(
     libxml2
     DEPENDS zlib
@@ -179,11 +199,6 @@ ExternalProject_Get_Property(googlemock binary_dir)
 target_link_libraries(MainTest
 debug ${binary_dir}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${CMAKE_FIND_LIBRARY_SUFFIXES}
 optimized ${binary_dir}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${CMAKE_FIND_LIBRARY_SUFFIXES})
-
-add_revision(liblas
-  GIT_REPOSITORY "https://github.com/libLAS/libLAS.git"
-  GIT_TAG 1.7.0
-)
 
 add_revision(libxml2
   GIT_REPOSITORY "https://git.gnome.org/browse/libxml2"

@@ -4,7 +4,7 @@ status=$?
 if test $status -ne 0
 then
     echo "+uncommitted"
-    grep -q "uncommitted" mads_gitversion.c
+    grep -q "uncommitted" src/mads_gitversion.c
     status=$?
     if test $status -ne 0
     then

@@ -3,9 +3,9 @@
 # Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
 # Dan O'Malley, omalled@lanl.gov
 #
-# http://mads.lanl.gov
-# http://www.ees.lanl.gov/staff/monty/codes/mads
-# http://gitlab.com/monty/mads
+# http:./$(MADS).lanl.gov
+# http://www.ees.lanl.gov/staff/monty/code./$(MADS)
+# http://gitlab.com/mont./$(MADS)
 #
 # Licensing: GPLv3: http:#www.gnu.org/licenses/gpl-3.0.html
 #
@@ -19,7 +19,7 @@
 # prepare derivative works, and perform publicly and display publicly. Beginning five (5) years after
 # --------------- March 11, 2011, -------------------------------------------------------------------
 # subject to additional five-year worldwide renewals, the Government is granted for itself and
-# others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in this
+# others acting on its behalf a paid-up, nonexclusive, irrevocable worldwide license in thisDS
 # material to reproduce, prepare derivative works, distribute copies to the public, perform
 # publicly and display publicly, and to permit others to do so.
 #
@@ -28,9 +28,15 @@
 # RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
 # PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
-MADS = mads
-WELLS = wells/wells
-CMP = ./compare-results # MADS testing
+SRC = ./src
+OBJ = ./obj
+BIN = ./bin
+EXAMPLES = ./examples
+MADS = $(BIN)/Release/mads
+MADS_DEBUG = $(BIN)/Debug/mads
+MADS_LIB = $(BIN)/lib/libmads.so.1.1.14
+WELLS = $(BIN)/wells
+CMP = ./scripts/compare-results # MADS testing
 OUTPUT = > /dev/null
 # OUTPUT = mads-debug-output
 # OUTPUT =
@@ -38,7 +44,7 @@ DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-ch
 DBG = gdb --args
 DBG =
 VER = $(shell git rev-parse --short HEAD)
-GIT_STATUS = $(shell check_git_status)
+GIT_STATUS = $(shell scripts/check_git_status)
 # CMP = cp -f # Save current results for future testing DANGEROUS!
 
 # MathEval required to evaluate expression for tied parameters and regularization terms
@@ -62,10 +68,11 @@ ND = $(shell uname -n)
 # Compilation setup
 $(info MADS computationlal framework)
 $(info Version -- $(VER)$(GIT_STATUS))
-$(info -----------------------------)
+$(info ----------------------------------------------------------------------)
 $(info OS type -- $(OS))
-$(info Machine -- $(ND))
+$(info Machine -- $(ND) $(SRC))
 CC = gcc
+CPP = g++
 CFLAGS = -Wall -O1 -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
 SONAME = soname
@@ -120,106 +127,152 @@ endif
 endif
 
 # MADS files
-OBJSMADS = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o mads_gitversion.o
-OBJSMADSSTYLE = ./mads.o ./mads_io.o ./mads_io_external.o ./mads_func.o ./mads_mem.o ./mads_info.o lm/opt_lm_mon.o lm/opt_lm_gsl.o lm/lu.o lm/opt_lm_ch.o misc/test_problems.o misc/anasol_contamination.o misc/io.o lhs/lhs.o
-OBJSPSO = pso/pso-tribes-lm.o pso/Standard_PSO_2006.o pso/mopso.o
-OBJSA = sa/abagus.o sa/postpua.o sa/global.o sa/do_miser.o
-OBJDS = ds/infogap.o ds/glue.o
-OBJSMPUN = mprun/mprun.o mprun/mprun_io.o
-OBJSKDTREE = misc/kdtree-0.5.5/kdtree.o
-OBJSLEVMAR = misc/levmar-2.5/lm_m.o misc/levmar-2.5/Axb.o misc/levmar-2.5/misc.o misc/levmar-2.5/lmlec.o misc/levmar-2.5/lmbc.o misc/levmar-2.5/lmblec.o misc/levmar-2.5/lmbleic.o 
-OBJSlEVMARSTYLE = misc/levmar-2.5/lm_m.o misc/levmar-2.5/lm_core_m.o misc/levmar-2.5/Axb.o misc/levmar-2.5/misc.o misc/levmar-2.5/lmlec.o misc/levmar-2.5/lmbc.o misc/levmar-2.5/lmblec.o misc/levmar-2.5/lmbleic.o 
-OBJSASTABLE = misc/astable/astable.o misc/astable/interpolation.o misc/astable/pqueue.o
-OBJSBAYES = bayes/dream.o
-OBJWELLS = wells/wells.o
+SRC_MADS = $(SRC)/mads.c $(SRC)/mads_io.c $(SRC)/mads_io_external.c $(SRC)/mads_func.c $(SRC)/mads_mem.c $(SRC)/mads_info.c $(SRC)/lm/opt_lm_mon.c $(SRC)/lm/opt_lm_gsl.c $(SRC)/lm/lu.c $(SRC)/lm/opt_lm_ch.c $(SRC)/misc/test_problems.c $(SRC)/misc/anasol_contamination.c $(SRC)/misc/io.c $(SRC)/lhs/lhs.c $(SRC)/mads_gitversion.c
+SRC_MADSSTYLE = $(SRC)/mads.c $(SRC)/mads_io.c $(SRC)/mads_io_external.c $(SRC)/mads_func.c $(SRC)/mads_mem.c $(SRC)/mads_info.c $(SRC)/lm/opt_lm_mon.c $(SRC)/lm/opt_lm_gsl.c $(SRC)/lm/lu.c $(SRC)/lm/opt_lm_ch.c $(SRC)/misc/test_problems.c $(SRC)/misc/anasol_contamination.c $(SRC)/misc/io.c $(SRC)/lhs/lhs.c
+SRC_PSO = $(SRC)/pso/pso-tribes-lm.c $(SRC)/pso/Standard_PSO_2006.c $(SRC)/pso/mopso.c
+SRC_SA = $(SRC)/sa/abagus.c $(SRC)/sa/postpua.c $(SRC)/sa/global.c $(SRC)/sa/do_miser.c
+SRC_DS = $(SRC)/ds/infogap.c $(SRC)/ds/glue.c
+SRC_MPUN = $(SRC)/mprun/mprun.c $(SRC)/mprun/mprun_io.c
+SRC_KDTREE = $(SRC)/misc/kdtree-0.5.5/kdtree.c
+SRC_LEVMAR = $(SRC)/misc/levmar-2.5/lm_m.c $(SRC)/misc/levmar-2.5/Axb.c $(SRC)/misc/levmar-2.5/misc.c $(SRC)/misc/levmar-2.5/lmlec.c $(SRC)/misc/levmar-2.5/lmbc.c $(SRC)/misc/levmar-2.5/lmblec.c $(SRC)/misc/levmar-2.5/lmbleic.c 
+SRC_LEVMARSTYLE = $(SRC)/misc/levmar-2.5/lm_m.c $(SRC)/misc/levmar-2.5/lm_core_m.c $(SRC)/misc/levmar-2.5/Axb.c $(SRC)/misc/levmar-2.5/misc.c $(SRC)/misc/levmar-2.5/lmlec.c $(SRC)/misc/levmar-2.5/lmbc.c $(SRC)/misc/levmar-2.5/lmblec.c $(SRC)/misc/levmar-2.5/lmbleic.c 
+SRC_ASTABLE = $(SRC)/misc/astable/astable.c $(SRC)/misc/astable/interpolation.c $(SRC)/misc/astable/pqueue.c
+SRC_BAYES = $(SRC)/bayes/dream.cpp
+SRC_WELLS = wells/wells.c
 
 ifeq ($(YAML),true)
-$(info YAML Support included)
-OBJSMADS += ./mads_io_yaml.o
-CFLAGS += -DMADS_YAML `pkg-config --cflags glib-2.0`
-LDLIBS += -lyaml `pkg-config --libs glib-2.0`
+    $(info YAML Support included)
+    SRC_MADS += $(SRC)/mads_io_yaml.c
+    CFLAGS += -DMADS_YAML `pkg-config --cflags glib-2.0`
+    LDLIBS += -lyaml `pkg-config --libs glib-2.0`
 endif
 
 ifeq ($(XML),true)
     $(info XML Support included)
-    OBJSMADS += ./mads_io_xml.o
+    SRC_MADS += $(SRC)/mads_io_xml.c
     CFLAGS += -DMADS_XML
     LDLIBS += `xml2-config --libs`
 endif
 
 ifeq ($(MATHEVAL),true)
-$(info MathEval Support included)
-CFLAGS += -DMATHEVAL
-LDLIBS += -lmatheval
+    $(info MathEval Support included)
+    CFLAGS += -DMATHEVAL
+    LDLIBS += -lmatheval
 endif
+$(info ----------------------------------------------------------------------)
 
-OBJECTS = $(OBJSMADS) $(OBJSPSO) $(OBJSMPUN) $(OBJSA) $(OBJDS) $(OBJSLEVMAR) $(OBJSKDTREE) $(OBJSASTABLE) $(OBJSBAYES)
-SOURCE = $(OBJSMADS:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMAR:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
-SOURCESTYLE = $(OBJSMADSSTYLE:%.o=%.c) $(OBJSPSO:%.o=%.c) $(OBJSMPUN:%.o=%.c) $(OBJSA:%.o=%.c) $(OBJDS:%.o=%.c) $(OBJSLEVMARSTYLE:%.o=%.c) $(OBJSKDTREE:%.o=%.c) $(OBJSASTABLE:%.o=%.c) $(OBJSBAYES:%.o=%.cpp)
-SOURCESTYLEDEL = $(OBJSMADSSTYLE:%.o=%.c.orig) $(OBJSPSO:%.o=%.c.orig) $(OBJSMPUN:%.o=%.c.orig) $(OBJSA:%.o=%.c.orig) $(OBJDS:%.o=%.c.orig) $(OBJSLEVMARSTYLE:%.o=%.c.orig) $(OBJSKDTREE:%.o=%.c.orig) $(OBJSASTABLE:%.o=%.c.orig) $(OBJSBAYES:%.o=%.cpp.orig)
+SOURCES = $(SRC_MADS) $(SRC_PSO) $(SRC_MPUN) $(SRC_SA) $(SRC_DS) $(SRC_LEVMAR) $(SRC_KDTREE) $(SRC_ASTABLE) $(SRC_BAYES)
+SOURCESTYLE = $(SRC_MADSSTYLE) $(SRC_PSO) $(SRC_MPUN) $(SRC_SA) $(SRC_DS) $(SRC_LEVMARSTYLE) $(SRC_KDTREE) $(SRC_ASTABLE) $(SRC_BAYES)
+SOURCESTYLEDEL = $(addsuffix .orig,$(SOURCESTYLE))
+OBJECTS = $(addsuffix .o,$(basename $(SOURCES)))
+OBJECTS_RELEASE = $(patsubst $(SRC)/%,$(OBJ)/Release/%,$(OBJECTS))
+OBJECTS_DEBUG = $(patsubst $(SRC)/%,$(OBJ)/Debug/%,$(OBJECTS))
+OBJECTS_LIB = $(patsubst $(SRC)/%,$(OBJ)/Lib/%,$(OBJECTS))
+OBJ_WELLS = $(addsuffix .o,$(basename $(SRC_WELLS)))
 
-all: $(MADS) $(WELLS)
+all: mads wells
+
+OBJ_DIR = $(OBJ)/Release
+mads: $(MADS)
+	@echo "MADS built!"
+
+wells: $(WELLS)
+	@echo "WELLS built!"
+
+release: OBJ_DIR = $(OBJ)/Release
 
 release: $(MADS)
+	@echo "MADS built!"
 
+debug: OBJ_DIR = $(OBJ)/Debug
 debug: CFLAGS += -g
-debug: $(MADS)
+debug: $(MADS_DEBUG)
 
+lib: OBJ_DIR = $(OBJ)/Lib
 lib: CFLAGS += -fPIC
-lib: $(OBJECTS)
-	gcc -shared -Wl,-$(SONAME),libmads.so.1 -o libmads.so.1.0.1 $(OBJECTS) -lc $(LDLIBS)
+lib: $(MADS_LIB)
 
-$(MADS): $(OBJECTS)
+$(MADS_LIB): $(OBJECTS_LIB)
+	gcc -shared -Wl,-$(SONAME),libmads.so.1 -o $(MADS_LIB) $(OBJECTS_LIB) -lc $(LDLIBS)
 
-$(WELLS): $(OBJWELLS)
+$(MADS): $(OBJECTS_RELEASE)
+	@echo "Linking MADS Release Version ..."
+	@mkdir -p $(dir $@)
+	$(CC) $(OBJECTS_RELEASE) $(LDLIBS) -o $@
 
-clean:
-	rm -f $(MADS) $(WELLS) $(OBJECTS)
+$(WELLS): $(OBJ_WELLS)
+	$(CC) $(LDFLAGS) $< -o $@
 
-mads_gitversion.c: .git/HEAD .git/index
+$(OBJ_WELLS): $(SRC_WELLS)
+	@echo "Building WELLS ..."
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean clean-release:
+	rm -f $(MADS) $(OBJECTS_RELEASE)
+
+clean-debug:
+	rm -f $(MADS_DEBUG) $(OBJECTS_DEBUG)
+
+clean-lib:
+	rm -f $(MADS_LIB) $(OBJECTS_LIB)
+
+clean-wells:
+	rm -f $(WELLS) $(OBJ_WELLS)
+
+clean-all: clean-release clean-debug clean-lib clean-wells clean-examples
+	rm -fR $(OBJ)/*
+	rm -fR $(BIN)/*
+
+$(SRC)/mads_gitversion.c: .git/HEAD .git/index
 	@echo "const char *gitversion = \"$(VER)$(GIT_STATUS)\";" > $@
 
-mads.o: mads.c mads.h misc/levmar-2.5/levmar.h mads_gitversion.c
-mads_io.o: mads_io.c mads.h
-mads_io_yaml.o: mads_io_yaml.c mads.h
-mads_io_external.o: mads_io_external.c mads.h
-mads_func.o: mads_func.c mads.h
-mads_mem.o: mads_mem.c
-mads_info.o: mads_info.c
-mprun/mprun.o: mprun/mprun.c mads.h
-mprun/mprun_io.o: mprun/mprun_io.c mads.h
-lm/opt_lm_mon.o: lm/opt_lm_mon.c mads.h
-lm/opt_lm_gsl.o: lm/opt_lm_gsl.c mads.h
-lm/opt_lm_ch.o: lm/opt_lm_gsl.c mads.h
-lhs/lhs.o: lhs/lhs.c
-pso/pso-tribes-lm.o: pso/pso-tribes-lm.c pso/pso.h mads.h
-pso/Standard_PSO_2006.o: pso/Standard_PSO_2006.c mads.h
-pso/mopso.o: pso/mopso.c pso/mopso.h
-sa/abagus.o: sa/abagus.c mads.h misc/kdtree-0.5.5/kdtree.o
-sa/postpua.o: sa/postpua.c mads.h
-sa/global.o: sa/global.c mads.h sa/do_miser.o
-sa/do_miser.o: sa/do_miser.c sa/do_miser.h
-ds/infogap.o: ds/infogap.c mads.h
-ds/glue.o: ds/glue.c mads.h
-misc/anasol_contamination.o: misc/anasol_contamination.c mads.h
-misc/test_problems.o: misc/test_problems.c mads.h
-misc/kdtree-0.5.5/kdtree.o: misc/kdtree-0.5.5/kdtree.c misc/kdtree-0.5.5/kdtree.h
-misc/levmar-2.5/lm_m.o: misc/levmar-2.5/lm_m.c misc/levmar-2.5/lm_core_m.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h misc/levmar-2.5/compiler.h mads.h
-misc/levmar-2.5/Axb.o: misc/levmar-2.5/Axb.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
-misc/levmar-2.5/misc.o: misc/levmar-2.5/misc.c misc/levmar-2.5/misc_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
-misc/levmar-2.5/lmlec.o: misc/levmar-2.5/lmlec.c misc/levmar-2.5/lmlec_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
-misc/levmar-2.5/lmbc.o: misc/levmar-2.5/lmbc.c misc/levmar-2.5/lmbc_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h misc/levmar-2.5/compiler.h
-misc/levmar-2.5/lmblec.o: misc/levmar-2.5/lmblec.c misc/levmar-2.5/lmblec_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
-misc/levmar-2.5/lmbleic.o: misc/levmar-2.5/lmbleic.c misc/levmar-2.5/lmbleic_core.c misc/levmar-2.5/levmar.h misc/levmar-2.5/misc.h
-misc/astable/astable.o: misc/astable/astable.c misc/astable/astable.h
-misc/astable/interpolation.o: misc/astable/astable.c misc/astable/astable.h misc/astable/interpolation.c misc/astable/pqueue.c misc/astable/pqueue.h
-misc/astable/pqueue.o: misc/astable/pqueue.c misc/astable/pqueue.h
-wells/wells.o: wells/wells.c wells/design.h wells/wells.h
-bayes/dream.o: bayes/dream.cpp bayes/dream.h mads.h misc/astable/interpolation.o
-	g++ $(CFLAGS) -c -o bayes/dream.o bayes/dream.cpp -lmisc/astable/interpolation.o
+$(OBJ_DIR)/%.o: $(SRC)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(info -----------------------------)
-$(info MADS testing and verification)
+$(OBJ_DIR)/mads.o: $(SRC)/mads.c $(SRC)/mads.h $(SRC)/misc/levmar-2.5/levmar.h $(SRC)/mads_gitversion.c
+$(OBJ_DIR)/mads_io.o: $(SRC)/mads_io.c $(SRC)/mads.h
+$(OBJ_DIR)/mads_io_yaml.o: $(SRC)/mads_io_yaml.c $(SRC)/mads.h
+$(OBJ_DIR)/mads_io_external.o: $(SRC)/mads_io_external.c $(SRC)/mads.h
+$(OBJ_DIR)/mads_func.o: $(SRC)/mads_func.c $(SRC)/mads.h
+$(OBJ_DIR)/mads_mem.o: $(SRC)/mads_mem.c
+$(OBJ_DIR)/mads_info.o: $(SRC)/mads_info.c
+$(OBJ_DIR)/mads_gitversion.o: $(SRC)/mads_gitversion.c
+$(OBJ_DIR)/mprun/mprun.o: $(SRC)/mprun/mprun.c $(SRC)/mads.h
+$(OBJ_DIR)/mprun/mprun_io.o: $(SRC)/mprun/mprun_io.c $(SRC)/mads.h
+$(OBJ_DIR)/lm/opt_lm_mon.o: $(SRC)/lm/opt_lm_mon.c $(SRC)/mads.h
+$(OBJ_DIR)/lm/opt_lm_gsl.o: $(SRC)/lm/opt_lm_gsl.c $(SRC)/mads.h
+$(OBJ_DIR)/lm/opt_lm_ch.o: $(SRC)/lm/opt_lm_gsl.c $(SRC)/mads.h
+$(OBJ_DIR)/lm/lu.o: $(SRC)/lm/lu.c
+$(OBJ_DIR)/lhs/lhs.o: $(SRC)/lhs/lhs.c
+$(OBJ_DIR)/pso/pso-tribes-lm.o: $(SRC)/pso/pso-tribes-lm.c $(SRC)/pso/pso.h $(SRC)/mads.h
+$(OBJ_DIR)/pso/Standard_PSO_2006.o: $(SRC)/pso/Standard_PSO_2006.c $(SRC)/mads.h
+$(OBJ_DIR)/pso/mopso.o: $(SRC)/pso/mopso.c $(SRC)/pso/mopso.h
+$(OBJ_DIR)/sa/abagus.o: $(SRC)/sa/abagus.c $(SRC)/mads.h $(SRC)/misc/kdtree-0.5.5/kdtree.o
+$(OBJ_DIR)/sa/postpua.o: $(SRC)/sa/postpua.c $(SRC)/mads.h
+$(OBJ_DIR)/sa/global.o: $(SRC)/sa/global.c $(SRC)/mads.h $(SRC)/sa/do_miser.o
+$(OBJ_DIR)/sa/do_miser.o: $(SRC)/sa/do_miser.c $(SRC)/sa/do_miser.h
+$(OBJ_DIR)/ds/infogap.o: $(SRC)/ds/infogap.c $(SRC)/mads.h
+$(OBJ_DIR)/ds/glue.o: $(SRC)/ds/glue.c $(SRC)/mads.h
+$(OBJ_DIR)/misc/io.o: $(SRC)/misc/io.c
+$(OBJ_DIR)/misc/anasol_contamination.o: $(SRC)/misc/anasol_contamination.c $(SRC)/mads.h
+$(OBJ_DIR)/misc/test_problems.o: $(SRC)/misc/test_problems.c $(SRC)/mads.h
+$(OBJ_DIR)/misc/kdtree-0.5.5/kdtree.o: $(SRC)/misc/kdtree-0.5.5/kdtree.c $(SRC)/misc/kdtree-0.5.5/kdtree.h
+$(OBJ_DIR)/misc/levmar-2.5/lm_m.o: $(SRC)/misc/levmar-2.5/lm_m.c $(SRC)/misc/levmar-2.5/lm_core_m.c $(SRC)/misc/levmar-2.5/levmar.h $(SRC)/misc/levmar-2.5/misc.h $(SRC)/misc/levmar-2.5/compiler.h $(SRC)/mads.h
+$(OBJ_DIR)/misc/levmar-2.5/Axb.o: $(SRC)/misc/levmar-2.5/Axb.c $(SRC)/misc/levmar-2.5/levmar.h $(SRC)/misc/levmar-2.5/misc.h
+$(OBJ_DIR)/misc/levmar-2.5/misc.o: $(SRC)/misc/levmar-2.5/misc.c $(SRC)/misc/levmar-2.5/misc_core.c $(SRC)/misc/levmar-2.5/levmar.h $(SRC)/misc/levmar-2.5/misc.h
+$(OBJ_DIR)/misc/levmar-2.5/lmlec.o: $(SRC)/misc/levmar-2.5/lmlec.c $(SRC)/misc/levmar-2.5/lmlec_core.c $(SRC)/misc/levmar-2.5/levmar.h $(SRC)/misc/levmar-2.5/misc.h
+$(OBJ_DIR)/misc/levmar-2.5/lmbc.o: $(SRC)/misc/levmar-2.5/lmbc.c $(SRC)/misc/levmar-2.5/lmbc_core.c $(SRC)/misc/levmar-2.5/levmar.h $(SRC)/misc/levmar-2.5/misc.h $(SRC)/misc/levmar-2.5/compiler.h
+$(OBJ_DIR)/misc/levmar-2.5/lmblec.o: $(SRC)/misc/levmar-2.5/lmblec.c $(SRC)/misc/levmar-2.5/lmblec_core.c $(SRC)/misc/levmar-2.5/levmar.h $(SRC)/misc/levmar-2.5/misc.h
+$(OBJ_DIR)/misc/levmar-2.5/lmbleic.o: $(SRC)/misc/levmar-2.5/lmbleic.c $(SRC)/misc/levmar-2.5/lmbleic_core.c $(SRC)/misc/levmar-2.5/levmar.h $(SRC)/misc/levmar-2.5/misc.h
+$(OBJ_DIR)/misc/astable/astable.o: $(SRC)/misc/astable/astable.c $(SRC)/misc/astable/astable.h
+$(OBJ_DIR)/misc/astable/interpolation.o: $(SRC)/misc/astable/astable.c $(SRC)/misc/astable/astable.h $(SRC)/misc/astable/interpolation.c $(SRC)/misc/astable/pqueue.c $(SRC)/misc/astable/pqueue.h
+$(OBJ_DIR)/misc/astable/pqueue.o: $(SRC)/misc/astable/pqueue.c $(SRC)/misc/astable/pqueue.h
+$(OBJ_DIR)/wells/wells.o: $(SRC)/wells/wells.c $(SRC)/wells/design.h $(SRC)/wells/wells.h
+$(OBJ_DIR)/bayes/dream.o: $(SRC)/bayes/dream.cpp $(SRC)/bayes/dream.h $(SRC)/mads.h $(SRC)/misc/astable/interpolation.o
+	@mkdir -p $(dir $@)
+	$(CPP) $(CFLAGS) -c -o $(OBJ_DIR)/bayes/dream.o $(SRC)/bayes/dream.cpp -l$(OBJ_DIR)/misc/astable/interpolation.o
+
 
 ## Colordefinition
 NO_COLOR    = \x1b[0m
@@ -233,7 +286,7 @@ examples:
 	@echo "Example 1: Internal Rosenbrock Problem"
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
-	cd example/rosenbrock; ../../mads a01 test=3 opt=pso igrnd real=1
+	cd $(EXAMPLES)/rosenbrock; ../../$(MADS) a01 test=3 opt=pso igrnd real=1
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "Example 1: DONE"
@@ -244,9 +297,9 @@ examples:
 	@echo "Example 2: Internal contamination Problem "
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
-	mads example/contamination/s01 ldebug
-	@echo "Example problem example/wells/w01 ..."
-	cd example/wells; ../../mads w01 lmeigen
+	mads $(EXAMPLES)/contamination/s01 ldebug
+	@echo "Example problem $(EXAMPLES)/wells/w01 ..."
+	cd $(EXAMPLES)/wells; ../../$(MADS) w01 lmeigen
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "Example 2: DONE"
@@ -267,29 +320,29 @@ verify-internal:
 	@echo "$(NO_COLOR)"
 	@echo "TEST 1: Rosenbrock problem using different optimization techniques ..."
 	@echo "TEST 1.1: Levenberg-Marquardt ... "
-	rm -f example/rosenbrock/a01.mads_output example/rosenbrock/a01.results example/rosenbrock/a01.running
-	cd example/rosenbrock; $(DBG) ../../mads a01 test=3 opt=lm lmeigen igrnd real=1 seed=2096575428 $(OUTPUT)
+	rm -f $(EXAMPLES)/rosenbrock/a01.mads_output $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.running
+	cd $(EXAMPLES)/rosenbrock; $(DBG) ../../$(MADS) a01 test=3 opt=lm lmeigen igrnd real=1 seed=2096575428 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/rosenbrock/a01.mads_output example/rosenbrock/a01.mads_output-lm-$(OS)-correct
-	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-lm-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/a01.mads_output $(EXAMPLES)/rosenbrock/a01.mads_output-lm-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.results-lm-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 1.2: Particle-Swarm ..."
-	rm -f example/rosenbrock/a01.results example/rosenbrock/a01.running
-	cd example/rosenbrock; $(DBG) ../../mads a01 test=3 opt=pso igrnd real=1 seed=2096575428 $(OUTPUT)
+	rm -f $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.running
+	cd $(EXAMPLES)/rosenbrock; $(DBG) ../../$(MADS) a01 test=3 opt=pso igrnd real=1 seed=2096575428 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-pso-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.results-pso-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 1.3: TRIBES ..."
-	rm -f example/rosenbrock/a01.results example/rosenbrock/a01.running
-	cd example/rosenbrock; $(DBG) ../../mads a01 test=3 opt=tribes igrnd real=1 seed=2096575428 $(OUTPUT)
+	rm -f $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.running
+	cd $(EXAMPLES)/rosenbrock; $(DBG) ../../$(MADS) a01 test=3 opt=tribes igrnd real=1 seed=2096575428 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-tribes-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.results-tribes-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 1.4: SQUADS ..."
-	rm -f example/rosenbrock/a01.results example/rosenbrock/a01.running
-	cd example/rosenbrock; $(DBG) ../../mads a01 test=3 opt=squads igrnd real=1 seed=2096575428 $(OUTPUT)
+	rm -f $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.running
+	cd $(EXAMPLES)/rosenbrock; $(DBG) ../../$(MADS) a01 test=3 opt=squads igrnd real=1 seed=2096575428 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/rosenbrock/a01.results example/rosenbrock/a01.results-squads-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.results-squads-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 1: DONE"
@@ -302,18 +355,18 @@ verify-multistart1:
 	@echo "$(NO_COLOR)"
 	@echo "TEST 2: Rosenbrock problem using different optimization techniques ..."
 	@echo "TEST 2.1: Levenberg-Marquardt ... "
-	rm -f example/rosenbrock/p01lm.mads_output example/rosenbrock/p01lm.results example/rosenbrock/p01lm.running
-	cd example/rosenbrock; $(DBG) ../../mads p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet $(OUTPUT)
+	rm -f $(EXAMPLES)/rosenbrock/p01lm.mads_output $(EXAMPLES)/rosenbrock/p01lm.results $(EXAMPLES)/rosenbrock/p01lm.running
+	cd $(EXAMPLES)/rosenbrock; $(DBG) ../../$(MADS) p01lm test=3 dim=3 opt=lm igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/rosenbrock/p01lm.mads_output example/rosenbrock/p01lm.mads_output-multistart-lm-$(OS)-correct
-	@$(CMP) example/rosenbrock/p01lm.results example/rosenbrock/p01lm.results-multistart-lm-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/p01lm.mads_output $(EXAMPLES)/rosenbrock/p01lm.mads_output-multistart-lm-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/p01lm.results $(EXAMPLES)/rosenbrock/p01lm.results-multistart-lm-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 2.2: SQUADS ..."
-	rm -f example/rosenbrock/p01squads.mads_output example/rosenbrock/p01squads.results example/rosenbrock/p01squads.running
-	cd example/rosenbrock; $(DBG) ../../mads p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet $(OUTPUT)
+	rm -f $(EXAMPLES)/rosenbrock/p01squads.mads_output $(EXAMPLES)/rosenbrock/p01squads.results $(EXAMPLES)/rosenbrock/p01squads.running
+	cd $(EXAMPLES)/rosenbrock; $(DBG) ../../$(MADS) p01squads test=3 dim=3 opt=squads igrnd real=10 eval=1000 cutoff=1e-3 seed=2096575428 quiet $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/rosenbrock/p01squads.mads_output example/rosenbrock/p01squads.mads_output-multistart-squads-$(OS)-correct
-	@$(CMP) example/rosenbrock/p01squads.results example/rosenbrock/p01squads.results-multistart-squads-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/p01squads.mads_output $(EXAMPLES)/rosenbrock/p01squads.mads_output-multistart-squads-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/rosenbrock/p01squads.results $(EXAMPLES)/rosenbrock/p01squads.results-multistart-squads-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 2: DONE"
@@ -326,73 +379,73 @@ verify-contaminant:
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 	@echo "TEST 3: Internal contaminant transport problems using different dispersivities ..."
-	@echo "TEST 3.1.a: Problem example/contamination/s01 with independent dispersivities (MADS text input format) ..."
-	rm -f example/contamination/s01.mads_output example/contamination/s01.results example/contamination/s01.running
-	./mads example/contamination/s01 obs_int=2 lmeigen $(OUTPUT)
+	@echo "TEST 3.1.a: Problem $(EXAMPLES)/contamination/s01 with independent dispersivities (MADS text input format) ..."
+	rm -f $(EXAMPLES)/contamination/s01.mads_output $(EXAMPLES)/contamination/s01.results $(EXAMPLES)/contamination/s01.running
+	./$(MADS) $(EXAMPLES)/contamination/s01 obs_int=2 lmeigen $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01.mads_output example/contamination/s01.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s01.results example/contamination/s01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01.mads_output $(EXAMPLES)/contamination/s01.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01.results $(EXAMPLES)/contamination/s01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 3.1.b: Problem example/contamination/s01 with independent dispersivities (YAML input format) ..."
-	rm -f example/contamination/s01_yaml.mads_output example/contamination/s01_yaml.results example/contamination/s01_yaml.running
-	./mads example/contamination/s01_yaml obs_int=2 lmeigen $(OUTPUT)
+	@echo "TEST 3.1.b: Problem $(EXAMPLES)/contamination/s01 with independent dispersivities (YAML input format) ..."
+	rm -f $(EXAMPLES)/contamination/s01_yaml.mads_output $(EXAMPLES)/contamination/s01_yaml.results $(EXAMPLES)/contamination/s01_yaml.running
+	./$(MADS) $(EXAMPLES)/contamination/s01_yaml obs_int=2 lmeigen $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01_yaml.mads_output example/contamination/s01_yaml.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s01_yaml.results example/contamination/s01_yaml.results-$(OS)-correct
-	@$(CMP) example/contamination/s01_yaml.results example/contamination/s01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01_yaml.mads_output $(EXAMPLES)/contamination/s01_yaml.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01_yaml.results $(EXAMPLES)/contamination/s01_yaml.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01_yaml.results $(EXAMPLES)/contamination/s01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 3.2: Problem example/contamination/s01 with tied dispersivities ..."
-	rm -f example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.running
-	./mads example/contamination/s01-tied_dispersivities obs_int=2 $(OUTPUT)
+	@echo "TEST 3.2: Problem $(EXAMPLES)/contamination/s01 with tied dispersivities ..."
+	rm -f $(EXAMPLES)/contamination/s01-tied_dispersivities.results $(EXAMPLES)/contamination/s01-tied_dispersivities.running
+	./$(MADS) $(EXAMPLES)/contamination/s01-tied_dispersivities obs_int=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-tied_dispersivities.results example/contamination/s01-tied_dispersivities.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-tied_dispersivities.results $(EXAMPLES)/contamination/s01-tied_dispersivities.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 3.3: Problem example/contamination/s01 with scaled dispersivities ..."
-	rm -f example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.running
-	./mads example/contamination/s01-scaled_dispersivities obs_int=2 $(OUTPUT)
+	@echo "TEST 3.3: Problem $(EXAMPLES)/contamination/s01 with scaled dispersivities ..."
+	rm -f $(EXAMPLES)/contamination/s01-scaled_dispersivities.results $(EXAMPLES)/contamination/s01-scaled_dispersivities.running
+	./$(MADS) $(EXAMPLES)/contamination/s01-scaled_dispersivities obs_int=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-scaled_dispersivities.results example/contamination/s01-scaled_dispersivities.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-scaled_dispersivities.results $(EXAMPLES)/contamination/s01-scaled_dispersivities.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 3.4: Problem example/contamination/s01 with scaled and tied dispersivities ..."
-	rm -f example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.running
-	$(DBG) ./mads example/contamination/s01-scaled+tied_dispersivities obs_int=2 $(OUTPUT)
+	@echo "TEST 3.4: Problem $(EXAMPLES)/contamination/s01 with scaled and tied dispersivities ..."
+	rm -f $(EXAMPLES)/contamination/s01-scaled+tied_dispersivities.results $(EXAMPLES)/contamination/s01-scaled+tied_dispersivities.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-scaled+tied_dispersivities obs_int=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-scaled+tied_dispersivities.results example/contamination/s01-scaled+tied_dispersivities.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-scaled+tied_dispersivities.results $(EXAMPLES)/contamination/s01-scaled+tied_dispersivities.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 3.5: Problem example/contamination/s01 with coupled (tied) parameters based on mathematical expressions  ..."
-	rm -f example/contamination/s01-tied.results example/contamination/s01-tied.running
-	$(DBG) ./mads example/contamination/s01-tied obs_int=2 $(OUTPUT)
+	@echo "TEST 3.5: Problem $(EXAMPLES)/contamination/s01 with coupled (tied) parameters based on mathematical expressions  ..."
+	rm -f $(EXAMPLES)/contamination/s01-tied.results $(EXAMPLES)/contamination/s01-tied.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-tied obs_int=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-tied.results example/contamination/s01-tied.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-tied.results $(EXAMPLES)/contamination/s01-tied.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 3.6: Problem example/contamination/s01_yaml with coupled (tied) parameters based on mathematical expressions (YAML input format) ..."
-	rm -f example/contamination/s01-tied_yaml.results example/contamination/s01-tied_yaml.running
-	$(DBG) ./mads example/contamination/s01-tied_yaml obs_int=2 $(OUTPUT)
+	@echo "TEST 3.6: Problem $(EXAMPLES)/contamination/s01_yaml with coupled (tied) parameters based on mathematical expressions (YAML input format) ..."
+	rm -f $(EXAMPLES)/contamination/s01-tied_yaml.results $(EXAMPLES)/contamination/s01-tied_yaml.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-tied_yaml obs_int=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-tied_yaml.mads_output example/contamination/s01-tied_yaml.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s01-tied_yaml.results example/contamination/s01-tied.results-$(OS)-correct
-	@$(CMP) example/contamination/s01-tied_yaml.results example/contamination/s01-tied_yaml.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-tied_yaml.mads_output $(EXAMPLES)/contamination/s01-tied_yaml.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-tied_yaml.results $(EXAMPLES)/contamination/s01-tied.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-tied_yaml.results $(EXAMPLES)/contamination/s01-tied_yaml.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 3.7: Problem example/contamination/s01 with regularization terms for optimized model parameters ..."
-	rm -f example/contamination/s01-regul.results example/contamination/s01-regul.running
-	$(DBG) ./mads example/contamination/s01-regul obs_int=2 $(OUTPUT)
+	@echo "TEST 3.7: Problem $(EXAMPLES)/contamination/s01 with regularization terms for optimized model parameters ..."
+	rm -f $(EXAMPLES)/contamination/s01-regul.results $(EXAMPLES)/contamination/s01-regul.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-regul obs_int=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-regul.mads_output example/contamination/s01-regul.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s01-regul.results example/contamination/s01-regul.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-regul.mads_output $(EXAMPLES)/contamination/s01-regul.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-regul.results $(EXAMPLES)/contamination/s01-regul.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 3.8: Problem example/contamination/s01_yaml with regularization terms for optimized model parameters (YAML input format) ..."
-	rm -f example/contamination/s01-regul_yaml.results example/contamination/s01-regul_yaml.running
-	$(DBG) ./mads example/contamination/s01-regul_yaml obs_int=2 $(OUTPUT)
+	@echo "TEST 3.8: Problem $(EXAMPLES)/contamination/s01_yaml with regularization terms for optimized model parameters (YAML input format) ..."
+	rm -f $(EXAMPLES)/contamination/s01-regul_yaml.results $(EXAMPLES)/contamination/s01-regul_yaml.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-regul_yaml obs_int=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-regul_yaml.mads_output example/contamination/s01-regul_yaml.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul.results-$(OS)-correct
-	@$(CMP) example/contamination/s01-regul_yaml.results example/contamination/s01-regul_yaml.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-regul_yaml.mads_output $(EXAMPLES)/contamination/s01-regul_yaml.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-regul_yaml.results $(EXAMPLES)/contamination/s01-regul.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-regul_yaml.results $(EXAMPLES)/contamination/s01-regul_yaml.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	rm -f example/contamination/s01-multi_source.results example/contamination/s01-multi_source.running
-	$(DBG) ./mads example/contamination/s01-multi_source obs_int=2 $(OUTPUT)
+	rm -f $(EXAMPLES)/contamination/s01-multi_source.results $(EXAMPLES)/contamination/s01-multi_source.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-multi_source obs_int=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-multi_source.mads_output example/contamination/s01-multi_source.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s01-multi_source.results example/contamination/s01-multi_source.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-multi_source.mads_output $(EXAMPLES)/contamination/s01-multi_source.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-multi_source.results $(EXAMPLES)/contamination/s01-multi_source.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
@@ -406,30 +459,30 @@ verify-multistart2:
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 	@echo "TEST 4: Internal contaminant transport problems using different optimization techniques ..."
-	@echo "TEST 4.1: Problem example/contamination/s01 IGRND ..."
-	rm -f example/contamination/s01-igrnd.results example/contamination/s01-igrnd.igrnd.results example/contamination/s01-igrnd.running
-	$(DBG) ./mads example/contamination/s01-igrnd seed=2096575428 $(OUTPUT)
-	@$(CMP) example/contamination/s01-igrnd.results example/contamination/s01-igrnd.results-$(OS)-correct
-	@$(CMP) example/contamination/s01-igrnd.igrnd.results example/contamination/s01-igrnd.igrnd.results-$(OS)-correct
+	@echo "TEST 4.1: Problem $(EXAMPLES)/contamination/s01 IGRND ..."
+	rm -f $(EXAMPLES)/contamination/s01-igrnd.results $(EXAMPLES)/contamination/s01-igrnd.igrnd.results $(EXAMPLES)/contamination/s01-igrnd.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-igrnd seed=2096575428 $(OUTPUT)
+	@$(CMP) $(EXAMPLES)/contamination/s01-igrnd.results $(EXAMPLES)/contamination/s01-igrnd.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-igrnd.igrnd.results $(EXAMPLES)/contamination/s01-igrnd.igrnd.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 4.2: Problem example/contamination/s01 PPSD ..."
-	rm -f example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.ppsd.results example/contamination/s01-ppsd.running
-	$(DBG) ./mads example/contamination/s01-ppsd seed=2096575428 $(OUTPUT)
+	@echo "TEST 4.2: Problem $(EXAMPLES)/contamination/s01 PPSD ..."
+	rm -f $(EXAMPLES)/contamination/s01-ppsd.mads_output $(EXAMPLES)/contamination/s01-ppsd.ppsd.results $(EXAMPLES)/contamination/s01-ppsd.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-ppsd seed=2096575428 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-ppsd.mads_output example/contamination/s01-ppsd.mads_output-$(OS)-correct
-	@$(CMP) example/contamination/s01-ppsd.ppsd.results example/contamination/s01-ppsd.ppsd.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-ppsd.mads_output $(EXAMPLES)/contamination/s01-ppsd.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-ppsd.ppsd.results $(EXAMPLES)/contamination/s01-ppsd.ppsd.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 4.3: Problem example/contamination/s01 IGPD ..."
-	rm -f example/contamination/s01-igpd.results example/contamination/s01-igpd.igpd.results example/contamination/s01-igpd.running
-	$(DBG) ./mads example/contamination/s01-igpd seed=2096575428 $(OUTPUT)
+	@echo "TEST 4.3: Problem $(EXAMPLES)/contamination/s01 IGPD ..."
+	rm -f $(EXAMPLES)/contamination/s01-igpd.results $(EXAMPLES)/contamination/s01-igpd.igpd.results $(EXAMPLES)/contamination/s01-igpd.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-igpd seed=2096575428 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/contamination/s01-igpd.results example/contamination/s01-igpd.results-$(OS)-correct
-	@$(CMP) example/contamination/s01-igpd.igpd.results example/contamination/s01-igpd.igpd.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-igpd.results $(EXAMPLES)/contamination/s01-igpd.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/contamination/s01-igpd.igpd.results $(EXAMPLES)/contamination/s01-igpd.igpd.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 4.4: Problem example/contamination/s01 Multi-Start LM  ..."
-	rm -f example/contamination/s01-mslm.results example/contamination/s01-mslm.running
-	$(DBG) ./mads example/contamination/s01-mslm seed=2096575428 $(OUTPUT)
-	@$(CMP) example/contamination/s01-mslm.results example/contamination/s01-mslm.results-$(OS)-correct
+	@echo "TEST 4.4: Problem $(EXAMPLES)/contamination/s01 Multi-Start LM  ..."
+	rm -f $(EXAMPLES)/contamination/s01-mslm.results $(EXAMPLES)/contamination/s01-mslm.running
+	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-mslm seed=2096575428 $(OUTPUT)
+	@$(CMP) $(EXAMPLES)/contamination/s01-mslm.results $(EXAMPLES)/contamination/s01-mslm.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 4: DONE"
@@ -442,12 +495,12 @@ verify-external:
 	@echo " External problems "
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
-	@echo "TEST 5: Problem example/wells/w01 ..."
-	rm -f example/wells/w01.mads_output example/wells/w01.results example/wells/w01.running
-	cd example/wells; $(DBG) ../../mads w01 lmeigen $(OUTPUT)
+	@echo "TEST 5: Problem $(EXAMPLES)/wells/w01 ..."
+	rm -f $(EXAMPLES)/wells/w01.mads_output $(EXAMPLES)/wells/w01.results $(EXAMPLES)/wells/w01.running
+	cd $(EXAMPLES)/wells; $(DBG) ../../$(MADS) w01 lmeigen $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells/w01.mads_output example/wells/w01.mads_output-$(OS)-correct
-	@$(CMP) example/wells/w01.results example/wells/w01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells/w01.mads_output $(EXAMPLES)/wells/w01.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells/w01.results $(EXAMPLES)/wells/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 5: DONE"
@@ -459,42 +512,42 @@ verify-external-short:
 	@echo " External problems "
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
-	@echo "TEST 6: Problem example/wells-short/w01 using different instruction formats ..."
-	@echo "TEST 6.1: Instruction file example/wells-short/w01-v1.inst ..."
-	rm -f example/wells-short/w01.results example/wells-short/w01.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
+	@echo "TEST 6: Problem $(EXAMPLES)/wells-short/w01 using different instruction formats ..."
+	@echo "TEST 6.1: Instruction file $(EXAMPLES)/wells-short/w01-v1.inst ..."
+	rm -f $(EXAMPLES)/wells-short/w01.results $(EXAMPLES)/wells-short/w01.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../$(MADS) w01 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.results $(EXAMPLES)/wells-short/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 6.2: Instruction file example/wells-short/w01-v2.inst ..."
-	rm -f example/wells-short/w01.results example/wells-short/w01.running
-	cd example/wells-short; ln -sf w01-v2.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
+	@echo "TEST 6.2: Instruction file $(EXAMPLES)/wells-short/w01-v2.inst ..."
+	rm -f $(EXAMPLES)/wells-short/w01.results $(EXAMPLES)/wells-short/w01.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v2.inst w01.inst; $(DBG) ../../$(MADS) w01 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.results $(EXAMPLES)/wells-short/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 6.3: Instruction file example/wells-short/w01-v3.inst ..."
-	rm -f example/wells-short/w01.results example/wells-short/w01.running
-	cd example/wells-short; ln -sf w01-v3.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
+	@echo "TEST 6.3: Instruction file $(EXAMPLES)/wells-short/w01-v3.inst ..."
+	rm -f $(EXAMPLES)/wells-short/w01.results $(EXAMPLES)/wells-short/w01.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v3.inst w01.inst; $(DBG) ../../$(MADS) w01 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.results $(EXAMPLES)/wells-short/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 6.4: Instruction file example/wells-short/w01-v4.inst ..."
-	rm -f example/wells-short/w01.results example/wells-short/w01.running
-	cd example/wells-short; ln -sf w01-v4.inst w01.inst; $(DBG) ../../mads w01 $(OUTPUT)
+	@echo "TEST 6.4: Instruction file $(EXAMPLES)/wells-short/w01-v4.inst ..."
+	rm -f $(EXAMPLES)/wells-short/w01.results $(EXAMPLES)/wells-short/w01.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v4.inst w01.inst; $(DBG) ../../$(MADS) w01 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01.results example/wells-short/w01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.results $(EXAMPLES)/wells-short/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 6.5: Problem example/wells-short/w01 (YAML input format) ..."
-	rm -f example/wells-short/w01_yaml.results example/wells-short/w01_yaml.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01_yaml $(OUTPUT)
+	@echo "TEST 6.5: Problem $(EXAMPLES)/wells-short/w01 (YAML input format) ..."
+	rm -f $(EXAMPLES)/wells-short/w01_yaml.results $(EXAMPLES)/wells-short/w01_yaml.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../$(MADS) w01_yaml $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01_yaml.results example/wells-short/w01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01_yaml.results $(EXAMPLES)/wells-short/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 6.6: Problem example/wells-short/w01 (XML input format) ..."
-	rm -f example/wells-short/w01_xml.results example/wells-short/w01_xml.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01_xml $(OUTPUT)
+	@echo "TEST 6.6: Problem $(EXAMPLES)/wells-short/w01 (XML input format) ..."
+	rm -f $(EXAMPLES)/wells-short/w01_xml.results $(EXAMPLES)/wells-short/w01_xml.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../$(MADS) w01_xml $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01_xml.results example/wells-short/w01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01_xml.results $(EXAMPLES)/wells-short/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 6: DONE"
@@ -505,24 +558,24 @@ verify-external-short2:
 	@echo " External problems "
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
-	@echo "TEST 7: Problem example/wells-short/w01 using coupled parameters and regularization terms ..."
-	@echo "TEST 7.1: Problem example/wells-short/w01 with coupled (tied) parameters based on mathematical expressions  ..."
-	rm -f example/wells-short/w01tied.results example/wells-short/w01tied.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01tied $(OUTPUT)
+	@echo "TEST 7: Problem $(EXAMPLES)/wells-short/w01 using coupled parameters and regularization terms ..."
+	@echo "TEST 7.1: Problem $(EXAMPLES)/wells-short/w01 with coupled (tied) parameters based on mathematical expressions  ..."
+	rm -f $(EXAMPLES)/wells-short/w01tied.results $(EXAMPLES)/wells-short/w01tied.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../$(MADS) w01tied $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01tied.results example/wells-short/w01tied.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01tied.results $(EXAMPLES)/wells-short/w01tied.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 7.2: Problem example/wells-short/w01 with regularization terms for optimized model parameters (MADS text input format) ..."
-	rm -f example/wells-short/w01regul.results example/wells-short/w01regul.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01regul $(OUTPUT)
+	@echo "TEST 7.2: Problem $(EXAMPLES)/wells-short/w01 with regularization terms for optimized model parameters (MADS text input format) ..."
+	rm -f $(EXAMPLES)/wells-short/w01regul.results $(EXAMPLES)/wells-short/w01regul.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../$(MADS) w01regul $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01regul.results example/wells-short/w01regul.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01regul.results $(EXAMPLES)/wells-short/w01regul.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 7.3: Problem example/wells-short/w01 with regularization terms for optimized model parameters (YAML input format) ..."
-	rm -f example/wells-short/w01regul_yaml.results example/wells-short/w01regul_yaml.running
-	cd example/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../mads w01regul_yaml $(OUTPUT)
+	@echo "TEST 7.3: Problem $(EXAMPLES)/wells-short/w01 with regularization terms for optimized model parameters (YAML input format) ..."
+	rm -f $(EXAMPLES)/wells-short/w01regul_yaml.results $(EXAMPLES)/wells-short/w01regul_yaml.running
+	cd $(EXAMPLES)/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../$(MADS) w01regul_yaml $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01regul_yaml.results example/wells-short/w01regul_yaml.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01regul_yaml.results $(EXAMPLES)/wells-short/w01regul_yaml.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 7: DONE"
@@ -534,18 +587,18 @@ verify-parallel:
 	@echo " Parallel execution of external problems "
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
-	@echo "TEST 8: Parallel execution of example/wells-short/w01parallel ..."
-	@echo "TEST 8.1: Initial parallel execution of example/wells-short/w01parallel ..."
-	rm -f example/wells-short/w01parallel.results example/wells-short/w01parallel.restart_info example/wells-short/w01parallel.restart_*.zip example/wells-short/w01parallel.running
-	cd example/wells-short; $(DBG) ../../mads w01parallel np=2 eval=10 restart=0 $(OUTPUT)
+	@echo "TEST 8: Parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
+	@echo "TEST 8.1: Initial parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
+	rm -f $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.restart_info $(EXAMPLES)/wells-short/w01parallel.restart_*.zip $(EXAMPLES)/wells-short/w01parallel.running
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel np=2 eval=10 restart=0 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 8.2: Rerun using saved results from prior parallel execution of example/wells-short/w01parallel ..."
-	rm -f example/wells/w01parallel.results example/wells/w01parallel.running
-	cd example/wells-short; $(DBG) ../../mads w01parallel np=2 eval=10 $(OUTPUT)
+	@echo "TEST 8.2: Rerun using saved results from prior parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
+	rm -f $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel np=2 eval=10 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01parallel.results example/wells-short/w01parallel.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 8: DONE"
@@ -559,66 +612,66 @@ verify-forward:
 	@echo "$(NO_COLOR)"
 	@echo "TEST 9: Analytical contaminant concentrations with various sources ..."
 	@echo "TEST 9.1: Point source ... "
-	rm -f example/forward/a01.mads_output example/forward/a01.results example/forward/a01.running
-	cd example/forward; $(DBG) ../../mads a01 $(OUTPUT)
-	@$(CMP) example/forward/a01.mads_output example/forward/a01.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a01.results example/forward/a01.results-$(OS)-correct
+	rm -f $(EXAMPLES)/forward/a01.mads_output $(EXAMPLES)/forward/a01.results $(EXAMPLES)/forward/a01.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a01 $(OUTPUT)
+	@$(CMP) $(EXAMPLES)/forward/a01.mads_output $(EXAMPLES)/forward/a01.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a01.results $(EXAMPLES)/forward/a01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 9.2: Rectangular source ... "
-	rm -f example/forward/a02.mads_output example/forward/a02.results example/forward/a02.running
-	cd example/forward; $(DBG) ../../mads a02 $(OUTPUT)
+	rm -f $(EXAMPLES)/forward/a02.mads_output $(EXAMPLES)/forward/a02.results $(EXAMPLES)/forward/a02.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a02 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/forward/a02.mads_output example/forward/a02.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a02.results example/forward/a02.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a02.mads_output $(EXAMPLES)/forward/a02.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a02.results $(EXAMPLES)/forward/a02.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 9.3: Planar gaussian source ... "
-	rm -f example/forward/a03.mads_output example/forward/a03.results example/forward/a03.running
-	cd example/forward; $(DBG) ../../mads a03 $(OUTPUT)
+	rm -f $(EXAMPLES)/forward/a03.mads_output $(EXAMPLES)/forward/a03.results $(EXAMPLES)/forward/a03.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a03 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/forward/a03.mads_output example/forward/a03.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a03.results example/forward/a03.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a03.mads_output $(EXAMPLES)/forward/a03.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a03.results $(EXAMPLES)/forward/a03.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 9.4: Gaussian source ... "
-	rm -f example/forward/a04.mads_output example/forward/a04.results example/forward/a04.running
-	cd example/forward; $(DBG) ../../mads a04 $(OUTPUT)
+	rm -f $(EXAMPLES)/forward/a04.mads_output $(EXAMPLES)/forward/a04.results $(EXAMPLES)/forward/a04.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a04 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/forward/a04.mads_output example/forward/a04.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a04.results example/forward/a04.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a04.mads_output $(EXAMPLES)/forward/a04.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a04.results $(EXAMPLES)/forward/a04.results-$(OS)-correct
 	@echo "$(NO_COLOR)" 
 	@echo "TEST 9.5: Box source ... "
-	rm -f example/forward/a05.mads_output example/forward/a05.results example/forward/a05.running
-	cd example/forward; $(DBG) ../../mads a05 $(OUTPUT)
+	rm -f $(EXAMPLES)/forward/a05.mads_output $(EXAMPLES)/forward/a05.results $(EXAMPLES)/forward/a05.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a05 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/forward/a05.mads_output example/forward/a05.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a05.results example/forward/a05.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a05.mads_output $(EXAMPLES)/forward/a05.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a05.results $(EXAMPLES)/forward/a05.results-$(OS)-correct
 	@echo "$(NO_COLOR)" 
 	@echo "TEST 9.6: Box source | Levy ... "
-	rm -f example/forward/a06_yaml.mads_output example/forward/a06_yaml.results example/forward/a06_yaml.running
-	cd example/forward; $(DBG) ../../mads a06_yaml $(OUTPUT)
+	rm -f $(EXAMPLES)/forward/a06_yaml.mads_output $(EXAMPLES)/forward/a06_yaml.results $(EXAMPLES)/forward/a06_yaml.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a06_yaml $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/forward/a06_yaml.mads_output example/forward/a06_yaml.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a06_yaml.results example/forward/a06_yaml.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a06_yaml.mads_output $(EXAMPLES)/forward/a06_yaml.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a06_yaml.results $(EXAMPLES)/forward/a06_yaml.results-$(OS)-correct
 	@echo "$(NO_COLOR)" 
 	@echo "TEST 9.7: Box source | Symmetric Levy ... "
-	rm -f example/forward/a07.mads_output example/forward/a07.results example/forward/a07.running
-	cd example/forward; $(DBG) ../../mads a07 $(OUTPUT)
+	rm -f $(EXAMPLES)/forward/a07.mads_output $(EXAMPLES)/forward/a07.results $(EXAMPLES)/forward/a07.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a07 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/forward/a07.mads_output example/forward/a07.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a07.results example/forward/a07.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a07.mads_output $(EXAMPLES)/forward/a07.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a07.results $(EXAMPLES)/forward/a07.results-$(OS)-correct
 	@echo "$(NO_COLOR)" 
 	@echo "TEST 9.8: Box source | Levy, alpha=2 ... "
-	rm -f example/forward/a08.mads_output example/forward/a08.results example/forward/a08.running
-	cd example/forward; $(DBG) ../../mads a08 $(OUTPUT)
+	rm -f $(EXAMPLES)/forward/a08.mads_output $(EXAMPLES)/forward/a08.results $(EXAMPLES)/forward/a08.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a08 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/forward/a08.mads_output example/forward/a08.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a08.results example/forward/a08.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a08.mads_output $(EXAMPLES)/forward/a08.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a08.results $(EXAMPLES)/forward/a08.results-$(OS)-correct
 	@echo "$(NO_COLOR)" 
 	@echo "TEST 9.9: Box source | Symmetric Levy, alpha=2 ... "
-	rm -f example/forward/a09.mads_output example/forward/a09.results example/forward/a09.running
-	cd example/forward; $(DBG) ../../mads a09 $(OUTPUT)
+	rm -f $(EXAMPLES)/forward/a09.mads_output $(EXAMPLES)/forward/a09.results $(EXAMPLES)/forward/a09.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a09 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/forward/a09.mads_output example/forward/a09.mads_output-$(OS)-correct
-	@$(CMP) example/forward/a09.results example/forward/a09.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a09.mads_output $(EXAMPLES)/forward/a09.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a09.results $(EXAMPLES)/forward/a09.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 9: DONE"
@@ -632,25 +685,25 @@ verify-sa:
 	@echo "$(NO_COLOR)"
 	@echo "TEST 10: Global and local sensitivity analyses ..."
 	@echo "TEST 10.1: Sobol internal analysis ... "
-	rm -f example/sa/a01.mads_output example/sa/a01.sobol_sens_index example/sa/a01.sobol_sens_total example/sa/a01.running
-	cd example/sa; $(DBG) ../../mads a01 test=111 gsens dim=8 real=10000 smp=lhs pardomain=0.5 seed=1517604820 $(OUTPUT)
+	rm -f $(EXAMPLES)/sa/a01.mads_output $(EXAMPLES)/sa/a01.sobol_sens_index $(EXAMPLES)/sa/a01.sobol_sens_total $(EXAMPLES)/sa/a01.running
+	cd $(EXAMPLES)/sa; $(DBG) ../../$(MADS) a01 test=111 gsens dim=8 real=10000 smp=lhs pardomain=0.5 seed=1517604820 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/sa/a01.sobol_sens_index example/sa/a01.sobol_sens_index-$(OS)-correct
-	@$(CMP) example/sa/a01.sobol_sens_total example/sa/a01.sobol_sens_total-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/sa/a01.sobol_sens_index $(EXAMPLES)/sa/a01.sobol_sens_index-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/sa/a01.sobol_sens_total $(EXAMPLES)/sa/a01.sobol_sens_total-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 10.2: Sobol external analysis  ..."
-	rm -f example/wells-short/w01.sobol_sens_index example/wells-short/w01.sobol_sens_total example/wells-short/w01.running
-	cd example/wells-short; $(DBG) ../../mads w01 gsens real=100 seed=1066732675 $(OUTPUT)
+	rm -f $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01.sobol_sens_index example/wells-short/w01.sobol_sens_index-$(OS)-correct
-	@$(CMP) example/wells-short/w01.sobol_sens_total example/wells-short/w01.sobol_sens_total-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 10.2: Sobol external analysis  ..."
-	rm -f example/wells-short/w01.sobol_sens_index example/wells-short/w01.sobol_sens_total example/wells-short/w01.running example/wells-short/w01.restart*
-	cd example/wells-short; $(DBG) ../../mads w01 gsens real=100 seed=1066732675 np=2 $(OUTPUT)
+	rm -f $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running $(EXAMPLES)/wells-short/w01.restart*
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 np=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) example/wells-short/w01.sobol_sens_index example/wells-short/w01.sobol_sens_index-$(OS)-correct
-	@$(CMP) example/wells-short/w01.sobol_sens_total example/wells-short/w01.sobol_sens_total-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 10: DONE"
 	@echo "$(NO_COLOR)"
@@ -658,11 +711,11 @@ verify-sa:
 compare-os:
 	./compare-results-os Linux Darwin
 
-clean-example:
+clean-examples:
 	find . -name "*.mads_output_*" -print0 | xargs -0 rm
-	rm -f example/*/*.ppsd_*.results example/*/*.igpd_*.results example/*/*.igrnd_*.results example/*/*.restart_*.zip example/*/*.restart_info example/*/*.running example/*/*-rerun.mads example/*/*-error.mads
-	rm -fR example/wells-short_w01_*
-	rm -fR example/wells-short_w01parallel*
+	rm -f $(EXAMPLES)/*/*.ppsd_*.results $(EXAMPLES)/*/*.igpd_*.results $(EXAMPLES)/*/*.igrnd_*.results $(EXAMPLES)/*/*.restart_*.zip $(EXAMPLES)/*/*.restart_info $(EXAMPLES)/*/*.running $(EXAMPLES)/*/*-rerun.mads $(EXAMPLES)/*/*-error.mads
+	rm -fR $(EXAMPLES)/wells-short_w01_*
+	rm -fR $(EXAMPLES)/wells-short_w01parallel*
 	rm -f *.mads_output* *.running *.cmdline *.cmdline_hist
 
 astyle:
