@@ -865,7 +865,7 @@ int LEVMAR_DER2(
 				}
 				if( j >= op->cd->lm_nlamof )
 					computejac = 1; // New jacobian: Lambda search OF are very similar
-				p_eL2 = pDp_eL2; // TODO check is it needed
+				// p_eL2 = pDp_eL2; // TODO check is it needed; Actually it does not seem to work
 			}
 			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
 			{
