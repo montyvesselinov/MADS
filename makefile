@@ -68,7 +68,7 @@ ifndef YAML
 YAML = true
 endif
 # Support for XML input files
-ifndef XML
+ifdef XML
 XML = true
 endif
 
@@ -226,7 +226,7 @@ $(MADS_LIB): $(OBJECTS_LIB)
 
 $(WELLS): $(OBJ_WELLS)
 	@mkdir -p $(BIN)
-	$(CC) $(LDFLAGS) $< -o $@
+	$(CC) $< -o $@ $(LDFLAGS) -lm
 
 $(OBJ_WELLS): $(SRC_WELLS)
 	@echo "Building WELLS ..."
@@ -243,6 +243,10 @@ clean-lib:
 
 clean-wells:
 	rm -f $(WELLS) $(OBJ_WELLS)
+
+clean-old-mads-setup:
+	rm -f *.o
+	rm -fR bayes ds sa misc lhs lm example pso mprun
 
 clean-all: clean-release clean-debug clean-lib clean-wells clean-examples
 	rm -fR $(OBJ)/*

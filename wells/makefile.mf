@@ -1,6 +1,7 @@
 PROG = wells
 CC = gcc 
-CFLAGS = -Wall 
+CFLAGS = -Wall -lm
+LDFLAGS = -lm
 OBJ = wells.o
 $(PROG): $(OBJ)
 
