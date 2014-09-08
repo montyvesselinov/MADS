@@ -6,6 +6,17 @@ project (mads)
 set(MADS_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH  ${MADS_MODULE_PATH})
 
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_tolower)
+if( NOT cmake_build_type_tolower STREQUAL "debug"
+	AND NOT cmake_build_type_tolower STREQUAL "release"
+	AND NOT cmake_build_type_tolower STREQUAL "lib")
+    message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\". Allowed values are Debug, Release, Lib (case-insensitive).")
+endif()
+
 find_package(LAPACK)
 find_package(BLAS)
 find_package(PkgConfig)
@@ -18,43 +29,36 @@ if (USE_GSL)
 	gslcblas)
 endif (USE_GSL)
 
-find_package(LAPACK)
-find_package(BLAS)
-find_package(PkgConfig)
-
-set(CMAKE_CXX_FLAGS "-g -Wall")
+set(CMAKE_CXX_FLAGS "-Wall -O1 -Winit-self")
+set(CMAKE_C_FLAGS "-Wall -O1 -Winit-self")
 
 include(CheckLibraryExists)
 check_library_exists(dl dlopen "" LIBDL_FOUND)
 
-
 include(CheckTagLibFileName)
-add_subdirectory (lm)
-add_subdirectory (lhs)
-add_subdirectory (misc)
-add_subdirectory (mprun)
-add_subdirectory (ds)
-add_subdirectory (sa)
-add_subdirectory (bayes)
+add_subdirectory (src)
+add_subdirectory (cmake)
 
-set( objsmads ./mads.c ./mads_io.c ./mads_io_external.c ./mads_func.c ./mads_mem.c ./mads_info.c lm/opt_lm_mon.c lm/opt_lm_gsl.c lm/lu.c lm/opt_lm_ch.c misc/test_problems.c misc/anasol_contamination.c misc/io.c lhs/lhs.c )
-set( objspso pso/pso-tribes-lm.c pso/Standard_PSO_2006.c pso/mopso.c )
-set( objsa sa/abagus.c sa/postpua.c sa/global.c sa/do_miser.c )
-set( objds ds/infogap.c ds/glue.c )
-set( objsmpun mprun/mprun.c mprun/mprun_io.c )
-set( objskdtree misc/kdtree-0.5.5/kdtree.c )
-set( objslevmar misc/levmar-2.5/lm_m.c misc/levmar-2.5/Axb.c misc/levmar-2.5/misc.c misc/levmar-2.5/lmlec.c misc/levmar-2.5/lmbc.c misc/levmar-2.5/lmblec.c misc/levmar-2.5/lmbleic.c )
-set( objsastable misc/astable/astable.c misc/astable/interpolation.c misc/astable/pqueue.c )
-set( objsbayes bayes/dream.c )
-set( objwells wells/wells.c )
+if(APPLE)
+    set(MADS_OS "MacOSX")
+elseif(CYGWIN)
+    set(MADS_OS "Cygwin")
+else(APPLE)
+    set(MADS_OS "${CMAKE_SYSTEM_NAME}")
+endif(APPLE)
 
-add_executable (mads ${objsmads} ${objspso} ${objsa} ${objds} ${objsmpun} ${objskdtree} ${objslevmar} ${objsastable} ${objsbayes} ${objwells} )
+if(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "-Wall -Winit-self" CACHE STRING "Default flags" FORCE)
+    SET(CMAKE_CXX_FLAGS_LIB "-O1 -fPIC" CACHE STRING "Lib flags" FORCE)
+    SET(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Debug flags" FORCE)
+    SET(CMAKE_CXX_FLAGS_RELEASE "-O1" CACHE STRING "Release flags" FORCE)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
 # Enable ExternalProject CMake module
 include(ExternalProject)
  
 # Set default ExternalProject root directory
-set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/ThirdParty)
+set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/TPL)
  
 ExternalProject_Add(
     libxml2
@@ -65,7 +69,6 @@ ExternalProject_Add(
     BUILD_IN_SOURCE 1
 )
 
-# Add gmock
 ExternalProject_Add(
     googlemock
     SVN_REPOSITORY http://googlemock.googlecode.com/svn/trunk/

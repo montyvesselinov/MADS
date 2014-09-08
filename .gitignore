@@ -79,6 +79,10 @@ Debug/*
 *.so
 *.zip
 *.orig
+# CMAKE file
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
 # LINUX files
 .nfs*
 # MAC files
