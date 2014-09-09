@@ -345,6 +345,8 @@ int mopso( struct opt_data *op )
 	nExceedSizeSwarm = 0;
 	nExceedSizeTribe = 0;
 	pb.fNb = 1;
+	for( i = 0; i < fMax; i++ )
+			successRate[i] = errorMean[i] = 0;
 	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); exit( 1 ); }
 	if( op->cd->pdebug )

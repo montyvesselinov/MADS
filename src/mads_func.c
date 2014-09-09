@@ -562,7 +562,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 {
 	int i, j, k, p1, p2, l, s, success, success_all = 1;
-	double c, t, w, min, max, c1, c2, err, phi, dx, dy, dz, x1, y1, z1, dist;
+	double c = 0, t, w, min, max, c1, c2, err, phi, dx, dy, dz, x1, y1, z1, dist;
 	struct opt_data *p = ( struct opt_data * )data;
 	char filename[255];
 	dx = dy = dz = phi = 0.0;

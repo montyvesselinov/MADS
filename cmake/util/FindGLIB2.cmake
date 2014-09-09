@@ -1,5 +1,4 @@
-# - Try to find GLib2
-# Once done this will define
+# GLib2
 #
 #  GLIB2_FOUND - system has GLib2
 #  GLIB2_INCLUDE_DIRS - the GLib2 include directory
@@ -18,16 +17,13 @@
 #  Redistribution and use is allowed according to the terms of the New
 #  BSD license.
 #  For details see the accompanying COPYING-CMAKE-SCRIPTS file.
-#
 
 
 IF (GLIB2_LIBRARIES AND GLIB2_INCLUDE_DIRS )
   # in cache already
   SET(GLIB2_FOUND TRUE)
 ELSE (GLIB2_LIBRARIES AND GLIB2_INCLUDE_DIRS )
-
   INCLUDE(FindPkgConfig)
-
   ## Glib
   IF ( GLIB2_FIND_REQUIRED )
     SET( _pkgconfig_REQUIRED "REQUIRED" )
@@ -82,7 +78,6 @@ ELSE (GLIB2_LIBRARIES AND GLIB2_INCLUDE_DIRS )
       glib-2.0
     )
 
-    #MESSAGE(STATUS "Glib headers: ${_glib2_include_DIR}")
 
     FIND_LIBRARY(
       _glib2_link_DIR
@@ -99,7 +94,7 @@ ELSE (GLIB2_LIBRARIES AND GLIB2_INCLUDE_DIRS )
     IF ( _glib2_include_DIR AND _glib2_link_DIR )
         SET ( _glib2_FOUND TRUE )
     ENDIF ( _glib2_include_DIR AND _glib2_link_DIR )
-
+    MESSAGE(STATUS "Glib headers: ${_glib2_include_DIR}")
 
     IF ( _glib2_FOUND )
         SET ( GLIB2_INCLUDE_DIRS ${_glib2_include_DIR} ${_glibconfig_include_DIR} )

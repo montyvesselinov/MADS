@@ -1,12 +1,20 @@
 # -*- mode: cmake -*-
 # MADS
+#
+# USAGE: cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=/opt/local/bin/c++ -DCMAKE_C_COMPILER=/opt/local/bin/gcc -DCMAKE_LINKER=/opt/local/bin/gcc
+#
+
 cmake_minimum_required (VERSION 2.8)
-enable_testing()
+
+# enable_testing()
+
 project (mads)
-set(MADS_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+set(MADS_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/util")
 set(CMAKE_MODULE_PATH  ${MADS_MODULE_PATH})
 
-if (NOT CMAKE_BUILD_TYPE)
+
+
+if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
@@ -17,27 +25,30 @@ if( NOT cmake_build_type_tolower STREQUAL "debug"
     message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\". Allowed values are Debug, Release, Lib (case-insensitive).")
 endif()
 
-find_package(LAPACK)
-find_package(BLAS)
-find_package(PkgConfig)
+# add_subdirectory (${PROJECT_SOURCE_DIR}/util)
 
-# check to use if using GSL
-if (USE_GSL)
-    add_definitions(-DUSE_GSL)
-    set(TPL_LIBS ${TPL_LIBS}
-	gsl
-	gslcblas)
-endif (USE_GSL)
+find_package(LAPACK REQUIRED)
+find_package(BLAS REQUIRED)
+find_package(PkgConfig REQUIRED)
+find_package(GLIB2 REQUIRED)
+find_package(GSL REQUIRED)
+find_package(LibYAML REQUIRED)
+find_package(LibXML2 REQUIRED)
+find_package(LibMathEval REQUIRED)
 
-set(CMAKE_CXX_FLAGS "-Wall -O1 -Winit-self")
-set(CMAKE_C_FLAGS "-Wall -O1 -Winit-self")
+if (GSL_FOUND)
+    add_definitions(${GSL_CXX_FLAGS})
+    set(MADS_LIBS ${MADS_LIBS} gsl gslcblas lapack blas stdc++ "-L/opt/local/lib")
+endif (GSL_FOUND)
+
+set(CMAKE_CXX_FLAGS "-Wall -O1 -Winit-self" )
+set(CMAKE_C_FLAGS "-Wall -O1 -Winit-self" )
 
 include(CheckLibraryExists)
 check_library_exists(dl dlopen "" LIBDL_FOUND)
 
-include(CheckTagLibFileName)
+# include(CheckTagLibFileName)
 add_subdirectory (src)
-add_subdirectory (cmake)
 
 if(APPLE)
     set(MADS_OS "MacOSX")
@@ -58,157 +69,25 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 include(ExternalProject)
  
 # Set default ExternalProject root directory
-set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/TPL)
+set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/tpls)
  
-ExternalProject_Add(
-    libxml2
-    DEPENDS zlib
-    GIT_REPOSITORY git://git.gnome.org/libxml2
-    UPDATE_COMMAND ""
-    CONFIGURE_COMMAND ./autogen.sh --prefix=${CMAKE_BINARY_DIR} --without-python --disable-shared --without-zlib
-    BUILD_IN_SOURCE 1
+add_custom_target(clean-cmake-files
+   COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
 )
 
-ExternalProject_Add(
-    googlemock
-    SVN_REPOSITORY http://googlemock.googlecode.com/svn/trunk/
-    TIMEOUT 30
-    PATCH_COMMAND svn patch ${CMAKE_SOURCE_DIR}/gtest.patch ${CMAKE_BINARY_DIR}/ThirdParty/src/googlemock/gtest
-    # Force separate output paths for debug and release builds to allow easy
-    # identification of correct lib in subsequent TARGET_LINK_LIBRARIES commands
-    CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
-    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
-    -Dgtest_force_shared_crt=ON
-    # Disable install step
-    INSTALL_COMMAND ""
-    # Wrap download, configure and build steps in a script to log output
-    LOG_DOWNLOAD ON
-    LOG_CONFIGURE ON
-    LOG_BUILD ON)
- 
-# Specify include dir for googlemock and googletest
-ExternalProject_Get_Property(googlemock source_dir)
-include_directories(${source_dir}/include)
-include_directories(${source_dir}/gtest/include)
- 
-if(MSVC_VERSION EQUAL 1700)
-    add_definitions(-D_VARIADIC_MAX=10)
-endif()
- 
-# Add test executable target
-add_executable(MainTest ${PROJECT_SOURCE_DIR}/src/main.cpp)
- 
-# Create dependency of MainTest on googlemock
-add_dependencies(MainTest googlemock)
- 
-# Specify MainTest's link libraries
-ExternalProject_Get_Property(googlemock binary_dir)
-target_link_libraries(MainTest
-debug ${binary_dir}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${CMAKE_FIND_LIBRARY_SUFFIXES}
-optimized ${binary_dir}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${CMAKE_FIND_LIBRARY_SUFFIXES})
-
-add_revision(liblas
-  GIT_REPOSITORY "https://github.com/libLAS/libLAS.git"
-  GIT_TAG 1.7.0
+set(cmake_generated ${CMAKE_BINARY_DIR}/CMakeCache.txt
+                    ${CMAKE_BINARY_DIR}/cmake_install.cmake  
+                    ${CMAKE_BINARY_DIR}/Makefile
+                    ${CMAKE_BINARY_DIR}/CMakeFiles
 )
 
-add_revision(libxml2
-  GIT_REPOSITORY "https://git.gnome.org/browse/libxml2"
-  GIT_TAG v2.9.1
+foreach(file ${cmake_generated})
+  if (EXISTS ${file})
+     file(REMOVE_RECURSE ${file})
+  endif()
+endforeach(file)
+
+add_custom_target(clean-all
+   COMMAND ${CMAKE_BUILD_TOOL} clean
+   COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
 )
-
-find_package(LibXml2 REQUIRED)
-macro_log_feature( LIBXML2_FOUND "libxml2" "LibXML2 is an XML parser required by mp3tunes." "http://www.xmlsoft.org" FALSE "" "" )
-find_package(GLIB2)
-macro_log_feature( GLIB2_FOUND "glib2" "Required by libgpod and mp3tunes" "http://www.gtk.org" FALSE "2.x" "")
-
-include(CheckLibraryExists)
-check_library_exists(dl dlopen "" LIBDL_FOUND)
-
-include(CheckTagLibFileName)
-
-add_subdirectory (lm)
-add_subdirectory (lhs)
-add_subdirectory (misc)
-add_subdirectory (mprun)
-add_subdirectory (ds)
-add_subdirectory (sa)
-add_subdirectory (bayes)
-
-set( objsmads ./mads.c ./mads_io.c ./mads_io_external.c ./mads_func.c ./mads_mem.c ./mads_info.c lm/opt_lm_mon.c lm/opt_lm_gsl.c lm/lu.c lm/opt_lm_ch.c misc/test_problems.c misc/anasol_contamination.c misc/io.c lhs/lhs.c )
-set( objspso pso/pso-tribes-lm.c pso/Standard_PSO_2006.c pso/mopso.c )
-set( objsa sa/abagus.c sa/postpua.c sa/global.c sa/do_miser.c )
-set( objds ds/infogap.c ds/glue.c )
-set( objsmpun mprun/mprun.c mprun/mprun_io.c )
-set( objskdtree misc/kdtree-0.5.5/kdtree.c )
-set( objslevmar misc/levmar-2.5/lm_m.c misc/levmar-2.5/Axb.c misc/levmar-2.5/misc.c misc/levmar-2.5/lmlec.c misc/levmar-2.5/lmbc.c misc/levmar-2.5/lmblec.c misc/levmar-2.5/lmbleic.c )
-set( objsastable misc/astable/astable.c misc/astable/interpolation.c misc/astable/pqueue.c )
-set( objsbayes bayes/dream.c )
-set( objwells wells/wells.c )
-
-add_executable (mads ${objsmads} ${objspso} ${objsa} ${objds} ${objsmpun} ${objskdtree} ${objslevmar} ${objsastable} ${objsbayes} ${objwells} )
-
-# Enable ExternalProject CMake module
-include(ExternalProject)
- 
-# Set default ExternalProject root directory
-set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/ThirdParty)
- 
-# Add libXML2
-ExternalProject_Add(
-    libxml2
-    DEPENDS zlib
-    GIT_REPOSITORY git://git.gnome.org/libxml2
-    UPDATE_COMMAND ""
-    CONFIGURE_COMMAND ./autogen.sh --prefix=${CMAKE_BINARY_DIR} --without-python --disable-shared --without-zlib
-    BUILD_IN_SOURCE 1
-)
-
-# Add gmock
-ExternalProject_Add(
-    googlemock
-    SVN_REPOSITORY http://googlemock.googlecode.com/svn/trunk/
-    TIMEOUT 30
-    PATCH_COMMAND svn patch ${CMAKE_SOURCE_DIR}/gtest.patch ${CMAKE_BINARY_DIR}/ThirdParty/src/googlemock/gtest
-    # Force separate output paths for debug and release builds to allow easy
-    # identification of correct lib in subsequent TARGET_LINK_LIBRARIES commands
-    CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
-    -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
-    -Dgtest_force_shared_crt=ON
-    # Disable install step
-    INSTALL_COMMAND ""
-    # Wrap download, configure and build steps in a script to log output
-    LOG_DOWNLOAD ON
-    LOG_CONFIGURE ON
-    LOG_BUILD ON)
- 
-# Specify include dir for googlemock and googletest
-ExternalProject_Get_Property(googlemock source_dir)
-include_directories(${source_dir}/include)
-include_directories(${source_dir}/gtest/include)
- 
-if(MSVC_VERSION EQUAL 1700)
-    add_definitions(-D_VARIADIC_MAX=10)
-endif()
- 
-# Add test executable target
-add_executable(MainTest ${PROJECT_SOURCE_DIR}/src/main.cpp)
- 
-# Create dependency of MainTest on googlemock
-add_dependencies(MainTest googlemock)
- 
-# Specify MainTest's link libraries
-ExternalProject_Get_Property(googlemock binary_dir)
-target_link_libraries(MainTest
-debug ${binary_dir}/DebugLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${CMAKE_FIND_LIBRARY_SUFFIXES}
-optimized ${binary_dir}/ReleaseLibs/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${CMAKE_FIND_LIBRARY_SUFFIXES})
-
-add_revision(libxml2
-  GIT_REPOSITORY "https://git.gnome.org/browse/libxml2"
-  GIT_TAG v2.9.1
-)
-
-find_package(LibXml2 REQUIRED)
-macro_log_feature( LIBXML2_FOUND "libxml2" "LibXML2 is an XML parser required by mp3tunes." "http://www.xmlsoft.org" FALSE "" "" )
-find_package(GLIB2)
-macro_log_feature( GLIB2_FOUND "glib2" "Required by libgpod and mp3tunes" "http://www.gtk.org" FALSE "2.x" "")

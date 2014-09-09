@@ -62,7 +62,7 @@ OUTPUT_FILE "libmatheval-configure.log"
 endif()
 endif()
 if(${CMAKE_SOURCE_DIR}/contrib/libmatheval/lib/matheval.h IS_NEWER_THAN ${CMAKE_BINARY_DIR}/contrib/libmatheval/include/matheval.h)
-message(STATUS "Installing libmatheval in ${CMAKE_BINARY_DIR}/contrib/libmatheval (this may take a while)...")
+    message(STATUS "Installing libmatheval in ${CMAKE_BINARY_DIR}/contrib/libmatheval (this may take a while)...")
 execute_process(
 COMMAND make -j${NProcs2} install
 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/contrib/libmatheval-compile
@@ -70,19 +70,16 @@ OUTPUT_QUIET
 OUTPUT_FILE "libmatheval-make.log"
 )
 endif()
-set(MATHEVAL_INCLUDE_DIR ${CMAKE_BINARY_DIR}/contrib/libmatheval/include)
-
+    set(MATHEVAL_INCLUDE_DIR ${CMAKE_BINARY_DIR}/contrib/libmatheval/include)
 endif ()
 
 
-FIND_LIBRARY( MATHEVAL_LIB feelpp_matheval matheval
-PATHS
-$ENV{FEELPP_DIR}/lib
-${CMAKE_BINARY_DIR}/contrib/libmatheval/lib/
-/usr/lib /opt/local/lib $ENV{MATHEVAL_DIR}/lib)
+FIND_LIBRARY( MATHEVAL_LIB mads_matheval matheval
+    PATHS
+    ${CMAKE_BINARY_DIR}/contrib/libmatheval/lib/ /usr/lib /opt/local/lib $ENV{MATHEVAL_DIR}/lib)
 
 if (MATHEVAL_LIB )
-FIND_LIBRARY( LIBFL NAMES fl REQUIRED)
+    FIND_LIBRARY( LIBFL NAMES fl REQUIRED)
 endif ()
 
 SET(MATHEVAL_LIBRARIES ${MATHEVAL_LIB} ${LIBFL} )

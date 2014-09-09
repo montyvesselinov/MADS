@@ -625,7 +625,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 	struct well_data *wd;
 	struct grid_data *gd;
 	struct extrn_data *ed;
-	char **expvar_names;
+	char **expvar_names = NULL;
 	int expvar_count;
 	cd = op->cd;
 	pd = op->pd;

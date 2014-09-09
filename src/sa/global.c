@@ -81,7 +81,7 @@ int sa_sobol( struct opt_data *op )
 	FILE *out, *out2;
 	strcpy( op->label, "sobol" );
 	double *fhat, *fhat2, gfhat, gfhat2, *phis_full, *t1, *t2;
-	double *var_y, **f_a, **f_b, **f_c, **sens_index, **sens_total, D_hat_t, f_hat_0, f_hat_a, f_hat_b, ep;
+	double *var_y, **f_a, **f_b, **f_c, **sens_index, **sens_total, D_hat_t, f_hat_0, f_hat_a, f_hat_b, ep = 0;
 	//		gsl_qrng *q = gsl_qrng_alloc( gsl_qrng_sobol, op->pd->nOptParam );
 	n_sub = op->cd->nreal / 2; //  number of samples for subsets a and b; set to half of user specified reals
 	n_obs = op->od->nTObs;

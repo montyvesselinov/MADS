@@ -50,20 +50,34 @@ Required libraries:
 	GLIB:       http://developer.gnome.org/glib
 	PKG-CONFIG: http://www.freedesktop.org/wiki/Software/pkg-config
 	GNU MAKE:   http://www.gnu.org/software/make
+	GNU C/C++:  http://gcc.gnu.org/
 	TCSH:       http://www.tcsh.org
 
-MAC OS X installation of required libraries:
+
+Installation of the required libraries:
+	- global (using sudo commands requiring system privileges; this faster and easier option; see below)
+	- cmake (this is slower and more complicated option; see below)
+
+Global installation of the required libraries (faster and easier):
+	MAC OS X:
 	sudo port install gcc48 gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh
 	sudo port select gcc mp-gcc48
 	
-RHEL/CentOS/Fedora installation of required libraries:	
+	RHEL/CentOS/Fedora:	
 	sudo yum install gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh
 
-Ubuntu/Debian installation of required libraries:
+	Ubuntu/Debian:
 	sudo apt-get install g++ libgsl0-dev libglib2.0 libyaml-dev libxml2 libmatheval-dev liblapack-dev gfortran pkg-config git tcsh
 
 Compilation:
-	make
+	make -f gmake/GNUmakefile
+
+CMAKE installation of the required libraries and compilation (slower and can be more complicated)
+	cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=/opt/local/bin/c++ -DCMAKE_C_COMPILER=/opt/local/bin/gcc -DCMAKE_LINKER=/opt/local/bin/gcc
+	make -f Makefile
+	cmake command above provides the location of the GNU C/C++ compilers if they are not already set as CC/CXX environmental variables:
+	export CC=/opt/local/bin/gcc
+	export CXX=/opt/local/bin/c++
 
 Verification (TCSH shell is needed to run verification scripts):
 	make verify (all test problems listed below)
@@ -76,14 +90,12 @@ Verification (TCSH shell is needed to run verification scripts):
 	make verify-sa (global sensitivity analysis)
 
 WELLS code:
-	WELlS code is needed to run some of the example problems
-	git clone git@gitlab.com:mads/wells.git
-	cd wells
-	make
-	make wells globally executable (add wells directory in $PATH)
+	WELlS code is needed to run some of the example problems.
+	WELLS code is compiled with the commands listed above.
+	For more information checkout http://wells.lanl.gov
 
 Examples:
-	make examples (the code WELLS is needed; http://wells.lanl.gov)
+	make examples
 	In addition, several examples can be found in directory 'example' (check the 'readme' files in the directory 'example')
 	See also http://mads.lanl.gov/#examples and http://mads.lanl.gov/#demos
 

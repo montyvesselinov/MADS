@@ -1,4 +1,4 @@
-# MADS: Model Analyses & Decision Support (v.1.1.14) 2013
+# MADS Analyses & Decision Support (v.1.1.14) 2013
 #
 # Velimir V Vesselinov (monty), vvv@lanl.gov, velimir.vesselinov@gmail.com
 # Dan O'Malley, omalled@lanl.gov
@@ -86,7 +86,8 @@ $(info Machine -- $(ND))
 $(info Target  -- $(MAKECMDGOALS) $(OBJ_DIR))
 
 CC = gcc
-CPP = g++
+CXX = g++
+LD = ld
 CFLAGS = -Wall -O1 -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
 SONAME = soname
@@ -157,7 +158,7 @@ SRC_WELLS = wells/wells.c
 ifeq ($(YAML),true)
     $(info YAML Support included)
     SRC_MADS += $(SRC)/mads_io_yaml.c
-    CFLAGS += -DMADS_YAML `pkg-config --cflags glib-2.0`
+    CFLAGS += -DMADS_YAML `pkg-config --cflags glib-2.0` -I/opt/local/include/glib-2.0 -I/opt/local/lib/glib-2.0/include
     LDLIBS += -lyaml `pkg-config --libs glib-2.0`
 endif
 
@@ -173,6 +174,7 @@ ifeq ($(MATHEVAL),true)
     CFLAGS += -DMATHEVAL
     LDLIBS += -lmatheval
 endif
+CXXFLAGS = $(CFLAGS)
 $(info ----------------------------------------------------------------------)
 
 SOURCES = $(SRC_MADS) $(SRC_PSO) $(SRC_MPUN) $(SRC_SA) $(SRC_DS) $(SRC_LEVMAR) $(SRC_KDTREE) $(SRC_ASTABLE) $(SRC_BAYES)
@@ -187,17 +189,20 @@ OBJ_WELLS = $(addsuffix .o,$(basename $(SRC_WELLS)))
 all: mads wells
 
 mads: $(MADS)
+	ln -sf ${MADS} .
 	@echo "MADS Release Version built!"
 
 wells: $(WELLS)
 	@echo "WELLS built!"
 
 release: $(MADS)
+	ln -sf ${MADS} .
 	@echo "MADS Release Version built!"
 
 debug: CFLAGS += -g
 debug: $(MADS_DEBUG)
 	@echo "MADS Debug Version built!"
+	@echo "Execture ${MADS_DEBUG}"
 
 lib: CFLAGS += -fPIC
 lib: $(MADS_LIB)
@@ -301,7 +306,7 @@ $(OBJ_DIR)/misc/astable/pqueue.o: $(SRC)/misc/astable/pqueue.c $(SRC)/misc/astab
 $(OBJ_DIR)/wells/wells.o: $(SRC)/wells/wells.c $(SRC)/wells/design.h $(SRC)/wells/wells.h
 $(OBJ_DIR)/bayes/dream.o: $(SRC)/bayes/dream.cpp $(SRC)/bayes/dream.h $(SRC)/mads.h $(SRC)/misc/astable/interpolation.o
 	@mkdir -p $(dir $@)
-	$(CPP) $(CFLAGS) -c -o $(OBJ_DIR)/bayes/dream.o $(SRC)/bayes/dream.cpp -l$(OBJ_DIR)/misc/astable/interpolation.o
+	$(CXX) $(CFLAGS) -c -o $(OBJ_DIR)/bayes/dream.o $(SRC)/bayes/dream.cpp -l$(OBJ_DIR)/misc/astable/interpolation.o
 
 ## Colordefinition
 NO_COLOR    = \x1b[0m

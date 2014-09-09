@@ -1,10 +1,7 @@
-# Try to find gnu scientific library GSL
-# See
+# GNU Scientific Library GSL
+#
 # http://www.gnu.org/software/gsl/  and
 # http://gnuwin32.sourceforge.net/packages/gsl.htm
-#
-# Based on a script of Felix Woelk and Jan Woetzel
-# (www.mip.informatik.uni-kiel.de)
 #
 # It defines the following variables:
 #  GSL_FOUND - system has GSL lib
@@ -18,7 +15,7 @@
  
 set( GSL_FOUND OFF )
 set( GSL_CBLAS_FOUND OFF )
-set( GSL_FIND_QUIETLY ON )
+set( GSL_FIND_QUIETLY OFF )
  
 # Windows, but not for Cygwin and MSys where gsl-config is available
 if( WIN32 AND NOT CYGWIN AND NOT MSYS )
@@ -72,31 +69,33 @@ else( WIN32 AND NOT CYGWIN AND NOT MSYS )
       # run the gsl-config program to get cxxflags
       execute_process(
         COMMAND sh "${GSL_CONFIG_EXECUTABLE}" --cflags
-        OUTPUT_VARIABLE GSL_CFLAGS
+        OUTPUT_VARIABLE GSL_C_FLAGS
         RESULT_VARIABLE RET
         ERROR_QUIET
         )
       if( RET EQUAL 0 )
-        string( STRIP "${GSL_CFLAGS}" GSL_CFLAGS )
-        separate_arguments( GSL_CFLAGS )
+        string( STRIP "${GSL_C_FLAGS}" GSL_C_FLAGS )
+        separate_arguments( GSL_C_FLAGS )
  
         # parse definitions from cflags; drop -D* from CFLAGS
         string( REGEX MATCHALL "-D[^;]+"
-          GSL_DEFINITIONS  "${GSL_CFLAGS}" )
+          GSL_DEFINITIONS  "${GSL_C_FLAGS}" )
         string( REGEX REPLACE "-D[^;]+;" ""
-          GSL_CFLAGS "${GSL_CFLAGS}" )
+          GSL_C_FLAGS "${GSL_C_FLAGS}" )
  
         # parse include dirs from cflags; drop -I prefix
         string( REGEX MATCHALL "-I[^;]+"
-          GSL_INCLUDE_DIRS "${GSL_CFLAGS}" )
+          GSL_INCLUDE_DIRS "${GSL_C_FLAGS}" )
         string( REPLACE "-I" ""
           GSL_INCLUDE_DIRS "${GSL_INCLUDE_DIRS}")
         string( REGEX REPLACE "-I[^;]+;" ""
-          GSL_CFLAGS "${GSL_CFLAGS}")
+          GSL_C_FLAGS "${GSL_C_FLAGS}")
  
-#        message("GSL_DEFINITIONS=${GSL_DEFINITIONS}")
-#        message("GSL_INCLUDE_DIRS=${GSL_INCLUDE_DIRS}")
-#        message("GSL_CFLAGS=${GSL_CFLAGS}")
+        message("GSL_DEFINITIONS=${GSL_DEFINITIONS}")
+        message("GSL_INCLUDE_DIRS=${GSL_INCLUDE_DIRS}")
+        message("GSL_C_FLAGS=${GSL_C_FLAGS}")
+	set(GSL_CXX_FLAGS ${GSL_C_FLAGS})
+        message("GSL_CXX_FLAGS=${GSL_CXX_FLAGS}")
       else( RET EQUAL 0 )
         set( GSL_FOUND FALSE )
       endif( RET EQUAL 0 )
@@ -122,9 +121,10 @@ else( WIN32 AND NOT CYGWIN AND NOT MSYS )
       endif( RET EQUAL 0 )
  
       MARK_AS_ADVANCED(
-        GSL_CFLAGS
+	CSL_CXXFLAGS
+        GSL_C_FLAGS
       )
-#      message( STATUS "Using GSL from ${GSL_PREFIX}" )
+      message( STATUS "Using GSL from ${GSL_PREFIX}" )
     else( GSL_CONFIG_EXECUTABLE )
       message( STATUS "FindGSL: gsl-config not found.")
     endif( GSL_CONFIG_EXECUTABLE )
@@ -132,6 +132,7 @@ else( WIN32 AND NOT CYGWIN AND NOT MSYS )
 endif( WIN32 AND NOT CYGWIN AND NOT MSYS )
  
 if( GSL_FOUND )
+    message( STATUS "GSL found" )
   if( NOT GSL_FIND_QUIETLY )
     message( STATUS "FindGSL: Found both GSL headers and library" )
   endif( NOT GSL_FIND_QUIETLY )

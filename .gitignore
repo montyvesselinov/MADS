@@ -81,8 +81,10 @@ Debug/*
 *.orig
 # CMAKE file
 CMakeCache.txt
+CTestTestfile.cmake
 CMakeFiles
 cmake_install.cmake
+Makefile
 # LINUX files
 .nfs*
 # MAC files
