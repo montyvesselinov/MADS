@@ -1,8 +1,11 @@
 # -*- mode: cmake -*-
 # MADS
 #
-# USAGE: cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=/opt/local/bin/c++ -DCMAKE_C_COMPILER=/opt/local/bin/gcc -DCMAKE_LINKER=/opt/local/bin/gcc
+# IMPORTANT: MADS requires GNU 4.8 or newer compiler
 #
+# USAGE:   cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=<gnu_c++_compiler> -DCMAKE_C_COMPILER=<gnu_c_compiler>   -DCMAKE_LINKER=<gnu_c_compiler>
+# EXAMPLE: cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=/opt/local/bin/c++ -DCMAKE_C_COMPILER=/opt/local/bin/gcc -DCMAKE_LINKER=/opt/local/bin/gcc
+
 cmake_minimum_required (VERSION 2.8)
 
 # enable_testing()

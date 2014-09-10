@@ -2,7 +2,7 @@
 # MADS SRC
 cmake_minimum_required (VERSION 2.8)
 
-add_custom_command(OUTPUT mads_gitversion.c
+add_custom_command(OUTPUT /dev/null
     COMMAND echo 'const char *gitversion = \\"${VER}${GIT_STATUS}\\"\; > mads_gitversion.c'
     DEPENDS ../.git/HEAD ../.git/index )
 
