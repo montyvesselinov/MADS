@@ -2,19 +2,14 @@
 # MADS SRC
 cmake_minimum_required (VERSION 2.8)
 
-include_directories(${CMAKEDEMO_SOURCE_DIR}/src)
-# link_diretories(${CMAKEDEMO_BINARY_DIR}/src)
+add_custom_command(OUTPUT mads_gitversion.c
+    COMMAND echo 'const char *gitversion = \\"${VER}${GIT_STATUS}\\"\; > mads_gitversion.c'
+    DEPENDS ../.git/HEAD ../.git/index )
 
-enable_language(C)
-enable_language(CXX)
+add_custom_target( gitversion
+    DEPENDS mads_gitversion.c )
 
-# add_subdirectory (lm)
-# add_subdirectory (lhs)
-# add_subdirectory (misc)
-# add_subdirectory (mprun)
-# add_subdirectory (ds)
-# add_subdirectory (sa)
-# add_subdirectory (bayes)
+# add_dependencies( gitversion ../.git/HEAD ../.git/index )
 
 set( src_mads ./mads.c ./mads_io.c ./mads_io_external.c ./mads_func.c ./mads_mem.c ./mads_info.c lm/opt_lm_mon.c lm/opt_lm_gsl.c lm/lu.c lm/opt_lm_ch.c misc/test_problems.c misc/anasol_contamination.c misc/io.c lhs/lhs.c mads_gitversion.c )
 set( src_pso pso/pso-tribes-lm.c pso/Standard_PSO_2006.c pso/mopso.c )
@@ -29,12 +24,3 @@ set( sources ${src_mads} ${src_pso} ${src_sa} ${src_ds} ${src_mpun} ${src_kdtree
 
 add_executable ( mads ${sources} )
 target_link_libraries( mads ${MADS_LIBS})
-
-#foreach (file ${SRC_FILES})
-#    get_filename_component(EXE_NAME ${file} NAME_WE)
-#    get_filename_component(SRC_NAME ${file} NAME)
-#    message(${SRC_NAME})
-#    add_executable(${EXE_NAME} ${SRC_NAME})
-#    target_link_libraries(${EXE_NAME} gslib)
-#    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${EXE_NAME} DESTINATION bin)
-#endforeach()

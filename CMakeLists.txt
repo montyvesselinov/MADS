@@ -3,16 +3,20 @@
 #
 # USAGE: cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=/opt/local/bin/c++ -DCMAKE_C_COMPILER=/opt/local/bin/gcc -DCMAKE_LINKER=/opt/local/bin/gcc
 #
-
 cmake_minimum_required (VERSION 2.8)
 
 # enable_testing()
 
 project (mads)
+
 set(MADS_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/util")
 set(CMAKE_MODULE_PATH  ${MADS_MODULE_PATH})
 
-
+execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE VER_N)
+string(REPLACE "\n" "" VER ${VER_N})
+execute_process(COMMAND scripts/check_git_status OUTPUT_VARIABLE GIT_STATUS_N)
+string(REPLACE "\n" "" GIT_STATUS ${GIT_STATUS_N})
+message( STATUS "Git version ${VER}${GIT_STATUS}" )
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
@@ -25,11 +29,10 @@ if( NOT cmake_build_type_tolower STREQUAL "debug"
     message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\". Allowed values are Debug, Release, Lib (case-insensitive).")
 endif()
 
-# add_subdirectory (${PROJECT_SOURCE_DIR}/util)
-
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(PkgConfig REQUIRED)
+FIND_PACKAGE(Git REQUIRED)
 find_package(GLIB2 REQUIRED)
 find_package(GSL REQUIRED)
 find_package(LibYAML REQUIRED)
@@ -48,7 +51,8 @@ include(CheckLibraryExists)
 check_library_exists(dl dlopen "" LIBDL_FOUND)
 
 # include(CheckTagLibFileName)
-add_subdirectory (src)
+add_subdirectory(src)
+add_subdirectory(wells)
 
 if(APPLE)
     set(MADS_OS "MacOSX")
@@ -70,7 +74,8 @@ include(ExternalProject)
  
 # Set default ExternalProject root directory
 set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/tpls)
- 
+
+# --- clean
 add_custom_target(clean-cmake-files
    COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
 )
