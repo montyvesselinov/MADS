@@ -88,7 +88,7 @@ $(info Target  -- $(MAKECMDGOALS) $(OBJ_DIR))
 CC = gcc
 CXX = g++
 CFLAGS = -Wall -O1 -Winit-self
-LDLIBS = -lgsl -llapack -lstdc++
+LDLIBS = -lgsl -llapack -latlas -lstdc++
 SONAME = soname
 
 ifeq ($(OS),Linux)

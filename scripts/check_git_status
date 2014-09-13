@@ -4,10 +4,10 @@ status=$?
 if test $status -ne 0
 then
     echo "+uncommitted"
-    grep -q "uncommitted" src/mads_gitversion.c
-    status=$?
-    if test $status -ne 0
-    then
-	rm -f mads_gitversion.c
-    fi
+    #grep -q -s "uncommitted" src/mads_gitversion.c
+    #status=$?
+    #if test $status -ne 0
+    #then
+	# rm -f src/mads_gitversion.c
+    #fi
 fi

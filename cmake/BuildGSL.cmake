@@ -1,25 +1,13 @@
 #  -*- mode: cmake -*-
-
-#
-# Build TPL: GSL
-#
-
-# --- Define all the directories and common external project flags
-define_external_project_args(GSL TARGET GSL)
-
-configure_file(${TPL_CMAKE_TEMPLATE_DIR}/gsl-configure-step.cmake.in
-               ${GSL_prefix_dir}/gsl-configure-step.cmake
-        @ONLY)
+message(STATUS "Installing GSL (${GSL_VERSION})")
+define_external_project_args(GSL TARGET gsl)
+set(SOURCE_DIR ${GSL_source_dir})
+configure_file(${TPL_CMAKE_TEMPLATE_DIR}/configure-step.cmake.in ${GSL_prefix_dir}/gsl-configure-step.cmake @ONLY)
 set(GSL_CONFIGURE_COMMAND ${CMAKE_COMMAND} -P ${GSL_prefix_dir}/gsl-configure-step.cmake)
-
-# --- Define the build command
-
-configure_file(${TPL_CMAKE_TEMPLATE_DIR}/gsl-build-step.cmake.in
-               ${GSL_prefix_dir}/gsl-build-step.cmake
-       @ONLY)
+configure_file(${TPL_CMAKE_TEMPLATE_DIR}/build-step.cmake.in ${GSL_prefix_dir}/gsl-build-step.cmake @ONLY)
 set(GSL_BUILD_COMMAND ${CMAKE_COMMAND} -P ${GSL_prefix_dir}/gsl-build-step.cmake)     
-
-# --- Add external project build and tie to the ZLIB build target
+configure_file(${TPL_CMAKE_TEMPLATE_DIR}/install-step.cmake.in ${GSL_prefix_dir}/gsl-install-step.cmake @ONLY)
+set(GSL_INSTALL_COMMAND ${CMAKE_COMMAND} -P ${GSL_prefix_dir}/gsl-install-step.cmake)     
 ExternalProject_Add(${GSL_BUILD_TARGET}
                     DEPENDS   ${GSL_PACKAGE_DEPENDS}             # Package dependency target
                     TMP_DIR   ${GSL_tmp_dir}                     # Temporary files directory
@@ -37,6 +25,7 @@ ExternalProject_Add(${GSL_BUILD_TARGET}
                     BUILD_IN_SOURCE   ${GSL_BUILD_IN_SOURCE}     # Flag for in source builds
                     # -- Install
                     INSTALL_DIR      ${TPL_INSTALL_PREFIX}        # Install directory
-                    INSTALL_COMMAND  ""
+                    INSTALL_COMMAND  ${GSL_INSTALL_COMMAND}
                     # -- Output control
-                    ${GSL_logging_args})
+                    ${GSL_logging_args}
+		   )
