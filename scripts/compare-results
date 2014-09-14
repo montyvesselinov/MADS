@@ -1,0 +1,36 @@
+#!/bin/tcsh
+if( ! -e $1 ) then
+	echo '--------------------------------------------------------------------------------------------------'
+	echo ERROR Verification failed!
+	echo ERROR File $1 is missing!
+	echo '--------------------------------------------------------------------------------------------------'
+	exit 0
+endif
+if( ! -e $2 ) then
+	echo '--------------------------------------------------------------------------------------------------'
+	echo ERROR Verification failed!
+	echo ERROR File $2 is missing!
+	echo '--------------------------------------------------------------------------------------------------'
+	exit 0
+endif
+grep -v Execution $1 | grep -v "Functional evaluations per" | grep -v "Simulation time" | grep -v "running exists" | grep -v "WARNING: The number of provided parameters" | grep -v "(v\." >! $1_e_$$
+grep -v Execution $2 | grep -v "Functional evaluations per" | grep -v "Simulation time" | grep -v "running exists" | grep -v "WARNING: The number of provided parameters" | grep -v "(v\." >! $2_e_$$
+# keeep this lines together !!!!!!!!!!!!!
+sdiff --width 180 --ignore-blank-lines $1_e_$$ $2_e_$$ > $1_$$
+set a = $?
+# keeep this lines together !!!!!!!!!!!!!
+\rm -f $1_e_$$ $2_e_$$
+if( $a != 0 ) then
+	echo "ERROR Verification failed (comparing two files: $1 $2)!"
+	echo '--------------------------------------------------------------------------------------------------'
+	grep '|' $1_$$ | tail
+	# cat $1_$$
+	\rm -f $1_$$
+	echo '--------------------------------------------------------------------------------------------------'
+	exit 0
+else
+	echo "SUCCESS: Verification is successful!"
+	#echo "SUCCESS Verification is successful (comparing $1 and $2)!"
+	\rm -f $1_$$
+	exit 0
+endif

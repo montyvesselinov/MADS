@@ -1,0 +1,15 @@
+Examples:
+
+mads w01       // serial analysis
+mads w01 np=12 // parallel analysis
+
+Code WELLS is needed
+It can be obtained at http://www.ees.lanl.gov/staff/monty/index.html?wells
+
+Comparisons:
+
+mads w01 ldebug
+pest w01pest
+pest w02pest
+
+code PEST can be obtained at http://www.sspa.com/pest/

@@ -1,0 +1,13 @@
+#!/bin/bash
+git diff --quiet && git diff --cached --quiet
+status=$?
+if test $status -ne 0
+then
+    echo "+uncommitted"
+    #grep -q -s "uncommitted" src/mads_gitversion.c
+    #status=$?
+    #if test $status -ne 0
+    #then
+	# rm -f src/mads_gitversion.c
+    #fi
+fi

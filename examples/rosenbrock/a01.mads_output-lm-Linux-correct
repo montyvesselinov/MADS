@@ -1,0 +1,136 @@
+MADS: Model Analyses & Decision Support (v.1.1.14.640f2b0) 2013
+---------------------------------------------------
+Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: a01.mads
+Problem root name: a01
+MADS input file in Plain TEXT format.
+
+Test Function 3 Dimensionality 3 
+
+Problem type: calibration
+
+Calibration technique: sequential calibration using a set of random initial values (realizations = 1)
+Eigen analysis will be performed for the final optimization results
+
+Optimization method: opt=lm --- Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 5000
+2: Objective function cutoff value: NOT implemented (ADD keyword cutoff=[value] to implement)
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: test function 3
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Model: internal test optimization problem #3: 
+
+
+Execution date & time stamp: 20140808-124838
+
+SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
+No flagged parameters; all optimizable parameters are randomized
+Imported seed: 2096575428
+Random sampling (variables 2; realizations 1) using 
+Pure random sampling method ... done.
+
+Random set #1: 
+Parameter #1 14.6959532525832
+Parameter #2 -5.11358208761983
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :       14.696 -- Uncertainty ranges cannot be estimated
+Parameter #2               :     -5.11358 -- Uncertainty ranges cannot be estimated
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :      3.80518 -- Uncertainty ranges cannot be estimated
+Parameter #2               :     -85.3721 -- Uncertainty ranges cannot be estimated
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :    -0.492499 -- Uncertainty ranges cannot be estimated
+Parameter #2               :      26.3473 -- Uncertainty ranges cannot be estimated
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :     0.991335 -- Uncertainty ranges cannot be estimated
+Parameter #2               :     -1.91372 -- Uncertainty ranges cannot be estimated
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :     0.999455 -- Uncertainty ranges cannot be estimated
+Parameter #2               :     0.999242 -- Uncertainty ranges cannot be estimated
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :            1 -- Uncertainty ranges cannot be estimated
+Parameter #2               :            1 -- Uncertainty ranges cannot be estimated
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :            1 -- Uncertainty ranges cannot be estimated
+Parameter #2               :            1 -- Uncertainty ranges cannot be estimated
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :            1 -- Uncertainty ranges cannot be estimated
+Parameter #2               :     0.999999 -- Uncertainty ranges cannot be estimated
+Eigen analysis ...
+Jacobian matrix stored (a01.igrnd.jacobian)
+Covariance matrix stored (a01.igrnd.covariance)
+Correlation matrix stored (a01.igrnd.correlation)
+Eigen vectors and eigen values stored (a01.igrnd.eigen)
+Optimized model parameters:
+Parameter #1               :            1 -- Uncertainty ranges cannot be estimated
+Parameter #2               :     0.999999 -- Uncertainty ranges cannot be estimated
+Evaluations: 43 Jacobians: 9 Objective function: 2.57807e-12 Success: 1
+Parameter #1 1
+Parameter #2 0.999999
+
+Minimum objective function: 2.57807e-12
+Repeat the run producing the best results ...
+Results are saved in a01.igrnd.results and a01.igrnd-opt=lm_eval=5000_real=1
+
+Final results:
+Optimized model parameters:
+Parameter #1 1
+Parameter #2 0.999999
+Objective function: 2.57807e-12 Success: 1 (0)
+Simulation time = 0 seconds
+Functional evaluations = 44
+Jacobian evaluations = 9
+Levenberg-Marquardt optimizations = 1
+Execution  started  on Fri Aug  8 12:48:38 2014
+Execution completed on Fri Aug  8 12:48:38 2014
+Execution date & time stamp: 20140808-124838

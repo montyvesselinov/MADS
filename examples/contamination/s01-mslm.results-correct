@@ -1,0 +1,38 @@
+Model parameters:
+Source x coordinate [L] 1119.49
+Source y coordinate [L] 1398
+Source x dimension [L] 261.292
+Source y dimension [L] 268.734
+Contaminant flux [M/T] 15.4736
+Start Time [T] 0
+Flow Angle [degrees] 2.39652
+Pore x velocity [L/T] 5.19632
+Dispersivity x [L] 66.1008
+Dispersivity y [L] 15.4336
+Dispersivity z [L] 0.290911
+
+Model predictions:
+W-1       (   49):           0 -  0.000375603 = -0.000375603 (-0.000375603) success 1 range            0 -           25
+W-2       (   49):           0 -  0.000815861 = -0.000815861 (-0.000815861) success 1 range            0 -           10
+W-3       (   49):           0 -  6.46248e-07 = -6.46248e-07 (-6.46248e-07) success 1 range            0 -           25
+W-4       (   44):         350 -      349.955 =    0.0451838 (   0.0451838) success 1 range          300 -          700
+W-4       (   49):         432 -      431.924 =     0.075832 (    0.075832) success 1 range          300 -          700
+W-5       (   49):           0 -  3.83209e-24 = -3.83209e-24 (-3.83209e-24) success 1 range            0 -           10
+W-6       (   49):           0 -  3.35452e-25 = -3.35452e-25 (-3.35452e-25) success 1 range            0 -           10
+W-7       (   49):           0 -  1.61448e-17 = -1.61448e-17 (-1.61448e-17) success 1 range            0 -           10
+W-8       (   49):           0 -  2.41573e-19 = -2.41573e-19 (-2.41573e-19) success 1 range            0 -           10
+W-9       (   49):         981 -      981.258 =    -0.257562 (   -0.257562) success 1 range          600 -         1200
+W-10#1    (   49):         1.1 -      1.16362 =   -0.0636243 (  -0.0636243) success 1 range            0 -            5
+W-10#2    (   49):         0.1 -     0.100738 = -0.000738001 (-0.000738001) success 1 range            0 -            5
+W-11#1    (   49):          22 -      22.0106 =    -0.010598 (   -0.010598) success 1 range            3 -           25
+W-11#2    (   49):         0.3 -     0.353995 =   -0.0539949 (  -0.0539949) success 1 range            0 -            5
+W-12#1    (   49):          15 -      15.0101 =   -0.0100624 (  -0.0100624) success 1 range            3 -           25
+W-12#2    (   49):        0.17 -     0.177703 =  -0.00770297 ( -0.00770297) success 1 range            0 -            5
+W-13#1    (   50):          72 -       72.166 =     -0.16604 (    -0.16604) success 1 range           40 -          100
+W-13#2    (   50):        0.26 -     0.269913 =  -0.00991333 ( -0.00991333) success 1 range            0 -           20
+W-14a     (   50):           0 -  0.000250762 = -0.000250762 (-0.000250762) success 1 range            0 -            5
+W-14b     (   50):          30 -      30.8719 =    -0.871914 (   -0.871914) success 1 range            0 -           50
+W-14c     (   50):          10 -      168.706 =     -158.706 (          -0) success 0 range            0 -           20
+Objective function: 0.869269 Success: 1 (1)
+Number of function evaluations = 15
+Seed = -2096575428

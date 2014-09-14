@@ -1,0 +1,151 @@
+MADS is an open-source code designed as an integrated high-performance 
+
+computational framework performing a wide range of model-based analyses:
+ * Sensitivity Analysis
+ * Parameter Estimation
+ * Model Inversion and Calibration
+ * Uncertainty Quantification
+ * Model Selection and Averaging
+ * Decision Support.
+These analyses can be performed using a series of alternative techniques covering
+a wide range of methods (including global and local methods).
+This allows the user to try different methods to solve the same problem and 
+compare obtained results.
+
+MADS also utilizes adaptive rules which allows the analyses 
+to be performed with minimum user input.
+
+MADS allows for coupled model parameters and a wide range of regularization terms 
+that are internally computed based on user-defined mathematical expressions.
+
+For more information check out he MADS website at http://mads.lanl.gov
+
+USAGE: mads problem_name [ keywords | options ]       OR
+       mads MADS_input_file [ keywords | options ]    OR
+       mads PEST_input_file [ keywords | options ]       
+            (MADS is compatible with PEST control, template and instruction files)
+       mads (execution without arguments provides information about command-line keywords)
+
+Licensing:
+	GPLv3: http://www.gnu.org/licenses/gpl-3.0.html 
+
+Download:
+	http://gitlab.com/monty/mads
+	http://github.com/montyvesselinov/MADS
+	http://bitbucket.org/monty_vesselinov/mads
+	
+Clone GIT repositories:
+	git clone git@gitlab.com:monty/mads.git       
+	git clone git@github.com:montyvesselinov/MADS.git
+	git clone git@bitbucket.org:monty_vesselinov/mads.git
+
+Required tools:
+	GIT:        http://git-scm.com (version 1.9 or later)
+	GNU C/C++:  http://gcc.gnu.org (version 4.8 or later)
+	GNU MAKE:   http://www.gnu.org/software/make (version 3.81 or later)
+	PKG-CONFIG: http://www.freedesktop.org/wiki/Software/pkg-config (version 0.28 or later)
+	TCSH:       http://www.tcsh.org
+
+Required libraries:
+	GSL:        http://www.gnu.org/s/gsl (version 1.16 or later)
+	LAPACK:     http://www.netlib.org/lapack
+	BLAS:       http://www.netlib.org/blas
+	ATLAS:      (if LAPACK or BLAS are not available) http://www.netlib.org/atlas (version 3.10 or later)
+	MATHEVAL:   http://www.gnu.org/software/libmatheval (version 1.1.11 or later)
+	LibYAML:    http://pyyaml.org/wiki/LibYAML; http://www.yaml.org (
+	LibXML2:    http://xmlsoft.org (
+	GLIB:       http://developer.gnome.org/glib (version 2.40 or later)
+
+Installation of the required libraries; there are two options:
+
+	GLOBAL installation: 
+	The libraries are installed from existing ports using sudo commands requiring system privileges.
+	This is a faster and easier option.
+
+	LOCAL installation using CMake: 
+	The libraries are downloaded, compiled and build from source.
+	The libraries are installed in a directory called 'tpls'.
+	This is a slower and more complicated option.
+	It may still require system privileges to execute sudo commands to install g++, CMake and other required tools (see below).
+
+GLOBAL installation of the required libraries (faster and easier):
+	
+	To install:
+	MAC OS X:
+	sudo port install gcc48 gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
+	sudo port select gcc mp-gcc48
+	
+	RHEL/CentOS/Fedora:	
+	sudo yum install gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
+	sudo yum install gcc-c++-4.8
+
+	Ubuntu/Debian:
+	sudo apt-get install gcc-4.8 g++ libgsl0-dev libglib2.0 libyaml-dev libxml2 libmatheval-dev liblapack-dev gfortran pkg-config git tcsh gmake
+	sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
+
+	To compile MADS:
+	make -f gnumake/GNUmakefile
+
+CMake compilation, building and installation of the required libraries (slower and can be more complicated)
+
+	Required tools (in addition to the ones listed above):
+	CMake (version 3.0 or later)
+	curl+ssl (version 7.0 or later)
+	glibtool (version 2.4 or later)
+	automake (version 2.0 or later)
+	autoconf (version 1.0 or later)
+	The installation of these tools requires system privileges.
+	RECOMMENDATION: If you have system privileges, it is better to use the GLOBAL installation option listed above.
+	CMake can be still applied to compile MADS.
+	
+	To install:
+	MAC OS X:
+	sudo port install gcc48 cmake curl+ssl libtool pkgconfig git tcsh gmake
+	sudo port select gcc mp-gcc48
+	
+	RHEL/CentOS/Fedora:	
+	sudo yum install cmake curl+ssl libtool pkgconfig git tcsh gmake
+	sudo yum install gcc-c++-4.8
+
+	Ubuntu/Debian:
+	sudo apt-get install gcc-4.8 g++ cmake curl+ssl libtool pkg-config git tcsh gmake
+	sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
+
+	To compile MADS:
+	cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=/opt/local/bin/c++ -DCMAKE_C_COMPILER=/opt/local/bin/gcc -DCMAKE_LINKER=/opt/local/bin/gcc
+	make -f Makefile
+	cmake command above provides the location of the GNU C/C++ compilers if they are not already set as CC/CXX environmental variables:
+	export CC=/opt/local/bin/gcc
+	export CXX=/opt/local/bin/c++
+
+Verification (TCSH shell is needed to run verification scripts):
+	make verify (all test problems listed below)
+	make verify-internal (internal test functions)
+	make verify-forward (forward contaminant transport simulations)
+	make verify-contaminant (inverse contaminant transport analyses)
+	make verify-multistart1 verify-multistart2 (multi-start inverse problems using random initial parameter guesses)
+	make verify-external verify-external-short (inverse problems using the code WELLS; http://wells.lanl.gov)
+	make verify-parallel (parallel inverse analysis)
+	make verify-sa (global sensitivity analysis)
+
+WELLS code:
+	WELlS code is needed to run some of the example problems.
+	WELLS code is compiled with the commands listed above.
+	For more information checkout http://wells.lanl.gov
+
+Examples:
+	make examples
+	In addition, several examples can be found in directory 'example' (check the 'readme' files in the directory 'example')
+	See also http://mads.lanl.gov/#examples and http://mads.lanl.gov/#demos
+
+Comparisons:
+	Comparisons with the code PEST are available as well (in subdirectories of 'example', check the 'readme' files)
+	See also http://mads.lanl.gov/#comparisons
+	
+Manual:
+	http://mads.lanl.gov/#manual
+
+Additional information:
+	http://mads.lanl.gov
+	http://www.ees.lanl.gov/staff/monty/codes/mads
+	email: Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com

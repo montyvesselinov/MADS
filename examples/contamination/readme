@@ -1,0 +1,15 @@
+Examples:
+
+mads s01 ldebug
+mads s02 ldebug
+mads s01 ldebug igrnd real=1
+mads s01 seed=1549170842 success igrnd real=1
+mads s01 opt=squads seed=1549170842 eigen success pdebug igrnd real=1
+mads s01 opt=pso seed=1549170842 eigen success igrnd real=
+
+Comparisons:
+
+mads s02 ldebug 
+pest s02pest
+
+code PEST can be obtained at http://www.sspa.com/pest/

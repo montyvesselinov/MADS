@@ -1,0 +1,79 @@
+MADS: Model Analyses & Decision Support (v.1.1.14.640f2b0) 2013
+---------------------------------------------------
+Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
+http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
+
+Input file name: p01lm.mads
+Problem root name: p01lm
+MADS input file in Plain TEXT format.
+
+Test Function 3 Dimensionality 3 
+
+Problem type: calibration
+
+Calibration technique: sequential calibration using a set of random initial values (realizations = 10)
+
+Optimization method: opt=lm --- Levenberg-Marquardt optimization
+Number of Levenberg-Marquardt iterations = will be computed internally
+
+Global termination criteria:
+1: Maximum number of evaluations = 1000
+2: Objective function cutoff value: 0.001
+3: Observations within predefined calibration ranges or an absolute observation error: NOT implemented (ADD keyword 'obsrange' or 'obserror' to implement)
+4: Parameters within a predefined absolute error from known 'true' values: NOT implemented (ADD keyword 'parerror' to implement)
+Objective function: test function 3
+
+Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remove)
+
+Global debug (verbosity) level: debug=0
+
+Model: internal test optimization problem #3: 
+
+
+Execution date & time stamp: 20140808-124839
+
+SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
+No flagged parameters; all optimizable parameters are randomized
+Imported seed: 2096575428
+Random sampling (variables 3; realizations 10) using 
+Improved Distributed LHS method (number of realizations < 500) ... done.
+
+Random set #1: Evaluations: 38 Jacobians: 7 Objective function: 6596.35 Success: 0
+Random set #2: Evaluations: 90 Jacobians: 15 Objective function: 0.248757 Success: 0
+Random set #3: Evaluations: 58 Jacobians: 10 Objective function: 98.6597 Success: 0
+Random set #4: Evaluations: 48 Jacobians: 7 Objective function: 397832 Success: 0
+Random set #5: Evaluations: 55 Jacobians: 9 Objective function: 7898.77 Success: 0
+Random set #6: Evaluations: 63 Jacobians: 11 Objective function: 58.6909 Success: 0
+Random set #7: Evaluations: 57 Jacobians: 9 Objective function: 10098.4 Success: 0
+Random set #8: Evaluations: 18 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
+Random set #9: Evaluations: 59 Jacobians: 9 Objective function: 7742.68 Success: 0
+Random set #10: Evaluations: 76 Jacobians: 12 Objective function: 2.51736 Success: 0
+Minimum objective function: 2.19572e-07
+Repeat the run producing the best results ...
+Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 1 (out of 10; success ratio 0.1)
+Statistics of total number of evaluations      : 18 - 48 [1m57[0m 63 - 90 : 10
+Statistics of all the model parameter estimates:
+Parameter #1                        : average    -0.163669 min      -3.1578 max      2.13462
+Parameter #2                        : average      -1.5526 min      -9.9758 max      9.99699
+Parameter #3                        : average      41.0575 min     -62.8549 max          100
+Statistics of all the successful model parameter estimates:
+Parameter #1                        : average     0.999995 min     0.999995 max     0.999995
+Parameter #2                        : average     0.999988 min     0.999988 max     0.999988
+Parameter #3                        : average     0.999929 min     0.999929 max     0.999929
+Results are saved in p01lm.igrnd.results and p01lm.igrnd-opt=lm_eval=1000_real=10
+
+Final results:
+Optimized model parameters:
+Parameter #1 0.999995
+Parameter #2 0.999988
+Parameter #3 0.999929
+Objective function: 2.19572e-07 Success: 1 (1)
+SUCCESS: Objective function is below the predefined cutoff value (2.19572e-07 < 0.001)!
+Simulation time = 2 seconds
+Functional evaluations = 563
+Jacobian evaluations = 93
+Levenberg-Marquardt optimizations = 10
+Functional evaluations per second = 281
+Execution  started  on Fri Aug  8 12:48:39 2014
+Execution completed on Fri Aug  8 12:48:41 2014
+Execution date & time stamp: 20140808-124839
