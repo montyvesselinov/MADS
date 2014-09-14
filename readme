@@ -49,12 +49,12 @@ Required tools:
 Required libraries:
 	GSL:        http://www.gnu.org/s/gsl (version 1.16 or later)
 	LAPACK:     http://www.netlib.org/lapack
-	BLAS:       http://www.netlib.org/blas
-	ATLAS:      (if LAPACK or BLAS are not available) http://www.netlib.org/atlas (version 3.10 or later)
+	BLAS:       http://www.netlib.org/blas (usually BLAS comes with LAPACK)
+	ATLAS:      (if LAPACK and BLAS are not available) http://www.netlib.org/atlas (version 3.10 or later)
 	MATHEVAL:   http://www.gnu.org/software/libmatheval (version 1.1.11 or later)
-	LibYAML:    http://pyyaml.org/wiki/LibYAML; http://www.yaml.org (
-	LibXML2:    http://xmlsoft.org (
-	GLIB:       http://developer.gnome.org/glib (version 2.40 or later)
+	LibYAML:    http://pyyaml.org/wiki/LibYAML; http://www.yaml.org (version 0.1.5 or later)
+	LibXML2:    http://xmlsoft.org (version 2.9.1 or later)
+	GLIB2:      http://developer.gnome.org/glib (version 2.40 or later)
 
 Installation of the required libraries; there are two options:
 
@@ -71,7 +71,7 @@ Installation of the required libraries; there are two options:
 GLOBAL installation of the required libraries (faster and easier):
 	
 	To install:
-	MAC OS X:
+	MAC OS X (brew can be applied as well; brew may not require system privileges):
 	sudo port install gcc48 gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
 	sudo port select gcc mp-gcc48
 	
@@ -94,13 +94,14 @@ CMake compilation, building and installation of the required libraries (slower a
 	glibtool (version 2.4 or later)
 	automake (version 2.0 or later)
 	autoconf (version 1.0 or later)
-	The installation of these tools requires system privileges.
+	gettext (version 0.19 or later)
+	The installation of these tools most probably require system privileges.
 	RECOMMENDATION: If you have system privileges, it is better to use the GLOBAL installation option listed above.
 	CMake can be still applied to compile MADS.
 	
 	To install:
 	MAC OS X:
-	sudo port install gcc48 cmake curl+ssl libtool pkgconfig git tcsh gmake
+	sudo port install gcc48 cmake curl+ssl libtool pkgconfig gettext git tcsh gmake
 	sudo port select gcc mp-gcc48
 	
 	RHEL/CentOS/Fedora:	

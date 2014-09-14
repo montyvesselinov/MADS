@@ -60,7 +60,7 @@ find_package(LibMathEval ${LIBMATHEVAL_VERSION})
 
 add_definitions(${GSL_CXX_FLAGS})
 # set(MADS_LIBS ${MADS_LIBS} lapack blas atlas cblas stdc++ gfortran refblas "-L/opt/local/lib" "-L/Users/monty/lib")
-set(MADS_LIBS ${MADS_LIBS} lapack blas atlas cblas stdc++ gfortran gsl matheval yaml glib-2.0 intl "-L/opt/local/lib")
+set(MADS_LIBS ${MADS_LIBS} stdc++ gfortran "-L/opt/local/lib")
 
 set(CMAKE_CXX_FLAGS "-Wall -O1 -Winit-self" )
 set(CMAKE_C_FLAGS "-Wall -O1 -Winit-self" )

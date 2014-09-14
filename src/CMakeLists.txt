@@ -21,5 +21,5 @@ set( src_bayes bayes/dream.cpp )
 set( sources ${src_mads} ${src_pso} ${src_sa} ${src_ds} ${src_mpun} ${src_kdtree} ${src_levmar} ${src_astable} ${src_bayes} )
 
 add_executable ( mads ${sources} )
-add_dependencies( mads gitversion lapack )
+add_dependencies( mads gitversion )
 target_link_libraries( mads ${MADS_LIBS} )
