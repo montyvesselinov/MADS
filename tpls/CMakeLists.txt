@@ -1,4 +1,5 @@
-# Minimum CMake version.
+# -*- mode: cmake -*-
+# MADS TPLs
 cmake_minimum_required (VERSION 3.0 FATAL_ERROR)
 
 project(TPL)
