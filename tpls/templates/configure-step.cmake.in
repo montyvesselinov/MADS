@@ -1,0 +1,6 @@
+execute_process(
+  COMMAND ./configure CC=@CMAKE_C_COMPILER@ CXX=@CMAKE_CXX_COMPILER@ --prefix=@TPL_INSTALL_PREFIX@
+  WORKING_DIRECTORY "@SOURCE_DIR@"
+  # --disable-shared
+)
+
