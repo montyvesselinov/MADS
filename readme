@@ -44,6 +44,7 @@ Required tools:
 	GNU C/C++:  http://gcc.gnu.org (version 4.8 or later)
 	GNU MAKE:   http://www.gnu.org/software/make (version 3.81 or later)
 	PKG-CONFIG: http://www.freedesktop.org/wiki/Software/pkg-config (version 0.28 or later)
+	GLIB2:      http://developer.gnome.org/glib (version 2.40 or later)
 	TCSH:       http://www.tcsh.org
 
 Required libraries:
@@ -54,7 +55,6 @@ Required libraries:
 	MATHEVAL:   http://www.gnu.org/software/libmatheval (version 1.1.11 or later)
 	LibYAML:    http://pyyaml.org/wiki/LibYAML; http://www.yaml.org (version 0.1.5 or later)
 	LibXML2:    http://xmlsoft.org (version 2.9.1 or later)
-	GLIB2:      http://developer.gnome.org/glib (version 2.40 or later)
 
 Installation of the required libraries; there are two options:
 
@@ -103,12 +103,10 @@ CMake compilation, building and installation of the required libraries (slower a
 	
 	To install:
 	MAC OS X (using macports):
-	sudo port install gcc48 cmake curl +ssl autoconf libtool automake pkgconfig gettext git tcsh gmake
+	sudo port install gcc48 cmake glib curl autoconf libtool automake pkgconfig gettext git tcsh gmake
 	sudo port select gcc mp-gcc48
 	MAC OS X (using brew; this does not require system privileges):
-	brew install gcc cmake autoconf libtool automake libtool gettext git tcsh gmake
-	brew link --force gettext
-	brew link --force libffi
+	brew install gcc cmake curl glib autoconf libtool automake libtool gettext git tcsh gmake
 	
 	RHEL/CentOS/Fedora:	
 	sudo yum install cmake curl +ssl libtool pkgconfig git tcsh gmake

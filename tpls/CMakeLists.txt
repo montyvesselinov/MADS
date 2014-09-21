@@ -37,13 +37,20 @@ message(STATUS "TPL Install directory: ${TPL_INSTALL_PREFIX}")
 
 include(ExternalProject)
 include(DefineExternalProjectArgs)
+include(TPLVersions)
 
-OPTION(USE_GSL "USE_GSL." TRUE)
-include(BuildLibXML2)
-include(BuildLAPACK)
-include(BuildLIBMATHEVAL) 
-include(BuildGLIB2)
-include(BuildGSL)
-if((GSL_FOUND) AND USE_GSL)
-   # include(BuildGSL) 
+if(USE_GSL AND NOT GSL_FOUND)
+	include(BuildGSL)
+endif()
+
+if(USE_LAPACK AND ( NOT LAPACK_FOUND OR NOT BLAS_FOUND OR NOT ATLAS_FOUND ) )
+	include(BuildLAPACK)
+endif()
+
+if(USE_LIBXML2 AND NOT LIBXML2_FOUND)
+	include(BuildLibXML2)
+endif()
+
+if(USE_LIBMATHEVAL AND NOT LIBMATHEVAL_FOUND)
+	include(BuildLIBMATHEVAL) 
 endif()

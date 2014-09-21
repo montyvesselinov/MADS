@@ -12,14 +12,14 @@ ExternalProject_Add(${GLIB2_BUILD_TARGET}
 	URL_MD5      ${GLIB2_MD5_SUM}                  # md5sum of the archive file
 	# -- Configure
 	SOURCE_DIR       ${GLIB2_source_dir}           # Source directory
-	CONFIGURE_COMMAND cd ${GLIB2_source_dir} && ./autogen.sh && ./configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} --prefix=${TPL_INSTALL_PREFIX}
+	CONFIGURE_COMMAND ./autogen.sh && ./configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} --prefix=${TPL_INSTALL_PREFIX}
 	# -- Build
-	BINARY_DIR        ${GLIB2_build_dir}           # Build directory 
-	BUILD_COMMAND     cd ${GLIB2_source_dir} && make prefix=${TPL_INSTALL_PREFIX}
+	BINARY_DIR        ${GLIB2_source_dir}           # Build directory 
+	BUILD_COMMAND     make prefix=${TPL_INSTALL_PREFIX}
 	BUILD_IN_SOURCE   ${GLIB2_BUILD_IN_SOURCE}     # Flag for in source builds
 	# -- Install
 	INSTALL_DIR      ${TPL_INSTALL_PREFIX}        # Install directory
-	INSTALL_COMMAND   cd ${GLIB2_source_dir} && make install prefix=${TPL_INSTALL_PREFIX}
+	INSTALL_COMMAND   make install prefix=${TPL_INSTALL_PREFIX}
 	# -- Output control
-	# ${GLIB2_logging_args}
+	${GLIB2_logging_args}
 )

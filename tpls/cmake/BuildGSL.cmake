@@ -12,14 +12,14 @@ ExternalProject_Add(${GSL_BUILD_TARGET}
 	URL_MD5           ${GSL_MD5_SUM}
 	# -- Configure
 	SOURCE_DIR        ${GSL_source_dir}
-    CONFIGURE_COMMAND cd ${GSL_source_dir} && ./autogeh.sh && ./configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} --prefix=${TPL_INSTALL_PREFIX}
+	CONFIGURE_COMMAND configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} --prefix=${TPL_INSTALL_PREFIX}
 	# -- Build
-	BINARY_DIR        ${GSL_build_dir}	
-    BUILD_COMMAND     cd ${GSL_source_dir} && make
+	BINARY_DIR        ${GSL_source_dir}	
+	BUILD_COMMAND     make
 	BUILD_IN_SOURCE   ${GSL_BUILD_IN_SOURCE}
 	# -- Install
 	INSTALL_DIR       ${TPL_INSTALL_PREFIX}
-    INSTALL_COMMAND   cd ${GSL_source_dir} && make install
+	INSTALL_COMMAND   make install
 	# -- Output control
-	${GSL_logging_args}
+	#${GSL_logging_args}
 )

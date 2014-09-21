@@ -2,12 +2,24 @@
 # MADS SRC
 cmake_minimum_required (VERSION 3.0 FATAL_ERROR)
 
+if( NOT DEFINED VER )
+	execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE VER_N)
+	string(REPLACE "\n" "" VER ${VER_N})
+	execute_process(COMMAND ../scripts/check_git_status OUTPUT_VARIABLE GIT_STATUS_N)
+	string(COMPARE EQUAL "${GIT_STATUS_N}" "" result)
+	if( NOT result )
+        	string(REPLACE "\n" "" GIT_STATUS ${GIT_STATUS_N})
+    	endif()
+    	message( STATUS "Git version ${VER}${GIT_STATUS}" )
+endif()
+
 add_custom_target( gitversion
-    DEPENDS mads_gitversion.c )
+    DEPENDS ../.git/HEAD ../.git/index  )
 
 add_custom_command(TARGET gitversion
-    COMMAND echo 'const char *gitversion = \\"${VER}${GIT_STATUS}\\"\;' > mads_gitversion.c 
-	DEPENDS ../.git/HEAD ../.git/index )
+    PRE_BUILD
+    COMMAND echo 'const char *gitversion = \"${VER}${GIT_STATUS}\"\;' > mads_gitversion.c 
+	DEPENDS ../.git/HEAD ../.git/index mads_gitversion.c )
 
 set( src_mads ./mads.c ./mads_io.c ./mads_io_external.c ./mads_func.c ./mads_mem.c ./mads_info.c lm/opt_lm_mon.c lm/opt_lm_gsl.c lm/lu.c lm/opt_lm_ch.c misc/test_problems.c misc/anasol_contamination.c misc/io.c lhs/lhs.c )
 set( src_pso pso/pso-tribes-lm.c pso/Standard_PSO_2006.c pso/mopso.c )
@@ -20,6 +32,8 @@ set( src_astable misc/astable/astable.c misc/astable/interpolation.c misc/astabl
 set( src_bayes bayes/dream.cpp )
 set( sources ${src_mads} ${src_pso} ${src_sa} ${src_ds} ${src_mpun} ${src_kdtree} ${src_levmar} ${src_astable} ${src_bayes} )
 
-add_executable ( mads ${sources} )
+include_directories(../tpls/include /usr/local/lib)
+link_directories(../tpls/lib)
+add_executable ( mads ${sources} mads_gitversion.c )
 add_dependencies( mads gitversion )
-target_link_libraries( mads ${MADS_LIBS} )
+target_link_libraries( mads ${MADS_LIBS} gsl lapack blas gfortran )
