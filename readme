@@ -71,9 +71,11 @@ Installation of the required libraries; there are two options:
 GLOBAL installation of the required libraries (faster and easier):
 	
 	To install:
-	MAC OS X (brew can be applied as well; brew may not require system privileges):
+	MAC OS X (using macports):
 	sudo port install gcc48 gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
 	sudo port select gcc mp-gcc48
+	MAC OS X (using brew; this does not require system privileges):
+	brew install gcc gsl glib libyaml libxml pkg-config git tchs gmake
 	
 	RHEL/CentOS/Fedora:	
 	sudo yum install gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
@@ -100,12 +102,16 @@ CMake compilation, building and installation of the required libraries (slower a
 	CMake can be still applied to compile MADS.
 	
 	To install:
-	MAC OS X:
-	sudo port install gcc48 cmake curl+ssl libtool pkgconfig gettext git tcsh gmake
+	MAC OS X (using macports):
+	sudo port install gcc48 cmake curl +ssl autoconf libtool automake pkgconfig gettext git tcsh gmake
 	sudo port select gcc mp-gcc48
+	MAC OS X (using brew; this does not require system privileges):
+	brew install gcc cmake autoconf libtool automake libtool gettext git tcsh gmake
+	brew link --force gettext
+	brew link --force libffi
 	
 	RHEL/CentOS/Fedora:	
-	sudo yum install cmake curl+ssl libtool pkgconfig git tcsh gmake
+	sudo yum install cmake curl +ssl libtool pkgconfig git tcsh gmake
 	sudo yum install gcc-c++-4.8
 
 	Ubuntu/Debian:
