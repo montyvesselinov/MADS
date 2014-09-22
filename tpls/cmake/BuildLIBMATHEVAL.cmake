@@ -21,5 +21,5 @@ ExternalProject_Add(${LIBMATHEVAL_BUILD_TARGET}
     INSTALL_DIR      ${TPL_INSTALL_PREFIX}        # Install directory
     INSTALL_COMMAND  make install
     # -- Output control
-    ${LIBMATHEVAL_logging_args}
+    #${LIBMATHEVAL_logging_args}
     )

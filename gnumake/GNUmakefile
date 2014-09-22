@@ -118,8 +118,8 @@ ifeq ($(OS),Darwin)
 # Mac
 $(info MAC OS X)
 SONAME = install_name
-CFLAGS += -I/opt/local/include
-LDLIBS += -lgfortran -lblas -L/opt/local/lib
+CFLAGS += -I/opt/local/include -I/opt/local/include -I./tpls/include
+LDLIBS += -lgfortran -lblas -L/opt/local/lib -L/usr/local/lib -L./tpls/lib
 ifeq ($(ND),bored.lanl.gov)
 LDLIBS += -latlas
 endif
@@ -339,7 +339,7 @@ examples: mads wells
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 
-verify: mads wells verify-start verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-external-short verify-external-short2 verify-parallel verify-forward verify-sa
+verify: wells verify-start verify-internal verify-multistart1 verify-contaminant verify-multistart2 verify-external verify-external-short verify-external-short2 verify-parallel verify-forward verify-sa
 	@echo "$(OK_COLOR)"
 	@echo VERIFICATION DONE
 	@echo "$(NO_COLOR)"
@@ -349,7 +349,7 @@ verify-start:
 	@echo VERIFICATION STARTING ...
 	@echo "$(NO_COLOR)"
 
-verify-internal: mads
+verify-internal:
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Internal test problems "

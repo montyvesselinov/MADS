@@ -22,6 +22,12 @@ if(USE_LIBXML2 AND NOT LIBXML2_FOUND)
 set(TPL_MISSING TRUE)
 endif()
 
-if(USE_LIBMATHEVAL AND NOT LIBMATHEVAL_FOUND)
+if(USE_MATHEVAL AND NOT MATHEVAL_FOUND)
 set(TPL_MISSING TRUE)
+endif()
+
+if(TPL_MISSING)
+    message(STATUS "TPL's are missing!" )
+else()
+    message(STATUS "TPL's are OK!" )
 endif()

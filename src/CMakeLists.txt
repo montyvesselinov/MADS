@@ -32,8 +32,9 @@ set( src_astable misc/astable/astable.c misc/astable/interpolation.c misc/astabl
 set( src_bayes bayes/dream.cpp )
 set( sources ${src_mads} ${src_pso} ${src_sa} ${src_ds} ${src_mpun} ${src_kdtree} ${src_levmar} ${src_astable} ${src_bayes} )
 
-include_directories(../tpls/include /usr/local/lib)
-link_directories(../tpls/lib)
+set(EXECUTABLE_OUTPUT_PATH ../bin/Release)
+include_directories(../tpls/include /usr/local/include /opt/local/include)
+link_directories(../tpls/lib /usr/local/lib /opt/local/lib)
 add_executable ( mads ${sources} mads_gitversion.c )
 add_dependencies( mads gitversion )
 target_link_libraries( mads ${MADS_LIBS} gsl lapack blas gfortran )
