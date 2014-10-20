@@ -155,7 +155,7 @@ int LEVMAR_DER2(
 	double acc_h = op->cd->lm_h;
 	double lm_ratio = op->cd->lm_ratio; // alpha
 	register LM_REAL mu,  /* damping constant */
-			 tmp, /* mainly used in matrix & vector multiplications */
+			 tmp = 0, /* mainly used in matrix & vector multiplications */
 			 avRatio = 0.0; /* acceleration/velocity */
 	LM_REAL p_eL2, p_eL2_old, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
 	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, a_L2, dF, Dpa_L2, dL;
@@ -1152,7 +1152,7 @@ int LEVMAR_DER(
 	double acc_h = op->cd->lm_h;
 	double lm_ratio = op->cd->lm_ratio; // alpha
 	register LM_REAL mu,  /* damping constant */
-			 tmp, /* mainly used in matrix & vector multiplications */
+			 tmp = 0, /* mainly used in matrix & vector multiplications */
 			 avRatio = 0.0; /* acceleration/velocity */
 	LM_REAL p_eL2, p_eL2_old, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
 	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, a_L2, dF, Dpa_L2, dL;
@@ -2121,7 +2121,7 @@ int LEVMAR_DIF(
 			*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
 	int using_ffdif = 1;
 	register LM_REAL mu,  /* damping constant */
-			 tmp; /* mainly used in matrix & vector multiplications */
+			 tmp = 0; /* mainly used in matrix & vector multiplications */
 	LM_REAL p_eL2, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
 	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, dF, dL;
 	LM_REAL tau, eps1, eps2, eps2_sq, eps3, delta;
