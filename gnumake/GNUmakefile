@@ -88,7 +88,7 @@ $(info Target  -- $(MAKECMDGOALS) $(OBJ_DIR))
 CC = gcc
 CXX = g++
 CFLAGS = -Wall -O1 -Winit-self
-LDLIBS = -lgsl -llapack -latlas -lstdc++
+LDLIBS = -lgsl -llapack -lstdc++
 SONAME = soname
 
 ifeq ($(OS),Linux)
@@ -121,7 +121,7 @@ SONAME = install_name
 CFLAGS += -I/opt/local/include -I/opt/local/include -I./tpls/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib -L/usr/local/lib -L./tpls/lib
 ifeq ($(ND),bored.lanl.gov)
-LDLIBS += -latlas
+LDLIBS += 
 endif
 ifeq ($(ND),pn1246281)
 LDLIBS += -latlas
