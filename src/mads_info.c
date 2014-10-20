@@ -128,6 +128,7 @@ void mads_info()
 	printf( "   obsstep=[float]    - observation space domain step to explore info-gap observation uncertainty [default ignored]\n" );
 	printf( "\nparallelization (parallelization environment and available resources are internally detected by default):\n" );
 	printf( "   np=[integer]       - Number of requested parallel jobs [optional]\n" );
+	printf( "   nplambda=[integer] - Number of requested parallel lambda runs in the case of Levenberg-Marquardt optimization [optional; nplambda <= np]\n" );
 	printf( "   rstfile=[string]   - name of existing ZIP restart file to be used (created by previous Parallel MADS run) [optional]\n" );
 	printf( "   restart=[integer]  - restart=1 (default; automatic restart if possible); restart=0 (force no restart); restart=2 (force restart)\n" );
 	printf( "                        by default the analyses will be restarted automatically (restart=1)\n" );

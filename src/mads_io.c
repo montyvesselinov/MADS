@@ -265,6 +265,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->ologtrans = -1;
 	cd->oweight = -1;
 	cd->num_proc = -1;
+	cd->num_parallel_lambda = 0;
 	cd->restart = 1;
 	cd->nreal = 0;
 	cd->niter = 0;
@@ -385,7 +386,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "obsdomain=", 10 ) ) { w = 1; sscanf( word, "obsdomain=%lf", &cd->obsdomain ); if( cd->obsdomain < DBL_EPSILON ) cd->pardomain = ( double ) 0; }
 		if( !strncasecmp( word, "obsstep=", 8 ) ) { w = 1; sscanf( word, "obsstep=%lf", &cd->obsstep ); if( fabs( cd->obsstep ) < DBL_EPSILON ) cd->obsstep = ( double ) 0; else cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
-		if( !strncasecmp( word, "np", 2 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
+		if( !strncasecmp( word, "np=", 3 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
+		if( !strncasecmp( word, "nplambda", 8 ) ) { w = 1; cd->num_parallel_lambda = 0; sscanf( word, "nplambda=%d", &cd->num_parallel_lambda ); if( cd->num_parallel_lambda <= 0 ) cd->num_proc = 0; }
 		if( !strncasecmp( word, "restart", 7 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
 		if( !strncasecmp( word, "rstfile=", 8 ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_zip_file ); cd->restart = -1; }
 		if( !strncasecmp( word, "resultsfile=", 12 ) ) { w = 1; sscanf( word, "resultsfile=%s", cd->resultsfile ); cd->problem_type = FORWARD; }
@@ -519,6 +521,12 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->niter < 0 ) cd->niter = 0;
 	if( cd->niter > 0 ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", cd->niter );
 	else tprintf( "Number of Levenberg-Marquardt iterations = will be computed internally\n" );
+	if( cd->num_parallel_lambda > 0 )
+	{
+		if( cd->num_proc <= 0 ) cd->num_proc = cd->num_parallel_lambda;
+		else if( cd->num_parallel_lambda > cd->num_proc ) cd->num_parallel_lambda = cd->num_proc;
+		tprintf( "Number of parallel lambda searches per a Levenberg-Marquardt iteration = %d\n", cd->num_parallel_lambda );
+	}
 	if( strcasestr( cd->opt_method, "apso" ) || strcasestr( cd->opt_method, "tribe" ) || strcasestr( cd->opt_method, "squad" ) )
 	{
 		if( cd->init_particles > 1 ) tprintf( "Number of particles = %d\n", cd->init_particles );
