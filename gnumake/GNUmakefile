@@ -121,7 +121,7 @@ SONAME = install_name
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
 ifeq ($(ND),bored.lanl.gov)
-LDLIBS += -latlas
+LDLIBS += 
 endif
 ifeq ($(ND),pn1246281)
 LDLIBS += -latlas
