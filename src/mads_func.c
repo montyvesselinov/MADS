@@ -47,7 +47,7 @@ int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
 void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data ); // Jacobian order: obs / param
 int func_dx( double *x, double *f_x, void *data, double *jacobian ); // Jacobian order: param / obs
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transform, FILE *out, struct opt_data *op );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
 void Transform( double *v, void *data, double *vt );
@@ -936,7 +936,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	free( jacobian );
 }
 
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transform, FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
 	int i, j, k, count, debug_level = 0;
 	double *opt_params;
@@ -950,20 +950,21 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		{
 			if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 			if( op->cd->mdebug ) tprintf( "\n" );
-			tprintf( "Random set #%d: ", count + 1 );
+			if( op->cd->debug || op->cd->mdebug )  tprintf( "Set #%d: ", count + 1 );
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				k = op->pd->var_index[i];
 				opt_params[i] = op->pd->var[k] = var_mat[count][i];
 			}
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-			Transform( opt_params, op, opt_params );
+			if( transform )
+				Transform( opt_params, op, opt_params );
 			func_extrn_write( ++ieval, opt_params, op );
-			tprintf( "external model input file(s) generated ...\n" );
+			if( op->cd->debug || op->cd->mdebug ) tprintf( "external model input file(s) generated ...\n" );
 			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
-			if( op->cd->mdebug )
+			if( transform && op->cd->mdebug )
 			{
-				tprintf( "\nRandom parameter values:\n" );
+				tprintf( "Parameter values:\n" );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
 					else tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );

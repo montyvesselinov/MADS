@@ -121,7 +121,7 @@ SONAME = install_name
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
 ifeq ($(ND),bored.lanl.gov)
-LDLIBS += -latlas
+LDLIBS += 
 endif
 ifeq ($(ND),pn1246281)
 LDLIBS += -latlas
@@ -197,11 +197,12 @@ wells: $(WELLS)
 release: $(MADS)
 	ln -sf ${MADS} .
 	@echo "MADS Release Version built!"
+	@echo "Execute ${MADS}"
 
 debug: CFLAGS += -g
 debug: $(MADS_DEBUG)
 	@echo "MADS Debug Version built!"
-	@echo "Execture ${MADS_DEBUG}"
+	@echo "Execute ${MADS_DEBUG}"
 
 lib: CFLAGS += -fPIC
 lib: $(MADS_LIB)
