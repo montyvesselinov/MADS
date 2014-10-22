@@ -527,6 +527,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		else if( cd->num_parallel_lambda > cd->num_proc ) cd->num_parallel_lambda = cd->num_proc;
 		tprintf( "Number of parallel lambda searches per a Levenberg-Marquardt iteration = %d\n", cd->num_parallel_lambda );
 	}
+	else
+		if( cd->num_proc > 0 && strcasestr( cd->opt_method, "lm" ) )
+			tprintf( "WARNING: Levenberg-Marquardt may perform better if a parallel lambda search is evoked (nplambda>0)\n" );
 	if( strcasestr( cd->opt_method, "apso" ) || strcasestr( cd->opt_method, "tribe" ) || strcasestr( cd->opt_method, "squad" ) )
 	{
 		if( cd->init_particles > 1 ) tprintf( "Number of particles = %d\n", cd->init_particles );

@@ -71,6 +71,8 @@
 #define AX_EQ_B_LU LM_ADD_PREFIX(Ax_eq_b_LU_noLapack)
 #endif /* HAVE_LAPACK */
 
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transform, FILE *out, struct opt_data *op ); // parallel lambda search
+
 /*
  * This function seeks the parameter vector p that best describes the measurements vector x.
  * More precisely, given a vector function  func : R^m --> R^n with n>=m,
@@ -89,35 +91,35 @@
 // MADS calls LEVMAR_DER by DEFAULT
 
 int LEVMAR_DER2(
-	void ( *func )( LM_REAL *p, LM_REAL *hx, int m, int n, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
-	void ( *jacf )( LM_REAL *p, LM_REAL *f, LM_REAL *j, int m, int n, void *adata ), /* function to evaluate the Jacobian \part x / \part p */
-	LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
-	LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
-	int m,              /* I: parameter vector dimension (i.e. #unknowns) */
-	int n,              /* I: measurement vector dimension */
-	int itmax,          /* I: maximum number of iterations */
-	LM_REAL opts[4],    /* I: minim. options [\mu, \epsilon1, \epsilon2, \epsilon3]. Respectively the scale factor for initial \mu,
+		void ( *func )( LM_REAL *p, LM_REAL *hx, int m, int n, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
+		void ( *jacf )( LM_REAL *p, LM_REAL *f, LM_REAL *j, int m, int n, void *adata ), /* function to evaluate the Jacobian \part x / \part p */
+		LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
+		LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
+		int m,              /* I: parameter vector dimension (i.e. #unknowns) */
+		int n,              /* I: measurement vector dimension */
+		int itmax,          /* I: maximum number of iterations */
+		LM_REAL opts[4],    /* I: minim. options [\mu, \epsilon1, \epsilon2, \epsilon3]. Respectively the scale factor for initial \mu,
 		 * stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2. Set to NULL for defaults to be used
 		 */
-	LM_REAL info[LM_INFO_SZ],
-	/* O: information regarding the minimization. Set to NULL if don't care
-	 * info[0]= ||e||_2 at initial p.
-	 * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
-	 * info[5]= # iterations,
-	 * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
-	 *                                 2 - stopped by small Dp
-	 *                                 3 - stopped by itmax
-	 *                                 4 - singular matrix. Restart from current p with increased mu
-	 *                                 5 - no further error reduction is possible. Restart with increased mu
-	 *                                 6 - stopped by small ||e||_2
-	 *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
-	 * info[7]= # function evaluations
-	 * info[8]= # Jacobian evaluations
-	 * info[9]= # linear systems solved, i.e. # attempts for reducing error
-	 */
-	LM_REAL *work,     /* working memory at least LM_DER_WORKSZ() reals large, allocated if NULL */
-	LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
-	void *adata )       /* pointer to possibly additional data, passed uninterpreted to func & jacf.
+		LM_REAL info[LM_INFO_SZ],
+		/* O: information regarding the minimization. Set to NULL if don't care
+		 * info[0]= ||e||_2 at initial p.
+		 * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
+		 * info[5]= # iterations,
+		 * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
+		 *                                 2 - stopped by small Dp
+		 *                                 3 - stopped by itmax
+		 *                                 4 - singular matrix. Restart from current p with increased mu
+		 *                                 5 - no further error reduction is possible. Restart with increased mu
+		 *                                 6 - stopped by small ||e||_2
+		 *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
+		 * info[7]= # function evaluations
+		 * info[8]= # Jacobian evaluations
+		 * info[9]= # linear systems solved, i.e. # attempts for reducing error
+		 */
+		LM_REAL *work,     /* working memory at least LM_DER_WORKSZ() reals large, allocated if NULL */
+		LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
+		void *adata )       /* pointer to possibly additional data, passed uninterpreted to func & jacf.
 		 * Set to NULL if not needed
 		 */
 {
@@ -126,28 +128,28 @@ int LEVMAR_DER2(
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
-			*hx,         /* \hat{x}_i, nx1 */
-			*hx1,        /* used in acceleration comp (nx1) */
-			*hx2,        /* used in acceleration comp (nx1) */
-			*jac_min,
-			*jac_max,
-			*p_old, *p_old2,     /* old parameter set */
-			*p_best, /* best parameter set */
-			*jacTe,      /* J^T e_i mx1 */
-			*jac,        /* nxm */
-			*jacTjac,    /* mxm */
-			*Dp,         /* mx1 (=v) */
-			*ephdp_plus,     /* residual used in acceleration computation (nx1) */
-			*ephdp_minus,     /* residual used in acceleration computation (nx1) */
-			*vvddr,      /* used to compute acceleration (nx1) */
-			*jacTvv,     /* jacT*vvddr, mx1 */
-			*a,          /* acceleration (mx1) */
-			*diag_jacTjac,   /* diagonal of J^T J, mx1 */
-			*pDp,        /* p + Dp, mx1 */
-			*phDp_plus,       /* p + hDp, mx1 */
-			*phDp_minus,      /* p - hDp, mx1 */
-			*wrk,        /* nx1 */
-			*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
+	*hx,         /* \hat{x}_i, nx1 */
+	*hx1,        /* used in acceleration comp (nx1) */
+	*hx2,        /* used in acceleration comp (nx1) */
+	*jac_min,
+	*jac_max,
+	*p_old, *p_old2,     /* old parameter set */
+	*p_best, /* best parameter set */
+	*jacTe,      /* J^T e_i mx1 */
+	*jac,        /* nxm */
+	*jacTjac,    /* mxm */
+	*Dp,         /* mx1 (=v) */
+	*ephdp_plus,     /* residual used in acceleration computation (nx1) */
+	*ephdp_minus,     /* residual used in acceleration computation (nx1) */
+	*vvddr,      /* used to compute acceleration (nx1) */
+	*jacTvv,     /* jacT*vvddr, mx1 */
+	*a,          /* acceleration (mx1) */
+	*diag_jacTjac,   /* diagonal of J^T J, mx1 */
+	*pDp,        /* p + Dp, mx1 */
+	*phDp_plus,       /* p + hDp, mx1 */
+	*phDp_minus,      /* p - hDp, mx1 */
+	*wrk,        /* nx1 */
+	*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
 	int *jac_zero, *jac_zero_obs;
 	int skipped, first, allzero;
 	gsl_matrix *gsl_jacobian;
@@ -155,10 +157,10 @@ int LEVMAR_DER2(
 	double acc_h = op->cd->lm_h;
 	double lm_ratio = op->cd->lm_ratio; // alpha
 	register LM_REAL mu,  /* damping constant */
-			 tmp = 0, /* mainly used in matrix & vector multiplications */
-			 avRatio = 0.0; /* acceleration/velocity */
+	tmp = 0, /* mainly used in matrix & vector multiplications */
+	avRatio = 0.0; /* acceleration/velocity */
 	LM_REAL p_eL2, p_eL2_old, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
-	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, a_L2, dF, Dpa_L2, dL;
+	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, a_L2, dF, Dpa_L2 = LM_REAL_MAX, dL;
 	LM_REAL tau, eps1, eps2, eps2_sq, eps3, delta;
 	LM_REAL init_p_eL2, best_p_eL2;
 	int nu, nu2, stop = 0, nfev, njap = 0, nlss = 0, K = ( m >= 10 ) ? m : 10, updjac, updp = 1, newjac;
@@ -169,6 +171,7 @@ int LEVMAR_DER2(
 	double max_change, min_change, p_diff, fj;
 	int imax, imin, omax, omin, ok;
 	double max = 0, min = HUGE_VAL;
+	double *phi_vector, **param_matrix, **obs_matrix;
 	const int nm = n * m;
 	int ( *linsolver )( LM_REAL * A, LM_REAL * B, LM_REAL * x, int m ) = NULL;
 	mu = jacTe_inf = p_L2 = 0.0; /* -Wall */
@@ -239,6 +242,12 @@ int LEVMAR_DER2(
 	p_old = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_old2 = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_best = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
+	if( op->cd->num_parallel_lambda > 0 )
+	{
+		if( ( phi_vector = ( double * ) malloc( op->cd->num_parallel_lambda * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( param_matrix = double_matrix( op->cd->num_parallel_lambda, m ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( obs_matrix = double_matrix( op->cd->num_parallel_lambda, n ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	}
 	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); }
 	else gsl_jacobian = NULL;
 	/* compute e=x - f(p) and its L2 norm */
@@ -278,8 +287,23 @@ int LEVMAR_DER2(
 #endif
 	if( op->cd->ldebug )
 	{
+		if( op->cd->num_parallel_lambda )
+		{
+			tprintf( "LM with parallel lambda search\n" );
+			tprintf( "LM lambda search will be performed for a series of %d lambdas in parallel.\n", op->cd->num_parallel_lambda );
+			tprintf( "LM lambda values will be increased/decrease by a factor of %g\n",op->cd->lm_mu );
+			tprintf( "LM acceleration and indirect computation of lambda changes will not be applied even if selected!\n" );
+			op->cd->lm_acc = 0;
+			op->cd->lm_indir = 0;
+		}
+		else
+		{
+			tprintf( "LM without parallel lambda search\n" );
+			if( op->cd->num_proc > 0)
+				tprintf( "WARNING: LM may perform better if parallel lambda search is evoked (nplambda>0)\n" );
+		}
 		if( op->cd->lm_acc ) tprintf( "LM with acceleration\n" );
-		else tprintf( "LM without LM acceleration\n" );
+		else tprintf( "LM without acceleration\n" );
 		if( op->cd->lm_indir ) tprintf( "LM with indirect computation of lambda changes\n" );
 		else tprintf( "LM with direct computation of lambda changes\n" );
 	}
@@ -318,7 +342,7 @@ int LEVMAR_DER2(
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if( ( updp && nu > 16 ) || updjac >= K || mu_big || phi_decline || computejac ) /* compute difference approximation to J */
+		if( ( updp && nu > 16 ) || updjac >= K || mu_big || phi_decline || computejac || op->cd->num_parallel_lambda > 0 ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug && k != 0 )
 			{
@@ -328,6 +352,7 @@ int LEVMAR_DER2(
 				if( mu_big ) tprintf( " > Lambda is constrained (%g); ", 1e3 );
 				if( phi_decline ) tprintf( " > OF estimate declined substantially (%g << %g)", p_eL2, p_eL2_old );
 				if( computejac ) tprintf( " > Linear solve OF estimates do not change substantially" );
+				if( op->cd->num_parallel_lambda > 0 ) tprintf( " > Parallel alpha search" );
 				tprintf( "\n\n" );
 			}
 			if( njap >= itmax ) { stop = 31; continue; }
@@ -661,8 +686,7 @@ int LEVMAR_DER2(
 			}
 			changejac = 0;
 		}
-		/* compute initial damping factor */
-		if( k == 0 )
+		if( k == 0 ) // compute initial damping factor
 		{
 			for( i = 0, tmp = LM_REAL_MIN; i < m; ++i )
 			{
@@ -674,70 +698,127 @@ int LEVMAR_DER2(
 			mu = tau * tmp;
 			if( op->cd->ldebug ) tprintf( "Computed initial lambda %g\n", mu );
 		}
-		/* determine increment using adaptive damping */
-		/* augment normal equations */
-		for( i = 0; i < m; ++i )
-			jacTjac[i * m + i] += mu;  // Add lambda to the matrix diagonal
-		/* solve augmented equations */
-		issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
-		if( issolved )
+		if( op->cd->num_parallel_lambda > 0 ) // Parallel lambda search
 		{
-			if( op->cd->lm_acc ) // Acceleration
+			tprintf( "Parallel lambda search ...\n" );
+			int npl;
+			double mu_current, mu_up = mu, mu_down = mu;
+			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
 			{
-				register LM_REAL beta, *jacT;
+				phi_vector[npl] = HUGE_VAL;
+				if( npl == 0 )
+					mu_current = mu;
+				else if( npl % 2 ) // even number
+					mu_current = mu_down *= op->cd->lm_mu;
+				else // odd number
+					mu_current = mu_up /= op->cd->lm_mu;
 				for( i = 0; i < m; ++i )
-					jacTvv[i] = 0.0;
+					jacTjac[i * m + i] += mu_current;  // Add lambda to the matrix diagonal
+				/* solve augmented equations */
+				issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
+				if( issolved )
+					for( i = 0; i < m; ++i )
+						param_matrix[npl][i] = p[i] + Dp[i];
+				else
+					tprintf( "WARNING: Linear solver failed!\n" );
 				for( i = 0; i < m; ++i )
-				{
-					phDp_plus[i] = p[i] + acc_h * Dp[i];
-					phDp_minus[i] = p[i] - acc_h * Dp[i];
-				}
-				change = 0;
-				if( op->cd->compute_phi ) { op->cd->compute_phi = 0; change = 1; }
-				( *func )( phDp_plus, hx1, m, n, adata ); nfev++;
-				for( i = 0; i < n; ++i )
-					ephdp_plus[i] = x[i] - hx1[i];
-				( *func )( phDp_minus, hx2, m, n, adata ); nfev++;
-				if( change ) op->cd->compute_phi = 1;
-				for( i = 0; i < n; ++i )
-					ephdp_minus[i] = x[i] - hx2[i];
-				for( i = 0; i < n; ++i )
-					vvddr[i] = ( ephdp_plus[i] - 2.0 * e[i] + ephdp_minus[i] ) / ( acc_h * acc_h );
-				for( j = n; j-- > 0; )
-				{
-					jacT = jac + j * m;
-					for( i = m; i-- > 0; )
-					{
-						beta = jacT[i]; //jac[l*m+i];
-						/* J^T*vvddr */
-						jacTvv[i] += beta * vvddr[j];
-					}
-				}
-				issolved1 = linsolver( jacTjac, jacTvv, a, m ); ++nlss;
+					jacTjac[i * m + i] -= mu_current;  // Subtract lambda from the matrix diagonal
+				tprintf( "Parallel lambda #%d = %g ...\n", npl+1, mu_current );
 			}
-			/* compute p's new estimate and ||Dp||^2 */
+			tprintf( "Parallel execution of %d lambda searches ...\n", op->cd->num_parallel_lambda );
+			func_set( op->cd->num_parallel_lambda, param_matrix, phi_vector, obs_matrix, 0, (FILE *) NULL, adata );
+			tprintf( "Done.\n" );
+			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
+				tprintf( "Parallel lambda #%d => phi %g ...\n", npl+1, phi_vector[npl] );
+			int npl_min = 0;
+			double phi_alpha_min = HUGE_VAL;
+			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
+				if( phi_vector[npl] < phi_alpha_min ) { phi_alpha_min = phi_vector[npl]; npl_min = npl; }
+			for( i = 0 ; i < m; i++ )
+				pDp[i] = param_matrix[npl_min][i];
 			for( i = 0, Dp_L2 = 0.0; i < m; ++i )
 			{
-				pDp[i] = p[i] + ( tmp = Dp[i] );
+				Dp[i] = tmp = param_matrix[npl_min][i] - p[i];
 				Dp_L2 += tmp * tmp;
 			}
-			Dpa_L2 = Dp_L2;
-			if( op->cd->lm_acc && issolved1 )
+			Dpa_L2 = sqrt( Dp_L2 );
+			for( i = 0 ; i < n; i++ )
+				x[i] = obs_matrix[npl_min][i];
+			if( npl_min != 0 )
 			{
-				for( i = 0, a_L2 = 0.0; i < m; ++i )
-				{
-					pDp[i] += 0.5 * ( tmp = a[i] );
-					a_L2 += tmp * tmp;
-				}
-				avRatio = a_L2 / Dp_L2;
-				for( i = 0, Dpa_L2 = 0.0; i < m; ++i )
-				{
-					tmp = Dp[i] + 0.5 * a[i];
-					Dpa_L2 += tmp * tmp;
-				}
-				if( op->cd->ldebug > 1 ) tprintf( "LM acceleration performed (with acceleration %g vs without acceleration %g)\n", Dpa_L2, Dp_L2 );
+				if( npl_min % 2 ) // even number
+					mu *= pow( op->cd->lm_mu, npl_min / 2 + 1 );
+				else // odd number
+					mu *= pow( op->cd->lm_mu, -( npl_min + 1 ) / 2 );
 			}
-			Dpa_L2 = sqrt( Dpa_L2 );
+			tprintf( "Best Parallel lambda #%d = %g ...\n", npl_min+1, mu );
+		}
+		else
+		{
+			/* determine increment using adaptive damping augment normal equations */
+			for( i = 0; i < m; ++i )
+				jacTjac[i * m + i] += mu;  // Add lambda to the matrix diagonal
+			/* solve augmented equations */
+			issolved = linsolver( jacTjac, jacTe, Dp, m ); ++nlss;
+			if( issolved )
+			{
+				if( op->cd->lm_acc ) // Acceleration
+				{
+					register LM_REAL beta, *jacT;
+					for( i = 0; i < m; ++i )
+						jacTvv[i] = 0.0;
+					for( i = 0; i < m; ++i )
+					{
+						phDp_plus[i] = p[i] + acc_h * Dp[i];
+						phDp_minus[i] = p[i] - acc_h * Dp[i];
+					}
+					change = 0;
+					if( op->cd->compute_phi ) { op->cd->compute_phi = 0; change = 1; }
+					( *func )( phDp_plus, hx1, m, n, adata ); nfev++;
+					for( i = 0; i < n; ++i )
+						ephdp_plus[i] = x[i] - hx1[i];
+					( *func )( phDp_minus, hx2, m, n, adata ); nfev++;
+					if( change ) op->cd->compute_phi = 1;
+					for( i = 0; i < n; ++i )
+						ephdp_minus[i] = x[i] - hx2[i];
+					for( i = 0; i < n; ++i )
+						vvddr[i] = ( ephdp_plus[i] - 2.0 * e[i] + ephdp_minus[i] ) / ( acc_h * acc_h );
+					for( j = n; j-- > 0; )
+					{
+						jacT = jac + j * m;
+						for( i = m; i-- > 0; )
+						{
+							beta = jacT[i]; //jac[l*m+i];
+							/* J^T*vvddr */
+							jacTvv[i] += beta * vvddr[j];
+						}
+					}
+					issolved1 = linsolver( jacTjac, jacTvv, a, m ); ++nlss;
+				}
+				/* compute p's new estimate and ||Dp||^2 */
+				for( i = 0, Dp_L2 = 0.0; i < m; ++i )
+				{
+					pDp[i] = p[i] + ( tmp = Dp[i] );
+					Dp_L2 += tmp * tmp;
+				}
+				Dpa_L2 = Dp_L2;
+				if( op->cd->lm_acc && issolved1 )
+				{
+					for( i = 0, a_L2 = 0.0; i < m; ++i )
+					{
+						pDp[i] += 0.5 * ( tmp = a[i] );
+						a_L2 += tmp * tmp;
+					}
+					avRatio = a_L2 / Dp_L2;
+					for( i = 0, Dpa_L2 = 0.0; i < m; ++i )
+					{
+						tmp = Dp[i] + 0.5 * a[i];
+						Dpa_L2 += tmp * tmp;
+					}
+					if( op->cd->ldebug > 1 ) tprintf( "LM acceleration performed (with acceleration %g vs without acceleration %g)\n", Dpa_L2, Dp_L2 );
+				}
+				Dpa_L2 = sqrt( Dpa_L2 );
+			}
 			if( op->cd->ldebug > 6 ) tprintf( "Test for convergence: Magnitude of the relative change in parameter space (%g < %g = %g * %g  to converge)\n", Dpa_L2, eps2_sq * p_L2, eps2_sq, p_L2 );
 			if( Dpa_L2 <= eps2_sq * p_L2 ) /* relative change in p is small, stop */
 			{
@@ -752,7 +833,8 @@ int LEVMAR_DER2(
 				stop = 4;
 				break;
 			}
-			( *func )( pDp, wrk, m, n, adata ); ++nfev; /* evaluate function at p + Dp */
+			if( op->cd->num_parallel_lambda == 0 ) // if parallel this is already executed
+				( *func )( pDp, wrk, m, n, adata ); ++nfev; /* evaluate function at p + Dp */
 #if 0
 			if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
 				for( i = 0; i < n; i++ )
@@ -967,8 +1049,7 @@ int LEVMAR_DER2(
 			}
 		}
 		/* if this point is reached, either the linear system could not be solved or
-		 * the error did not reduce; in any case, the increment must be rejected
-		 */
+		 * the error did not reduce; in any case, the increment must be rejected */
 		mu *= nu; // increase lambda
 		/*
 				if( mu > 1e3 )
@@ -1049,19 +1130,19 @@ int LEVMAR_DER2(
 		tprintf( "LM optimization is completed. Reason: " );
 		switch( stop )
 		{
-			case 1: tprintf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
-			case 2: tprintf( "small Dp (%g)\n", Dp_L2 ); break;
-			case 3: tprintf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
-			case 31: tprintf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
-			case 32: tprintf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
-			case 4: tprintf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 5: tprintf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 6: tprintf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
-			case 7: tprintf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
-			case 8: tprintf( "model predictions are within predefined calibration ranges\n" ); break;
-			case 9: tprintf( "small OF changes\n" ); break;
-			case 10: tprintf( "all jacobian matrix elements are equal to zero\n" ); break;
-			default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
+		case 1: tprintf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
+		case 2: tprintf( "small Dp (%g)\n", Dp_L2 ); break;
+		case 3: tprintf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
+		case 31: tprintf( "maximum number of jacobian iterations is reached (lmiter=%d)\n", itmax ); break;
+		case 32: tprintf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
+		case 4: tprintf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+		case 5: tprintf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+		case 6: tprintf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
+		case 7: tprintf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
+		case 8: tprintf( "model predictions are within predefined calibration ranges\n" ); break;
+		case 9: tprintf( "small OF changes\n" ); break;
+		case 10: tprintf( "all jacobian matrix elements are equal to zero\n" ); break;
+		default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 14 )
 		{
@@ -1080,6 +1161,12 @@ int LEVMAR_DER2(
 	free( hx1 ); free( hx2 ); free( phDp_plus ); free( phDp_minus ); free( ephdp_plus ); free( ephdp_minus );
 	free( vvddr ); free( jacTvv ); free( a ); free( jac_min ); free( jac_max ); free( jac_zero ); free( jac_zero_obs ); free( p_old ); free( p_old2 ); free( p_best );
 	if( op->cd->lm_eigen ) gsl_matrix_free( gsl_jacobian );
+	if( op->cd->num_parallel_lambda > 0 )
+	{
+		free( phi_vector );
+		free_matrix( ( void ** ) param_matrix, op->cd->num_parallel_lambda );
+		free_matrix( ( void ** ) obs_matrix, op->cd->num_parallel_lambda );
+	}
 #ifdef LINSOLVERS_RETAIN_MEMORY
 	if( linsolver )( *linsolver )( NULL, NULL, NULL, 0 );
 #endif
@@ -1087,35 +1174,35 @@ int LEVMAR_DER2(
 }
 
 int LEVMAR_DER(
-	void ( *func )( LM_REAL *p, LM_REAL *hx, int m, int n, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
-	void ( *jacf )( LM_REAL *p, LM_REAL *j, int m, int n, void *adata ), /* function to evaluate the Jacobian \part x / \part p */
-	LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
-	LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
-	int m,              /* I: parameter vector dimension (i.e. #unknowns) */
-	int n,              /* I: measurement vector dimension */
-	int itmax,          /* I: maximum number of iterations */
-	LM_REAL opts[4],    /* I: minim. options [\mu, \epsilon1, \epsilon2, \epsilon3]. Respectively the scale factor for initial \mu,
+		void ( *func )( LM_REAL *p, LM_REAL *hx, int m, int n, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
+		void ( *jacf )( LM_REAL *p, LM_REAL *j, int m, int n, void *adata ), /* function to evaluate the Jacobian \part x / \part p */
+		LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
+		LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
+		int m,              /* I: parameter vector dimension (i.e. #unknowns) */
+		int n,              /* I: measurement vector dimension */
+		int itmax,          /* I: maximum number of iterations */
+		LM_REAL opts[4],    /* I: minim. options [\mu, \epsilon1, \epsilon2, \epsilon3]. Respectively the scale factor for initial \mu,
 		 * stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2. Set to NULL for defaults to be used
 		 */
-	LM_REAL info[LM_INFO_SZ],
-	/* O: information regarding the minimization. Set to NULL if don't care
-	 * info[0]= ||e||_2 at initial p.
-	 * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
-	 * info[5]= # iterations,
-	 * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
-	 *                                 2 - stopped by small Dp
-	 *                                 3 - stopped by itmax
-	 *                                 4 - singular matrix. Restart from current p with increased mu
-	 *                                 5 - no further error reduction is possible. Restart with increased mu
-	 *                                 6 - stopped by small ||e||_2
-	 *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
-	 * info[7]= # function evaluations
-	 * info[8]= # Jacobian evaluations
-	 * info[9]= # linear systems solved, i.e. # attempts for reducing error
-	 */
-	LM_REAL *work,     /* working memory at least LM_DER_WORKSZ() reals large, allocated if NULL */
-	LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
-	void *adata )       /* pointer to possibly additional data, passed uninterpreted to func & jacf.
+		LM_REAL info[LM_INFO_SZ],
+		/* O: information regarding the minimization. Set to NULL if don't care
+		 * info[0]= ||e||_2 at initial p.
+		 * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
+		 * info[5]= # iterations,
+		 * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
+		 *                                 2 - stopped by small Dp
+		 *                                 3 - stopped by itmax
+		 *                                 4 - singular matrix. Restart from current p with increased mu
+		 *                                 5 - no further error reduction is possible. Restart with increased mu
+		 *                                 6 - stopped by small ||e||_2
+		 *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
+		 * info[7]= # function evaluations
+		 * info[8]= # Jacobian evaluations
+		 * info[9]= # linear systems solved, i.e. # attempts for reducing error
+		 */
+		LM_REAL *work,     /* working memory at least LM_DER_WORKSZ() reals large, allocated if NULL */
+		LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
+		void *adata )       /* pointer to possibly additional data, passed uninterpreted to func & jacf.
 		 * Set to NULL if not needed
 		 */
 {
@@ -1124,27 +1211,27 @@ int LEVMAR_DER(
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
-			*hx,         /* \hat{x}_i, nx1 */
-			*hx1,        /* used in acceleration comp (nx1) */
-			*hx2,        /* used in acceleration comp (nx1) */
-			*jac_min,
-			*jac_max,
-			*p_old, *p_old2,      /* old parameter set */
-			*jacTe,      /* J^T e_i mx1 */
-			*jac,        /* nxm */
-			*jacTjac,    /* mxm */
-			*Dp,         /* mx1 (=v) */
-			*ephdp_plus,     /* residual used in acceleration computation (nx1) */
-			*ephdp_minus,     /* residual used in acceleration computation (nx1) */
-			*vvddr,      /* used to compute acceleration (nx1) */
-			*jacTvv,     /* jacT*vvddr, mx1 */
-			*a,          /* acceleration (mx1) */
-			*diag_jacTjac,   /* diagonal of J^T J, mx1 */
-			*pDp,        /* p + Dp, mx1 */
-			*phDp_plus,       /* p + hDp, mx1 */
-			*phDp_minus,      /* p - hDp, mx1 */
-			*wrk,        /* nx1 */
-			*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
+	*hx,         /* \hat{x}_i, nx1 */
+	*hx1,        /* used in acceleration comp (nx1) */
+	*hx2,        /* used in acceleration comp (nx1) */
+	*jac_min,
+	*jac_max,
+	*p_old, *p_old2,      /* old parameter set */
+	*jacTe,      /* J^T e_i mx1 */
+	*jac,        /* nxm */
+	*jacTjac,    /* mxm */
+	*Dp,         /* mx1 (=v) */
+	*ephdp_plus,     /* residual used in acceleration computation (nx1) */
+	*ephdp_minus,     /* residual used in acceleration computation (nx1) */
+	*vvddr,      /* used to compute acceleration (nx1) */
+	*jacTvv,     /* jacT*vvddr, mx1 */
+	*a,          /* acceleration (mx1) */
+	*diag_jacTjac,   /* diagonal of J^T J, mx1 */
+	*pDp,        /* p + Dp, mx1 */
+	*phDp_plus,       /* p + hDp, mx1 */
+	*phDp_minus,      /* p - hDp, mx1 */
+	*wrk,        /* nx1 */
+	*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
 	int *jac_zero, *jac_zero_obs;
 	int skipped, first, allzero;
 	gsl_matrix *gsl_jacobian;
@@ -1152,8 +1239,8 @@ int LEVMAR_DER(
 	double acc_h = op->cd->lm_h;
 	double lm_ratio = op->cd->lm_ratio; // alpha
 	register LM_REAL mu,  /* damping constant */
-			 tmp = 0, /* mainly used in matrix & vector multiplications */
-			 avRatio = 0.0; /* acceleration/velocity */
+	tmp = 0, /* mainly used in matrix & vector multiplications */
+	avRatio = 0.0; /* acceleration/velocity */
 	LM_REAL p_eL2, p_eL2_old, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
 	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, a_L2, dF, Dpa_L2, dL;
 	LM_REAL tau, eps1, eps2, eps2_sq, eps3, delta;
@@ -2029,19 +2116,19 @@ int LEVMAR_DER(
 		tprintf( "LM optimization is completed. Reason: " );
 		switch( stop )
 		{
-			case 1: tprintf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
-			case 2: tprintf( "small Dp (%g)\n", Dp_L2 ); break;
-			case 3: tprintf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
-			case 31: tprintf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
-			case 32: tprintf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
-			case 4: tprintf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 5: tprintf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 6: tprintf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
-			case 7: tprintf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
-			case 8: tprintf( "model predictions are within predefined calibration ranges\n" ); break;
-			case 9: tprintf( "small OF changes\n" ); break;
-			case 10: tprintf( "all jacobian matrix elements are equal to zero\n" ); break;
-			default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
+		case 1: tprintf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
+		case 2: tprintf( "small Dp (%g)\n", Dp_L2 ); break;
+		case 3: tprintf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
+		case 31: tprintf( "maximum number of jacobian iterations is reached (lmiter=%d)\n", itmax ); break;
+		case 32: tprintf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
+		case 4: tprintf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+		case 5: tprintf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+		case 6: tprintf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
+		case 7: tprintf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
+		case 8: tprintf( "model predictions are within predefined calibration ranges\n" ); break;
+		case 9: tprintf( "small OF changes\n" ); break;
+		case 10: tprintf( "all jacobian matrix elements are equal to zero\n" ); break;
+		default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 14 )
 		{
@@ -2071,37 +2158,37 @@ int LEVMAR_DER(
  * the aid of finite differences (forward or central, see the comment for the opts argument)
  */
 int LEVMAR_DIF(
-	void ( *func )( LM_REAL *p, LM_REAL *hx, int m, int n, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
-	LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
-	LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
-	int m,              /* I: parameter vector dimension (i.e. #unknowns) */
-	int n,              /* I: measurement vector dimension */
-	int itmax,          /* I: maximum number of iterations */
-	LM_REAL opts[5],    /* I: opts[0-4] = minim. options [\mu, \epsilon1, \epsilon2, \epsilon3, \delta]. Respectively the
+		void ( *func )( LM_REAL *p, LM_REAL *hx, int m, int n, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
+		LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
+		LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
+		int m,              /* I: parameter vector dimension (i.e. #unknowns) */
+		int n,              /* I: measurement vector dimension */
+		int itmax,          /* I: maximum number of iterations */
+		LM_REAL opts[5],    /* I: opts[0-4] = minim. options [\mu, \epsilon1, \epsilon2, \epsilon3, \delta]. Respectively the
 		 * scale factor for initial \mu, stopping thresholds for ||J^T e||_inf, ||Dp||_2 and ||e||_2 and
 		 * the step used in difference approximation to the Jacobian. Set to NULL for defaults to be used.
 		 * If \delta<0, the Jacobian is approximated with central differences which are more accurate
 		 * (but slower!) compared to the forward differences employed by default.
 		 */
-	LM_REAL info[LM_INFO_SZ],
-	/* O: information regarding the minimization. Set to NULL if don't care
-	 * info[0]= ||e||_2 at initial p.
-	 * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
-	 * info[5]= # iterations,
-	 * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
-	 *                                 2 - stopped by small Dp
-	 *                                 3 - stopped by itmax
-	 *                                 4 - singular matrix. Restart from current p with increased mu
-	 *                                 5 - no further error reduction is possible. Restart with increased mu
-	 *                                 6 - stopped by small ||e||_2
-	 *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
-	 * info[7]= # function evaluations
-	 * info[8]= # Jacobian evaluations
-	 * info[9]= # linear systems solved, i.e. # attempts for reducing error
-	 */
-	LM_REAL *work,     /* working memory at least LM_DIF_WORKSZ() reals large, allocated if NULL */
-	LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
-	void *adata )       /* pointer to possibly additional data, passed uninterpreted to func.
+		LM_REAL info[LM_INFO_SZ],
+		/* O: information regarding the minimization. Set to NULL if don't care
+		 * info[0]= ||e||_2 at initial p.
+		 * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
+		 * info[5]= # iterations,
+		 * info[6]=reason for terminating: 1 - stopped by small gradient J^T e
+		 *                                 2 - stopped by small Dp
+		 *                                 3 - stopped by itmax
+		 *                                 4 - singular matrix. Restart from current p with increased mu
+		 *                                 5 - no further error reduction is possible. Restart with increased mu
+		 *                                 6 - stopped by small ||e||_2
+		 *                                 7 - stopped by invalid (i.e. NaN or Inf) "func" values. This is a user error
+		 * info[7]= # function evaluations
+		 * info[8]= # Jacobian evaluations
+		 * info[9]= # linear systems solved, i.e. # attempts for reducing error
+		 */
+		LM_REAL *work,     /* working memory at least LM_DIF_WORKSZ() reals large, allocated if NULL */
+		LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
+		void *adata )       /* pointer to possibly additional data, passed uninterpreted to func.
 		 * Set to NULL if not needed
 		 */
 {
@@ -2110,18 +2197,18 @@ int LEVMAR_DIF(
 	struct opt_data *op = ( struct opt_data * ) adata;
 	/* temp work arrays */
 	LM_REAL *e,          /* nx1 */
-			*hx,         /* \hat{x}_i, nx1 */
-			*jacTe,      /* J^T e_i mx1 */
-			*jac,        /* nxm */
-			*jacTjac,    /* mxm */
-			*Dp,         /* mx1 */
-			*diag_jacTjac,   /* diagonal of J^T J, mx1 */
-			*pDp,        /* p + Dp, mx1 */
-			*wrk,        /* nx1 */
-			*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
+	*hx,         /* \hat{x}_i, nx1 */
+	*jacTe,      /* J^T e_i mx1 */
+	*jac,        /* nxm */
+	*jacTjac,    /* mxm */
+	*Dp,         /* mx1 */
+	*diag_jacTjac,   /* diagonal of J^T J, mx1 */
+	*pDp,        /* p + Dp, mx1 */
+	*wrk,        /* nx1 */
+	*wrk2;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
 	int using_ffdif = 1;
 	register LM_REAL mu,  /* damping constant */
-			 tmp = 0; /* mainly used in matrix & vector multiplications */
+	tmp = 0; /* mainly used in matrix & vector multiplications */
 	LM_REAL p_eL2, jacTe_inf, pDp_eL2; /* ||e(p)||_2, ||J^T e||_inf, ||e(p+Dp)||_2 */
 	LM_REAL p_L2, Dp_L2 = LM_REAL_MAX, dF, dL;
 	LM_REAL tau, eps1, eps2, eps2_sq, eps3, delta;
@@ -2472,8 +2559,7 @@ int LEVMAR_DIF(
 			}
 		}
 		/* if this point is reached, either the linear system could not be solved or
-		 * the error did not reduce; in any case, the increment must be rejected
-		 */
+		 * the error did not reduce; in any case, the increment must be rejected */
 		mu *= nu; // increase lambda
 		if( op->cd->ldebug > 1 ) tprintf( "change factor (nu) %d\n", nu );
 		else if( op->cd->ldebug ) tprintf( "\n" );
@@ -2512,17 +2598,17 @@ int LEVMAR_DIF(
 		tprintf( "LM optimization is completed. Reason: " );
 		switch( stop )
 		{
-			case 1:  tprintf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
-			case 2:  tprintf( "small Dp (%g)\n", Dp_L2 ); break;
-			case 3:  tprintf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
-			case 31: tprintf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
-			case 32: tprintf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
-			case 4:  tprintf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 5:  tprintf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
-			case 6:  tprintf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
-			case 7:  tprintf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
-			case 8:  tprintf( "model predictions are within predefined calibration ranges\n" ); break;
-			default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
+		case 1:  tprintf( "small gradient J^T e (%g)\n", jacTe_inf ); break;
+		case 2:  tprintf( "small Dp (%g)\n", Dp_L2 ); break;
+		case 3:  tprintf( "maximum number of LevMar iterations is exceeded (kmax=%d)\n", kmax ); break;
+		case 31: tprintf( "maximum number of jacobian iterations is exceeded (lmiter=%d)\n", itmax ); break;
+		case 32: tprintf( "maximum number of functional evaluations is exceeded (eval=%d; %d > %d)\n", op->cd->maxeval, nfev, maxnfev ); break;
+		case 4:  tprintf( "singular matrix. Restart from current p with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+		case 5:  tprintf( "no further error reduction is possible. Restart with increased mu (current mu=%g; mu/max[J^T J]_ii=%g)\n", mu, mu / tmp ); break;
+		case 6:  tprintf( "small ||e||_2; OF below cutoff value (%g < %g)\n", p_eL2, eps3 ); break;
+		case 7:  tprintf( "invalid (i.e. NaN or Inf) values returned by the solver (func). This is a user error\n" ); break;
+		case 8:  tprintf( "model predictions are within predefined calibration ranges\n" ); break;
+		default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 2 )
 		{

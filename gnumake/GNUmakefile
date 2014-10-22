@@ -197,11 +197,12 @@ wells: $(WELLS)
 release: $(MADS)
 	ln -sf ${MADS} .
 	@echo "MADS Release Version built!"
+	@echo "Execute ${MADS}"
 
 debug: CFLAGS += -g
 debug: $(MADS_DEBUG)
 	@echo "MADS Debug Version built!"
-	@echo "Execture ${MADS_DEBUG}"
+	@echo "Execute ${MADS_DEBUG}"
 
 lib: CFLAGS += -fPIC
 lib: $(MADS_LIB)
