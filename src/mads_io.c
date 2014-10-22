@@ -926,10 +926,10 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 	 */
 	if( cd->solution_type[0] == EXTERNAL ) // check for consistent parameter names
 	{
-		pd->var_id = ( char ** ) malloc( pd->nParam * sizeof( char * ) );
+		pd->var_id = char_matrix( pd->nParam, 50 );
 		for( i = 0; i < pd->nParam; i++ )
 		{
-			pd->var_id[i] = pd->var_name[i];
+			strcpy( pd->var_id[i], pd->var_name[i] );
 			if( strchr( pd->var_name[i], ' ' ) || strchr( pd->var_name[i], '\t' ) ) { tprintf( "ERROR: \'%s\' - invalid parameter name (contains empty space)\n", pd->var_name[i] ); bad_data = 1; }
 			l1 = strlen( pd->var_name[i] );
 			if( l1 == 0 ) { tprintf( "ERROR: \'%s\' empty parameter name\n", pd->var_name[i] ); bad_data = 1; }
