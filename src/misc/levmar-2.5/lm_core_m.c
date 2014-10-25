@@ -729,7 +729,7 @@ int LEVMAR_DER2(
 			func_set( op->cd->num_parallel_lambda, param_matrix, phi_vector, obs_matrix, 0, (FILE *) NULL, adata );
 			tprintf( "Done.\n" );
 			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
-				tprintf( "Parallel lambda #%d => phi %g ...\n", npl+1, phi_vector[npl] );
+				tprintf( "Parallel lambda #%d => OF %g ...\n", npl+1, phi_vector[npl] );
 			int npl_min = 0;
 			double phi_alpha_min = HUGE_VAL;
 			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
@@ -743,7 +743,7 @@ int LEVMAR_DER2(
 			}
 			Dpa_L2 = sqrt( Dp_L2 );
 			for( i = 0 ; i < n; i++ )
-				x[i] = obs_matrix[npl_min][i];
+				wrk[i] = obs_matrix[npl_min][i];
 			if( npl_min != 0 )
 			{
 				if( npl_min % 2 ) // even number
@@ -751,7 +751,8 @@ int LEVMAR_DER2(
 				else // odd number
 					mu *= pow( op->cd->lm_mu, -( npl_min + 1 ) / 2 );
 			}
-			tprintf( "Best Parallel lambda #%d = %g ...\n", npl_min+1, mu );
+			tprintf( "Best Parallel lambda #%d = %g OF = %g\n", npl_min+1, mu, phi_alpha_min );
+			p_eL2 = phi_alpha_min;
 		}
 		else
 		{
@@ -833,190 +834,193 @@ int LEVMAR_DER2(
 				stop = 4;
 				break;
 			}
-			if( op->cd->num_parallel_lambda == 0 ) // if parallel this is already executed
-				( *func )( pDp, wrk, m, n, adata ); ++nfev; /* evaluate function at p + Dp */
+		}
+		if( op->cd->num_parallel_lambda == 0 ) // if parallel this is already executed
+		{
+			( *func )( pDp, wrk, m, n, adata ); ++nfev; /* evaluate function at p + Dp */
+		}
 #if 0
-			if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
-				for( i = 0; i < n; i++ )
-					wrk[i] = sqrt( wrk[i] );
+		if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
+			for( i = 0; i < n; i++ )
+				wrk[i] = sqrt( wrk[i] );
 #endif
-			/* compute ||e(pDp)||_2 */
-			/* ### wrk2=x-wrk, pDp_eL2=||wrk2|| */
+		/* compute ||e(pDp)||_2 */
+		/* ### wrk2=x-wrk, pDp_eL2=||wrk2|| */
 #if 0
-			pDp_eL2 = LEVMAR_L2NRMXMY( wrk2, x, wrk, n );
+		pDp_eL2 = LEVMAR_L2NRMXMY( wrk2, x, wrk, n );
 #else
-			for( i = 0, pDp_eL2 = 0.0; i < n; ++i )
-			{
-				wrk2[i] = tmp = x[i] - wrk[i];
+		for( i = 0, pDp_eL2 = 0.0; i < n; ++i )
+		{
+			wrk2[i] = tmp = x[i] - wrk[i];
 #if 1
-				pDp_eL2 += tmp * tmp;
+			pDp_eL2 += tmp * tmp;
 #else
-				if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
-					pDp_eL2 += wrk[i];
-				else
-					pDp_eL2 += tmp * tmp;
+			if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
+				pDp_eL2 += wrk[i];
+			else
+				pDp_eL2 += tmp * tmp;
 #endif
-			}
+		}
 #endif
-			if( pDp_eL2 < best_p_eL2 )
+		if( pDp_eL2 < best_p_eL2 )
+		{
+			best_p_eL2 = pDp_eL2;
+			for( i = 0; i < m; ++i )
+				p_best[i] = pDp[i];
+		}
+		if( op->cd->ldebug == 1 ) tprintf( "OF %g lambda %g\n", pDp_eL2, mu );
+		else if( op->cd->ldebug > 1 )
+		{
+			tprintf( "\nLinear solve (lambda search) #%d: OF %g lambda %g \n", phi2c + 1, pDp_eL2, mu );
+			DeTransform( pDp, op, jac_min );
+			DeTransform( p_old, op, jac_max );
+			max_change = 0; min_change = HUGE_VAL;
+			ipar_max = ipar_min = 0;
+			for( i = 0; i < m; i++ )
 			{
-				best_p_eL2 = pDp_eL2;
-				for( i = 0; i < m; ++i )
-					p_best[i] = pDp[i];
+				j = op->pd->var_index[i];
+				if( op->pd->var_log[j] ) p_diff = pow( 10, jac_min[i] ) - pow( 10, jac_max[i] );
+				else p_diff = fabs( jac_max[i] - jac_min[i] );
+				if( max_change < p_diff ) { max_change = p_diff; ipar_max = i; }
+				if( min_change > p_diff ) { min_change = p_diff; ipar_min = i; }
 			}
-			if( op->cd->ldebug == 1 ) tprintf( "OF %g lambda %g\n", pDp_eL2, mu );
-			else if( op->cd->ldebug > 1 )
+			if( op->cd->ldebug > 2 )
 			{
-				tprintf( "\nLinear solve (lambda search) #%d: OF %g lambda %g \n", phi2c + 1, pDp_eL2, mu );
-				DeTransform( pDp, op, jac_min );
-				DeTransform( p_old, op, jac_max );
-				max_change = 0; min_change = HUGE_VAL;
-				ipar_max = ipar_min = 0;
+				tprintf( "Current parameter estimates:\n" );
 				for( i = 0; i < m; i++ )
 				{
 					j = op->pd->var_index[i];
-					if( op->pd->var_log[j] ) p_diff = pow( 10, jac_min[i] ) - pow( 10, jac_max[i] );
-					else p_diff = fabs( jac_max[i] - jac_min[i] );
-					if( max_change < p_diff ) { max_change = p_diff; ipar_max = i; }
-					if( min_change > p_diff ) { min_change = p_diff; ipar_min = i; }
-				}
-				if( op->cd->ldebug > 2 )
-				{
-					tprintf( "Current parameter estimates:\n" );
-					for( i = 0; i < m; i++ )
+					tprintf( "%-30s:", op->pd->var_name[j] );
+					if( op->cd->ldebug > 3 )
 					{
-						j = op->pd->var_index[i];
-						tprintf( "%-30s:", op->pd->var_name[j] );
-						if( op->cd->ldebug > 3 )
-						{
-							if( op->pd->var_log[j] ) tprintf( " %12g", pow( 10, jac_max[i] ) );
-							else tprintf( " %12g", jac_max[i] );
-							tprintf( " =>" );
-						}
-						if( op->pd->var_log[j] ) tprintf( " %12g", pow( 10, jac_min[i] ) );
-						else tprintf( " %12g", jac_min[i] );
-						if( op->cd->ldebug > 3 )
-						{
-							tprintf( " change" );
-							if( op->pd->var_log[j] ) tprintf( " %12g",  pow( 10, jac_min[i] ) - pow( 10, jac_max[i] ) );
-							else tprintf( " %12g", jac_min[i] - jac_max[i] );
-						}
-						tprintf( "  (JTJ diagonal term %g)", diag_jacTjac[i] );
-						if( diag_jacTjac[i] < DBL_EPSILON ) tprintf( " WARNING: not impacting model predictions" );
-						else if( diag_jacTjac[i] < 1 ) tprintf( " not very sensitive" );
-						tprintf( "\n" );
+						if( op->pd->var_log[j] ) tprintf( " %12g", pow( 10, jac_max[i] ) );
+						else tprintf( " %12g", jac_max[i] );
+						tprintf( " =>" );
 					}
-				}
-				if( jac_max[ipar_max] - jac_min[ipar_max] < DBL_EPSILON )
-					tprintf( "Parameters did not change between last two liner solves (lambda searches).\n" );
-				else
-				{
-					tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
-					tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
-				}
-				for( i = 0 ; i < m; i++ ) /* update p's estimate */
-					p_old[i] = pDp[i];
-			}
-			DeTransform( pDp, op, jac_min );
-			for( i = 0; i < op->pd->nOptParam; i++ )
-				op->pd->var[op->pd->var_index[i]] = jac_min[i];
-			op->phi = pDp_eL2;
-			save_results( 0, "", op, op->gd );
-			phi2[phi2c++] = pDp_eL2;
-			if( phi2c > op->cd->lm_nlamof )
-			{
-				tmp = HUGE_VAL;
-				j = 0;
-				for( i = 0; i < phi2c; i++ )
-				{
-					if( phi2[i] < tmp )
+					if( op->pd->var_log[j] ) tprintf( " %12g", pow( 10, jac_min[i] ) );
+					else tprintf( " %12g", jac_min[i] );
+					if( op->cd->ldebug > 3 )
 					{
-						tmp = phi2[i];
-						if( i < phi2c - op->cd->lm_nlamof ) j = 1;
-						else j = 0;
+						tprintf( " change" );
+						if( op->pd->var_log[j] ) tprintf( " %12g",  pow( 10, jac_min[i] ) - pow( 10, jac_max[i] ) );
+						else tprintf( " %12g", jac_min[i] - jac_max[i] );
 					}
-					// tprintf( " %g", phi1[i] );
+					tprintf( "  (JTJ diagonal term %g)", diag_jacTjac[i] );
+					if( diag_jacTjac[i] < DBL_EPSILON ) tprintf( " WARNING: not impacting model predictions" );
+					else if( diag_jacTjac[i] < 1 ) tprintf( " not very sensitive" );
+					tprintf( "\n" );
 				}
-				// for( i = 0; i < phi2c; i++ )
-				// tprintf( " %g", phi2[i] );
-				// tprintf( "a %g %d\n", tmp, phi2c );
-				for( i = phi2c - op->cd->lm_nlamof; i < phi2c; i++ )
-				{
-					if( ( phi2[i] - tmp ) / tmp < 1 ) j++;
-					// tprintf( "a %g %g %g\n", tmp, phi2[i], ( phi2[i] - tmp ) / tmp );
-				}
-				if( j >= op->cd->lm_nlamof )
-					computejac = 1; // New jacobian: Lambda search OF are very similar
-				// p_eL2 = pDp_eL2; // TODO check is it needed; Actually it does not seem to work
 			}
-			if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
-			{
-				if( op->cd->ldebug ) tprintf( "CONVERGED: OF below cutoff value (%g < %g)\n", pDp_eL2, eps3 );
-				for( i = 0; i < m; i++ ) p[i] = pDp[i];
-				p_eL2 = pDp_eL2;
-				stop = 6;
-				break;
-			}
-			if( op->cd->check_success && op->success )
-			{
-				if( op->cd->ldebug ) tprintf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
-				for( i = 0; i < m; i++ ) p[i] = pDp[i];
-				p_eL2 = pDp_eL2;
-				stop = 8;
-				break;
-			}
-			if( !LM_FINITE( pDp_eL2 ) )
-			{
-				/* sum of squares is not finite, most probably due to a user error.
-				 * This check makes sure that the loop terminates early in the case
-				 * of invalid input. Thanks to Steve Danauskas for suggesting it */
-				if( op->cd->ldebug ) tprintf( "CONVERGED: sum of squares is not finite, most probably due to a user error\n" );
-				stop = 7;
-				break;
-			}
-			if( op->cd->lm_indir ) // original
-			{
-				tmp = p_eL2_old / pDp_eL2; // original code
-				// tprintf( "Original tmp = %g\n", tmp );
-				if( tmp > op->cd->lm_ofdecline ) phi_decline = 1; /* recompute jacobian because OF decreased */
-			}
+			if( jac_max[ipar_max] - jac_min[ipar_max] < DBL_EPSILON )
+				tprintf( "Parameters did not change between last two liner solves (lambda searches).\n" );
 			else
 			{
-				tmp = p_eL2 / pDp_eL2;
-				// tprintf( "Leif tmp = %g\n", tmp );
-				if( tmp > op->cd->lm_ofdecline && avRatio < lm_ratio ) phi_decline = 1; /* recompute jacobian because OF decreased */
+				tprintf( "Parameter with maximum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_max]], jac_max[ipar_max] - jac_min[ipar_max] );
+				tprintf( "Parameter with minimum estimate change: %-30s (%g)\n", op->pd->var_name[op->pd->var_index[ipar_min]], jac_max[ipar_min] - jac_min[ipar_min] );
 			}
-			dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
-			if( updp || dF > 0.0 ) /* update jacobian because OF increases */
+			for( i = 0 ; i < m; i++ ) /* update p's estimate */
+				p_old[i] = pDp[i];
+		}
+		DeTransform( pDp, op, jac_min );
+		for( i = 0; i < op->pd->nOptParam; i++ )
+			op->pd->var[op->pd->var_index[i]] = jac_min[i];
+		op->phi = pDp_eL2;
+		save_results( 0, "", op, op->gd );
+		phi2[phi2c++] = pDp_eL2;
+		if( phi2c > op->cd->lm_nlamof )
+		{
+			tmp = HUGE_VAL;
+			j = 0;
+			for( i = 0; i < phi2c; i++ )
 			{
-				for( i = 0; i < n; ++i )
+				if( phi2[i] < tmp )
 				{
-					for( l = 0, tmp = 0.0; l < m; ++l )
-						tmp += jac[i * m + l] * Dp[l]; /* (J * Dp)[i] */
-					tmp = ( wrk[i] - hx[i] - tmp ) / Dp_L2; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
-					for( j = 0; j < m; ++j )
-						jac[i * m + j] += tmp * Dp[j];
+					tmp = phi2[i];
+					if( i < phi2c - op->cd->lm_nlamof ) j = 1;
+					else j = 0;
 				}
-				newjac = 1;
-				++updjac;
+				// tprintf( " %g", phi1[i] );
 			}
+			// for( i = 0; i < phi2c; i++ )
+			// tprintf( " %g", phi2[i] );
+			// tprintf( "a %g %d\n", tmp, phi2c );
+			for( i = phi2c - op->cd->lm_nlamof; i < phi2c; i++ )
+			{
+				if( ( phi2[i] - tmp ) / tmp < 1 ) j++;
+				// tprintf( "a %g %g %g\n", tmp, phi2[i], ( phi2[i] - tmp ) / tmp );
+			}
+			if( j >= op->cd->lm_nlamof )
+				computejac = 1; // New jacobian: Lambda search OF are very similar
+			// p_eL2 = pDp_eL2; // TODO check is it needed; Actually it does not seem to work
+		}
+		if( pDp_eL2 <= eps3 ) /* error is small */ // BELOW a cutoff value
+		{
+			if( op->cd->ldebug ) tprintf( "CONVERGED: OF below cutoff value (%g < %g)\n", pDp_eL2, eps3 );
+			for( i = 0; i < m; i++ ) p[i] = pDp[i];
+			p_eL2 = pDp_eL2;
+			stop = 6;
+			break;
+		}
+		if( op->cd->check_success && op->success )
+		{
+			if( op->cd->ldebug ) tprintf( "CONVERGED: Predictions are within predefined calibration ranges\n" );
+			for( i = 0; i < m; i++ ) p[i] = pDp[i];
+			p_eL2 = pDp_eL2;
+			stop = 8;
+			break;
+		}
+		if( !LM_FINITE( pDp_eL2 ) )
+		{
+			/* sum of squares is not finite, most probably due to a user error.
+			 * This check makes sure that the loop terminates early in the case
+			 * of invalid input. Thanks to Steve Danauskas for suggesting it */
+			if( op->cd->ldebug ) tprintf( "CONVERGED: sum of squares is not finite, most probably due to a user error\n" );
+			stop = 7;
+			break;
+		}
+		if( op->cd->lm_indir ) // original
+		{
+			tmp = p_eL2_old / pDp_eL2; // original code
+			// tprintf( "Original tmp = %g\n", tmp );
+			if( tmp > op->cd->lm_ofdecline ) phi_decline = 1; /* recompute jacobian because OF decreased */
+		}
+		else
+		{
+			tmp = p_eL2 / pDp_eL2;
+			// tprintf( "Leif tmp = %g\n", tmp );
+			if( tmp > op->cd->lm_ofdecline && avRatio < lm_ratio ) phi_decline = 1; /* recompute jacobian because OF decreased */
+		}
+		dF = p_eL2 - pDp_eL2; // Difference between current and previous OF
+		if( updp || dF > 0.0 ) /* update jacobian because OF increases */
+		{
+			for( i = 0; i < n; ++i )
+			{
+				for( l = 0, tmp = 0.0; l < m; ++l )
+					tmp += jac[i * m + l] * Dp[l]; /* (J * Dp)[i] */
+				tmp = ( wrk[i] - hx[i] - tmp ) / Dp_L2; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
+				for( j = 0; j < m; ++j )
+					jac[i * m + j] += tmp * Dp[j];
+			}
+			newjac = 1;
+			++updjac;
+		}
+		if( op->cd->lm_indir )
+		{
+			for( i = 0, dL = 0.0; i < m; ++i )
+				dL += Dp[i] * ( mu * Dp[i] + jacTe[i] );
+		}
+		else dL = ( double ) 1.0;
+		if( dL > 0.0 && dF > 0.0 && avRatio < lm_ratio ) /* reduction in error, increment is accepted */
+		{
 			if( op->cd->lm_indir )
 			{
-				for( i = 0, dL = 0.0; i < m; ++i )
-					dL += Dp[i] * ( mu * Dp[i] + jacTe[i] );
+				tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
+				tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
+				tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
 			}
-			else dL = ( double ) 1.0;
-			if( dL > 0.0 && dF > 0.0 && avRatio < lm_ratio ) /* reduction in error, increment is accepted */
-			{
-				if( op->cd->lm_indir )
-				{
-					tmp = ( LM_CNST( 2.0 ) * dF / dL - LM_CNST( 1.0 ) );
-					tmp = LM_CNST( 1.0 ) - tmp * tmp * tmp;
-					tmp = ( ( tmp >= LM_CNST( ONE_THIRD ) ) ? tmp : LM_CNST( ONE_THIRD ) );
-				}
-				else tmp = op->cd->lm_mu;
-				mu = mu * tmp; // change lambda
-				/*
+			else tmp = op->cd->lm_mu;
+			mu = mu * tmp; // change lambda
+			/*
 								if( mu > 1e3 )
 								{
 									if( mu_constrained > 500000 )
@@ -1033,20 +1037,19 @@ int LEVMAR_DER2(
 									}
 								}
 								else mu_constrained = 0;
-				 */
-				if( op->cd->ldebug > 3 ) tprintf( "Lambda change factor tmp (%g)\n", tmp );
-				nu = op->cd->lm_nu;
-				for( i = 0 ; i < m; ++i ) /* update p's estimate */
-					p[i] = pDp[i];
-				for( i = 0; i < n; ++i ) /* update e, hx and ||e||_2 */
-				{
-					e[i] = wrk2[i]; //x[i]-wrk[i];
-					hx[i] = wrk[i];
-				}
-				p_eL2 = pDp_eL2; // Update OF
-				updp = 1;
-				continue; // Solve for a new lambda
+			 */
+			if( op->cd->ldebug > 3 ) tprintf( "Lambda change factor tmp (%g)\n", tmp );
+			nu = op->cd->lm_nu;
+			for( i = 0 ; i < m; ++i ) /* update p's estimate */
+				p[i] = pDp[i];
+			for( i = 0; i < n; ++i ) /* update e, hx and ||e||_2 */
+			{
+				e[i] = wrk2[i]; //x[i]-wrk[i];
+				hx[i] = wrk[i];
 			}
+			p_eL2 = pDp_eL2; // Update OF
+			updp = 1;
+			continue; // Solve for a new lambda
 		}
 		/* if this point is reached, either the linear system could not be solved or
 		 * the error did not reduce; in any case, the increment must be rejected */
