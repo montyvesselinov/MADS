@@ -1224,12 +1224,12 @@ int optimize_lm( struct opt_data *op )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( op->cd->niter <= 0 )
+	if( op->cd->lm_niter <= 0 )
 	{
 		if( op->cd->squads ) maxiter = 8;
 		else maxiter = 50;
 	}
-	else maxiter = op->cd->niter;
+	else maxiter = op->cd->lm_niter;
 	if( op->cd->ldebug && standalone ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];

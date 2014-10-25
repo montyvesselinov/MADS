@@ -105,7 +105,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int nretries; // number of paranoid retries
 	int retry_ind; // retry evaluation counter
 	int init_particles; // number of tribes (squads, tribes)
-	int niter; // number of iterations
+	int lm_niter; // number of iterations
 	int neval; // current number of evaluations (can be applied as termination criteria)
 	int njac; // current number of jacobian evaluations
 	int maxeval; // maximum number of evaluations (termination criteria)

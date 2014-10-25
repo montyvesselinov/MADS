@@ -1495,7 +1495,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 	if( cd->init_particles > 1 ) fprintf( outfile, ", particles: %d", cd->init_particles );
 	else if( cd->init_particles < 0 ) fprintf( outfile, ", particles" );
 	if( cd->lm_eigen ) fprintf( outfile, ", lmeigen: %d", cd->lm_eigen );
-	if( cd->niter > 0 ) fprintf( outfile, ", iter: %d", cd->niter );
+	if( cd->lm_niter > 0 ) fprintf( outfile, ", iter: %d", cd->lm_niter );
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, ", rnd: %s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fprintf( outfile, ", paran: %s", cd->paran_method );
 	if( fabs( cd->pardomain - 100 ) > DBL_EPSILON ) fprintf( outfile, ", pardomain: %g", cd->pardomain );

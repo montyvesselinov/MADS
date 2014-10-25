@@ -393,12 +393,13 @@ int LEVMAR_DER2(
 			if( odebug ) op->cd->odebug = 0;
 			if( using_ffdif ) /* use forward differences */
 			{
+				if( op->cd->ldebug > 5 ) tprintf( "Jacobian computed using forward differences\n" );
 				jacf( p, hx, jac, m, n, adata );
 				++njap; nfev += m;
 			}
-			else  /* use central differences */
+			else /* use central differences */
 			{
-				if( op->cd->ldebug ) tprintf( "Central Differences\n" );
+				if( op->cd->ldebug > 5 ) tprintf( "Jacobian computed using central differences\n" );
 				LEVMAR_FDIF_CENT_JAC_APPROX( func, p, wrk, wrk2, delta, jac, m, n, adata );
 				++njap; nfev += 2 * m;
 			}
@@ -506,7 +507,7 @@ int LEVMAR_DER2(
 					break;
 				}
 			}
-			// Jacobian matrix analyses: check for insensitive observations (redundant with above; note needed; for testing only)
+			// Jacobian matrix analyses: check for insensitive observations (redundant with above; not needed; for testing only)
 			if( op->cd->ldebug >= 11 )
 			{
 				for( j = 0; j < op->od->nTObs; j++ )
@@ -631,7 +632,7 @@ int LEVMAR_DER2(
 					for( j = i + 1; j < m; ++j )
 						jacTjac[i * m + j] = jacTjac[j * m + i];
 			}
-			else  // this is a large problem
+			else // this is a large problem
 			{
 				/* Cache efficient computation of J^T J based on blocking
 				 */
@@ -704,6 +705,11 @@ int LEVMAR_DER2(
 		{
 			tprintf( "Parallel lambda search ...\n" );
 			int npl;
+			if( k > 0 )
+			{
+				mu *= nu;
+				mu /= 5;
+			}
 			double mu_current, mu_up = mu, mu_down = mu;
 			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
 			{
@@ -737,7 +743,7 @@ int LEVMAR_DER2(
 			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
 				if( phi_vector[npl] < phi_alpha_min ) { phi_alpha_min = phi_vector[npl]; npl_min = npl; }
 			for( i = 0 ; i < m; i++ )
-				pDp[i] = param_matrix[npl_min][i];
+				pDp[i] = p[i] = param_matrix[npl_min][i];
 			for( i = 0, Dp_L2 = 0.0; i < m; ++i )
 			{
 				Dp[i] = tmp = param_matrix[npl_min][i] - p[i];
@@ -754,7 +760,7 @@ int LEVMAR_DER2(
 					mu *= pow( op->cd->lm_mu, -( npl_min + 1 ) / 2 );
 			}
 			tprintf( "Best Parallel lambda #%d = %g OF = %g\n", npl_min+1, mu, phi_alpha_min );
-			p_eL2 = phi_alpha_min;
+			p_eL2 = pDp_eL2 = phi_alpha_min;
 		}
 		else
 		{
