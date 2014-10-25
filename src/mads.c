@@ -1450,7 +1450,11 @@ int optimize_lm( struct opt_data *op )
 				op->pd->var[op->pd->var_index[i]] = opt_params[i];
 		if( op->cd->paranoid )
 		{
-			if( op->phi < phi_min ) { phi_min = op->phi; for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]]; }
+			if( op->phi < phi_min ) {
+				phi_min = op->phi;
+				for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]];
+				for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+			}
 			if( debug ) tprintf( "Objective function: %g Success: %d\n", op->phi, op->success );
 			if( phi_min < op->cd->phi_cutoff )
 			{
@@ -1472,16 +1476,22 @@ int optimize_lm( struct opt_data *op )
 		else break; // Quit if not Paranoid run
 	}
 	while( 1 ); // END Paranoid loop
-	if( op->cd->paranoid ) // Recompute for the best results
+	if( op->cd->paranoid ) // Get the best results
 	{
 		if( !debug ) tprintf( "(retries=%d) ", count );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			op->pd->var[op->pd->var_index[i]] = opt_params_best[i];
-		Transform( opt_params_best, op, opt_params );
-		func_global( opt_params, op, op->od->res );
+		if( debug > 5 )
+		{
+			Transform( opt_params_best, op, opt_params );
+			func_global( opt_params, op, op->od->res );
+		}
+		else
+			for( i = 0; i < op->od->nTObs; i++ )
+				op->od->res[i] = op->od->obs_best[i];
 	}
-	if( ( op->cd->lm_eigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->analysis_type == SIMPLE )
-		if( eigen( op, op->od->res, gsl_jacobian, NULL ) == 0 ) // Eigen analysis
+	if( ( op->cd->lm_eigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->analysis_type == SIMPLE ) // Eigen analysis
+		if( eigen( op, op->od->res, gsl_jacobian, NULL ) == 0 ) //TODO replace op->od->res with op->od->obs_best
 			return( 0 );
 	if( !debug && standalone && op->cd->analysis_type == SIMPLE ) tprintf( "\n" );
 	if( op->cd->paranoid ) free( var_lhs );

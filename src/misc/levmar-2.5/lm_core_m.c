@@ -135,6 +135,7 @@ int LEVMAR_DER2(
 	*jac_max,
 	*p_old, *p_old2,     /* old parameter set */
 	*p_best, /* best parameter set */
+	*obs_best, /* best observation set */
 	*jacTe,      /* J^T e_i mx1 */
 	*jac,        /* nxm */
 	*jacTjac,    /* mxm */
@@ -242,6 +243,7 @@ int LEVMAR_DER2(
 	p_old = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_old2 = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
 	p_best = ( LM_REAL * )malloc( m * sizeof( LM_REAL ) );
+	obs_best = ( LM_REAL * )malloc( n * sizeof( LM_REAL ) );
 	if( op->cd->num_parallel_lambda > 0 )
 	{
 		if( ( phi_vector = ( double * ) malloc( op->cd->num_parallel_lambda * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -743,7 +745,7 @@ int LEVMAR_DER2(
 			}
 			Dpa_L2 = sqrt( Dp_L2 );
 			for( i = 0 ; i < n; i++ )
-				wrk[i] = obs_matrix[npl_min][i];
+				hx[i] = wrk[i] = obs_matrix[npl_min][i];
 			if( npl_min != 0 )
 			{
 				if( npl_min % 2 ) // even number
@@ -862,13 +864,16 @@ int LEVMAR_DER2(
 #endif
 		}
 #endif
+		if( op->cd->ldebug == 1 ) tprintf( "OF %g lambda %g\n", pDp_eL2, mu );
 		if( pDp_eL2 < best_p_eL2 )
 		{
 			best_p_eL2 = pDp_eL2;
 			for( i = 0; i < m; ++i )
 				p_best[i] = pDp[i];
+			for( i = 0; i < n; ++i )
+				obs_best[i] = wrk[i];
+			if( op->cd->ldebug >= 1 ) tprintf( "New Best OF %g\n", best_p_eL2 );
 		}
-		if( op->cd->ldebug == 1 ) tprintf( "OF %g lambda %g\n", pDp_eL2, mu );
 		else if( op->cd->ldebug > 1 )
 		{
 			tprintf( "\nLinear solve (lambda search) #%d: OF %g lambda %g \n", phi2c + 1, pDp_eL2, mu );
@@ -1092,6 +1097,8 @@ int LEVMAR_DER2(
 	op->phi = p_eL2 = best_p_eL2;
 	for( i = 0; i < m; ++i )
 		p[i] = p_best[i];
+	for( i = 0; i < n; ++i )
+		op->od->obs_current[i] = op->od->res[i] = obs_best[i];
 	if( op->cd->ldebug > 3 ) //TODO I am not sure do we need this ...
 	{
 		DeTransform( pDp, op, jac_min );
