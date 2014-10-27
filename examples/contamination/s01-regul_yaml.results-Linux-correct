@@ -4,7 +4,7 @@ Source y coordinate [L] 1418
 Source x dimension [L] 44.2687
 Source y dimension [L] 360.511
 Contaminant flux [M/T] 81.6697
-Start Time [T] 8.91465e-08
+Start Time [T] 8.91475e-08
 Flow Angle [degrees] -0.271471
 Pore x velocity [L/T] 3.01274
 Dispersivity x [L] 130.928
@@ -27,7 +27,7 @@ W-10#2    (  49):         0.1 -   0.00123233 =    0.0987677 (   0.0987677) succe
 W-11#1    (  49):          22 -      177.056 =     -155.056 (    -155.056) success 0 range            3 -           25
 W-11#2    (  49):         0.3 -  1.67177e-05 =     0.299983 (    0.299983) success 1 range            0 -            5
 W-12#1    (  49):          15 -      114.644 =     -99.6435 (    -99.6435) success 0 range            3 -           25
-W-12#2    (  49):        0.17 -  7.12112e-06 =     0.169993 (    0.169993) success 1 range            0 -            5
+W-12#2    (  49):        0.17 -  7.12113e-06 =     0.169993 (    0.169993) success 1 range            0 -            5
 W-13#1    (  50):          72 -      100.302 =     -28.3025 (    -28.3025) success 0 range           40 -          100
 W-13#2    (  50):        0.26 -  2.00854e-07 =         0.26 (        0.26) success 1 range            0 -           20
 W-14a     (  50):           0 -            0 =            0 (           0) success 1 range            0 -            5
