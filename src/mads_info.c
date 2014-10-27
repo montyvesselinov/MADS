@@ -218,9 +218,12 @@ void mads_info()
 	printf( "   mads examples/contamination/s01 igrnd real=10 (Random Initial Guesses; all parameters)\n" );
 	printf( "   mads examples/contamination/s01-flagged igrnd real=10 (Random Initial Guesses; only flagged parameters)\n" );
 	printf( "   mads examples/contamination/s01 monte real=10 (Monte Carlo Analysis)\n" );
-	printf( "   mads w01.mads igrnd real=1 seed=501228648 eigen" );
-	printf( "   mads w01 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors; files associated with problem w01 are located in examples/wells)\n" );
-	printf( "             (for w01 example, code WELLS can be obtained at http://wells.lanl.gov)\n" );
+	printf( "   cd examples/wells; mads w01.mads igrnd real=1 seed=501228648 eigen\n" );
+	printf( "\nParallel Levenberg-Marquardt optimization:\n" );
+	printf( "   cd examples/wells-short\n" );
+	printf( "   mads w01parallel.mads restart=0 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors; files associated with problem w01 are located in examples/wells)\n" );
+	printf( "   mads w01parallel.mads restart=0 np=11 nplambda=11\n" );
+	printf( "   mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlam=21 lmnlamof=12 (if small number of processors are used lmnlam & lmnlamof should be increased)\n" );
 	printf( "\nComparisons between local and global methods:\n" );
 	printf( "   mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)\n" );
 	printf( "   mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)\n" );
@@ -228,13 +231,15 @@ void mads_info()
 	printf( "   mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization TRIBES-D)\n" );
 	printf( "   mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3 (Adaptive hybrid optimization Squads)\n" );
 	printf( "\nComparisons with PEST (http://www.sspa.com/pest/):\n" );
+	printf( "   cd examples/contamination\n" );
 	printf( "   mads s02 lmeigen                  (file s02.mads is located in examples/contamination)\n" );
 	printf( "   pest s02pest                   (file s02pest.pst is located in examples/contamination)\n" );
 	printf( "   mads w01 lmeigen     (files associated with problem w01 are located in examples/wells)\n" );
 	printf( "   pest w01pest     (files associated with problem w01pest are located in examples/wells)\n" );
 	printf( "   pest w02pest     (files associated with problem w02pest are located in examples/wells)\n" );
-	printf( "               (for w01 comparison, code WELLS can be obtained at http://wells.lanl.gov)\n" );
 	printf( "\nFor additional information:\n" );
 	printf( "   web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n" );
+	printf( "   repo:  http://gitlab.com/monty/mads\n" );
+	printf( "   git:   git clone git@gitlab.com:monty/mads.git\n" );
 	printf( "   email: Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\n" );
 }
