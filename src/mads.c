@@ -1450,7 +1450,8 @@ int optimize_lm( struct opt_data *op )
 				op->pd->var[op->pd->var_index[i]] = opt_params[i];
 		if( op->cd->paranoid )
 		{
-			if( op->phi < phi_min ) {
+			if( op->phi < phi_min )
+			{
 				phi_min = op->phi;
 				for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]];
 				for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
@@ -1946,7 +1947,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				sel_params_min[i] = HUGE_VAL;
-				sel_params_max[i] = opt_params_avg[i] = 0;
+				sel_params_max[i] = sel_params_avg[i] = 0;
 			}
 		}
 	}

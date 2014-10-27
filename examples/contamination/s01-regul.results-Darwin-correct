@@ -1,10 +1,10 @@
 Model parameters:
 Source x coordinate [L] 1239.39
 Source y coordinate [L] 1418
-Source x dimension [L] 44.2697
+Source x dimension [L] 44.2696
 Source y dimension [L] 360.511
 Contaminant flux [M/T] 81.6697
-Start Time [T] 8.56315e-10
+Start Time [T] 8.56305e-10
 Flow Angle [degrees] -0.271472
 Pore x velocity [L/T] 3.01274
 Dispersivity x [L] 130.928
@@ -12,13 +12,13 @@ Dispersivity y [L] 6.08926
 Dispersivity z [L] 0.118695
 
 Model predictions:
-W-1       (  49):           0 -  4.76421e-15 = -4.76421e-15 (-4.76421e-15) success 1 range            0 -           25
+W-1       (  49):           0 -   4.7642e-15 =  -4.7642e-15 ( -4.7642e-15) success 1 range            0 -           25
 W-2       (  49):           0 -  3.01944e-09 = -3.01944e-09 (-3.01944e-09) success 1 range            0 -           10
 W-3       (  49):           0 -  8.40061e-15 = -8.40061e-15 (-8.40061e-15) success 1 range            0 -           25
 W-4       (  44):         350 -       268.55 =      81.4496 (     81.4496) success 0 range          300 -          700
 W-4       (  49):         432 -      387.387 =       44.613 (      44.613) success 1 range          300 -          700
 W-5       (  49):           0 -  1.81615e-26 = -1.81615e-26 (-1.81615e-26) success 1 range            0 -           10
-W-6       (  49):           0 -   7.9917e-92 =  -7.9917e-92 ( -7.9917e-92) success 1 range            0 -           10
+W-6       (  49):           0 -  7.99169e-92 = -7.99169e-92 (-7.99169e-92) success 1 range            0 -           10
 W-7       (  49):           0 -  3.17971e-61 = -3.17971e-61 (-3.17971e-61) success 1 range            0 -           10
 W-8       (  49):           0 -   1.7955e-44 =  -1.7955e-44 ( -1.7955e-44) success 1 range            0 -           10
 W-9       (  49):         981 -      1003.56 =     -22.5601 (    -22.5601) success 1 range          600 -         1200

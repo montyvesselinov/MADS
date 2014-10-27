@@ -1028,7 +1028,8 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 				opt_params[i] = op->pd->var[k] = var_mat[count][i];
 			}
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-			Transform( opt_params, op, opt_params );
+			if( transform )
+				Transform( opt_params, op, opt_params );
 			func_global( opt_params, op, op->od->res );
 			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 			if( phi != NULL ) phi[count] = op->phi;
