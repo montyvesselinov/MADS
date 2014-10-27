@@ -1212,7 +1212,8 @@ int LEVMAR_DER2(
 	}
 	if( freework ) free( work );
 	free( hx1 ); free( hx2 ); free( phDp_plus ); free( phDp_minus ); free( ephdp_plus ); free( ephdp_minus );
-	free( vvddr ); free( jacTvv ); free( acceleration ); free( jac_min ); free( jac_max ); free( jac_zero ); free( jac_zero_obs ); free( par_lam_last ); free( par_jac_last ); free( par_best );
+	free( vvddr ); free( jacTvv ); free( acceleration ); free( jac_min ); free( jac_max ); free( jac_zero ); free( jac_zero_obs );
+	free( par_lam_last ); free( par_jac_last ); free( par_best ); free( par_init );
 	if( op->cd->lm_eigen ) gsl_matrix_free( gsl_jacobian );
 	if( op->cd->lm_num_parallel_lambda > 0 )
 	{
