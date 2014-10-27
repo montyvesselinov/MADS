@@ -1224,12 +1224,12 @@ int optimize_lm( struct opt_data *op )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( op->cd->niter <= 0 )
+	if( op->cd->lm_niter <= 0 )
 	{
 		if( op->cd->squads ) maxiter = 8;
 		else maxiter = 50;
 	}
-	else maxiter = op->cd->niter;
+	else maxiter = op->cd->lm_niter;
 	if( op->cd->ldebug && standalone ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", maxiter );
 	for( i = 0; i < op->pd->nOptParam; i++ )
 		opt_params[i] = op->pd->var[op->pd->var_index[i]];
@@ -1450,7 +1450,12 @@ int optimize_lm( struct opt_data *op )
 				op->pd->var[op->pd->var_index[i]] = opt_params[i];
 		if( op->cd->paranoid )
 		{
-			if( op->phi < phi_min ) { phi_min = op->phi; for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]]; }
+			if( op->phi < phi_min )
+			{
+				phi_min = op->phi;
+				for( i = 0; i < op->pd->nOptParam; i++ ) opt_params_best[i] = op->pd->var[op->pd->var_index[i]];
+				for( i = 0; i < op->od->nTObs; i++ ) op->od->obs_best[i] = op->od->obs_current[i];
+			}
 			if( debug ) tprintf( "Objective function: %g Success: %d\n", op->phi, op->success );
 			if( phi_min < op->cd->phi_cutoff )
 			{
@@ -1472,16 +1477,22 @@ int optimize_lm( struct opt_data *op )
 		else break; // Quit if not Paranoid run
 	}
 	while( 1 ); // END Paranoid loop
-	if( op->cd->paranoid ) // Recompute for the best results
+	if( op->cd->paranoid ) // Get the best results
 	{
 		if( !debug ) tprintf( "(retries=%d) ", count );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			op->pd->var[op->pd->var_index[i]] = opt_params_best[i];
-		Transform( opt_params_best, op, opt_params );
-		func_global( opt_params, op, op->od->res );
+		if( debug > 5 )
+		{
+			Transform( opt_params_best, op, opt_params );
+			func_global( opt_params, op, op->od->res );
+		}
+		else
+			for( i = 0; i < op->od->nTObs; i++ )
+				op->od->res[i] = op->od->obs_best[i];
 	}
-	if( ( op->cd->lm_eigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->analysis_type == SIMPLE )
-		if( eigen( op, op->od->res, gsl_jacobian, NULL ) == 0 ) // Eigen analysis
+	if( ( op->cd->lm_eigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->analysis_type == SIMPLE ) // Eigen analysis
+		if( eigen( op, op->od->res, gsl_jacobian, NULL ) == 0 ) //TODO replace op->od->res with op->od->obs_best
 			return( 0 );
 	if( !debug && standalone && op->cd->analysis_type == SIMPLE ) tprintf( "\n" );
 	if( op->cd->paranoid ) free( var_lhs );
@@ -1936,7 +1947,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				sel_params_min[i] = HUGE_VAL;
-				sel_params_max[i] = opt_params_avg[i] = 0;
+				sel_params_max[i] = sel_params_avg[i] = 0;
 			}
 		}
 	}

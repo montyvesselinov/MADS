@@ -268,7 +268,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->num_parallel_lambda = 0;
 	cd->restart = 1;
 	cd->nreal = 0;
-	cd->niter = 0;
+	cd->lm_niter = 0;
 	cd->disp_tied = 0;
 	cd->disp_scaled = 0;
 	cd->save = 0;
@@ -351,7 +351,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "lmdir", 5 ) ) { w = 1; cd->lm_indir = 0; cd->lm_ofdecline = 1; }
 		if( !strncasecmp( word, "lmmu=", 5 ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
 		if( !strncasecmp( word, "lmnu=", 5 ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
-		if( !strncasecmp( word, "lmiter=", 7 ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->niter ); }
+		if( !strncasecmp( word, "lmiter=", 7 ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->lm_niter ); }
 		if( !strncasecmp( word, "lmnlamof=", 9 ) ) { w = 1; sscanf( word, "lmnlamof=%d", &cd->lm_nlamof ); }
 		if( !strncasecmp( word, "lmnjacof=", 9 ) ) { w = 1; sscanf( word, "lmnjacof=%d", &cd->lm_njacof ); }
 		if( !strncasecmp( word, "infile=", 7 ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
@@ -518,8 +518,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	}
 	else { tprintf( "WARNING: Unknown method (opt=%s)! Levenberg-Marquardt optimization assumed\n", cd->opt_method ); strcpy( cd->opt_method, "lm" ); }
 	if( cd->nretries > 0 ) tprintf( "Number of calibration retries = %d\n", cd->nretries );
-	if( cd->niter < 0 ) cd->niter = 0;
-	if( cd->niter > 0 ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", cd->niter );
+	if( cd->lm_niter < 0 ) cd->lm_niter = 0;
+	if( cd->lm_niter > 0 ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", cd->lm_niter );
 	else tprintf( "Number of Levenberg-Marquardt iterations = will be computed internally\n" );
 	if( cd->num_parallel_lambda > 0 )
 	{
@@ -527,9 +527,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		else if( cd->num_parallel_lambda > cd->num_proc ) cd->num_parallel_lambda = cd->num_proc;
 		tprintf( "Number of parallel lambda searches per a Levenberg-Marquardt iteration = %d\n", cd->num_parallel_lambda );
 	}
-	else
-		if( cd->num_proc > 0 && strcasestr( cd->opt_method, "lm" ) )
-			tprintf( "WARNING: Levenberg-Marquardt may perform better if a parallel lambda search is evoked (nplambda>0)\n" );
+	else if( cd->num_proc > 0 && strcasestr( cd->opt_method, "lm" ) )
+		tprintf( "WARNING: Levenberg-Marquardt may perform better if a parallel lambda search is evoked (nplambda>0)\n" );
 	if( strcasestr( cd->opt_method, "apso" ) || strcasestr( cd->opt_method, "tribe" ) || strcasestr( cd->opt_method, "squad" ) )
 	{
 		if( cd->init_particles > 1 ) tprintf( "Number of particles = %d\n", cd->init_particles );
@@ -1647,7 +1646,7 @@ int save_problem_text( char *filename, struct opt_data *op )
 	if( cd->init_particles > 1 ) fprintf( outfile, " particles=%d", cd->init_particles );
 	else if( cd->init_particles < 0 ) fprintf( outfile, " particles" );
 	if( cd->lm_eigen ) fprintf( outfile, " lmeigen=%d", cd->lm_eigen );
-	if( cd->niter > 0 ) fprintf( outfile, " iter=%d", cd->niter );
+	if( cd->lm_niter > 0 ) fprintf( outfile, " lmiter=%d", cd->lm_niter );
 	if( cd->smp_method[0] != 0 ) fprintf( outfile, " rnd=%s", cd->smp_method );
 	if( cd->paran_method[0] != 0 ) fprintf( outfile, " paran=%s", cd->paran_method );
 	if( fabs( cd->pardomain - 100 ) > DBL_EPSILON ) fprintf( outfile, " pardomain=%g", cd->pardomain );
