@@ -93,9 +93,10 @@ void mads_info()
 	printf( "   lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]\n" );
 	printf( "   lmh=[double]       - LM acceleration multiplier [default lmh=0.1]\n" );
 	printf( "   lmiter=[integer]   - number of LM iterations [default computed internally based on number of evaluations]\n" );
-	printf( "   lmerror=[double]   - LM convergence error [default lmerror=1e-5]\n" );
+	printf( "   lmnlam=[integer]   - Maximum number of linear solves (lambda searches) after each Jacobian estimate [default lmnlam=10]\n" );
 	printf( "   lmnlamof=[integer] - Number of acceptable linear solves (lambda searches) with similar OF's during LM optimization [default lmnlamof=3]\n" );
-	printf( "   lmnjacof=[integer] - Number of acceptable jacobian iterations with similar OF's during LM optimization [default lmnjacof=4]\n" );
+	printf( "   lmnjacof=[integer] - Number of acceptable jacobian iterations with similar OF's during LM optimization [default lmnjacof=5]\n" );
+	printf( "   lmerror=[double]   - LM convergence error [default lmerror=1e-5]\n" );
 	printf( "\nsampling method (smp=[string] OR mslm=[string] for Multi-Start Levenberg-Marquardt (MSLM) analysis using multiple retries):\n" );
 	printf( "   smp=olhs           - Optimal Latin Hyper Cube sampling [default] (if real=1 RANDOM; if real>1 IDLHS; if real>500 LHS)\n" );
 	printf( "   smp=lhs            - Latin Hyper Cube sampling (LHS)\n" );

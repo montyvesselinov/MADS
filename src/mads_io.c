@@ -265,7 +265,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->ologtrans = -1;
 	cd->oweight = -1;
 	cd->num_proc = -1;
-	cd->num_parallel_lambda = 0;
+	cd->lm_num_parallel_lambda = 0;
 	cd->restart = 1;
 	cd->nreal = 0;
 	cd->lm_niter = 0;
@@ -301,6 +301,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->lm_ofdecline = 2; // TODO Leif prefers to be 1 and works better for Cr problem; Original code is 2 and works better for test cases
 	cd->lm_error = 1e-5;
 	cd->lm_indir = 1;
+	cd->lm_num_lambda_searches = 10;
 	cd->lm_njacof = 5;
 	cd->lm_nlamof = 3;
 	cd->squads = 0;
@@ -352,6 +353,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "lmmu=", 5 ) ) { w = 1; sscanf( word, "lmmu=%lf", &cd->lm_mu ); }
 		if( !strncasecmp( word, "lmnu=", 5 ) ) { w = 1; sscanf( word, "lmnu=%d", &cd->lm_nu ); }
 		if( !strncasecmp( word, "lmiter=", 7 ) ) { w = 1; sscanf( word, "lmiter=%d", &cd->lm_niter ); }
+		if( !strncasecmp( word, "lmnlam=", 7 ) ) { w = 1; sscanf( word, "lmnlam=%d", &cd->lm_num_lambda_searches ); }
 		if( !strncasecmp( word, "lmnlamof=", 9 ) ) { w = 1; sscanf( word, "lmnlamof=%d", &cd->lm_nlamof ); }
 		if( !strncasecmp( word, "lmnjacof=", 9 ) ) { w = 1; sscanf( word, "lmnjacof=%d", &cd->lm_njacof ); }
 		if( !strncasecmp( word, "infile=", 7 ) ) { w = 1; sscanf( word, "infile=%s", cd->infile ); }
@@ -387,7 +389,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "obsstep=", 8 ) ) { w = 1; sscanf( word, "obsstep=%lf", &cd->obsstep ); if( fabs( cd->obsstep ) < DBL_EPSILON ) cd->obsstep = ( double ) 0; else cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
 		if( !strncasecmp( word, "np=", 3 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
-		if( !strncasecmp( word, "nplambda", 8 ) ) { w = 1; cd->num_parallel_lambda = 0; sscanf( word, "nplambda=%d", &cd->num_parallel_lambda ); if( cd->num_parallel_lambda <= 0 ) cd->num_proc = 0; }
+		if( !strncasecmp( word, "nplambda", 8 ) ) { w = 1; cd->lm_num_parallel_lambda = 0; sscanf( word, "nplambda=%d", &cd->lm_num_parallel_lambda ); if( cd->lm_num_parallel_lambda <= 0 ) cd->num_proc = 0; }
 		if( !strncasecmp( word, "restart", 7 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
 		if( !strncasecmp( word, "rstfile=", 8 ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_zip_file ); cd->restart = -1; }
 		if( !strncasecmp( word, "resultsfile=", 12 ) ) { w = 1; sscanf( word, "resultsfile=%s", cd->resultsfile ); cd->problem_type = FORWARD; }
@@ -521,11 +523,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->lm_niter < 0 ) cd->lm_niter = 0;
 	if( cd->lm_niter > 0 ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", cd->lm_niter );
 	else tprintf( "Number of Levenberg-Marquardt iterations = will be computed internally\n" );
-	if( cd->num_parallel_lambda > 0 )
+	if( cd->lm_num_parallel_lambda > 0 )
 	{
-		if( cd->num_proc <= 0 ) cd->num_proc = cd->num_parallel_lambda;
-		else if( cd->num_parallel_lambda > cd->num_proc ) cd->num_parallel_lambda = cd->num_proc;
-		tprintf( "Number of parallel lambda searches per a Levenberg-Marquardt iteration = %d\n", cd->num_parallel_lambda );
+		if( cd->num_proc <= 0 ) cd->num_proc = cd->lm_num_parallel_lambda;
+		else if( cd->lm_num_parallel_lambda > cd->num_proc ) cd->lm_num_parallel_lambda = cd->num_proc;
+		tprintf( "Number of parallel lambda searches per a Levenberg-Marquardt iteration = %d\n", cd->lm_num_parallel_lambda );
 	}
 	else if( cd->num_proc > 0 && strcasestr( cd->opt_method, "lm" ) )
 		tprintf( "WARNING: Levenberg-Marquardt may perform better if a parallel lambda search is evoked (nplambda>0)\n" );

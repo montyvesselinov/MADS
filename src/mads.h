@@ -118,7 +118,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int test_func_npar; // test function number of parameters
 	int test_func_nobs; // test function number of observations
 	int num_proc; // number of processors for parallel execution
-	int num_parallel_lambda; // number of parallel lambda runs in the case of Levenberg-Marquardt optimization (<= num_proc)
+	int lm_num_parallel_lambda; // number of parallel lambda runs in the case of Levenberg-Marquardt optimization (<= num_proc)
 	int restart; // flag restart for parallel jobs
 	int njob; // number of parallel jobs
 	int energy; // starting energy for pssa particles
@@ -133,6 +133,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int lm_indir;
 	double lm_mu;
 	int lm_nu;
+	int lm_num_lambda_searches;
 	int lm_nlamof;
 	int lm_njacof;
 	double lm_h;

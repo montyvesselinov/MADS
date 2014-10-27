@@ -166,7 +166,8 @@ int LEVMAR_DER2(
 	LM_REAL phi_init, phi_best;
 	int nu, nu2, stop = 0, nfev, njac = 0, nlss = 0, max_num_of_lambda_searches, jac_update_count, par_update_accepted = 1, newjac;
 	max_num_of_lambda_searches = ( nP >= 10 ) ? nP : 10;
-	if( op->cd->num_parallel_lambda > max_num_of_lambda_searches ) max_num_of_lambda_searches = op->cd->num_parallel_lambda;
+	if( op->cd->lm_num_lambda_searches > max_num_of_lambda_searches ) max_num_of_lambda_searches = op->cd->lm_num_lambda_searches;
+	if( op->cd->lm_num_parallel_lambda > max_num_of_lambda_searches ) max_num_of_lambda_searches = op->cd->lm_num_parallel_lambda;
 	if( op->cd->lm_nlamof > max_num_of_lambda_searches ) max_num_of_lambda_searches = op->cd->lm_nlamof;
 	LM_REAL phi_jac_vector[maxjac], phi_lam_vector[max_num_of_lambda_searches];
 	int phi_jac_count, phi_lam_count;
@@ -259,12 +260,12 @@ int LEVMAR_DER2(
 		par_best[i] = par_current[i];
 	for( i = 0; i < nO; i++ )
 		obs_best[i] = obs_current[i];
-	if( op->cd->num_parallel_lambda > 0 )
+	if( op->cd->lm_num_parallel_lambda > 0 )
 	{
-		if( ( phi_vector = ( double * ) malloc( op->cd->num_parallel_lambda * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-		if( ( param_matrix = double_matrix( op->cd->num_parallel_lambda, nP ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-		if( ( obs_matrix = double_matrix( op->cd->num_parallel_lambda, nO ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-		for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
+		if( ( phi_vector = ( double * ) malloc( op->cd->lm_num_parallel_lambda * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( param_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nP ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( obs_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nO ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 		{
 			phi_vector[npl] = 0;
 			for( i = 0; i < nP; i++ )
@@ -305,10 +306,10 @@ int LEVMAR_DER2(
 #endif
 	if( op->cd->ldebug )
 	{
-		if( op->cd->num_parallel_lambda )
+		if( op->cd->lm_num_parallel_lambda )
 		{
 			tprintf( "LM with parallel lambda search\n" );
-			tprintf( "LM lambda search will be performed for a series of %d lambdas in parallel.\n", op->cd->num_parallel_lambda );
+			tprintf( "LM lambda search will be performed for a series of %d lambdas in parallel.\n", op->cd->lm_num_parallel_lambda );
 			tprintf( "LM lambda values will be increased/decrease by a factor of %g\n", op->cd->lm_mu );
 			tprintf( "LM acceleration will not be applied even if selected!\n" );
 			op->cd->lm_acc = 0;
@@ -360,16 +361,16 @@ int LEVMAR_DER2(
 		/* Compute the Jacobian J at p,  J^T J,  J^T e,  ||J^T e||_inf and ||p||^2.
 		 * The symmetry of J^T J is again exploited for speed
 		 */
-		if( ( par_update_accepted && nu > 16 ) || jac_update_count >= max_num_of_lambda_searches || mu_big || phi_decline || computejac || op->cd->num_parallel_lambda + phi_lam_count >= max_num_of_lambda_searches ) /* compute difference approximation to J */
+		if( ( par_update_accepted && nu > 16 ) || jac_update_count >= max_num_of_lambda_searches || mu_big || phi_decline || computejac || op->cd->lm_num_parallel_lambda + phi_lam_count >= max_num_of_lambda_searches ) /* compute difference approximation to J */
 		{
 			if( op->cd->ldebug && loop_count != 0 )
 			{
 				if( loop_count != 0 ) tprintf( "New Jacobian requested because:" );
 				if( par_update_accepted && nu > 16 && loop_count != 0 ) tprintf( " > Lambda multiplication factor too large (nu = %d > 16); ", nu );
 				if( jac_update_count >= max_num_of_lambda_searches ) tprintf( " > Maximum number of lambda iteration is reached (%d); ", max_num_of_lambda_searches );
-				if( op->cd->num_parallel_lambda > 0 )
+				if( op->cd->lm_num_parallel_lambda > 0 )
 				{
-					if( op->cd->num_parallel_lambda + phi_lam_count >= max_num_of_lambda_searches ) tprintf( " > Maximum number of lambda iteration will be reached if one more parallel search is performed (%d); ", max_num_of_lambda_searches );
+					if( op->cd->lm_num_parallel_lambda + phi_lam_count >= max_num_of_lambda_searches ) tprintf( " > Maximum number of lambda iteration will be reached if one more parallel search is performed (%d); ", max_num_of_lambda_searches );
 				}
 				else
 				{
@@ -718,11 +719,11 @@ int LEVMAR_DER2(
 			lambda = tau * tmp;
 			if( op->cd->ldebug ) tprintf( "Computed initial lambda %g (%g, %g)\n", lambda, tau, tmp );
 		}
-		if( op->cd->num_parallel_lambda > 0 ) // Parallel lambda search
+		if( op->cd->lm_num_parallel_lambda > 0 ) // Parallel lambda search
 		{
 			tprintf( "Parallel lambda search ...\n" );
 			double lambda_current, lambda_up = lambda, lambda_down = lambda;
-			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
+			for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 			{
 				phi_vector[npl] = HUGE_VAL;
 				if( npl == 0 )
@@ -744,14 +745,14 @@ int LEVMAR_DER2(
 					JTJ[i * nP + i] -= lambda_current;  // Subtract lambda from the matrix diagonal
 				tprintf( "Parallel lambda #%d = %g ...\n", npl + 1, lambda_current );
 			}
-			tprintf( "Parallel execution of %d lambda searches ...\n", op->cd->num_parallel_lambda );
-			func_set( op->cd->num_parallel_lambda, param_matrix, phi_vector, obs_matrix, 0, ( FILE * ) NULL, adata );
+			tprintf( "Parallel execution of %d lambda searches ...\n", op->cd->lm_num_parallel_lambda );
+			func_set( op->cd->lm_num_parallel_lambda, param_matrix, phi_vector, obs_matrix, 0, ( FILE * ) NULL, adata );
 			tprintf( "Done.\n" );
-			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
+			for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 				tprintf( "Parallel lambda #%d => OF %g ...\n", npl + 1, phi_vector[npl] );
 			int npl_min = 0;
 			double phi_alpha_min = HUGE_VAL;
-			for( npl = 0; npl < op->cd->num_parallel_lambda; npl++ )
+			for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 			{
 				phi_lam_vector[phi_lam_count++] = phi_vector[npl];
 				if( phi_vector[npl] < phi_alpha_min ) { phi_alpha_min = phi_vector[npl]; npl_min = npl; }
@@ -861,7 +862,7 @@ int LEVMAR_DER2(
 				break;
 			}
 		}
-		if( op->cd->num_parallel_lambda == 0 ) // if parallel this is already executed
+		if( op->cd->lm_num_parallel_lambda == 0 ) // if parallel this is already executed
 		{
 			( *func )( par_update, obs_update, nP, nO, adata ); ++nfev; /* evaluate function at p + Dp */
 		}
@@ -955,7 +956,7 @@ int LEVMAR_DER2(
 			op->pd->var[op->pd->var_index[i]] = jac_min[i];
 		op->phi = phi_update;
 		save_results( 0, "", op, op->gd );
-		if( op->cd->num_parallel_lambda == 0 )
+		if( op->cd->lm_num_parallel_lambda == 0 )
 			phi_lam_vector[phi_lam_count++] = phi_update;
 		if( phi_lam_count > op->cd->lm_nlamof )
 		{
@@ -1120,7 +1121,7 @@ int LEVMAR_DER2(
 		else { computejac = 0; }
 		for( i = 0; i < nP; i++ ) /* restore diagonal J^T J entries */
 			JTJ[i * nP + i] = JTJ_diag[i];
-		if( op->cd->num_parallel_lambda > 0 && op->cd->num_parallel_lambda + phi_lam_count >= max_num_of_lambda_searches )
+		if( op->cd->lm_num_parallel_lambda > 0 && op->cd->lm_num_parallel_lambda + phi_lam_count >= max_num_of_lambda_searches )
 		{
 			for( i = 0 ; i < nP; i++ ) /* update parameter estimates */
 				par_current[i] = par_update[i];
@@ -1130,7 +1131,6 @@ int LEVMAR_DER2(
 				obs_current[i] = obs_update[i];
 			}
 			phi_current = phi_update; // Update OF
-			phi_lam_count = max_num_of_lambda_searches;
 		}
 	} // END OF OPTIMIZATION LOOP
 	if( fabs( phi_best - phi_current ) > COMPARE_EPSILON ) tprintf( "Best OF %g\n", phi_best );
@@ -1214,11 +1214,11 @@ int LEVMAR_DER2(
 	free( hx1 ); free( hx2 ); free( phDp_plus ); free( phDp_minus ); free( ephdp_plus ); free( ephdp_minus );
 	free( vvddr ); free( jacTvv ); free( acceleration ); free( jac_min ); free( jac_max ); free( jac_zero ); free( jac_zero_obs ); free( par_lam_last ); free( par_jac_last ); free( par_best );
 	if( op->cd->lm_eigen ) gsl_matrix_free( gsl_jacobian );
-	if( op->cd->num_parallel_lambda > 0 )
+	if( op->cd->lm_num_parallel_lambda > 0 )
 	{
 		free( phi_vector );
-		free_matrix( ( void ** ) param_matrix, op->cd->num_parallel_lambda );
-		free_matrix( ( void ** ) obs_matrix, op->cd->num_parallel_lambda );
+		free_matrix( ( void ** ) param_matrix, op->cd->lm_num_parallel_lambda );
+		free_matrix( ( void ** ) obs_matrix, op->cd->lm_num_parallel_lambda );
 	}
 #ifdef LINSOLVERS_RETAIN_MEMORY
 	if( linsolver )( *linsolver )( NULL, NULL, NULL, 0 );
