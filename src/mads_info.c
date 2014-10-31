@@ -119,7 +119,7 @@ void mads_info()
 	printf( "   lindx              - Parameter space step for numerical derivatives of not transformed parameters [default lindx=0.001]\n" );
 	printf( "   pardx              - Parameter space step for parameter space discretization [default pardx=0.1]\n" );
 	printf( "   plog=[-1,0,1]      - Log transformation of all optimized parameters is enforced (1) or disabled (0)\n" );
-	printf( "                        [default plog=-1; log transformation is explicitly defined for each parameter in the input file]\n" );
+	printf( "                        [default plog=-1; log tr$ansformation is explicitly defined for each parameter in the input file]\n" );
 	printf( "   olog=[-1,0,1]      - Log transformation of all the observations (simulated and measured) is enforced (1) or disabled (0)\n" );
 	printf( "                        [default olog=-1; log transformation is explicitly defined for each observation in the input file]\n" );
 	printf( "   oweight=[-1,0,1,2] - Weights for all the observation residuals are defined:\n" );
@@ -223,7 +223,7 @@ void mads_info()
 	printf( "   cd examples/wells-short\n" );
 	printf( "   mads w01parallel.mads restart=0 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors)\n" );
 	printf( "   mads w01parallel.mads restart=0 np=11 nplambda=11\n" );
-	printf( "   mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlamof=21 lmnjacof=12 (if a small number of processors is used, lmnlam & lmnlamof should be increased)\n" );
+	printf( "   mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlam=21 lmnlamof=12 (if a small number of processors is used, lmnlam & lmnlamof should be increased)\n" );
 	printf( "\nComparisons between local and global methods:\n" );
 	printf( "   mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)\n" );
 	printf( "   mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)\n" );
