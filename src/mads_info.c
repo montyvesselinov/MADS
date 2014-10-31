@@ -223,7 +223,7 @@ void mads_info()
 	printf( "   cd examples/wells-short\n" );
 	printf( "   mads w01parallel.mads restart=0 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors)\n" );
 	printf( "   mads w01parallel.mads restart=0 np=11 nplambda=11\n" );
-	printf( "   mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlam=21 lmnlamof=12 (if a small number of processors is used, lmnlam & lmnlamof should be increased)\n" );
+	printf( "   mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlamof=21 lmnjacof=12 (if a small number of processors is used, lmnlam & lmnlamof should be increased)\n" );
 	printf( "\nComparisons between local and global methods:\n" );
 	printf( "   mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)\n" );
 	printf( "   mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)\n" );
