@@ -250,6 +250,9 @@ int main( int argn, char *argv[] )
 	{
 		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
 		system( buf );
+		sprintf( buf, "%s \"rm -f %s.results %s.residuals %s.eigen %s.jacobian %s.covariance %s.correlation %s.intermediate_residuals %s.intermediate_results >& /dev/null\"",
+				SHELL, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root );  // Delete old output files
+		system( buf );
 	}
 	mads_output = Fwrite( filename2 );
 	buf[0] = 0;
@@ -3099,9 +3102,18 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 	strcpy( fileroot, filename ); // Save filename root
 	if( final )
 	{
-		// Save MADS rerun file
-		if( k == -1 ) sprintf( filename, "%s-rerun.mads", filename );
+		sprintf( filename, "%s-rerun-intermediate.mads", fileroot );
+		sprintf( buf, "%s \"rm -f %s\"", SHELL, filename );
+		system( buf );
+		// Save MADS final rerun file
+		if( k == -1 ) sprintf( filename, "%s-rerun.mads", fileroot );
 		else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file
+		if( op->cd->solution_type[0] != TEST ) save_problem( filename, op );
+	}
+	else
+	{
+		// Save MADS intermediate rerun file
+		sprintf( filename, "%s-rerun-intermediate.mads", fileroot );
 		if( op->cd->solution_type[0] != TEST ) save_problem( filename, op );
 	}
 	// Save results file
@@ -3162,6 +3174,10 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 		}
 		else
 		{
+			strcpy( filename, fileroot );
+			strcat( filename, ".residuals" );
+			sprintf( buf, "%s \"rm -f %s\"", SHELL, filename );
+			system( buf );
 			strcpy( filename, fileroot );
 			strcat( filename, ".intermediate_residuals" );
 			if( op->cd->debug ) tprintf( "Intermediate residuals stored (%s)\n", filename );
