@@ -939,6 +939,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transform, FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
 	int i, j, k, count, debug_level = 0;
+	time_t time_start, time_end, time_elapsed;
 	double *opt_params;
 	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 ) // Parallel job
@@ -946,6 +947,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 		int ieval = op->cd->neval;
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
+		time_start = time( NULL );
 		for( count = 0; count < n_sub; count ++ ) // Write all the files
 		{
 			if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
@@ -980,6 +982,10 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 				fprintf( out, "\n" );
 			}
 		}
+		time_end = time( NULL );
+		time_elapsed = time_end - time_start;
+		if( op->cd->tdebug ) tprintf( "Parallel lambda writing PT = %ld seconds\n", time_elapsed );
+		time_start = time_end;
 		if( op->cd->pardebug > 4 )
 		{
 			ieval -= n_sub;
@@ -996,7 +1002,11 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			return( 0 );
 		}
+		time_end = time( NULL );
+		time_elapsed = time_end - time_start;
+		if( op->cd->tdebug ) tprintf( "Parallel lambda execution PT = %ld seconds\n", time_elapsed );
 		ieval -= n_sub;
+		time_start = time_end;
 		for( count = 0; count < n_sub; count ++ ) // Read all the files
 		{
 			if( op->cd->debug || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
@@ -1017,6 +1027,9 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 				for( j = 0; j < op->od->nTObs; j++ )
 					f[count][j] = op->od->res[j];
 		}
+		time_end = time( NULL );
+		time_elapsed = time_end - time_start;
+		if( op->cd->tdebug ) tprintf( "Parallel lambda reading PT = %ld seconds\n", time_elapsed );
 	}
 	else // Serial job
 	{
@@ -1057,12 +1070,14 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	struct opt_data *p = ( struct opt_data * )data;
 	double *f_xpdx;
 	double x_old, dx;
+	time_t time_start, time_end, time_elapsed;
 	int i, j, k, old, compute_center = 0, bad_data = 0, ieval;
 	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 	old = p->cd->compute_phi;
 	p->cd->compute_phi = 0;
 	if( p->cd->num_proc > 1 && p->cd->solution_type[0] == EXTERNAL ) // Parallel execution of external runs
 	{
+		time_start = time( NULL );
 		ieval = p->cd->neval;
 		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
 		{
@@ -1079,13 +1094,21 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			func_extrn_write( ++ieval, x, data );
 			x[j] = x_old;
 		}
+		time_end = time( NULL );
+		time_elapsed = time_end - time_start;
+		if( p->cd->tdebug ) tprintf( "Parallel jacobian writing PT = %ld seconds\n", time_elapsed );
+		time_start = time_end;
 		if( mprun( p->pd->nOptParam + compute_center, data ) < 0 ) // Perform all the runs in parallel
 		{
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			mads_quits( p->root );
 		}
+		time_end = time( NULL );
+		time_elapsed = time_end - time_start;
+		if( p->cd->tdebug ) tprintf( "Parallel jacobian execution PT = %ld seconds\n", time_elapsed );
 		system( "sleep 0" ); // TODO investigate how much sleep is needed
 		ieval -= ( p->pd->nOptParam + compute_center );
+		time_start = time_end;
 		if( compute_center ) func_extrn_read( ++ieval, data, f_x );
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
@@ -1095,6 +1118,8 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			else dx = p->cd->sindx;
 			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
 		}
+		time_elapsed = time_end - time_start;
+		if( p->cd->tdebug ) tprintf( "Parallel jacobian reading PT = %ld seconds\n", time_elapsed );
 	}
 	else
 	{

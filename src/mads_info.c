@@ -194,6 +194,7 @@ void mads_info()
 	printf( "   pdebug=[0-3]       - Particle Swarm optimization debugging [default pdebug=0]\n" );
 	printf( "   mdebug=[0-3]       - Random sampling debugging [default mdebug=0]\n" );
 	printf( "   odebug=[0-1]       - Record objective function progress in a file with extension \'ofe\' [default odebug=0]\n" );
+	printf( "   tdebug=[0-1]       - Output process times for various tasks [default tdebug=0]\n" );
 	printf( "   tpldebug=[0-3]     - Debug the writing of external files [default tpldebug=0]\n" );
 	printf( "   insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]\n" );
 	printf( "   pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]\n" );

@@ -171,6 +171,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int pdebug;
 	int mdebug;
 	int odebug;
+	int tdebug;
 	int tpldebug;
 	int insdebug;
 	int pardebug;

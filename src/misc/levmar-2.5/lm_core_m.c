@@ -435,10 +435,13 @@ int LEVMAR_DER2(
 			time_end = time( NULL );
 			time_elapsed = time_end - time_start;
 			time_jacobian += time_elapsed;
-			if( time_elapsed > 86400 ) tprintf( "Jacobian PT = %g days (average %g days)\n", ( ( double ) time_elapsed / 86400 ), ( ( double ) time_jacobian / njac / 86400 ) );
-			else if( time_elapsed > 3600 ) tprintf( "Jacobian PT = %g hours (average %g hours)\n", ( ( double ) time_elapsed / 3600 ), ( ( double ) time_jacobian / njac / 3600 ) );
-			else if( time_elapsed > 60 ) tprintf( "Jacobian PT = %g minutes (average %g minutes)\n", ( ( double ) time_elapsed / 60 ), ( ( double ) time_jacobian / njac / 60 ) );
-			else tprintf( "Jacobian PT = %ld seconds (average %g seconds)\n", time_elapsed, ( ( double ) time_jacobian / njac ) );
+			if( op->cd->tdebug )
+			{
+				if( time_elapsed > 86400 ) tprintf( "Jacobian PT = %g days (average %g days)\n", ( ( double ) time_elapsed / 86400 ), ( ( double ) time_jacobian / njac / 86400 ) );
+				else if( time_elapsed > 3600 ) tprintf( "Jacobian PT = %g hours (average %g hours)\n", ( ( double ) time_elapsed / 3600 ), ( ( double ) time_jacobian / njac / 3600 ) );
+				else if( time_elapsed > 60 ) tprintf( "Jacobian PT = %g minutes (average %g minutes)\n", ( ( double ) time_elapsed / 60 ), ( ( double ) time_jacobian / njac / 60 ) );
+				else tprintf( "Jacobian PT = %ld seconds (average %g seconds)\n", time_elapsed, ( ( double ) time_jacobian / njac ) );
+			}
 			if( success ) op->cd->check_success = success;
 			if( odebug ) op->cd->odebug = odebug;
 			nu = op->cd->lm_nu; jac_update_count = 0; par_update_accepted = 0; newjac = 1;
@@ -764,10 +767,13 @@ int LEVMAR_DER2(
 			tprintf( "Done.\n" );
 			time_elapsed = time_end - time_start;
 			time_lambda += time_elapsed;
-			if( time_elapsed > 86400 ) tprintf( "Lambda PT = %g days (average %g days)\n", ( ( double ) time_elapsed / 86400 ), ( ( double ) time_lambda / nlss / 86400 ) );
-			else if( time_elapsed > 3600 ) tprintf( "Lambda PT = %g hours (average %g hours)\n", ( ( double ) time_elapsed / 3600 ), ( ( double ) time_lambda / nlss / 3600 ) );
-			else if( time_elapsed > 60 ) tprintf( "Lambda PT = %g minutes (average %g minutes)\n", ( ( double ) time_elapsed / 60 ), ( ( double ) time_lambda / nlss / 60 ) );
-			else tprintf( "Lambda PT = %ld seconds (average %g seconds)\n", time_elapsed, ( ( double ) time_lambda / nlss ) );
+			if( op->cd->tdebug )
+			{
+				if( time_elapsed > 86400 ) tprintf( "Parallel lambda total PT = %g days (average %g days)\n", ( ( double ) time_elapsed / 86400 ), ( ( double ) time_lambda / nlss / 86400 ) );
+				else if( time_elapsed > 3600 ) tprintf( "Parallel lambda total PT = %g hours (average %g hours)\n", ( ( double ) time_elapsed / 3600 ), ( ( double ) time_lambda / nlss / 3600 ) );
+				else if( time_elapsed > 60 ) tprintf( "Parallel lambda total PT = %g minutes (average %g minutes)\n", ( ( double ) time_elapsed / 60 ), ( ( double ) time_lambda / nlss / 60 ) );
+				else tprintf( "Parallel lambda total PT = %ld seconds (average %g seconds)\n", time_elapsed, ( ( double ) time_lambda / nlss ) );
+			}
 			for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 				tprintf( "Parallel lambda #%d => OF %g ...\n", npl + 1, phi_vector[npl] );
 			int npl_min = 0;
