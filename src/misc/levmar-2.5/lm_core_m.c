@@ -128,6 +128,7 @@ int LEVMAR_DER2(
 	struct opt_data *op = ( struct opt_data * ) adata;
 	char filename[255];
 	time_t time_start, time_end, time_elapsed, time_jacobian = 0, time_lambda = 0;
+	int parallel_lambda_count = 0;
 	/* temp work arrays */
 	LM_REAL *obs_error,          /* nx1 */
 			*obs_current,         /* \hat{x}_i, nx1 */
@@ -767,12 +768,13 @@ int LEVMAR_DER2(
 			tprintf( "Done.\n" );
 			time_elapsed = time_end - time_start;
 			time_lambda += time_elapsed;
+			parallel_lambda_count++;
 			if( op->cd->tdebug )
 			{
-				if( time_elapsed > 86400 ) tprintf( "Parallel lambda total PT = %g days (average %g days)\n", ( ( double ) time_elapsed / 86400 ), ( ( double ) time_lambda / nlss / 86400 ) );
-				else if( time_elapsed > 3600 ) tprintf( "Parallel lambda total PT = %g hours (average %g hours)\n", ( ( double ) time_elapsed / 3600 ), ( ( double ) time_lambda / nlss / 3600 ) );
-				else if( time_elapsed > 60 ) tprintf( "Parallel lambda total PT = %g minutes (average %g minutes)\n", ( ( double ) time_elapsed / 60 ), ( ( double ) time_lambda / nlss / 60 ) );
-				else tprintf( "Parallel lambda total PT = %ld seconds (average %g seconds)\n", time_elapsed, ( ( double ) time_lambda / nlss ) );
+				if( time_elapsed > 86400 ) tprintf( "Parallel lambda total PT = %g days (average %g days)\n", ( ( double ) time_elapsed / 86400 ), ( ( double ) time_lambda / parallel_lambda_count / 86400 ) );
+				else if( time_elapsed > 3600 ) tprintf( "Parallel lambda total PT = %g hours (average %g hours)\n", ( ( double ) time_elapsed / 3600 ), ( ( double ) time_lambda / parallel_lambda_count / 3600 ) );
+				else if( time_elapsed > 60 ) tprintf( "Parallel lambda total PT = %g minutes (average %g minutes)\n", ( ( double ) time_elapsed / 60 ), ( ( double ) time_lambda / parallel_lambda_count / 60 ) );
+				else tprintf( "Parallel lambda total PT = %ld seconds (average %g seconds)\n", time_elapsed, ( ( double ) time_lambda / parallel_lambda_count ) );
 			}
 			for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 				tprintf( "Parallel lambda #%d => OF %g ...\n", npl + 1, phi_vector[npl] );
