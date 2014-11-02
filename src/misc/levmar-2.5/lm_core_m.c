@@ -127,6 +127,7 @@ int LEVMAR_DER2(
 	int worksz, freework = 0, issolved, issolved1 = 0, success, odebug, change, computejac, changejac, maxnfev;
 	struct opt_data *op = ( struct opt_data * ) adata;
 	char filename[255];
+	time_t time_start, time_end, time_elapsed, time_jacobian = 0, time_lambda = 0;
 	/* temp work arrays */
 	LM_REAL *obs_error,          /* nx1 */
 			*obs_current,         /* \hat{x}_i, nx1 */
@@ -418,6 +419,7 @@ int LEVMAR_DER2(
 			}
 			if( success ) op->cd->check_success = 0;
 			if( odebug ) op->cd->odebug = 0;
+			time_start = time( NULL );
 			if( using_ffdif ) /* use forward differences */
 			{
 				if( op->cd->ldebug > 5 ) tprintf( "Jacobian computed using forward differences\n" );
@@ -430,6 +432,13 @@ int LEVMAR_DER2(
 				LEVMAR_FDIF_CENT_JAC_APPROX( func, par_current, obs_update, obs_error_update, delta, jac, nP, nO, adata );
 				njac++; nfev += 2 * nP;
 			}
+			time_end = time( NULL );
+			time_elapsed = time_end - time_start;
+			time_jacobian += time_elapsed;
+			if( time_elapsed > 86400 ) tprintf( "Jacobian PT = %g days (average %g days)\n", ( ( double ) time_elapsed / 86400 ), ( ( double ) time_jacobian / njac / 86400 ) );
+			else if( time_elapsed > 3600 ) tprintf( "Jacobian PT = %g hours (average %g hours)\n", ( ( double ) time_elapsed / 3600 ), ( ( double ) time_jacobian / njac / 3600 ) );
+			else if( time_elapsed > 60 ) tprintf( "Jacobian PT = %g minutes (average %g minutes)\n", ( ( double ) time_elapsed / 60 ), ( ( double ) time_jacobian / njac / 60 ) );
+			else tprintf( "Jacobian PT = %ld seconds (average %g seconds)\n", time_elapsed, ( ( double ) time_jacobian / njac ) );
 			if( success ) op->cd->check_success = success;
 			if( odebug ) op->cd->odebug = odebug;
 			nu = op->cd->lm_nu; jac_update_count = 0; par_update_accepted = 0; newjac = 1;
@@ -749,8 +758,16 @@ int LEVMAR_DER2(
 				tprintf( "Parallel lambda #%d = %g ...\n", npl + 1, lambda_current );
 			}
 			tprintf( "Parallel execution of %d lambda searches ...\n", op->cd->lm_num_parallel_lambda );
+			time_start = time( NULL );
 			func_set( op->cd->lm_num_parallel_lambda, param_matrix, phi_vector, obs_matrix, 0, ( FILE * ) NULL, adata );
+			time_end = time( NULL );
 			tprintf( "Done.\n" );
+			time_elapsed = time_end - time_start;
+			time_lambda += time_elapsed;
+			if( time_elapsed > 86400 ) tprintf( "Lambda PT = %g days (average %g days)\n", ( ( double ) time_elapsed / 86400 ), ( ( double ) time_lambda / nlss / 86400 ) );
+			else if( time_elapsed > 3600 ) tprintf( "Lambda PT = %g hours (average %g hours)\n", ( ( double ) time_elapsed / 3600 ), ( ( double ) time_lambda / nlss / 3600 ) );
+			else if( time_elapsed > 60 ) tprintf( "Lambda PT = %g minutes (average %g minutes)\n", ( ( double ) time_elapsed / 60 ), ( ( double ) time_lambda / nlss / 60 ) );
+			else tprintf( "Lambda PT = %ld seconds (average %g seconds)\n", time_elapsed, ( ( double ) time_lambda / nlss ) );
 			for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 				tprintf( "Parallel lambda #%d => OF %g ...\n", npl + 1, phi_vector[npl] );
 			int npl_min = 0;
