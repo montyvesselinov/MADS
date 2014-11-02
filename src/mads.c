@@ -250,8 +250,8 @@ int main( int argn, char *argv[] )
 	{
 		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
 		system( buf );
-		sprintf( buf, "%s \"rm -f %s.results %s.residuals %s.eigen %s.jacobian %s.covariance %s.correlation %s.intermediate_residuals %s.intermediate_results >& /dev/null\"",
-				SHELL, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root );  // Delete old output files
+		sprintf( buf, "%s \"rm -f %s.quit %s.stop %s.results %s.residuals %s.eigen %s.jacobian %s.covariance %s.correlation %s.intermediate_residuals %s.intermediate_results >& /dev/null\"",
+				 SHELL, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root );  // Delete old output files
 		system( buf );
 	}
 	mads_output = Fwrite( filename2 );
@@ -3078,6 +3078,10 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 	int i, k, success_all;
 	char filename[255], filename2[255], fileroot[255], buf[1000];
 	success_all = 1;
+	sprintf( filename, "%s.quit", op->root );
+	if( Ftest( filename ) == 0 ) op->cd->quit = 1;
+	sprintf( filename, "%s.stop", op->root );
+	if( Ftest( filename ) == 0 ) op->cd->quit = 1;
 	if( final )
 	{
 		// Generate general filename

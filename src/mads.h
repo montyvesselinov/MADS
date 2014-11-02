@@ -89,6 +89,7 @@ struct opt_data // TODO class MADS (in C++)
 
 struct calc_data // calculation parameters; TODO some of the flags can be boolean type
 {
+	int quit;
 	int ioml; // YAML/XML input / output format
 	int problem_type; // problem type: forward, calibration, ...
 	int analysis_type; // calibration type: simple, igpd, ...

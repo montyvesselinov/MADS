@@ -235,6 +235,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 {
 	int w;
 	char *sep = " \t\n", *word;
+	cd->quit = 0;
 	cd->opt_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->opt_method[0] = 0;
 	cd->smp_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->smp_method[0] = 0;
 	cd->paran_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->paran_method[0] = 0;

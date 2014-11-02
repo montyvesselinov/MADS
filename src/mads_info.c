@@ -70,6 +70,9 @@ void mads_info()
 	printf( "   obsrange           - model predictions are within predefined calibration ranges\n" );
 	printf( "   obserror=[real]    - model predictions are within a predefined absolute error [default obserror=0.1]\n" );
 	printf( "   parerror=[real]    - model parameters are within a predefined absolute error from their known 'true' values [default parerror=0.1]\n" );
+	printf( "\nuser-enforced termination:\n" );
+	printf( "   problem_name.quit  - file with such name exist in the running directory; MADS terminates as soon as possible.\n" );
+	printf( "   problem_name.stop  - file with such name exist in the running directory; MADS terminates after saving intermediate results.\n" );
 	printf( "\noptimization method (opt=[string]; various combinations are possible, e.g. pso_std_lm_gsl):\n" );
 	printf( "   opt=lm             - Local Levenberg-Marquardt optimization [default]\n" );
 	printf( "   opt=lm_levmar      - Local Levenberg-Marquardt optimization using LEVMAR library\n" );

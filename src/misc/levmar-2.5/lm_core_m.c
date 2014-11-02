@@ -126,6 +126,7 @@ int LEVMAR_DER2(
 	register int i, j, loop_count, l;
 	int worksz, freework = 0, issolved, issolved1 = 0, success, odebug, change, computejac, changejac, maxnfev;
 	struct opt_data *op = ( struct opt_data * ) adata;
+	char filename[255];
 	/* temp work arrays */
 	LM_REAL *obs_error,          /* nx1 */
 			*obs_current,         /* \hat{x}_i, nx1 */
@@ -350,6 +351,8 @@ int LEVMAR_DER2(
 	loop_count = -1;
 	while( !stop )
 	{
+		sprintf( filename, "%s.quit", op->root );
+		if( Ftest( filename ) == 0 ) { tprintf( "MADS quits! Termination request! %s\n", filename ); op->cd->quit = 1; stop = 99; break; }
 		loop_count++;
 		/* Note that p and e have been updated at a previous iteration */
 		if( phi_current <= eps3 ) /* error is small */ // BELOW a cutoff value
@@ -1008,6 +1011,7 @@ int LEVMAR_DER2(
 			stop = 7;
 			break;
 		}
+		if( op->cd->quit == 1 ) { stop = 99; break; } // Terminate
 		if( op->cd->lm_indir ) // original
 		{
 			tmp = phi_jac_last / phi_update; // original code
@@ -1195,6 +1199,7 @@ int LEVMAR_DER2(
 			case 8: tprintf( "model predictions are within predefined calibration ranges\n" ); break;
 			case 9: tprintf( "small OF changes\n" ); break;
 			case 10: tprintf( "all jacobian matrix elements are equal to zero\n" ); break;
+			case 99: tprintf( "MADS forced to quit\n" ); break;
 			default: tprintf( "UNKNOWN flag: %d\n", stop ); break;
 		}
 		if( op->cd->ldebug > 14 )
