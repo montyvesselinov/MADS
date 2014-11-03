@@ -751,7 +751,7 @@ compare-os:
 
 clean-examples:
 	find . -name "*.mads_output_*" -print0 | xargs -0 rm
-	rm -f $(EXAMPLES)/*/*.ppsd_*.results $(EXAMPLES)/*/*.igpd_*.results $(EXAMPLES)/*/*.igrnd_*.results $(EXAMPLES)/*/*.restart_*.zip $(EXAMPLES)/*/*.restart_info $(EXAMPLES)/*/*.running $(EXAMPLES)/*/*-rerun.mads $(EXAMPLES)/*/*-error.mads
+	rm -f $(EXAMPLES)/*/*.ppsd_*.results $(EXAMPLES)/*/*.igpd_*.results $(EXAMPLES)/*/*igrnd-0000* $(EXAMPLES)/*/*.igrnd_*.results $(EXAMPLES)/*/*.restart_*.zip $(EXAMPLES)/*/*.restart_info $(EXAMPLES)/*/*.running $(EXAMPLES)/*/*-rerun.mads $(EXAMPLES)/*/*-error.mads
 	rm -fR $(EXAMPLES)/wells-short_w01_*
 	rm -fR $(EXAMPLES)/wells-short_w01parallel*
 	rm -f *.mads_output* *.running *.cmdline *.cmdline_hist
