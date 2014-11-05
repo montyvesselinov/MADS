@@ -107,7 +107,7 @@ endif
 ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
-LDLIBS += -L/home/monty/local/lib -L/usr/local/lib
+LDLIBS += -L/usr/local/lib -L/home/monty/local/lib
 endif
 else #----------------------------------------------------
 ifeq ($(OS),Cygwin)
