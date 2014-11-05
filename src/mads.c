@@ -219,6 +219,7 @@ int main( int argn, char *argv[] )
 	pd.var_id = pd.var_name = od.obs_id = NULL;
 	cd.solution_type = ( int * ) malloc( sizeof( int ) );
 	ignore_running = parse_cmd_init( argn, argv, &cd );
+	rd.nRegul = cd.num_source_params = cd.num_aquifer_params = 0;
 	sprintf( buf, "%s.running", op.root );
 	if( Ftest( buf ) == 0 ) // If file already exists quit ...
 	{
