@@ -381,19 +381,26 @@ int main( int argn, char *argv[] )
 	 */
 	cd.paral_hosts = NULL;
 	hostlist = NULL;
-	if( ( nodelist = getenv( "NODELIST" ) ) != NULL )
+	if( ( nodelist = getenv( "SLURM_NTASKS" ) ) != NULL )
+	{
+		cd.parallel_type = 2;
+		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NTASKS is defined)\n" );
+		sscanf( nodelist, "%d", &cd.num_proc );
+		if( cd.debug ) tprintf( "Number of processors %d\n", cd.num_proc );
+	}
+	else if( ( nodelist = getenv( "NODELIST" ) ) != NULL )
 	{
 		if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable NODELIST is defined)\n" );
 		if( cd.debug ) tprintf( "Node list %s\n", nodelist );
 		hostlist = nodelist;
 	}
-	if( ( beowlist = getenv( "BEOWULF_JOB_MAP" ) ) != NULL )
+	else if( ( beowlist = getenv( "BEOWULF_JOB_MAP" ) ) != NULL )
 	{
 		if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable BEOWULF_JOB_MAP is defined)\n" );
 		if( cd.debug ) tprintf( "Node list %s\n", beowlist );
 		hostlist = beowlist;
 	}
-	if( ( lsblist = getenv( "LSB_HOSTS" ) ) != NULL )
+	else if( ( lsblist = getenv( "LSB_HOSTS" ) ) != NULL )
 	{
 		if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable LSB_HOSTS is defined)\n" );
 		if( cd.debug ) tprintf( "Node list %s\n", lsblist );
@@ -402,6 +409,7 @@ int main( int argn, char *argv[] )
 	}
 	if( hostlist != NULL )
 	{
+		cd.parallel_type = 1;
 		if( cd.debug == 0 ) tprintf( "\nParallel environment is detected.\n" );
 		if( ( host = getenv( "HOSTNAME" ) ) == NULL ) host = getenv( "HOST" );
 		tprintf( "Host: %s\n", host );
@@ -433,8 +441,9 @@ int main( int argn, char *argv[] )
 			}
 		}
 	}
-	else if( cd.num_proc > 0 )
+	else if( cd.num_proc > 0 && cd.parallel_type != 2 )
 	{
+		cd.parallel_type = 0;
 		tprintf( "\nLocal parallel execution is requested using %d processors (np=%d)\n", cd.num_proc, cd.num_proc );
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
 		{

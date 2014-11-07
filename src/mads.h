@@ -118,6 +118,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int test_func_dim; // test function dimensionality
 	int test_func_npar; // test function number of parameters
 	int test_func_nobs; // test function number of observations
+	int parallel_type; // type of parallelization
 	int num_proc; // number of processors for parallel execution
 	int lm_num_parallel_lambda; // number of parallel lambda runs in the case of Levenberg-Marquardt optimization (<= num_proc)
 	int restart; // flag restart for parallel jobs

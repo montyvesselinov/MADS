@@ -60,12 +60,15 @@ int mprun( int nJob, void *data )
 	pid_t pid, return_fork;
 	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], *atime;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
-	else if( p->cd->paral_hosts == NULL ) { if( p->cd->pardebug > 3 ) tprintf( "\nWARNING: Local runs using %d processors! No parallel hosts!\n", p->cd->num_proc ); type = 0; }
-	else { if( p->cd->pardebug ) tprintf( "Parallel runs using %d hosts!\n", p->cd->num_proc ); type = 1; }
+	if( p->cd->pardebug > 3 )
+	{
+		if( p->cd->paral_hosts == NULL ) tprintf( "\nWARNING: Local runs using %d processors! No parallel hosts!\n", p->cd->num_proc );
+		else tprintf( "Parallel runs using %d hosts!\n", p->cd->num_proc );
+	}
+	type = p->cd->parallel_type;
 	nProc = nHosts = p->cd->num_proc; // Number of processors/hosts available initially
 	exec_name = p->ed->cmdline; // Executable / Execution command line
 	ieval = p->cd->neval; // Current number of model evaluations
-	kidhost = p->cd->paral_hosts; // List of processors/hosts
 	if( p->cd->pardebug )
 	{
 		if( nJob > 1 ) tprintf( "Parallel execution of %d jobs using %d processors ... ", nJob, nProc );
@@ -115,6 +118,15 @@ int mprun( int nJob, void *data )
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
 	}
+	else if( type == 1 )
+		kidhost = p->cd->paral_hosts; // List of processors/hosts
+	else if( type == 2 )
+	{
+		kidhost = char_matrix( nProc, 95 );
+		for( i = 0; i < nProc; i++ )
+			strcpy( kidhost[i], "slurm" );
+	}
+
 	/*
 	for( w = 0; w < nProc; w++ )
 		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
@@ -141,7 +153,7 @@ int mprun( int nJob, void *data )
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
 			free_matrix( ( void ** ) rerundir, nProc );
-			if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
+			if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -355,8 +367,9 @@ int mprun( int nJob, void *data )
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], pid, exec_name, dir );
-				if( type ) execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-				else       execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				exit( 7 );
 			}
 			if( return_fork > 0 )
@@ -394,7 +407,7 @@ int mprun( int nJob, void *data )
 	free( skip_job );
 	free_matrix( ( void ** ) kiddir, nProc );
 	free_matrix( ( void ** ) rerundir, nProc );
-	if( type == 0 ) free_matrix( ( void ** ) kidhost, nProc );
+	if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }
