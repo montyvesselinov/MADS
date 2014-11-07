@@ -126,7 +126,6 @@ int mprun( int nJob, void *data )
 		for( i = 0; i < nProc; i++ )
 			strcpy( kidhost[i], "slurm" );
 	}
-
 	/*
 	for( w = 0; w < nProc; w++ )
 		tprintf( "%i: kidids %10i kidstatus %d kidattempt %d kiddir %s rerundir %s kidhost %s\n", w, kidids[w], kidstatus[w], kidattempt[w], kiddir[w], rerundir[w], kidhost[w] );
