@@ -1762,6 +1762,9 @@ void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd )
 	fprintf( outfile, "MADS output\n" );
 	fprintf( outfile, "ASCII\n" );
 	fprintf( outfile, "DATASET STRUCTURED_POINTS\n" );
+	fprintf( outfile, "FIELD FieldData 1\n" );
+	fprintf( outfile, "TIME 1 1 double\n" );
+	fprintf( outfile, "%g\n", t );
 	fprintf( outfile, "DIMENSIONS %d %d %d\n", gd->nx, gd->ny, gd->nz );
 	fprintf( outfile, "ORIGIN %g %g %g\n", gd->min_x, gd->min_y, gd->min_z ); /* negative z */
 	//	fprintf( outfile, "ORIGIN %g %g %g\n", gd->min_x, gd->min_y, -gd->max_z ); /* negative z */
