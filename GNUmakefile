@@ -314,15 +314,15 @@ $(OBJ_DIR)/bayes/dream.o: $(SRC)/bayes/dream.cpp $(SRC)/bayes/dream.h $(SRC)/mad
 	$(CXX) $(CFLAGS) -c -o $(OBJ_DIR)/bayes/dream.o $(SRC)/bayes/dream.cpp -l$(OBJ_DIR)/misc/astable/interpolation.o
 
 ## Colordefinition
-NO_COLOR    = \x1b[0m
-OK_COLOR    = \x1b[32;01m
-WARN_COLOR  = \x1b[33;01m
-ERROR_COLOR = \x1b[31;01m
+NO_COLOR    = \033[0m
+OK_COLOR    = \033[0;32;40m
+WARN_COLOR  = \033[0;33;40m
+ERROR_COLOR = \033[0;31;40m
 
 examples: mads wells
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
-	@echo "Example 1: Internal Rosenbrock Problem"
+	@echo "$(OK_COLOR)Example 1: Internal Rosenbrock Problem"
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 	cd $(EXAMPLES)/rosenbrock; ../../$(MADS) a01 test=3 opt=pso igrnd real=1
@@ -352,7 +352,7 @@ verify: mads wells verify-start verify-internal verify-multistart1 verify-contam
 
 verify-start:
 	@echo "$(OK_COLOR)"
-	@echo VERIFICATION STARTING ...
+	@echo "$(OK_COLOR)VERIFICATION STARTING ..."
 	@echo "$(NO_COLOR)"
 
 verify-internal: mads
