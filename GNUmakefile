@@ -203,10 +203,15 @@ OBJ_WELLS = $(addsuffix .o,$(basename $(SRC_WELLS)))
 
 all: mads wells
 
-mads: $(MADS)
+mads: release-start $(MADS)
 	ln -sf ${MADS} .
 	@echo "$(OK_COLOR)"
 	@echo "MADS Release Version built!"
+	@echo "$(NO_COLOR)"
+
+release-start:
+	@echo "$(OK_COLOR)"
+	@echo "MADS Release Version ..."
 	@echo "$(NO_COLOR)"
 
 wells: $(WELLS)
@@ -214,7 +219,7 @@ wells: $(WELLS)
 	@echo "WELLS built!"
 	@echo "$(NO_COLOR)"
 
-release: $(MADS)
+release: release-start $(MADS)
 	ln -sf ${MADS} .
 	@echo "$(OK_COLOR)"
 	@echo "MADS Release Version built!"
@@ -222,16 +227,26 @@ release: $(MADS)
 	@echo "$(NO_COLOR)"
 
 debug: CFLAGS += -g
-debug: $(MADS_DEBUG)
+debug: debug-start $(MADS_DEBUG)
 	@echo "$(OK_COLOR)"
 	@echo "MADS Debug Version built!"
 	@echo "Execute ${MADS_DEBUG}"
 	@echo "$(NO_COLOR)"
 
+debug-start:
+	@echo "$(OK_COLOR)"
+	@echo "MADS Debug Version ..."
+	@echo "$(NO_COLOR)"
+
 lib: CFLAGS += -fPIC
-lib: $(MADS_LIB)
+lib: lib-start $(MADS_LIB)
 	@echo "$(OK_COLOR)"
 	@echo "MADS Shared Library built!"
+	@echo "$(NO_COLOR)"
+
+lib-start:
+	@echo "$(OK_COLOR)"
+	@echo "MADS Library ..."
 	@echo "$(NO_COLOR)"
 
 $(MADS): $(OBJECTS_RELEASE)
