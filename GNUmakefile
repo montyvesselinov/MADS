@@ -89,7 +89,7 @@ OS = $(shell uname -s)
 ND = $(shell uname -n)
 
 # Compilation setup
-$(info $(CCWARN) MADS computationlal framework)
+$(info MADS computationlal framework)
 $(info Version -- $(VER)$(GIT_STATUS))
 $(info ----------------------------------------------------------------------)
 $(info OS type -- $(OS))
@@ -306,7 +306,7 @@ clean-all: clean-release clean-debug clean-lib clean-wells clean-examples
 	rm -fR $(OBJ)/*
 	rm -fR $(BIN)/*
 
-$(SRC)/mads_gitversion.c: .git/HEAD .git/index
+$(SRC)/mads_gitversion.c: .git/HEAD .git/COMMIT_EDITMSG
 	@echo "const char *gitversion = \"$(VER)$(GIT_STATUS)\";" > $@
 
 $(OBJ_DIR)/%.o: $(SRC)/%.c
