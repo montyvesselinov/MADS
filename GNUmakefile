@@ -28,6 +28,17 @@
 # RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
 # PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
+## Color definitions
+NO_COLOR    = \033[0m
+OK_COLOR    = \033[0;32;40m
+WARN_COLOR  = \033[0;33;40m
+ERROR_COLOR = \033[0;31;40m
+CCWARN=$(echo -e "$(WARN_COLOR)")
+CCERROR=$(echo -e "$(ERROR_COLOR)")
+CCNOCOL=$(echo -e "$(NO_COLOR)")
+PATHPATERN="(/[^/]*)+:[0-9]+"
+# 2>&1 | sed -E -e "/[Ee]rror[: ]/ s%$PATHPATERN%$CCERROR&$CCNOCOL%g" -e "/[Ww]arning[: ]/ s%$PATHPATERN%$CCWARN&$CCNOCOL%g"
+
 SRC = ./src
 OBJ = ./obj
 BIN = ./bin
@@ -78,7 +89,7 @@ OS = $(shell uname -s)
 ND = $(shell uname -n)
 
 # Compilation setup
-$(info MADS computationlal framework)
+$(info $(CCWARN) MADS computationlal framework)
 $(info Version -- $(VER)$(GIT_STATUS))
 $(info ----------------------------------------------------------------------)
 $(info OS type -- $(OS))
@@ -194,52 +205,70 @@ all: mads wells
 
 mads: $(MADS)
 	ln -sf ${MADS} .
+	@echo "$(OK_COLOR)"
 	@echo "MADS Release Version built!"
+	@echo "$(NO_COLOR)"
 
 wells: $(WELLS)
+	@echo "$(OK_COLOR)"
 	@echo "WELLS built!"
+	@echo "$(NO_COLOR)"
 
 release: $(MADS)
 	ln -sf ${MADS} .
+	@echo "$(OK_COLOR)"
 	@echo "MADS Release Version built!"
 	@echo "Execute ${MADS}"
+	@echo "$(NO_COLOR)"
 
 debug: CFLAGS += -g
 debug: $(MADS_DEBUG)
+	@echo "$(OK_COLOR)"
 	@echo "MADS Debug Version built!"
 	@echo "Execute ${MADS_DEBUG}"
+	@echo "$(NO_COLOR)"
 
 lib: CFLAGS += -fPIC
 lib: $(MADS_LIB)
+	@echo "$(OK_COLOR)"
 	@echo "MADS Shared Library built!"
+	@echo "$(NO_COLOR)"
 
 $(MADS): $(OBJECTS_RELEASE)
+	@echo "$(OK_COLOR)"
 	@echo "Building MADS Release Version ..."
+	@echo "$(NO_COLOR)"
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
 	$(CC) $(OBJECTS_RELEASE) $(LDLIBS) -o $@
 
 $(MADS_DEBUG): $(OBJECTS_DEBUG)
+	@echo "$(OK_COLOR)"
 	@echo "Building MADS Debug Version ..."
+	@echo "$(NO_COLOR)"
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
 	$(CC) $(OBJECTS_DEBUG) $(LDLIBS) -o $@
 
 $(MADS_LIB): $(OBJECTS_LIB)
+	@echo "$(OK_COLOR)"
 	@echo "Building MADS Shared Library ..."
+	@echo "$(NO_COLOR)"
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
-	gcc -shared -Wl,-$(SONAME),libmads.so.1 -o $(MADS_LIB) $(OBJECTS_LIB) -lc $(LDLIBS)
+	$(CC) -shared -Wl,-$(SONAME),libmads.so.1 -o
 
 $(WELLS): $(OBJ_WELLS)
 	@mkdir -p $(BIN)
 	$(CC) $< -o $@ $(LDFLAGS) -lm
 
 $(OBJ_WELLS): $(SRC_WELLS)
+	@echo "$(OK_COLOR)"
 	@echo "Building WELLS ..."
+	@echo "$(NO_COLOR)"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean clean-release:
@@ -313,16 +342,10 @@ $(OBJ_DIR)/bayes/dream.o: $(SRC)/bayes/dream.cpp $(SRC)/bayes/dream.h $(SRC)/mad
 	@mkdir -p $(dir $@)
 	$(CXX) $(CFLAGS) -c -o $(OBJ_DIR)/bayes/dream.o $(SRC)/bayes/dream.cpp -l$(OBJ_DIR)/misc/astable/interpolation.o
 
-## Colordefinition
-NO_COLOR    = \033[0m
-OK_COLOR    = \033[0;32;40m
-WARN_COLOR  = \033[0;33;40m
-ERROR_COLOR = \033[0;31;40m
-
 examples: mads wells
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
-	@echo "$(OK_COLOR)Example 1: Internal Rosenbrock Problem"
+	@echo "Example 1: Internal Rosenbrock Problem"
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 	cd $(EXAMPLES)/rosenbrock; ../../$(MADS) a01 test=3 opt=pso igrnd real=1
