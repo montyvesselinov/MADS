@@ -78,21 +78,21 @@ int load_xml_problem( char *filename, int argn, char *argv[], struct opt_data *o
 	if( ( infile = fopen( filename, "rb" ) ) == NULL )
 	{
 		tprintf( "ERROR: XML file \'%s\' cannot be opened to read problem information!\n", filename );
-		mads_quits( 0 );
+		mads_quits( op->root );
 	}
 	fclose( infile );
 	xmldoc = xmlParseFile( filename ); // attempt to parse xml file and get pointer to parsed document
 	if( xmldoc == NULL )
 	{
 		tprintf( "ERROR: XML file \'%s\' is empty.\n", filename );
-		mads_quits( 0 );
+		mads_quits( op->root );
 	}
 	xmlcur = xmlDocGetRootElement( xmldoc ); // Start at the root of the XML document
 	if( xmlcur == NULL )
 	{
 		tprintf( "ERROR: XML file \'%s\' cannot be parsed.\n", filename );
 		xmlFreeDoc( xmldoc );
-		mads_quits( 0 );
+		mads_quits( op->root );
 	}
 	print_xml_elements( xmlcur );
 	if( xmlStrcmp( xmlcur->name, ( xmlChar * ) "mads" ) )
@@ -102,7 +102,7 @@ int load_xml_problem( char *filename, int argn, char *argv[], struct opt_data *o
 		return 0;
 	}
 	gnode_data = g_node_new( filename );
-	if( !gnode_data ) { tprintf( "ERROR: GNode array cannot be created.\n" ); mads_quits( 0 ); }
+	if( !gnode_data ) { tprintf( "ERROR: GNode array cannot be created.\n" ); mads_quits( op->root ); }
 	parse_xml( xmlcur, gnode_data, ( int )( op->cd->debug > 5 ) );  // Recursive parsing into GNODE data
 	xmlFreeDoc( xmldoc ); // Destroy XML
 	if( cd->debug > 5 )
@@ -133,7 +133,7 @@ GNode *parse_templates_xml( const char *filename )
 	if( doc == NULL )
 	{
 		tprintf( "ERROR: XML file did not parsed successfully.\n" );
-		mads_quits( 0 );
+		mads_quits( op->root );
 	}
 
 	cur = xmlDocGetRootElement( doc ); // Start at the root of the XML document
@@ -141,7 +141,7 @@ GNode *parse_templates_xml( const char *filename )
 	{
 		tprintf( "ERROR: Empty XML File.\n" );
 		xmlFreeDoc( doc );
-		mads_quits( 0 );
+		mads_quits( op->root );
 	}
 	print_element_names( cur );
 
