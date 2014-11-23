@@ -3097,13 +3097,16 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 		// Generate general filename
 		i = strlen( op->root ); // check for previous version number in the root name
 		k = -1;
-		if( label[0] == 0 && op->root[i - 4] == '-' && op->root[i - 3] == 'v' )
+		if( i > 4 )
 		{
-			sscanf( &op->root[i - 2], "%d", &k );
-			tprintf( "Current   MADS analysis version: %02d\n", k );
-			tprintf( "Following MADS analysis version: %02d\n", k + 1 );
-			strncpy( filename2, op->root, i - 4 );
-			filename2[i - 4] = 0;
+			if( label[0] == 0 && op->root[i - 4] == '-' && op->root[i - 3] == 'v' )
+			{
+				sscanf( &op->root[i - 2], "%d", &k );
+				tprintf( "Current   MADS analysis version: %02d\n", k );
+				tprintf( "Following MADS analysis version: %02d\n", k + 1 );
+				strncpy( filename2, op->root, i - 4 );
+				filename2[i - 4] = 0;
+			}
 		}
 	}
 	strcpy( filename, op->root );

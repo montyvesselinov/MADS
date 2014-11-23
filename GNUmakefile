@@ -226,7 +226,8 @@ release: release-start $(MADS)
 	@echo "Execute ${MADS}"
 	@echo "$(NO_COLOR)"
 
-debug: CFLAGS += -g
+debug: CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
+debug: LDLIBS += -fsanitize=address -fno-omit-frame-pointer
 debug: debug-start $(MADS_DEBUG)
 	@echo "$(OK_COLOR)"
 	@echo "MADS Debug Version built!"
