@@ -112,6 +112,12 @@ CMake compilation, building and installation of the required libraries (slower a
 	sudo apt-get install gcc-4.8 g++ cmake curl+ssl libtool pkg-config git tcsh gmake
 	sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
 
+	To get TPLs:
+	CMake will automatically download the missing TPLs.
+	If needed TPLs can be also downloaded from a git repository:
+	cd tpls/Downloads	
+	git clone git@gitlab.com:mads/mads-tpls.git .
+
 	To compile MADS:
 	cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=/opt/local/bin/c++ -DCMAKE_C_COMPILER=/opt/local/bin/gcc -DCMAKE_LINKER=/opt/local/bin/gcc
 	make -f Makefile
