@@ -1,11 +1,21 @@
 syntax: glob
-# MADS files
+# MkADS files
 mads
 obj
 bin
 wells
 mads_gitversion.c
-tpls/*
+tpls/Downloads
+tpls/bin
+tpls/share
+tpls/include
+tpls/lib
+tpls/lapack*
+tpls/glib2*
+tpls/gsl*
+tpls/libmatheval*
+tpls/libyaml*
+tpls/libxml2*
 latex/*
 html/*
 Debug/*

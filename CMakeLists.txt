@@ -86,6 +86,7 @@ check_library_exists(dl dlopen "" LIBDL_FOUND)
 
 # include(CheckTagLibFileName)
 include(TPLtest)
+set(TPL_MISSING TRUE)
 if(TPL_MISSING)
 	add_subdirectory(tpls)
 	set(MADS_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
