@@ -90,6 +90,7 @@ set(TPL_MISSING TRUE)
 if(TPL_MISSING)
 	add_subdirectory(tpls)
 	set(MADS_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+	include_directories("${PROJECT_SOURCE_DIR}/tpls/include")
 endif()
 
 message(STATUS "-------------------------------------------------------" )
