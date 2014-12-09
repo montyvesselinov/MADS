@@ -885,6 +885,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 			evaluator_get_variables( pd->param_expression[pd->nExpParam], &expvar_names, &expvar_count );
 #else
 			expvar_count = 0;
+			tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
+			bad_data = 1;
 #endif
 			if( expvar_count > 0 )
 			{
@@ -903,8 +905,6 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 #ifdef MATHEVAL
 				pd->var[i] = cd->var[i] = evaluator_evaluate_x( pd->param_expression[pd->nExpParam], 0 );
 				if( cd->debug ) tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[i] );
-#else
-				tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
 #endif
 			}
 		}

@@ -632,7 +632,13 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 				tprintf( ": init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
 			else
 			{
+#ifdef MATHEVAL
 				tprintf( "= %s ", evaluator_get_string( pd->param_expression[pd->nExpParam - 1] ) );
+#else
+				expvar_count = 0;
+				tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
+				bad_data = 1;
+#endif
 				if( expvar_count > 0 )
 				{
 					tprintf( "-> variables:" );
@@ -646,8 +652,6 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 #ifdef MATHEVAL
 					pd->var[index] = cd->var[index] = evaluator_evaluate_x( pd->param_expression[pd->nExpParam], 0 );
 					tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[index] );
-#else
-					tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
 #endif
 				}
 			}
@@ -775,8 +779,12 @@ int parse_gnode_class_regularizations( GNode *node, gpointer data )
 #endif
 			}
 		}
+#ifdef MATHEVAL
 		if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation %s", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i], evaluator_get_string( rd->regul_expression[i] ) );
 		if( !( rd->regul_weight[i] > DBL_EPSILON ) ) { if( cd->debug ) tprintf( "Regularization term \'%s\' will be analyzed as a prediction (weight = %g <= 0)\n", rd->regul_id[i], rd->regul_weight[i] ); preds->nTObs++; }
+#else
+		if( cd->debug ) tprintf( "%-12s: target %g weight %g log %i min %g max %g : equation IGNORED (MATHEVAL library is not available)", rd->regul_id[i], rd->regul_target[i], rd->regul_weight[i], rd->regul_log[i], rd->regul_min[i], rd->regul_max[i] );
+#endif
 		if( expvar_count > 0 )
 		{
 			int j, l1, status;
