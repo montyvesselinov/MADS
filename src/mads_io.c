@@ -885,7 +885,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 			evaluator_get_variables( pd->param_expression[pd->nExpParam], &expvar_names, &expvar_count );
 #else
 			expvar_count = 0;
-			tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
+			tprintf( " MathEval is not installed; provided expression cannot be evaluated.\n" );
 			bad_data = 1;
 #endif
 			if( expvar_count > 0 )
@@ -1003,7 +1003,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 	if( pd->nExpParam > 0 )
 	{
 #ifndef MATHEVAL
-		tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated.\n" );
+		bad_data = 1;
 #endif
 		for( i = 0; i < pd->nExpParam; i++ )
 		{
@@ -1057,7 +1058,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 				pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expression[i], pd->nParam, pd->var_id, cd->var );
 				tprintf( " = %g\n", pd->var[k] );
 #else
-				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+				tprintf( "MathEval is not installed; provided expression cannot be evaluated.\n" );
 #endif
 			}
 		}
@@ -1244,7 +1245,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		rd->regul_map_val = ( double * ) malloc( ( rd->regul_nMap + rd->nRegul ) * sizeof( double ) ); // rd->nRegul added to accommodate cd->obs_current
 #endif
 #ifndef MATHEVAL
-		tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated.\n" );
 #endif
 		for( i = 0; i < rd->nRegul; i++ )
 		{
@@ -1259,6 +1260,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 			evaluator_get_variables( rd->regul_expression[i], &expvar_names, &expvar_count );
 #else
 			expvar_count = 0;
+			bad_data = 1;
+			tprintf( "\n" );
 #endif
 			if( expvar_count > 0 )
 			{
@@ -1308,7 +1311,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 				d = evaluator_evaluate( rd->regul_expression[i], rd->regul_nMap, rd->regul_map_id, rd->regul_map_val );
 				tprintf( " = %g\n", d );
 #else
-				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+				tprintf( "MathEval is not installed; provided expression cannot be evaluated.\n" );
 #endif
 			}
 		}
@@ -1678,7 +1681,7 @@ int save_problem_text( char *filename, struct opt_data *op )
 #ifdef MATHEVAL
 			fprintf( outfile, "%s= %s\n", pd->var_name[i], evaluator_get_string( pd->param_expression[j++] ) );
 #else
-			fprintf( outfile, "%s= MathEval is not installed; expressions cannot be evaluated\n", pd->var_name[i] );
+			fprintf( outfile, "%s= MathEval is not installed; provided expression cannot be evaluated\n", pd->var_name[i] );
 #endif
 		else if( pd->var_opt[i] >= 1 && pd->var_log[i] == 1 ) // optimized log transformed parameter
 			fprintf( outfile, "%s: %.15g %d %d %g %g %g\n", pd->var_name[i], pow( 10, pd->var[i] ), pd->var_opt[i], pd->var_log[i], pow( 10, pd->var_dx[i] ), pow( 10, pd->var_min[i] ), pow( 10, pd->var_max[i] ) );

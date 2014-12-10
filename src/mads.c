@@ -321,9 +321,9 @@ int main( int argn, char *argv[] )
 			tprintf( "ERROR: Input file \'%s\' cannot be processed (PEST format expected).\n", filename );
 			if( ier == 0 )
 			{
-				sprintf( filename, "%serror.mads", op.root );
+				sprintf( filename, "%s-error.mads", op.root );
 				save_problem( filename, &op );
-				tprintf( "MADS problem file named %serror.mads is created to debug.\n", op.root );
+				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			mads_quits( op.root );
 		}
@@ -367,9 +367,9 @@ int main( int argn, char *argv[] )
 			tprintf( "ERROR: Input file \'%s\' cannot be processed.\n", filename );
 			if( ier == 0 )
 			{
-				sprintf( filename, "%serror.mads", op.root );
+				sprintf( filename, "%s-error.mads", op.root );
 				save_problem( filename, &op );
-				tprintf( "MADS problem file named %serror.mads is created to debug.\n", op.root );
+				tprintf( "MADS problem file named %s-error.mads is created to debug.\n", op.root );
 			}
 			mads_quits( op.root );
 		}

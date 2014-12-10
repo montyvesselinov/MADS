@@ -157,6 +157,7 @@ int parse_gnode_classes( GNode *gnode_data, int argn, char *argv[], struct opt_d
 	int *keyindex;
 	gpointer key_pointer;
 	int i, k, ier, num_keys = 0;
+	int bad_data = 0;
 	sb = ( char * ) malloc( 50 * sizeof( char ) );
 	keywords = NULL;
 	keyindex = NULL;
@@ -270,13 +271,21 @@ int parse_gnode_classes( GNode *gnode_data, int argn, char *argv[], struct opt_d
 				op->pd->var[k] = cd->var[k] = evaluator_evaluate( op->pd->param_expression[i], op->pd->nParam, op->pd->var_id, cd->var );
 				tprintf( " = %g\n", op->pd->var[k] );
 #else
-				tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+				tprintf( "MathEval is not installed; provided expression cannot be evaluated.\n" );
 #endif
 			}
 			if( op->pd->nExpParam > 0 ) tprintf( "\n" );
 		}
 	}
 	else tprintf( "WARNING: Parameter class not found!\n" );
+	if( op->pd->nExpParam > 0 )
+	{
+#ifndef MATHEVAL
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated.\n" );
+		bad_data = 1;
+#endif
+	}
+	if( bad_data ) return ( -1 );
 	if( ier != 1 ) return( -1 );
 	// ------------------------------------------------------------ Reading parameters from previously saved results in a file ----------------------------------------------------------------
 	if( cd->resultscase > 0 ) ier = read_resultsfile( op );
@@ -603,26 +612,23 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 			if( !strcasecmp( ( char * ) node_key->data, "init_max" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var_init_max[index] );
 			if( !strcasecmp( ( char * ) node_key->data, "exp" ) )
 			{
-				pd->var_opt[index] = pd->var_log[index] = 0;
-#ifdef MATHEVAL
+				pd->var_log[index] = 0;
 				pd->param_expressions_index[pd->nExpParam] = index;
+#ifdef MATHEVAL
 				pd->param_expression[pd->nExpParam] = evaluator_create( ( char * ) node_value->data );
 				assert( pd->param_expression[pd->nExpParam] );
 				evaluator_get_variables( pd->param_expression[pd->nExpParam], &expvar_names, &expvar_count );
 #else
-				expvar_count = 0;
+				bad_data = 1;
 #endif
+				pd->var_opt[index] = -1;
+				pd->nExpParam++;
 			}
 		}
 		if( set_min ) { if( pd->var_init_min[index] < pd->var_min[index] ) pd->var_init_min[index] = pd->var_min[index]; }
 		else          { if( pd->var_min[index] < pd->var_init_min[index] ) pd->var_min[index] = pd->var_init_min[index]; }
 		if( set_max ) { if( pd->var_init_max[index] > pd->var_max[index] ) pd->var_init_max[index] = pd->var_max[index]; }
 		else          { if( pd->var_max[index] > pd->var_init_max[index] ) pd->var_max[index] = pd->var_init_max[index]; }
-		if( expvar_count > 0 )
-		{
-			pd->var_opt[index] = -1;
-			pd->nExpParam++;
-		}
 		cd->var[index] = pd->var[index];
 		if( pd->var_name[index][0] == 0 ) strcpy( pd->var_name[index], pd->var_id[index] );
 		if( cd->debug )
@@ -632,13 +638,10 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 				tprintf( ": init %9g opt %1d log %1d step %7g min %9g max %9g\n", pd->var[index], pd->var_opt[index], pd->var_log[index], pd->var_dx[index], pd->var_init_min[index], pd->var_init_max[index] );
 			else
 			{
-#ifdef MATHEVAL
-				tprintf( "= %s ", evaluator_get_string( pd->param_expression[pd->nExpParam - 1] ) );
+#ifndef MATHEVAL
+				tprintf( "= MathEval is not installed; provided expression cannot be evaluated.\n" );
 #else
-				expvar_count = 0;
-				tprintf( " MathEval is not installed; expressions cannot be evaluated.\n" );
-				bad_data = 1;
-#endif
+				tprintf( "= %s ", evaluator_get_string( pd->param_expression[pd->nExpParam - 1] ) );
 				if( expvar_count > 0 )
 				{
 					tprintf( "-> variables:" );
@@ -649,11 +652,10 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 				}
 				else
 				{
-#ifdef MATHEVAL
 					pd->var[index] = cd->var[index] = evaluator_evaluate_x( pd->param_expression[pd->nExpParam], 0 );
 					tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[index] );
-#endif
 				}
+#endif
 			}
 		}
 		if( pd->var_opt[index] == 1 ) pd->nOptParam++;
@@ -710,6 +712,9 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 		k = pd->param_expressions_index[i];
 		pd->var[k] = cd->var[k] = evaluator_evaluate( pd->param_expression[i], pd->nParam, pd->var_id, cd->var );
 	}
+#else
+	if( pd->nExpParam > 0 && bad_data )
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated.\n" );
 #endif
 	if( bad_data ) return( 0 );
 	else return( 1 );
@@ -746,9 +751,6 @@ int parse_gnode_class_regularizations( GNode *node, gpointer data )
 	rd->regul_map_id = ( char ** ) malloc( ( rd->regul_nMap ) * sizeof( char * ) );
 	rd->regul_map_val = ( double * ) malloc( ( rd->regul_nMap + rd->nRegul ) * sizeof( double ) );
 #endif
-#ifndef MATHEVAL
-	tprintf( "WARNING: MathEval is not installed; expressions cannot be evaluated.\n" );
-#endif
 	for( i = 0; i < rd->nRegul; i++ )
 	{
 		node_regul = g_node_nth_child( node, i );
@@ -776,6 +778,7 @@ int parse_gnode_class_regularizations( GNode *node, gpointer data )
 				evaluator_get_variables( rd->regul_expression[i], &expvar_names, &expvar_count );
 #else
 				expvar_count = 0;
+				bad_data = 1;
 #endif
 			}
 		}
@@ -846,11 +849,18 @@ int parse_gnode_class_regularizations( GNode *node, gpointer data )
 			result = evaluator_evaluate( rd->regul_expression[i], rd->regul_nMap, rd->regul_map_id, rd->regul_map_val );
 			tprintf( " = %g\n", result );
 #else
-			tprintf( "MathEval is not installed; expressions cannot be evaluated.\n" );
+			tprintf( "MathEval is not installed; provided expression cannot be evaluated.\n" );
 #endif
 		}
 	}
-	if( bad_data ) return ( 0 );
+	if( bad_data )
+	{
+#ifndef MATHEVAL
+		if( rd->nRegul > 0 )
+			tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated.\n" );
+#endif
+		return ( 0 );
+	}
 	else return( 1 );
 }
 
@@ -1557,7 +1567,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 					if( k == pd->nExpParam )
 						fprintf( outfile, "exp: \"ERROR: expression cannot be found\"" );
 #else
-					fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
+					fprintf( outfile, "exp: \"MathEval is not installed; provided expression cannot be evaluated\" " );
 #endif
 				}
 				else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
@@ -1591,7 +1601,7 @@ int save_problem_yaml( char *filename, struct opt_data *op )
 			if( k == pd->nExpParam )
 				fprintf( outfile, "exp: \"ERROR: expression cannot be found\"" );
 #else
-			fprintf( outfile, "exp: \"MathEval is not installed; expressions cannot be evaluated\" " );
+			fprintf( outfile, "exp: \"MathEval is not installed; provided expression cannot be evaluated\" " );
 #endif
 		}
 		else if( pd->var_opt[count_param] >= 1 && pd->var_log[count_param] == 1 ) // optimized log transformed parameter
