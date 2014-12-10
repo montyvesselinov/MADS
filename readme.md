@@ -41,7 +41,7 @@ GLIB: http://developer.gnome.org/glib
   
 The required TPL's can be downloaded at http://gitlab.com/mads/mads-tpls  
   
-The code has been tested on Apple MAC OS X, Linux (RHEL / CentOS  
+The code has been tested on Apple MAC OS X, Linux (RHEL / CentOS
 / Fedora / Ubuntu/ Debian) and Cygwin/Microsoft Windows.  
   
 Checkout the readme file for installation instructions.  
