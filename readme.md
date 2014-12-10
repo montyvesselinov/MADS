@@ -15,8 +15,7 @@ For more information check out he MADS website at http://mads.lanl.gov
 USAGE:  
 * mads problem\_name [ keywords | options ] 
 * mads MADS\_input\_file [ keywords | options ] 
-* mads PEST\_input\_file [ keywords | options ]  
-     (MADS is compatible with PEST control, template and instruction files)
+* mads PEST\_input\_file [ keywords | options ]; MADS is compatible with PEST control, template and instruction files
 * mads (execution without arguments provides information about command-line keywords)
 
 Licensing: GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
