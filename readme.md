@@ -45,8 +45,8 @@ The code has been tested on Apple MAC OS X, Linux (RHEL / CentOS / Fedora / Ubun
 Checkout the 'readme' file for installation instructions.  
   
 Compilation:  
-* make OR
-* cmake -f CMakeLists.txt (cmake version 3.0 is required)  
+* make
+* cmake -f CMakeLists.txt (cmake version 3.0 is required)
   
 Verification:  
 * make verify (all test problems listed below)  
