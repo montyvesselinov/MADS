@@ -44,11 +44,9 @@ Required tools:
 	GNU C/C++:  http://gcc.gnu.org (version 4.8 or later)
 	GNU MAKE:   http://www.gnu.org/software/make (version 3.81 or later)
 	PKG-CONFIG: http://www.freedesktop.org/wiki/Software/pkg-config (version 0.28 or later)
-	GUILE:      http://www.gnu.org/software/guile
-	GTK-DOC:    http://www.gtk.org/gtk-doc
 	TCSH:       http://www.tcsh.org
 
-Required libraries:
+Required third party libraries (TPL's):
 	GSL:        http://www.gnu.org/s/gsl (version 1.16 or later)
 	LAPACK:     http://www.netlib.org/lapack
 	BLAS:       http://www.netlib.org/blas (usually BLAS comes with LAPACK)
@@ -60,21 +58,23 @@ Required libraries:
 
 Installation of the required libraries; there are two options:
 
-	GLOBAL installation: 
+	GLOBAL installation (TPL's are installed in /opt/local and available to be used by other codes): 
 	The libraries are installed from existing ports using sudo commands requiring system privileges.
-	This is a faster and easier option.
+	Global installation is a faster and easier option.
 
-	LOCAL installation using CMake: 
+	LOCAL installation using CMake (TPL's are installed in the tpls directory): 
 	The libraries are downloaded, compiled and build from source.
 	The libraries are installed in a directory called 'tpls'.
-	This is a slower and more complicated option.
+	If needed MADS TPL's can be also donwloaded directly from http://gitlab.com/mads/mads-tpls.
+	You can also git clone or get a tar ball (http://gitlab.com/mads/mads-tpls/repository/archive.tar.gz) in the directory tpls/Downloads.
+	Local installation is a slower and more complicated option.
 	It may still require system privileges to execute sudo commands to install g++, CMake and other required tools (see below).
 
 GLOBAL installation of the required libraries (faster and easier):
 	
 	To install:
-	MAC OS X (brew can be applied as well; brew may not require system privileges):
-	sudo port install gcc48 gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake guile gtk-doc
+	MAC OS X (brew can be applied as well; brew does not require system privileges):
+	sudo port install gcc48 gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
 	sudo port select gcc mp-gcc48
 	
 	RHEL/CentOS/Fedora:	
@@ -82,7 +82,7 @@ GLOBAL installation of the required libraries (faster and easier):
 	sudo yum install gcc-c++-4.8
 
 	Ubuntu/Debian:
-	sudo apt-get install gcc-4.8 g++ libgsl0-dev libglib2.0 libyaml-dev libxml2 libmatheval-dev liblapack-dev gfortran pkg-config git tcsh gmake guile
+	sudo apt-get install gcc-4.8 g++ libgsl0-dev libglib2.0 libyaml-dev libxml2 libmatheval-dev liblapack-dev gfortran pkg-config git tcsh gmake
 	sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
 
 	To compile MADS:
