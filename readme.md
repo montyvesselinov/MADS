@@ -13,9 +13,9 @@ The code allows for coupled model parameters and regularization terms that are i
 For more information check out he MADS website at http://mads.lanl.gov
 
 USAGE:  
-* mads problem\_name [ keywords | options ] OR
-* mads MADS\_input\_file [ keywords | options ] OR
-* mads PEST\_input\_file [ keywords | options ]
+* mads problem\_name [ keywords | options ] 
+* mads MADS\_input\_file [ keywords | options ] 
+* mads PEST\_input\_file [ keywords | options ]  
      (MADS is compatible with PEST control, template and instruction files)
 * mads (execution without arguments provides information about command-line keywords)
 
@@ -43,7 +43,7 @@ The required TPL's can be downloaded at http://gitlab.com/mads/mads-tpls
   
 The code has been tested on Apple MAC OS X, Linux (RHEL / CentOS / Fedora / Ubuntu/ Debian) and Cygwin/Microsoft Windows.  
   
-Checkout the readme file for installation instructions.  
+Checkout the 'readme' file for installation instructions.  
   
 Compilation:  
 * make OR
@@ -60,15 +60,14 @@ Verification:
 * make verify-sa (global sensitivity analysis)  
   
 Examples:  
-make examples  
+* make examples  
+* additional examples can be found in directory 'example' (check the 'readme' files in the directory 'example')  
+* see also http://mads.lanl.gov/#examples and http://mads.lanl.gov/#demos  
   
-In addition, several examples can be found in directory 'example' (check the 'readme' files in the directory 'example')  
-  
-See also http://mads.lanl.gov/#examples and http://mads.lanl.gov/#demos  
-  
-Comparisons: Comparisons with the code PEST are available as well (in subdirectories of 'example', check the 'readme' files)  
-  
-See also http://mads.lanl.gov/#comparisons  
+Comparisons:
+* test probelems are available
+* comparisons with the code PEST are available as well (in subdirectories of 'example', check the 'readme' files)  
+* see also http://mads.lanl.gov/#comparisons  
   
 Manual: http://mads.lanl.gov/#manual  
   
