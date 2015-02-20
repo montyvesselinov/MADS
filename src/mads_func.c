@@ -1118,6 +1118,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			else dx = p->cd->sindx;
 			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
 		}
+		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
 		if( p->cd->tdebug ) tprintf( "Parallel jacobian reading PT = %ld seconds\n", time_elapsed );
 	}
