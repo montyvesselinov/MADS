@@ -349,7 +349,7 @@ int LEVMAR_DER2(
 			tprintf( "\n" );
 		}
 	}
-	if( op->cd->ldebug ) tprintf( "Initial evaluation: OF %g\n", phi_current );
+	if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
 	else if( op->cd->lmstandalone ) tprintf( "OF %g -> ", phi_current );
 	loop_count = -1;
 	while( !stop )
@@ -1211,6 +1211,7 @@ int LEVMAR_DER2(
 	}
 	if( op->cd->ldebug )
 	{
+		tprintf( "Final OF %g\n", phi_current );
 		tprintf( "LM optimization is completed. Reason: " );
 		switch( stop )
 		{
