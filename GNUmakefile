@@ -104,12 +104,12 @@ SONAME = soname
 
 ifeq ($(OS),Linux)
 # Linux
-LDLIBS += -lgfortran -lgslcblas -lm -lblas
+LDLIBS += -lgslcblas -lm -lblas
 $(info LINUX)
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
 CFLAGS += -I/home/monty/local/include-aquifer
-LDLIBS = -lgsl -llapack -lstdc++ -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath,/home/monty/local/lib 
+LDLIBS = -lgfortran -lgsl -llapack -lstdc++ -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath,/home/monty/local/lib 
 endif
 ifeq ($(ND),madsmax)
 $(info Machine -- MadsMax)

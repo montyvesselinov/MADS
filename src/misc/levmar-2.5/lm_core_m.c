@@ -50,6 +50,7 @@
 /* precision-specific definitions */
 #include <string.h>
 #include <math.h>
+#include "../../mads.h"
 
 #define LEVMAR_DER LM_ADD_PREFIX(levmar_der)
 #define LEVMAR_DER2 LM_ADD_PREFIX(levmar_der2)
