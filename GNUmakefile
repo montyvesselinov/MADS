@@ -98,7 +98,7 @@ $(info Target  -- $(MAKECMDGOALS) $(OBJ_DIR))
 
 CC = gcc
 CXX = g++
-CFLAGS = -Wall -O1 -Winit-self
+CFLAGS = -Wall -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
 SONAME = soname
 
@@ -203,6 +203,7 @@ OBJ_WELLS = $(addsuffix .o,$(basename $(SRC_WELLS)))
 
 all: mads wells
 
+mads: CFLAGS += -O3
 mads: release-start $(MADS)
 	ln -sf ${MADS} .
 	@echo "$(OK_COLOR)"

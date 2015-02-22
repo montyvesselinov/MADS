@@ -953,6 +953,7 @@ int parse_gnode_class_observations( GNode *node, gpointer data )
 	if( ( od->obs_scale = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( od->obs_location = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( od->obs_alpha = ( double * ) malloc( od->nObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	od->nCObs = 0;
 	preds->nTObs = 0; // TODO INFOGAP and GLUE analysis for external problems
 	for( i = 0; i < od->nObs; i++ )
 	{
