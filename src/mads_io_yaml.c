@@ -58,7 +58,8 @@ enum storage_flags { VAR, VAL, SEQ }; // "Store as" switch
 
 /* Functions here */
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
-int parse_yaml( yaml_parser_t *parser, GNode *data, int debug );
+int parse_yaml_debug( yaml_parser_t *parser, GNode *data );
+int parse_yaml( yaml_parser_t *parser, GNode *data );
 gboolean gnode_tree_dump( GNode *node, gpointer data );
 void gnode_tree_dump_classes( GNode *node, gpointer data );
 void gnode_tree_parse_classes( GNode *node, gpointer data );
@@ -103,6 +104,7 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 {
 	FILE *infile;
 	int ier;
+	time_t time_start, time_end, time_elapsed;
 	struct calc_data *cd;
 	yaml_parser_t parser;
 	GNode *gnode_data = g_node_new( filename );
@@ -120,11 +122,26 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	}
 	yaml_parser_initialize( &parser );
 	yaml_parser_set_input_file( &parser, infile );
-	if( parse_yaml( &parser, gnode_data, ( int )( op->cd->debug > 5 ) ) == -1 )  // Recursive parsing into GNODE data
+	time_start = time( NULL );
+	if( op->cd->debug > 5 )
 	{
-		tprintf( "\nERROR: MADS cannot parse in the YAML input file!\nCheck the YAML file for errors or run MADS with \'debug=10\' to find the error location.\n" );
-		mads_quits( op->root );
+		if( parse_yaml_debug( &parser, gnode_data ) == -1 )  // Recursive parsing into GNODE data
+		{
+			tprintf( "\nERROR: MADS cannot parse in the YAML input file!\nCheck the YAML file for errors or run MADS with \'debug=10\' to find the error location.\n" );
+			mads_quits( op->root );
+		}
 	}
+	else
+	{
+		if( parse_yaml( &parser, gnode_data ) == -1 )  // Recursive parsing into GNODE data
+		{
+			tprintf( "\nERROR: MADS cannot parse in the YAML input file!\nCheck the YAML file for errors or run MADS with \'debug=10\' to find the error location.\n" );
+			mads_quits( op->root );
+		}
+	}
+	time_end = time( NULL );
+	time_elapsed = time_end - time_start;
+	if( op->cd->tdebug ) tprintf( "YAML file parsing PT = %ld seconds\n", time_elapsed );
 	yaml_parser_delete( &parser ); // Destroy YAML parser
 	fclose( infile );
 	if( cd->debug > 5 )
@@ -140,7 +157,11 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	tprintf( "YAML Classes:\n" );
 	g_node_children_foreach( gnode_data, G_TRAVERSE_ALL, ( GNodeForeachFunc )gnode_tree_dump_classes, NULL );
 	tprintf( "Process YAML Classes ...\n" );
+	time_start = time( NULL );
 	ier = parse_gnode_classes( gnode_data, argn, argv, op );
+	time_end = time( NULL );
+	time_elapsed = time_end - time_start;
+	if( op->cd->tdebug ) tprintf( "YAML input processing PT = %ld seconds\n", time_elapsed );
 	return( ier );
 }
 
@@ -351,7 +372,7 @@ int parse_gnode_classes( GNode *gnode_data, int argn, char *argv[], struct opt_d
 	return( ier );
 }
 
-int parse_yaml( yaml_parser_t *parser, GNode *data, int debug )
+int parse_yaml_debug( yaml_parser_t *parser, GNode *data )
 {
 	GNode *last_leaf = data;
 	yaml_event_t event;
@@ -359,32 +380,74 @@ int parse_yaml( yaml_parser_t *parser, GNode *data, int debug )
 	while( 1 )
 	{
 		yaml_parser_parse( parser, &event );
-		if( debug ) tprintf( "Event type: %d\n",  event.type );
 		// Parse value either as a new leaf in the mapping or as a leaf value (one of them, in case it's a sequence)
 		if( event.type == YAML_SCALAR_EVENT )
 		{
-			if( storage ) { g_node_append_data( last_leaf, g_strdup( ( gchar * ) event.data.scalar.value ) ); if( debug ) tprintf( "Data: %s\n", event.data.scalar.value ); } // if sequence or val
-			else { last_leaf = g_node_append( data, g_node_new( g_strdup( ( gchar * ) event.data.scalar.value ) ) ); if( debug ) tprintf( "Key : %s\n", event.data.scalar.value ); } // if var
+			if( storage ) { g_node_append_data( last_leaf, g_strdup( ( gchar * ) event.data.scalar.value ) ); tprintf( "Data: %s\n", event.data.scalar.value ); } // if sequence or val
+			else { last_leaf = g_node_append( data, g_node_new( g_strdup( ( gchar * ) event.data.scalar.value ) ) ); tprintf( "Key : %s\n", event.data.scalar.value ); } // if var
 			storage ^= VAL; // Flip VAR/VAL switch for the next event
 		}
 		// Sequence - all the following scalars will be appended to the last_leaf
-		else if( event.type == YAML_SEQUENCE_START_EVENT ) { storage = SEQ; if( debug ) tprintf( "Sequence start\n" ); }
-		else if( event.type == YAML_SEQUENCE_END_EVENT ) {  storage = VAR; if( debug ) tprintf( "Sequence end\n" ); }
+		else if( event.type == YAML_SEQUENCE_START_EVENT ) { storage = SEQ; tprintf( "Sequence start\n" ); }
+		else if( event.type == YAML_SEQUENCE_END_EVENT ) {  storage = VAR; tprintf( "Sequence end\n" ); }
 		// depth += 1
 		else if( event.type == YAML_MAPPING_START_EVENT )
 		{
-			if( parse_yaml( parser, last_leaf, debug ) == -1 )
-				return -1;
+			if( parse_yaml_debug( parser, last_leaf ) == -1 )
+			{
+				yaml_event_delete( &event );
+				return -1; // Quit
+			}
 			storage ^= VAL; // Flip VAR/VAL, without touching SEQ
 			// storage = VAR; // Var should be expected ...
 		}
 		// depth -= 1
-		else if( event.type == YAML_MAPPING_END_EVENT || event.type == YAML_STREAM_END_EVENT ) { yaml_event_delete( &event ); break; } // Quit; yaml_event_delete(&event) is needed
-		if( event.type == 0 )
-			return -1;
+		else if( event.type == YAML_MAPPING_END_EVENT || event.type == YAML_STREAM_END_EVENT ) { yaml_event_delete( &event ); return 1; } // Quit; yaml_event_delete(&event) is needed
+		else if( event.type == YAML_NO_EVENT )
+		{
+			return -1; // Quit
+		}
 		yaml_event_delete( &event );
 	}
-	return 1;
+}
+
+int parse_yaml( yaml_parser_t *parser, GNode *data )
+{
+	GNode *last_leaf = data;
+	yaml_event_t event;
+	int storage = VAR; // mapping cannot start with VAL definition without VAR key
+	while( 1 )
+	{
+		yaml_parser_parse( parser, &event );
+		// Parse value either as a new leaf in the mapping or as a leaf value (one of them, in case it's a sequence)
+		if( event.type == YAML_SCALAR_EVENT )
+		{
+			if( storage ) g_node_append_data( last_leaf, g_strdup( ( gchar * ) event.data.scalar.value ) ); // if sequence or val
+			else last_leaf = g_node_append( data, g_node_new( g_strdup( ( gchar * ) event.data.scalar.value ) ) ); // if var
+			storage ^= VAL; // Flip VAR/VAL switch for the next event
+		}
+		// Sequence - all the following scalars will be appended to the last_leaf
+		else if( event.type == YAML_SEQUENCE_START_EVENT ) storage = SEQ;
+		else if( event.type == YAML_SEQUENCE_END_EVENT ) storage = VAR;
+		// depth += 1
+		else if( event.type == YAML_MAPPING_START_EVENT )
+		{
+			if( parse_yaml( parser, last_leaf ) == -1 )
+			{
+				yaml_event_delete( &event );
+				return -1; // Quit
+			}
+			storage ^= VAL; // Flip VAR/VAL, without touching SEQ
+			// storage = VAR; // Var should be expected ...
+		}
+		// depth -= 1
+		else if( event.type == YAML_MAPPING_END_EVENT || event.type == YAML_STREAM_END_EVENT ) { yaml_event_delete( &event ); return 1; } // Quit; yaml_event_delete(&event) is needed
+		else if( event.type == YAML_NO_EVENT )
+		{
+			return -1; // Quit
+		}
+		yaml_event_delete( &event );
+	}
 }
 
 gboolean gnode_tree_dump( GNode *node, gpointer data )
