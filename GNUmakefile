@@ -63,6 +63,8 @@ OUTPUT = > /dev/null
 # OUTPUT = mads-debug-output
 # OUTPUT =
 
+#CFLAGS += -fsanitize=address -fno-omit-frame-pointer
+#LDLIBS += -fsanitize=address -fno-omit-frame-pointer
 DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
 DBG = gdb --args
 DBG =
@@ -228,8 +230,6 @@ release: release-start $(MADS)
 	@echo "$(NO_COLOR)"
 
 debug: CFLAGS += -g
-#debug: CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
-#debug: LDLIBS += -fsanitize=address -fno-omit-frame-pointer
 debug: debug-start $(MADS_DEBUG)
 	@echo "$(OK_COLOR)"
 	@echo "MADS Debug Version built!"
