@@ -309,7 +309,8 @@ clean-all: clean-release clean-debug clean-lib clean-wells clean-examples
 	rm -fR $(OBJ)/*
 	rm -fR $(BIN)/*
 
-$(SRC)/mads_gitversion.c: .git/HEAD .git/COMMIT_EDITMSG
+# $(SRC)/mads_gitversion.c: .git/HEAD .git/COMMIT_EDITMSG
+$(SRC)/mads_gitversion.c: .git/HEAD
 	@echo "const char *gitversion = \"$(VER)$(GIT_STATUS)\";" > $@
 
 $(OBJ_DIR)/%.o: $(SRC)/%.c
