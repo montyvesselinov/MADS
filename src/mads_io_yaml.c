@@ -660,7 +660,7 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 			node_key = g_node_nth_child( node_par, k );
 			node_value = g_node_nth_child( node_key, 0 );
 			if( cd->debug > 2 ) tprintf( "Key %s = %s\n", ( char * ) node_key->data, ( char * ) node_value->data );
-			if( pd->var_name[index][0] == 0 && !strcasecmp( ( char * ) node_key->data, "longname" ) ) strcpy( pd->var_name[index], ( char * ) node_value->data );
+			if( !strcasecmp( ( char * ) node_key->data, "longname" ) ) strcpy( pd->var_name[index], ( char * ) node_value->data );
 			if( !strcasecmp( ( char * ) node_key->data, "log" ) ) if( !strcasecmp( ( char * ) node_value->data, "yes" ) || !strcasecmp( ( char * ) node_value->data, "1" ) ) pd->var_log[index] = 1;
 			if( !strcasecmp( ( char * ) node_key->data, "type" ) )
 			{

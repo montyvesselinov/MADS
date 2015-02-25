@@ -142,7 +142,7 @@ int func_extrn( double *x, void *data, double *f )
 		}
 	}
 	for( i = 0; i < p->ed->ntpl; i++ )
-		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug ) == -1 )
+		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug ) == -1 )
 			mads_quits( p->root );
 	if( p->ed->nins > 0 )
 	{
@@ -332,7 +332,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
-		if( par_tpl( p->pd->nParam, p->pd->var_name, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
+		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
 			mads_quits( p->root );
 	}
 	// Update model input files in zip restart files

@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.fb70e69+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.ca63daa+uncommitted) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -6,6 +6,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 Input file name: ./examples/contamination/s01-tied_yaml.mads
 Problem root name: ./examples/contamination/s01-tied_yaml (YAML format expected)
 MADS input file in YAML format.
+YAML file parsing PT = 0 seconds
 Number of YAML classes 7
 YAML Classes:
  Problem -> 2 components
@@ -185,7 +186,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20141209-193534
+Execution date & time stamp: 20150224-190528
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -194,7 +195,7 @@ LM using SVD decomposition
 LM without parallel lambda search
 LM without acceleration
 LM with indirect computation of lambda changes
-Initial evaluation: OF 1.85028e+06
+Initial OF 1.85028e+06
 Jacobian #1: Linear solves 0 Evaluations 9 OF 1.85028e+06 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 4 observations have zero sensitivities!
@@ -1309,6 +1310,7 @@ New Jacobian requested because: > Linear solve OF estimates do not change substa
 
 
 CONVERGED: 5 Jacobian OF estimates are very close to the best current OF (304.325)
+Final OF 304.325
 LM optimization is completed. Reason: small OF changes
 Eigen analysis ...
 Analyzed state provided externally.
@@ -1458,6 +1460,6 @@ Simulation time = 0 seconds
 Functional evaluations = 103
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Tue Dec  9 19:35:34 2014
-Execution completed on Tue Dec  9 19:35:34 2014
-Execution date & time stamp: 20141209-193534
+Execution  started  on Tue Feb 24 19:05:28 2015
+Execution completed on Tue Feb 24 19:05:28 2015
+Execution date & time stamp: 20150224-190528

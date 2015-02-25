@@ -227,8 +227,9 @@ release: release-start $(MADS)
 	@echo "Execute ${MADS}"
 	@echo "$(NO_COLOR)"
 
-debug: CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
-debug: LDLIBS += -fsanitize=address -fno-omit-frame-pointer
+debug: CFLAGS += -g
+#debug: CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
+#debug: LDLIBS += -fsanitize=address -fno-omit-frame-pointer
 debug: debug-start $(MADS_DEBUG)
 	@echo "$(OK_COLOR)"
 	@echo "MADS Debug Version built!"
@@ -427,8 +428,10 @@ verify-internal: mads
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/rosenbrock/a01.results $(EXAMPLES)/rosenbrock/a01.results-squads-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 1: DONE"
+	@echo "$(NO_COLOR)"
 
 verify-multistart1: mads
 	@echo "$(OK_COLOR)"
@@ -451,6 +454,7 @@ verify-multistart1: mads
 	@$(CMP) $(EXAMPLES)/rosenbrock/p01squads.mads_output $(EXAMPLES)/rosenbrock/p01squads.mads_output-multistart-squads-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/rosenbrock/p01squads.results $(EXAMPLES)/rosenbrock/p01squads.results-multistart-squads-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 2: DONE"
 	@echo "$(NO_COLOR)"
@@ -530,9 +534,9 @@ verify-contaminant: mads
 	@$(CMP) $(EXAMPLES)/contamination/s01-multi_source.mads_output $(EXAMPLES)/contamination/s01-multi_source.mads_output-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/contamination/s01-multi_source.results $(EXAMPLES)/contamination/s01-multi_source.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 3: DONE"
-	@echo "$(NO_COLOR)"
 	@echo "$(NO_COLOR)"
 
 verify-multistart2: mads
@@ -545,6 +549,7 @@ verify-multistart2: mads
 	@echo "TEST 4.1: Problem $(EXAMPLES)/contamination/s01 IGRND ..."
 	rm -f $(EXAMPLES)/contamination/s01-igrnd.results $(EXAMPLES)/contamination/s01-igrnd.igrnd.results $(EXAMPLES)/contamination/s01-igrnd.running
 	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-igrnd seed=2096575428 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/contamination/s01-igrnd.results $(EXAMPLES)/contamination/s01-igrnd.results-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/contamination/s01-igrnd.igrnd.results $(EXAMPLES)/contamination/s01-igrnd.igrnd.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
@@ -565,11 +570,12 @@ verify-multistart2: mads
 	@echo "TEST 4.4: Problem $(EXAMPLES)/contamination/s01 Multi-Start LM  ..."
 	rm -f $(EXAMPLES)/contamination/s01-mslm.results $(EXAMPLES)/contamination/s01-mslm.running
 	$(DBG) ./$(MADS) $(EXAMPLES)/contamination/s01-mslm seed=2096575428 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/contamination/s01-mslm.results $(EXAMPLES)/contamination/s01-mslm.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 4: DONE"
-	@echo "$(NO_COLOR)"
 	@echo "$(NO_COLOR)"
 
 verify-external: mads wells
@@ -585,6 +591,7 @@ verify-external: mads wells
 	@$(CMP) $(EXAMPLES)/wells/w01.mads_output $(EXAMPLES)/wells/w01.mads_output-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/wells/w01.results $(EXAMPLES)/wells/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 5: DONE"
 	@echo "$(NO_COLOR)"
@@ -624,7 +631,7 @@ verify-external-short: mads wells
 	rm -f $(EXAMPLES)/wells-short/w01_yaml.results $(EXAMPLES)/wells-short/w01_yaml.running
 	cd $(EXAMPLES)/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../$(MADS) w01_yaml $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
-	@$(CMP) $(EXAMPLES)/wells-short/w01_yaml.results $(EXAMPLES)/wells-short/w01.results-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01_yaml.results $(EXAMPLES)/wells-short/w01_yaml.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 6.6: Problem $(EXAMPLES)/wells-short/w01 (XML input format) ..."
 	rm -f $(EXAMPLES)/wells-short/w01_xml.results $(EXAMPLES)/wells-short/w01_xml.running
@@ -632,8 +639,9 @@ verify-external-short: mads wells
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01_xml.results $(EXAMPLES)/wells-short/w01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "**************************************************************************************"
+	@echo "$(OK_COLOR)"
 	@echo "TEST 6: DONE"
+	@echo "**************************************************************************************"
 	@echo "$(OK_COLOR)"
 
 verify-external-short2: mads wells
@@ -660,6 +668,7 @@ verify-external-short2: mads wells
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01regul_yaml.results $(EXAMPLES)/wells-short/w01regul_yaml.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 7: DONE"
 	@echo "$(NO_COLOR)"
@@ -683,6 +692,7 @@ verify-parallel: mads wells
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 8: DONE"
 	@echo "$(NO_COLOR)"
@@ -697,6 +707,7 @@ verify-forward: mads
 	@echo "TEST 9.1: Point source ... "
 	rm -f $(EXAMPLES)/forward/a01.mads_output $(EXAMPLES)/forward/a01.results $(EXAMPLES)/forward/a01.running
 	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a01 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/forward/a01.mads_output $(EXAMPLES)/forward/a01.mads_output-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/forward/a01.results $(EXAMPLES)/forward/a01.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
@@ -756,8 +767,9 @@ verify-forward: mads
 	@$(CMP) $(EXAMPLES)/forward/a09.mads_output $(EXAMPLES)/forward/a09.mads_output-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/forward/a09.results $(EXAMPLES)/forward/a09.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "**************************************************************************************"
+	@echo "$(OK_COLOR)"
 	@echo "TEST 9: DONE"
+	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 
 verify-sa: mads wells
@@ -788,6 +800,8 @@ verify-sa: mads wells
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "$(OK_COLOR)"
+	@echo "**************************************************************************************"
 	@echo "TEST 10: DONE"
 	@echo "$(NO_COLOR)"
 

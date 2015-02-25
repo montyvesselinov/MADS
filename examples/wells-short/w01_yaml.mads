@@ -1,8 +1,8 @@
-Problem: { calibrate, opt: lm_levmar }
+Problem: { }
 Solution: external
 Parameters:
-- k: { init: 1, type: opt, log: no, step: 0.1, min: -5, max: 5, init_min: -1, init_max: 1 }
-- S: { init: 1, type: opt, log: no, step: 0.1, min: -5, max: 5, init_min: -1, init_max: 1 }
+- k: { longname: "permeability", init: 1, type: opt, log: no, step: 0.1, min: -5, max: 5, init_min: -1, init_max: 1 }
+- S: { longname: "storativity", init: 1, type: opt, log: no, step: 0.1, min: -5, max: 5, init_min: -1, init_max: 1 }
 Observations:
 - o1:  { target: 0.00, weight: 1, log: no, min: 0.00, max: 0.05 }
 - o2:  { target: 5.98, weight: 1, log: no, min: 5.93, max: 6.03 }

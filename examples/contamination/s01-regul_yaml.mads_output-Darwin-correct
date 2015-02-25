@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.b4ee9c6+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.ca63daa+uncommitted) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -6,6 +6,7 @@ http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 Input file name: ./examples/contamination/s01-regul_yaml.mads
 Problem root name: ./examples/contamination/s01-regul_yaml (YAML format expected)
 MADS input file in YAML format.
+YAML file parsing PT = 0 seconds
 Number of YAML classes 8
 YAML Classes:
  Problem -> 3 components
@@ -189,7 +190,7 @@ Number of regularization terms = 3
 Number of predictions = 0
 
 
-Execution date & time stamp: 20141027-100721
+Execution date & time stamp: 20150224-190529
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -198,7 +199,7 @@ LM using SVD decomposition
 LM without parallel lambda search
 LM without acceleration
 LM with indirect computation of lambda changes
-Initial evaluation: OF 2.02993e+07
+Initial OF 2.02993e+07
 Jacobian #1: Linear solves 0 Evaluations 12 OF 2.02993e+07 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 1 observation has zero sensitivities!
@@ -769,6 +770,7 @@ Intermediate results stored (./examples/contamination/s01-regul_yaml.intermediat
 Intermediate residuals stored (./examples/contamination/s01-regul_yaml.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (50126.2 << 139792)
 
+Final OF 50126.2
 LM optimization is completed. Reason: maximum number of functional evaluations is exceeded (eval=50; 57 > 50)
 Eigen analysis ...
 Analyzed state provided externally.
@@ -940,6 +942,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Mon Oct 27 10:07:21 2014
-Execution completed on Mon Oct 27 10:07:21 2014
-Execution date & time stamp: 20141027-100721
+Execution  started  on Tue Feb 24 19:05:29 2015
+Execution completed on Tue Feb 24 19:05:29 2015
+Execution date & time stamp: 20150224-190529

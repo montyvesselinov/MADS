@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.b4ee9c6+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.ca63daa+uncommitted) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -194,7 +194,7 @@ Grid Maximums: 500200 539400 0.1
 Breakthrough-curve time window: 0 0 1 number of time steps: 1
 
 
-Execution date & time stamp: 20141027-100841
+Execution date & time stamp: 20150224-190528
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -203,7 +203,7 @@ LM using SVD decomposition
 LM without parallel lambda search
 LM without acceleration
 LM with indirect computation of lambda changes
-Initial evaluation: OF 2.02993e+07
+Initial OF 2.02993e+07
 Jacobian #1: Linear solves 0 Evaluations 12 OF 2.02993e+07 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 1 observation has zero sensitivities!
@@ -774,6 +774,7 @@ Intermediate results stored (./examples/contamination/s01-regul.intermediate_res
 Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 New Jacobian requested because: > OF estimate declined substantially (50126.2 << 139792)
 
+Final OF 50126.2
 LM optimization is completed. Reason: maximum number of functional evaluations is exceeded (eval=50; 57 > 50)
 Eigen analysis ...
 Analyzed state provided externally.
@@ -946,6 +947,6 @@ Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 58
-Execution  started  on Mon Oct 27 10:08:41 2014
-Execution completed on Mon Oct 27 10:08:42 2014
-Execution date & time stamp: 20141027-100841
+Execution  started  on Tue Feb 24 19:05:28 2015
+Execution completed on Tue Feb 24 19:05:29 2015
+Execution date & time stamp: 20150224-190528

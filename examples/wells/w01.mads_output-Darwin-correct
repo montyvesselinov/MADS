@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.b4ee9c6+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.ca63daa+uncommitted) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -51,7 +51,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20141027-101245
+Execution date & time stamp: 20150224-190049
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -60,7 +60,7 @@ LM using SVD decomposition
 LM without parallel lambda search
 LM without acceleration
 LM with indirect computation of lambda changes
-Initial evaluation: OF 79661
+Initial OF 79661
 Jacobian #1: Linear solves 0 Evaluations 3 OF 79661 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 1 observation has zero sensitivities!
@@ -215,6 +215,7 @@ New Jacobian requested because: > Linear solve OF estimates do not change substa
 
 
 CONVERGED: 5 Jacobian OF estimates are very close to the best current OF (2844.6)
+Final OF 2844.6
 LM optimization is completed. Reason: small OF changes
 Eigen analysis ...
 Analyzed state provided externally.
@@ -371,6 +372,6 @@ Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 7
-Execution  started  on Mon Oct 27 10:12:45 2014
-Execution completed on Mon Oct 27 10:12:51 2014
-Execution date & time stamp: 20141027-101245
+Execution  started  on Tue Feb 24 19:00:49 2015
+Execution completed on Tue Feb 24 19:00:55 2015
+Execution date & time stamp: 20150224-190049
