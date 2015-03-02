@@ -200,7 +200,7 @@ SOURCESTYLEDEL = $(addsuffix .orig,$(SOURCESTYLE))
 OBJECTS = $(addsuffix .o,$(basename $(SOURCES)))
 OBJECTS_RELEASE = $(patsubst $(SRC)/%,$(OBJ)/Release/%,$(OBJECTS))
 OBJECTS_DEBUG = $(patsubst $(SRC)/%,$(OBJ)/Debug/%,$(OBJECTS))
-OBJECTS_LIB = $(patsubst $(SRC)/%,$(OBJ)/Lib/%,$(OBJECTS))
+OBJECTS_LIB =   $(patsubst $(SRC)/%,$(OBJ)/Lib/%,$(OBJECTS))
 OBJ_WELLS = $(addsuffix .o,$(basename $(SRC_WELLS)))
 
 all: mads wells
@@ -286,7 +286,7 @@ $(MADS_LIB): $(OBJECTS_LIB)
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) -shared -Wl,-$(SONAME),libmads.so.1 -o $@
+	$(CC) $(LDLIBS) $(OBJECTS_LIB) -shared -Wl,-$(SONAME),libmads.so.1 -o $@
 
 $(WELLS): $(OBJ_WELLS)
 	@mkdir -p $(BIN)
