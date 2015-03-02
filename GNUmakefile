@@ -241,8 +241,8 @@ debug-start:
 	@echo "MADS Debug Version ..."
 	@echo "$(NO_COLOR)"
 
-lib: CFLAGS += -fPIC
-lib: lib-start $(MADS_LIB)
+lib: CFLAGS += -fPIC -O3
+lib: lib-start $(MADS_LIB) lib-install
 	@echo "$(OK_COLOR)"
 	@echo "MADS Shared Library built!"
 	@echo "$(NO_COLOR)"
@@ -251,6 +251,15 @@ lib-start:
 	@echo "$(OK_COLOR)"
 	@echo "MADS Library ..."
 	@echo "$(NO_COLOR)"
+
+lib-install:
+	@echo "$(OK_COLOR)"
+	@echo "Install MADS Library ..."
+	@echo "$(NO_COLOR)"
+	cp $(MADS_LIB) /opt/local/lib/libmads.so.1.0
+	ln -sf /opt/local/lib/libmads.so.1.0 /opt/local/lib/libmads.so.1
+	ln -sf /opt/local/lib/libmads.so.1.0 /opt/local/lib/libmads.dylib
+	ln -sf /opt/local/lib/libmads.so.1 /opt/local/lib/libmads.so
 
 $(MADS): $(OBJECTS_RELEASE)
 	@echo "$(OK_COLOR)"
@@ -277,7 +286,7 @@ $(MADS_LIB): $(OBJECTS_LIB)
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) -shared -Wl,-$(SONAME),libmads.so.1 -o
+	$(CC) -shared -Wl,-$(SONAME),libmads.so.1 -o $@
 
 $(WELLS): $(OBJ_WELLS)
 	@mkdir -p $(BIN)
