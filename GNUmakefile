@@ -102,6 +102,7 @@ CC = gcc
 CXX = g++
 CFLAGS = -Wall -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
+DYNAMICLIB = 
 SONAME = soname
 
 ifeq ($(OS),Linux)
@@ -134,10 +135,12 @@ $(info CYGWIN)
 else #----------------------------------------------------
 ifeq ($(OS),Darwin)
 # Mac
+DYNAMICLIB = -dynamiclib
 $(info MAC OS X)
 SONAME = install_name
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
+MADS_LIB = $(BIN)/Lib/libmads.dylib
 ifeq ($(ND),bored.lanl.gov)
 LDLIBS += 
 endif
@@ -286,7 +289,7 @@ $(MADS_LIB): $(OBJECTS_LIB)
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) $(LDLIBS) $(OBJECTS_LIB) -shared -Wl,-$(SONAME),libmads.so.1 -o $@
+	$(CC) $(LDLIBS) $(OBJECTS_LIB) $(DYNAMICLIB) -shared -o $@
 
 $(WELLS): $(OBJ_WELLS)
 	@mkdir -p $(BIN)
