@@ -2085,10 +2085,13 @@ void tprintf( char const *fmt, ... )
 		va_end( ap );
 		fflush( stdout );
 	}
-	va_start( ap, fmt );
-	vfprintf( mads_output, fmt, ap );
-	va_end( ap );
-	fflush( mads_output );
+	if( mads_output != NULL )
+	{
+		va_start( ap, fmt );
+		vfprintf( mads_output, fmt, ap );
+		va_end( ap );
+		fflush( mads_output );
+	}
 }
 
 int set_optimized_params( struct opt_data *op )
