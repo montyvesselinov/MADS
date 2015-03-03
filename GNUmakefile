@@ -102,11 +102,12 @@ CC = gcc
 CXX = g++
 CFLAGS = -Wall -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
-SONAME = soname
 
 ifeq ($(OS),Linux)
 # Linux
+SONAME = soname
 LDLIBS += -lgslcblas -lm -lblas
+DYLIBS = -shared -Wl,-$(SONAME),libmads.so.1
 $(info LINUX)
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
@@ -138,6 +139,7 @@ $(info MAC OS X)
 SONAME = install_name
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
+DYLIBS = -dynamiclib -undefined suppress -flat_namespace -shared
 ifeq ($(ND),bored.lanl.gov)
 LDLIBS += 
 endif
@@ -286,7 +288,7 @@ $(MADS_LIB): $(OBJECTS_LIB)
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) $(LDLIBS) $(OBJECTS_LIB) -shared -Wl,-$(SONAME),libmads.so.1 -o $@
+	$(CC) $(LDLIBS) $(OBJECTS_LIB) $(DYLIBS) -o $@
 
 $(WELLS): $(OBJ_WELLS)
 	@mkdir -p $(BIN)
