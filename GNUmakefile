@@ -102,13 +102,14 @@ CC = gcc
 CXX = g++
 CFLAGS = -Wall -Winit-self
 LDLIBS = -lgsl -llapack -lstdc++
+DYNAMICLIB = 
 
 ifeq ($(OS),Linux)
 # Linux
+$(info LINUX)
 SONAME = soname
 LDLIBS += -lgslcblas -lm -lblas
-DYLIBS = -shared -Wl,-$(SONAME),libmads.so.1
-$(info LINUX)
+DYNAMICLIB = -shared -Wl,-$(SONAME),libmads.so.1
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
 CFLAGS += -I/home/monty/local/include-aquifer
@@ -139,7 +140,8 @@ $(info MAC OS X)
 SONAME = install_name
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
-DYLIBS = -dynamiclib -undefined suppress -flat_namespace -shared
+DYNAMICLIB = -dynamiclib -undefined suppress -flat_namespace -shared
+MADS_LIB = $(BIN)/Lib/libmads.dylib
 ifeq ($(ND),bored.lanl.gov)
 LDLIBS += 
 endif
@@ -244,7 +246,7 @@ debug-start:
 	@echo "$(NO_COLOR)"
 
 lib: CFLAGS += -fPIC -O3
-lib: lib-start $(MADS_LIB) lib-install
+lib: lib-start $(MADS_LIB)
 	@echo "$(OK_COLOR)"
 	@echo "MADS Shared Library built!"
 	@echo "$(NO_COLOR)"
@@ -288,7 +290,7 @@ $(MADS_LIB): $(OBJECTS_LIB)
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) $(LDLIBS) $(OBJECTS_LIB) $(DYLIBS) -o $@
+	$(CC) $(LDLIBS) $(OBJECTS_LIB) $(DYNAMICLIB) -shared -o $@
 
 $(WELLS): $(OBJ_WELLS)
 	@mkdir -p $(BIN)
