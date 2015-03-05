@@ -55,10 +55,15 @@ enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, RF, LAMBDA, FLOW_AN
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
-FILE *mads_output;
-int quiet;
 char version_id[80];
 extern const char *gitversion;
+#ifdef MAIN
+FILE *mads_output = NULL;
+int quiet = 0;
+#else
+FILE *mads_output;
+int quiet;
+#endif
 
 #define COMPARE_EPSILON pow( FLT_EPSILON, (double) 1/2 ) // EPSILON FOR BOUND COMPARISON
 
@@ -409,5 +414,7 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 //io.c
 int Ftest( char *filename );
-
+#else
+extern int quiet;
+extern int mads_output_file;
 #endif /* MADS_H */

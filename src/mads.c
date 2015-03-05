@@ -58,7 +58,9 @@
 #include <gsl/gsl_sort_vector.h>
 #include <gsl/gsl_interp.h>
 #include "misc/levmar-2.5/levmar.h"
+#define MADS_MAIN
 #include "mads.h"
+#undef MADS_MAIN
 #include "bayes/dream.h"
 #ifdef MATHEVAL
 #include <matheval.h>
