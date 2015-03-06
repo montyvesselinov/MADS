@@ -107,8 +107,8 @@ ifeq ($(OS),Linux)
 # Linux
 $(info LINUX)
 LIB_DIR = /usr/local/lib
-LDLIBS += -lgslcblas -lm -lblas -L/usr/local/lib
-DYNAMICLIB = -fPIC -shared -Wl,-soname,libmads.so.1 -Wl,--no-as-needed -ldl
+LDLIBS += -lgslcblas -lm -lblas
+DYNAMICLIB = -shared -Wl,-soname,libmads.so.1 -Wl,--no-as-needed -ldl
 MADS_LIB = $(BIN)/Lib/libmads.so
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
