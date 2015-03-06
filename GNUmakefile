@@ -53,7 +53,6 @@ endif
 EXAMPLES = ./examples
 MADS = $(BIN)/Release/mads
 MADS_DEBUG = $(BIN)/Debug/mads
-MADS_LIB = $(BIN)/Lib/libmads.so.1.1.14
 WELLS = $(BIN)/wells
 
 CMP = ./scripts/compare-results # MADS testing
@@ -107,9 +106,10 @@ DYNAMICLIB =
 ifeq ($(OS),Linux)
 # Linux
 $(info LINUX)
-SONAME = soname
-LDLIBS += -lgslcblas -lm -lblas
-DYNAMICLIB = -shared -Wl,-$(SONAME),libmads.so.1
+LIB_DIR = /usr/local/lib
+LDLIBS += -lgslcblas -lm -lblas -L/usr/local/lib
+DYNAMICLIB = -fPIC -shared -Wl,-soname,libmads.so.1 -Wl,--no-as-needed -ldl
+MADS_LIB = $(BIN)/Lib/libmads.so
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
 CFLAGS += -I/home/monty/local/include-aquifer
@@ -137,7 +137,7 @@ else #----------------------------------------------------
 ifeq ($(OS),Darwin)
 # Mac
 $(info MAC OS X)
-SONAME = install_name
+LIB_DIR = /opt/local/lib
 CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
 DYNAMICLIB = -dynamiclib -undefined suppress -flat_namespace -shared
@@ -260,10 +260,10 @@ lib-install:
 	@echo "$(OK_COLOR)"
 	@echo "Install MADS Library ..."
 	@echo "$(NO_COLOR)"
-	cp $(MADS_LIB) /opt/local/lib/libmads.so.1.0
-	ln -sf /opt/local/lib/libmads.so.1.0 /opt/local/lib/libmads.so.1
-	ln -sf /opt/local/lib/libmads.so.1.0 /opt/local/lib/libmads.dylib
-	ln -sf /opt/local/lib/libmads.so.1 /opt/local/lib/libmads.so
+	cp $(MADS_LIB) $(LIB_DIR)/libmads.so.1.0
+	ln -sf $(LIB_DIR)/libmads.so.1.0 $(LIB_DIR)/libmads.so.1
+	ln -sf $(LIB_DIR)/libmads.so.1.0 $(LIB_DIR)/libmads.so
+	ln -sf $(LIB_DIR)/libmads.so.1.0 $(LIB_DIR)/libmads.dylib
 
 $(MADS): $(OBJECTS_RELEASE)
 	@echo "$(OK_COLOR)"
@@ -290,7 +290,8 @@ $(MADS_LIB): $(OBJECTS_LIB)
 	@mkdir -p $(BIN)
 	@mkdir -p $(OBJ)
 	@mkdir -p $(dir $@)
-	$(CC) $(LDLIBS) $(OBJECTS_LIB) $(DYNAMICLIB) -shared -o $@
+	$(CC) $(DYNAMICLIB) -o $@ $(LDLIBS) $(OBJECTS_LIB)
+	# libtool --mode=link $(CC) $(LDLIBS) $(OBJECTS_LIB) -o $@  -rpath /usr/local/lib -version-info 1:1:14
 
 $(WELLS): $(OBJ_WELLS)
 	@mkdir -p $(BIN)

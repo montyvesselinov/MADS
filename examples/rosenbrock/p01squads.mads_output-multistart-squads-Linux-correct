@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.b2ae1d0+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.c5608a7) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -31,7 +31,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20141027-112427
+Execution date & time stamp: 20150306-133257
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -39,7 +39,7 @@ Imported seed: 2096575428
 Random sampling (variables 3; realizations 10) using 
 Improved Distributed LHS method (number of realizations < 500) ... done.
 
-Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 691 Jacobians: 105 Objective function: 3.02276e-06 Success: 1
+Random set #1: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 691 Jacobians: 105 Objective function: 3.02281e-06 Success: 1
 Random set #2: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 524 Jacobians: 81 Objective function: 6.56508e-05 Success: 1
 Random set #3: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 1004 Jacobians: 140 Objective function: 2.90084 Success: 0
 Random set #4: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 219 Jacobians: 31 Objective function: 4.67193e-05 Success: 1
@@ -48,7 +48,7 @@ Random set #6: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimizati
 Random set #7: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 449 Jacobians: 69 Objective function: 6.32435e-08 Success: 1
 Random set #8: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 52 Jacobians: 4 Objective function: 2.19572e-07 Success: 1
 Random set #9: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 261 Jacobians: 38 Objective function: 9.9808e-10 Success: 1
-Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 150 Jacobians: 21 Objective function: 8.11842e-07 Success: 1
+Random set #10: SQUADS: Coupled Particle-Swarm and Levenberg-Marquardt Optimization ... Evaluations: 150 Jacobians: 21 Objective function: 8.11846e-07 Success: 1
 Minimum objective function: 9.9808e-10
 Repeat the run producing the best results ...
 Number of the sequential calibration runs producing predictions below predefined OF cutoff (0.001) = 9 (out of 10; success ratio 0.9)
@@ -70,11 +70,11 @@ Parameter #2 0.999979
 Parameter #3 0.999957
 Objective function: 9.9808e-10 Success: 1 (1)
 SUCCESS: Objective function is below the predefined cutoff value (9.9808e-10 < 0.001)!
-Simulation time = 12 seconds
+Simulation time = 6 seconds
 Functional evaluations = 3773
 Jacobian evaluations = 552
 Levenberg-Marquardt optimizations = 78
-Functional evaluations per second = 314
-Execution  started  on Mon Oct 27 11:24:27 2014
-Execution completed on Mon Oct 27 11:24:39 2014
-Execution date & time stamp: 20141027-112427
+Functional evaluations per second = 628
+Execution  started  on Fri Mar  6 13:32:57 2015
+Execution completed on Fri Mar  6 13:33:03 2015
+Execution date & time stamp: 20150306-133257

@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.b2ae1d0+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.c5608a7) 2013
 ---------------------------------------------------
 Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
@@ -51,7 +51,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20141027-112459
+Execution date & time stamp: 20150306-133321
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -60,7 +60,7 @@ LM using SVD decomposition
 LM without parallel lambda search
 LM without acceleration
 LM with indirect computation of lambda changes
-Initial evaluation: OF 79661
+Initial OF 79661
 Jacobian #1: Linear solves 0 Evaluations 3 OF 79661 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 1 observation has zero sensitivities!
@@ -97,6 +97,7 @@ S                          :            1 stddev      29.1219 (          -5 -   
 Parameters did not change between last two jacobian iterations.
 OF 79757 lambda 1.71626
 OF 79781.6 lambda 3.43252
+WARNING: The parameter does not fit the requested field (0.63071761389963932 length 19 > 18)!
 OF 79781 lambda 13.7301
 OF 46410.9 lambda 109.84
 New Best OF 46410.9
@@ -214,6 +215,7 @@ New Jacobian requested because: > Linear solve OF estimates do not change substa
 
 
 CONVERGED: 5 Jacobian OF estimates are very close to the best current OF (2844.6)
+Final OF 2844.6
 LM optimization is completed. Reason: small OF changes
 Eigen analysis ...
 Analyzed state provided externally.
@@ -365,11 +367,11 @@ o4948               :     10.0634 -      11.6554 =     -1.59204 success 1 range 
 o4949               :     10.0651 -      11.6571 =     -1.59204 success 1 range       -1e+06 -        1e+06
 o4950               :     10.0627 -      11.6589 =     -1.59619 success 1 range       -1e+06 -        1e+06
 o4951               :       10.07 -      11.6607 =     -1.59074 success 1 range       -1e+06 -        1e+06
-Simulation time = 23 seconds
+Simulation time = 18 seconds
 Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 1
-Execution  started  on Mon Oct 27 11:24:59 2014
-Execution completed on Mon Oct 27 11:25:22 2014
-Execution date & time stamp: 20141027-112459
+Functional evaluations per second = 2
+Execution  started  on Fri Mar  6 13:33:21 2015
+Execution completed on Fri Mar  6 13:33:39 2015
+Execution date & time stamp: 20150306-133321
