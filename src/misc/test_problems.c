@@ -105,7 +105,7 @@ int set_test_problems( struct opt_data *op )
 	switch( cd->test_func )
 	{
 		case 111: // Test
-			printf( "Test" );
+			printf( "Sobol Test" );
 			od->nTObs = 1;
 			for( d = 0; d < pd->nOptParam; d++ )
 				pd->var_truth[d] = pd->var[d] = cd->var[d] = pd->var_current[d] = pd->var_best[d] = 0; // global minimum at (0,0, ... )
@@ -463,7 +463,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 	pi = acos( -1 );
 	switch( function )
 	{
-		case 111: // Test
+		case 111: // Sobol Test
 		{
 			float a, b;
 			f = 1;
