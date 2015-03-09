@@ -1,0 +1,3 @@
+[submodule "tpls/repo"]
+	path = tpls/repo
+	url = git@gitlab.com:mads/mads-tpls.git
