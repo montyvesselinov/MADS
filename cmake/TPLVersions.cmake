@@ -1,4 +1,5 @@
 #  -*- mode: cmake -*-
+
 if(USE_HTTPS)
     set(HTTP "https://")
 else()
@@ -27,7 +28,7 @@ set(GLIB2_VERSION_MAJOR 2)
 set(GLIB2_VERSION_MINOR 42.1)
 set(GLIB2_VERSION ${GLIB2_VERSION_MAJOR}.${GLIB2_VERSION_MINOR})
 set(GLIB2_ARCHIVE_FILE glib-${GLIB2_VERSION}.tar.xz)
-set(GLIB2_URL_SITE "ftp.gnome.org/pub/gnome/sources/glib/2.42/"
+set(GLIB2_URL_SITE "ftp.gnome.org/pub/gnome/sources/glib/2.42/")
 string(CONCAT GLIB2_URL ${FTP} ${GLIB2_URL_SITE} ${GLIB2_ARCHIVE_FILE})
 message(STATUS "GLIB2 ${GLIB2_URL}")
 
@@ -54,3 +55,4 @@ set(LIBMATHEVAL_ARCHIVE_FILE libmatheval-${LIBMATHEVAL_VERSION}.tar.gz)
 set(LIBMATHEVAL_URL_SITE "ftp.gnu.org/gnu/libmatheval/")
 string(CONCAT LIBMATHEVAL_URL ${HTTP} ${LIBMATHEVAL_URL_SITE} ${LIBMATHEVAL_ARCHIVE_FILE})
 message(STATUS "LibMathEval ${LIBMATHEVAL_URL}")
+

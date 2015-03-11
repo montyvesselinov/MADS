@@ -76,10 +76,11 @@ endif()
 
 add_definitions(${GSL_CXX_FLAGS})
 # set(MADS_LIBS ${MADS_LIBS} lapack blas atlas cblas stdc++ gfortran refblas "-L/opt/local/lib" "-L/Users/monty/lib")
-set(MADS_LIBS ${MADS_LIBS} stdc++ gfortran "-L/opt/local/lib")
+set(MADS_LIBS ${MADS_LIBS} lapack blas cblas stdc++ gsl gfortran "-L/opt/local/lib" )
+# set(MADS_LIBS ${MADS_LIBS} stdc++ gfortran "-L/opt/local/lib")
 
-set(CMAKE_CXX_FLAGS "-Wall -O1 -Winit-self" )
-set(CMAKE_C_FLAGS "-Wall -O1 -Winit-self" )
+set(CMAKE_CXX_FLAGS "-Wall -O3 -Winit-self" )
+set(CMAKE_C_FLAGS "-Wall -O3 -Winit-self" )
 
 include(CheckLibraryExists)
 check_library_exists(dl dlopen "" LIBDL_FOUND)
@@ -122,9 +123,9 @@ message(STATUS "-------------------------------------------------------" )
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "-Wall -Winit-self" CACHE STRING "Default flags" FORCE)
-    SET(CMAKE_CXX_FLAGS_LIB "-O1 -fPIC" CACHE STRING "Lib flags" FORCE)
+    SET(CMAKE_CXX_FLAGS_LIB "-O3 -fPIC" CACHE STRING "Lib flags" FORCE)
     SET(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Debug flags" FORCE)
-    SET(CMAKE_CXX_FLAGS_RELEASE "-O1" CACHE STRING "Release flags" FORCE)
+    SET(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "Release flags" FORCE)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 # Enable ExternalProject CMake module

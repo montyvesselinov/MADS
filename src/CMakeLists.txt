@@ -6,10 +6,11 @@ add_custom_target( gitversion
     DEPENDS mads_gitversion.c )
 
 add_custom_command(TARGET gitversion
-    COMMAND echo 'const char *gitversion = \\"${VER}${GIT_STATUS}\\"\;' > mads_gitversion.c 
+    COMMAND echo 'const char *gitversion = \"${VER}${GIT_STATUS}\"\;' > mads_gitversion.c 
 	DEPENDS ../.git/HEAD ../.git/index )
 
-set( src_mads ./mads.c ./mads_io.c ./mads_io_external.c ./mads_func.c ./mads_mem.c ./mads_info.c lm/opt_lm_mon.c lm/opt_lm_gsl.c lm/lu.c lm/opt_lm_ch.c misc/test_problems.c misc/anasol_contamination.c misc/io.c lhs/lhs.c )
+set( src_mads ./mads.c ./mads_io.c ./mads_io_external.c ./mads_func.c
+	./mads_mem.c ./mads_info.c ./mads_gitversion.c lm/opt_lm_mon.c lm/opt_lm_gsl.c lm/lu.c lm/opt_lm_ch.c misc/test_problems.c misc/anasol_contamination.c misc/io.c lhs/lhs.c )
 set( src_pso pso/pso-tribes-lm.c pso/Standard_PSO_2006.c pso/mopso.c )
 set( src_sa sa/abagus.c sa/postpua.c sa/global.c sa/do_miser.c )
 set( src_ds ds/infogap.c ds/glue.c )

@@ -280,6 +280,7 @@ void Calc_Wells( struct Aquifer_Data ad, struct Well_Data *wd )
 		case LEAKY:            fp = Hantush; break;
 		case LEAKY_UNCONFINED: fp = Hantush_unc; break;
 	}
+	ca = sa = 0;
 	code1 = code2 = code3 = 0;
 	if( ad.co_x_axis != NO_BOUNDARY || ad.co_y_axis != NO_BOUNDARY )
 	{
@@ -338,6 +339,7 @@ void Calc_Points( struct Aquifer_Data ad, struct Well_Data *wd, struct Point_Dat
 		case LEAKY:            fp = Hantush; break;
 		case LEAKY_UNCONFINED: fp = Hantush_unc; break;
 	}
+	ca = sa = 0;
 	code1 = code2 = code3 = 0;
 	if( ad.co_x_axis != NO_BOUNDARY || ad.co_y_axis != NO_BOUNDARY )
 	{
@@ -402,6 +404,7 @@ void CalcSave_Points( char *fileName, struct Aquifer_Data ad, struct Well_Data *
 		case LEAKY:            fp = Hantush; break;
 		case LEAKY_UNCONFINED: fp = Hantush_unc; break;
 	}
+	ca = sa = 0;
 	code1 = code2 = code3 = 0;
 	if( ad.co_x_axis != NO_BOUNDARY || ad.co_y_axis != NO_BOUNDARY )
 	{
