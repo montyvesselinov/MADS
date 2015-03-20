@@ -29,65 +29,85 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include "../mads.h"
 
 char *dir_hosts( void *data, char *timedate_stamp )
 {
-	struct opt_data *p = ( struct opt_data * )data;
+	struct opt_data *p = ( struct opt_data * ) data;
 	char *dir;
 	dir = ( char * ) malloc( ( strlen( p->cd->mydir ) + strlen( p->root ) + strlen( timedate_stamp ) + 255 ) * sizeof( char ) );
 	sprintf( dir, "%s_%s_%s", p->cd->mydir, p->root, timedate_stamp );
-	return( dir );
+	return ( dir );
 }
 
 int create_mprun_dir( char *dir )
 {
 	char buf[1000];
-	int r;
-	sprintf( buf, "%s \"mkdir ../%s >& /dev/null\"", SHELL, dir );
-	r = system( buf );
-	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to create dir ../%s failed (%d)!\n", dir, r ); return( -1 ); }
-	sprintf( buf, "%s \"ln -s $PWD/* ../%s >& /dev/null\"", SHELL, dir );
-	r = system( buf );
-	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to link files in ../%s failed (%d)!\n", dir, r ); return( -1 ); }
-	return( 0 );
+	char buf2[1000];
+	char cwd[1000];
+	sprintf( buf, "../%s", dir );
+	mkdir( buf, S_IRWXU ); // mprun directory
+	DIR *dp;
+	struct dirent *ep;
+	getcwd( cwd, 1000 );
+	tprintf( "Working directory %s\n", cwd );
+	char *root_dot = strrchr( cwd, '/' );
+	char *mydir = &root_dot[1];
+	dp = opendir( "./" ); // working directory
+	if( dp != NULL )
+	{
+		while( ( ep = readdir( dp ) ) )
+		{
+			sprintf( buf, "../%s/%s", dir, ep->d_name );
+			sprintf( buf2, "../%s/%s", mydir, ep->d_name );
+			symlink( buf2, buf );
+		}
+		( void ) closedir( dp );
+	}
+	else
+		tprintf( "Couldn't open the working directory\n" );
+	return ( 0 );
 }
 
 int delete_mprun_dir( char *dir )
 {
 	char buf[1000];
-	int r;
-	sprintf( buf, "%s \"rm -fR ../%s >& /dev/null\"", SHELL, dir );
-	r = system( buf );
-	if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to delete dir ../%s failed (%d)!\n", dir, r ); return( -1 ); }
-	return( 0 );
+	sprintf( buf, "../%s", dir );
+	tprintf( "Delete directory %s\n", dir );
+	DIR *dp;
+	struct dirent *ep;
+	dp = opendir( buf );
+	if( dp != NULL )
+	{
+		while( ( ep = readdir( dp ) ) )
+		{
+			sprintf( buf, "../%s/%s", dir, ep->d_name );
+			unlink( buf );
+		}
+		( void ) closedir( dp );
+		sprintf( buf, "../%s", dir );
+		rmdir( buf );
+	}
+	else
+		tprintf( "Couldn't delete the directory %s\n", dir );
+	return ( 0 );
 }
 
 int create_mprun_dirs( int nDir, char **dirs )
 {
-	char buf[1000];
-	int i, r;
+	int i;
 	for( i = 0; i < nDir; i++ )
-	{
-		sprintf( buf, "%s \"mkdir ../%s  >& /dev/null\"", SHELL, dirs[i] );
-		r = system( buf );
-		if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call create dirs failed!\n" ); return( -1 ); }
-		sprintf( buf, "%s \"ln -s $cwd/* ../%s\"", SHELL, dirs[i] );
-		r = system( buf );
-		if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to link files failed!\n" ); return( -1 ); }
-	}
-	return( 0 );
+		create_mprun_dir( dirs[i] );
+	return ( 0 );
 }
 
 int delete_mprun_dirs( int nDir, char **dirs )
 {
-	char buf[1000];
-	int i, r;
+	int i;
 	for( i = 0; i < nDir; i++ )
-	{
-		sprintf( buf, "%s \"rm -fR ../%s >& /dev/null\"", SHELL, dirs[i] );
-		r = system( buf );
-		if( r == -1 || r == 127 ) {	tprintf( "ERROR: System call to delete dirs failed!\n" ); return( -1 ); }
-	}
-	return( 0 );
+		delete_mprun_dir( dirs[i] );
+	return ( 0 );
 }

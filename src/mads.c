@@ -482,7 +482,8 @@ int main( int argn, char *argv[] )
 	{
 		pid = getpid();
 		if( cd.debug ) tprintf( "Parent ID [%d]\n", pid );
-		cwd = getenv( "PWD" ); root_dot = strrchr( cwd, '/' );
+		cwd = getenv( "PWD" );
+		root_dot = strrchr( cwd, '/' );
 		cd.mydir = &root_dot[1];
 		if( cd.debug ) tprintf( "Working directory: %s (%s)\n", cwd, cd.mydir );
 		cd.mydir_hosts = dir_hosts( &op, op.datetime_stamp ); // Directories for parallel execution have unique name based on the execution time

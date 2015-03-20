@@ -764,7 +764,7 @@ int LEVMAR_DER2(
 			}
 			tprintf( "Parallel execution of %d lambda searches ...\n", op->cd->lm_num_parallel_lambda );
 			time_start = time( NULL );
-			func_set( op->cd->lm_num_parallel_lambda, param_matrix, phi_vector, obs_matrix, 0, ( FILE * ) NULL, adata );
+			func_set( op->cd->lm_num_parallel_lambda, param_matrix, phi_vector, obs_matrix, 0, ( FILE * ) mads_output, adata );
 			time_end = time( NULL );
 			tprintf( "Done.\n" );
 			time_elapsed = time_end - time_start;
