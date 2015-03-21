@@ -72,7 +72,7 @@
 #define AX_EQ_B_LU LM_ADD_PREFIX(Ax_eq_b_LU_noLapack)
 #endif /* HAVE_LAPACK */
 
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transform, FILE *out, struct opt_data *op ); // parallel lambda search
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ); // parallel lambda search
 
 /*
  * This function seeks the parameter vector p that best describes the measurements vector x.
@@ -764,7 +764,7 @@ int LEVMAR_DER2(
 			}
 			tprintf( "Parallel execution of %d lambda searches ...\n", op->cd->lm_num_parallel_lambda );
 			time_start = time( NULL );
-			func_set( op->cd->lm_num_parallel_lambda, param_matrix, phi_vector, obs_matrix, 0, ( FILE * ) mads_output, adata );
+			func_set( op->cd->lm_num_parallel_lambda, param_matrix, phi_vector, obs_matrix, ( FILE * ) mads_output, adata );
 			time_end = time( NULL );
 			tprintf( "Done.\n" );
 			time_elapsed = time_end - time_start;

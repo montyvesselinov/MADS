@@ -228,7 +228,7 @@ int main( int argn, char *argv[] )
 		if( ignore_running )
 		{
 			printf( "WARNING: Potentially another MADS run is currently performed for problem \'%s\' since file %s exists!\n", op.root, buf );
-			sprintf( buf, "rm -f %s.running", op.root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+			remove( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 		}
 		else
 		{
@@ -246,7 +246,6 @@ int main( int argn, char *argv[] )
 		printf( "ERROR: MADS input file \'%s\' does not exist.\n", filename );
 		exit( 0 );
 	}
-	sprintf( buf, "%s.running", op.root ); // File named root.running is used to prevent simultaneous execution of multiple problems
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
 	sprintf( filename2, "%s.mads_output", op.root );
 	if( Ftest( filename2 ) == 0 ) // If file already exists rename the output file ...
@@ -473,8 +472,7 @@ int main( int argn, char *argv[] )
 		in = Fread( "num_proc" );
 		fscanf( in, "%d", &k );
 		fclose( in );
-		sprintf( buf, "%s \"rm -f num_proc >& /dev/null\"", SHELL );
-		system( buf );
+		remove( "num_proc" );
 		tprintf( "Number of local processors available for parallel execution: %i\n", k );
 		if( k < cd.num_proc ) tprintf( "WARNING: Number of requested processors exceeds the available resources!\n" );
 	}
@@ -1123,7 +1121,7 @@ int main( int argn, char *argv[] )
 	ptr_ts = localtime( &time_end );
 	tprintf( "Execution completed on %s", asctime( ptr_ts ) );
 	tprintf( "Execution date & time stamp: %s\n", op.datetime_stamp );
-	sprintf( buf, "%s \"rm -f %s.running\"", SHELL, op.root ); system( buf );
+	sprintf( buf, "%s.running\"", op.root ); remove( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
 	free( cd.solution_id );
 	free( cd.solution_type );
@@ -3141,8 +3139,7 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 	{
 		strcpy( filename, fileroot );
 		strcat( filename, ".intermediate_results" );
-		sprintf( buf, "%s \"rm -f %s\"", SHELL, filename );
-		system( buf );
+		remove( filename );
 		strcpy( filename, fileroot );
 		strcat( filename, ".results" );
 	}
@@ -3187,8 +3184,7 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 		{
 			strcpy( filename, fileroot );
 			strcat( filename, ".intermediate_residuals" );
-			sprintf( buf, "%s \"rm -f %s\"", SHELL, filename );
-			system( buf );
+			remove( filename );
 			strcpy( filename, fileroot );
 			strcat( filename, ".residuals" );
 		}
@@ -3196,8 +3192,7 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 		{
 			strcpy( filename, fileroot );
 			strcat( filename, ".residuals" );
-			sprintf( buf, "%s \"rm -f %s\"", SHELL, filename );
-			system( buf );
+			remove( filename );
 			strcpy( filename, fileroot );
 			strcat( filename, ".intermediate_residuals" );
 			if( op->cd->debug ) tprintf( "Intermediate residuals stored (%s)\n", filename );
@@ -3272,6 +3267,6 @@ void mads_quits( char *root )
 	char buf[100];
 	buf[0] = 0;
 	tprintf( "MADS Quits!\n" );
-	sprintf( buf, "%s \"rm -f %s.running\"", SHELL, root ); system( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+	sprintf( buf, "%s.running\"", root ); remove( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 	exit( 0 );
 }

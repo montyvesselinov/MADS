@@ -56,6 +56,7 @@ int create_mprun_dir( char *dir )
 	tprintf( "Working directory %s\n", cwd );
 	char *root_dot = strrchr( cwd, '/' );
 	char *mydir = &root_dot[1];
+	tprintf( "Working directory %s\n", mydir );
 	dp = opendir( "./" ); // working directory
 	if( dp != NULL )
 	{
@@ -63,6 +64,7 @@ int create_mprun_dir( char *dir )
 		{
 			sprintf( buf, "../%s/%s", dir, ep->d_name );
 			sprintf( buf2, "../%s/%s", mydir, ep->d_name );
+			// tprintf( "Sym link %s\n", buf2 );
 			symlink( buf2, buf );
 		}
 		( void ) closedir( dp );

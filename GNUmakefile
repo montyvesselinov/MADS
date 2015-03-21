@@ -62,8 +62,8 @@ OUTPUT = > /dev/null
 # OUTPUT = mads-debug-output
 # OUTPUT =
 
-#CFLAGS += -fsanitize=address -fno-omit-frame-pointer
-#LDLIBS += -fsanitize=address -fno-omit-frame-pointer
+# CFLAGS += -fsanitize=address -fno-omit-frame-pointer
+# LDLIBS += -fsanitize=address -fno-omit-frame-pointer
 DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
 DBG = gdb --args
 DBG =
@@ -99,8 +99,8 @@ $(info Target  -- $(MAKECMDGOALS) $(OBJ_DIR))
 
 CC = gcc
 CXX = g++
-CFLAGS = -Wall -Winit-self
-LDLIBS = -lgsl -llapack -lstdc++
+CFLAGS += -Wall -Winit-self
+LDLIBS += -lgsl -llapack -lstdc++
 DYNAMICLIB = 
 
 ifeq ($(OS),Linux)

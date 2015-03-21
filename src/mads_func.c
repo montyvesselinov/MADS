@@ -47,7 +47,7 @@ int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
 void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data ); // Jacobian order: obs / param
 int func_dx( double *x, double *f_x, void *data, double *jacobian ); // Jacobian order: param / obs
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transform, FILE *out, struct opt_data *op );
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
 void Transform( double *v, void *data, double *vt );
@@ -70,8 +70,8 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 int create_mprun_dir( char *dir );
 int delete_mprun_dir( char *dir );
 int mprun( int nJob, void *data );
-int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[], FILE *out );
-int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[], FILE *out );
+int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[] );
+int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[] );
 int Ftestread( char *filename );
 time_t Fdatetime_t( char *filename, int debug );
 
@@ -321,8 +321,6 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
 	tprintf( "create dir %s\n", dir );
 	create_mprun_dir( dir ); // Create the child directory for parallel runs with link to the files in the working root directory
-	sprintf( buf, "%s \"cd ../%s; ls -altr\"", SHELL, dir ); // Check directory content
-	system( buf );
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
@@ -345,16 +343,12 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	{
 		if( p->ed->nins > 0 )
 		{
-			sprintf( buf, "%s \"cd ../%s; rm -f ", SHELL, dir ); // Delete expected output files in the hosts directories
+			if( p->cd->pardebug > 3 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
 			for( i = 0; i < p->ed->nins; i++ )
 			{
-				strcat( buf, p->ed->fn_obs[i] );
-				strcat( buf, " " );
+				sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] ); // Delete expected output files in the hosts directories
+				remove( buf );
 			}
-			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
-			else strcat( buf, "\"" );
-			if( p->cd->pardebug > 3 ) tprintf( "Delete the expected output files before execution (\'%s\')\n", buf );
-			system( buf );
 		}
 	}
 	else // Just in case; the restart file should have been already extracted
@@ -930,7 +924,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	free( jacobian );
 }
 
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transform, FILE *out, struct opt_data *op ) // TODO use this function for executions in general
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
 	int i, j, k, count, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
@@ -942,7 +936,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 		{
 			k = op->pd->var_index[i];
 			opt_params[i] = op->pd->var[k] = var_mat[count][i];
-			if( !transform )
+			if( op->cd->sintrans )
 				DeTransform( opt_params, op, opt_params );
 			tprintf( "%s %.12g\n", op->pd->var_name[k], opt_params[i] );
 		}
@@ -966,12 +960,10 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 					opt_params[i] = op->pd->var[k] = var_mat[count][i];
 				}
 				if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-				if( transform )
-					Transform( opt_params, op, opt_params );
 				func_extrn_write( ++ieval, opt_params, op );
 				if( op->cd->debug || op->cd->mdebug ) tprintf( "external model input file(s) generated ...\n" );
 				if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
-				if( transform && op->cd->mdebug )
+				if( op->cd->mdebug )
 				{
 					tprintf( "Parameter values:\n" );
 					for( i = 0; i < op->pd->nOptParam; i++ )
@@ -990,7 +982,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 				}
 			}
 		}
-		else if( mprunwrite( n_sub, op, var_mat, phi, f, out ) < 0 ) // Read all the files in parallel
+		else if( mprunwrite( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
 		{
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			return( 0 );
@@ -1044,7 +1036,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 						f[count][j] = op->od->res[j];
 			}
 		}
-		else if( mprunread( n_sub, op, var_mat, phi, f, out ) < 0 ) // Read all the files in parallel
+		else if( mprunread( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
 		{
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			return( 0 );
@@ -1063,8 +1055,6 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], int transf
 				opt_params[i] = op->pd->var[k] = var_mat[count][i];
 			}
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-			if( transform )
-				Transform( opt_params, op, opt_params );
 			func_global( opt_params, op, op->od->res );
 			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 			if( phi != NULL ) phi[count] = op->phi;

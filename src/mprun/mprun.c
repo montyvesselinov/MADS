@@ -52,7 +52,7 @@ void free_matrix( void **matrix, int maxCols );
 char *timestamp();
 int func_extrn_check_read( int ieval, void *data );
 
-int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[], FILE *out )
+int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[] )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	struct sigaction act;
@@ -149,7 +149,12 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 		if( rJob > nJob || nProc <= 0 )
 		{
 			tprintf( "ERROR: None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
-			free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
+			act.sa_handler = SIG_DFL; // Default handler
+			sigaction( SIGCHLD, &act, NULL );
+			free( opt_params );
+			free( ( void * ) kidids );
+			free( ( void * ) kidstatus );
+			free( ( void * ) kidattempt );
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
 			free_matrix( ( void ** ) rerundir, nProc );
@@ -232,7 +237,10 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 					sigsuspend( &act.sa_mask );
 				}
 				else
+				{
+					if( p->cd->pardebug > 2 ) tprintf( "All the jobs are done!\n" );
 					break;
+				}
 			}
 			for( j = 0; j < nHosts; ) if( kidstatus[j++] != 1 ) break; // find a kid with status != 1
 			if( j > nHosts )
@@ -362,25 +370,22 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 					tprintf( "skip_job %d\n", skip_job[w] );
 				*/
 				// TODO sleep below can be important; try to run without; if it fails, comment it out
-				// sleep( 1 );
+				struct timespec tspec, tspec2;
+				tspec.tv_sec = 0;
+				tspec.tv_nsec = 500L;
+				nanosleep( &tspec, &tspec2 );
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], pid, exec_name, dir );
 				if( p->cd->debug || p->cd->mdebug || p->cd->pardebug > 3 ) tprintf( "Parallel writing of the model output files for case %d ...\n", ieval + cJob );
-				int ii, debug_level;
+				int ii;
 				for( ii = 0; ii < p->pd->nOptParam; ii++ )
 				{
 					int kk = p->pd->var_index[ii];
 					opt_params[ii] = p->pd->var[kk] = var_mat[cJob - 1][ii];
 					tprintf( "%s %.12g\n", p->pd->var_name[kk], p->cd->var[kk] );
 				}
-				// if( p->cd->mdebug > 1 )
-				if( 1 ) { debug_level = p->cd->fdebug; p->cd->fdebug = 10; }
-				// if( transform )
-				tprintf( "Transform ...\n" );
-				// Transform( opt_params, p, opt_params );
-				p->cd->fdebug = debug_level;
 				func_extrn_write( ieval + cJob, opt_params, p );
 				exit( 7 );
 			}
@@ -411,19 +416,21 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 	for( w = 0; w < nJob; w++ )
 		tprintf( "skip_job %d\n", skip_job[w] );
 	*/
+	tprintf( "Done:\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 	act.sa_handler = SIG_DFL; // Default handler
 	sigaction( SIGCHLD, &act, NULL );
-	free( ( void * ) kidids );
-	free( ( void * ) kidstatus );
-	free( ( void * ) kidattempt );
-	free( skip_job );
-	free_matrix( ( void ** ) kiddir, nProc );
-	free_matrix( ( void ** ) rerundir, nProc );
-	if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
+	if( opt_params != NULL ) free( opt_params );
+	if( kidids != NULL ) free( ( void * ) kidids );
+	if( kidstatus != NULL ) free( ( void * ) kidstatus );
+	if( kidattempt != NULL ) free( ( void * ) kidattempt );
+	if( skip_job != NULL ) free( skip_job );
+	if( kiddir != NULL ) free_matrix( ( void ** ) kiddir, nProc );
+	if( rerundir != NULL ) free_matrix( ( void ** ) rerundir, nProc );
+	if( kidhost != NULL && type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
 	return( 1 );
 }
 
-int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[], FILE *out )
+int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[] )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	struct sigaction act;
@@ -518,6 +525,8 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 		if( rJob > nJob || nProc <= 0 )
 		{
 			tprintf( "ERROR: None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
+			act.sa_handler = SIG_DFL; // Default handler
+			sigaction( SIGCHLD, &act, NULL );
 			free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
@@ -601,7 +610,10 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 					sigsuspend( &act.sa_mask );
 				}
 				else
+				{
+					if( p->cd->pardebug > 2 ) tprintf( "All the jobs are done!\n" );
 					break;
+				}
 			}
 			for( j = 0; j < nHosts; ) if( kidstatus[j++] != 1 ) break; // find a kid with status != 1
 			if( j > nHosts )
@@ -732,7 +744,10 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 					tprintf( "skip_job %d\n", skip_job[w] );
 				*/
 				// TODO sleep below can be important; try to run without; if it fails, comment it out
-				// sleep( 1 );
+				struct timespec tspec, tspec2;
+				tspec.tv_sec = 0;
+				tspec.tv_nsec = 500L;
+				nanosleep( &tspec, &tspec2 );
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
@@ -784,6 +799,7 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 	for( w = 0; w < nJob; w++ )
 		tprintf( "skip_job %d\n", skip_job[w] );
 	*/
+	tprintf( "Done:\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 	act.sa_handler = SIG_DFL; // Default handler
 	sigaction( SIGCHLD, &act, NULL );
 	free( ( void * ) kidids );
@@ -893,6 +909,8 @@ int mprun( int nJob, void *data )
 		if( rJob > nJob || nProc <= 0 )
 		{
 			tprintf( "ERROR: None of the processors is responding properly! Parallel execution fails!\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
+			act.sa_handler = SIG_DFL; // Default handler
+			sigaction( SIGCHLD, &act, NULL );
 			free( ( void * ) kidids ); free( ( void * ) kidstatus ); free( ( void * ) kidattempt );
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
@@ -976,7 +994,10 @@ int mprun( int nJob, void *data )
 					sigsuspend( &act.sa_mask );
 				}
 				else
+				{
+					if( p->cd->pardebug > 2 ) tprintf( "All the jobs are done!\n" );
 					break;
+				}
 			}
 			for( j = 0; j < nHosts; ) if( kidstatus[j++] != 1 ) break; // find a kid with status != 1
 			if( j > nHosts )
@@ -1106,7 +1127,10 @@ int mprun( int nJob, void *data )
 					tprintf( "skip_job %d\n", skip_job[w] );
 				*/
 				// TODO sleep below can be important; try to run without; if it fails, comment it out
-				// sleep( 1 );
+				struct timespec tspec, tspec2;
+				tspec.tv_sec = 0;
+				tspec.tv_nsec = 500L;
+				nanosleep( &tspec, &tspec2 );
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
@@ -1143,6 +1167,7 @@ int mprun( int nJob, void *data )
 	for( w = 0; w < nJob; w++ )
 		tprintf( "skip_job %d\n", skip_job[w] );
 	*/
+	tprintf( "Done:\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 	act.sa_handler = SIG_DFL; // Default handler
 	sigaction( SIGCHLD, &act, NULL );
 	free( ( void * ) kidids );

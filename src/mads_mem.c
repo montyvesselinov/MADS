@@ -99,8 +99,10 @@ double **double_matrix( int maxCols, int maxRows )
 void free_matrix( void **matrix, int maxCols )
 {
 	int i;
+	if( matrix == NULL ) return;
 	for( i = 0; i < maxCols; i++ )
-		free( matrix[i] );
+		if( matrix[i] != NULL )
+			free( matrix[i] );
 	free( matrix );
 }
 

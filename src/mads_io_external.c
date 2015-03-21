@@ -706,9 +706,8 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 		tprintf( "\n\nERROR: File %s cannot be opened to read template data!\n", fn_in_t );
 		return( -1 );
 	}
-	sprintf( buf, "%s \"rm -f %s >& /dev/null\"", SHELL, fn_out );
-	if( debug ) tprintf( "Remove files for model inputs: %s\n", buf );
-	system( buf );
+	if( debug ) tprintf( "Remove files for model inputs: %s\n", fn_out );
+	remove( fn_out );
 	if( ( out = fopen( fn_out, "w" ) ) == NULL )
 	{
 		tprintf( "\n\nERROR: File %s cannot be opened to write data!\n", fn_out );
