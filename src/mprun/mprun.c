@@ -30,7 +30,7 @@
 #include <sys/wait.h>   /* header for waitpid() and various macros */
 #include <signal.h>     /* header for signal functions */
 #include <stdio.h>      /* header for fprintf() */
-#include <unistd.h>     /* header for fork() */
+#include <unistd.h>     /* header for vfork() */
 #include <strings.h>    /* header for strcpy() */
 #include <string.h>     /* header for strcpy() */
 #include <stdlib.h>     /* header for exit() and malloc() */
@@ -377,7 +377,7 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
-				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], pid, exec_name, dir );
+				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : writing in \'%s\'\n", child1, kidhost[child], pid, dir );
 				if( p->cd->debug || p->cd->mdebug || p->cd->pardebug > 3 ) tprintf( "Parallel writing of the model output files for case %d ...\n", ieval + cJob );
 				int ii;
 				for( ii = 0; ii < p->pd->nOptParam; ii++ )
@@ -387,6 +387,7 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 					tprintf( "%s %.12g\n", p->pd->var_name[kk], p->cd->var[kk] );
 				}
 				func_extrn_write( ieval + cJob, opt_params, p );
+				sleep( 1 );
 				exit( 7 );
 			}
 			if( return_fork > 0 )
@@ -751,8 +752,8 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
-				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], pid, exec_name, dir );
-				if( p->cd->debug || p->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
+				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : reading in \'%s\'\n", child1, kidhost[child], pid, dir );
+				if( p->cd->debug || p->cd->mdebug ) tprintf( "Parallel reading the model output files for case %d ... \n", ieval );
 				if( p->cd->pardebug > 3 )
 				{
 					tprintf( "iteration %d : ", ieval ); // counter
@@ -764,12 +765,13 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 						tprintf( "%s %.12g\n", p->pd->var_name[kk], var_mat[cJob - 1][ii] );
 					}
 				}
-				tprintf( "Reading the model output files for case %d ... \n", ieval );
 				if( func_extrn_read( ieval, p, p->od->res ) ) return( 0 );
+				if( p->cd->debug || p->cd->mdebug ) tprintf( "Parallel reading OF = %g for case %d ... \n", p->phi, ieval );
 				if( phi != NULL ) phi[cJob - 1] = p->phi;
 				if( f != NULL )
 					for( j = 0; j < p->od->nTObs; j++ )
 						f[cJob - 1][j] = p->od->res[j];
+				sleep( 1 );
 				exit( 7 );
 			}
 			if( return_fork > 0 )
