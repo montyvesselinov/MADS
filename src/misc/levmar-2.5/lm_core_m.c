@@ -73,7 +73,6 @@
 #endif /* HAVE_LAPACK */
 
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ); // parallel lambda search
-
 /*
  * This function seeks the parameter vector p that best describes the measurements vector x.
  * More precisely, given a vector function  func : R^m --> R^n with n>=m,
@@ -120,9 +119,7 @@ int LEVMAR_DER2(
 	 */
 	LM_REAL *work,     /* working memory at least LM_DER_WORKSZ() reals large, allocated if NULL */
 	LM_REAL *covar,    /* O: Covariance matrix corresponding to LS solution; mxm. Set to NULL if not needed. */
-	void *adata )       /* pointer to possibly additional data, passed uninterpreted to func & jacf.
-		 * Set to NULL if not needed
-		 */
+	void *adata )       /* pointer to possibly additional data, passed uninterpreted to func & jacf. Set to NULL if not needed */
 {
 	register int i, j, loop_count, l;
 	int worksz, freework = 0, issolved, issolved1 = 0, success, odebug, change, computejac, changejac, maxnfev;
@@ -215,7 +212,7 @@ int LEVMAR_DER2(
 	}
 	if( !work )
 	{
-		worksz = LM_DIF_WORKSZ( nP, nO ); //4*n+4*nP + n*m + m*m;
+		worksz = LM_DIF_WORKSZ( nP, nO ); // 4*n + 4*nP + n*m + m*m;
 		work = ( LM_REAL * )malloc( worksz * sizeof( LM_REAL ) ); /* allocate a big chunk in one step */
 		if( !work )
 		{

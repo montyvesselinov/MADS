@@ -236,6 +236,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	int w;
 	char *sep = " \t\n", *word;
 	cd->quit = 0;
+	cd->omp = false;
 	cd->opt_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->opt_method[0] = 0;
 	cd->smp_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->smp_method[0] = 0;
 	cd->paran_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->paran_method[0] = 0;
@@ -313,6 +314,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	for( word = strtok( buf, sep ); word; word = strtok( NULL, sep ) )
 	{
 		w = 0;
+		if( !strncasecmp( word, "omp", 5 ) ) { w = 1; cd->omp = true; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "quiet", 5 ) ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "q", 1 ) && strlen( word ) == 1 ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "force", 5 ) ) { w = 1; }; // processed in parse_cmd_init

@@ -55,7 +55,7 @@ void DeTransform( double *v, void *data, double *vt );
 /* Functions elsewhere */
 void Transform( double *v, void *data, double *vt );
 void DeTransform( double *v, void *data, double *vt );
-int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
+int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_t, char *fn_in_d, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 double test_problems( int D, int function, double *x, int nObs, double *o );
 double point_source( double x, double y, double z, double t, void *params );
@@ -157,24 +157,27 @@ int func_extrn( double *x, void *data, double *f )
 	sprintf( buf, "%s \"%s\"", SHELL, p->ed->cmdline );
 	system( buf );
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
-	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
+	int *obs_count;
+	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
+	for( i = 0; i < p->od->nObs; i++ ) obs_count[i] = -1;
 	for( i = 0; i < p->ed->nins; i++ )
-		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug ) == -1 )
+		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, obs_count, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug ) == -1 )
 			mads_quits( p->root );
 	for( i = 0; i < p->od->nObs; i++ )
 	{
-		if( p->od->res[i] < 0 )
+		if( obs_count[i] < 0 )
 		{
 			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
 		}
-		else if( p->od->res[i] > 1.5 )
+		else if( obs_count[i] > 1 )
 		{
 			if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug )
-				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
-			p->od->obs_current[i] /= p->od->res[i];
+				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], obs_count[i] );
+			p->od->obs_current[i] /= obs_count[i];
 		}
 	}
+	free( obs_count );
 	if( bad_data ) mads_quits( p->root );
 #ifdef MATHEVAL
 	// for( k = 0; k < p->rd->regul_nMap; k++ ) { tprintf( "%s %g\n", p->rd->regul_map_id[k], p->rd->regul_map_val[k] ); }
@@ -259,15 +262,15 @@ int func_extrn( double *x, void *data, double *f )
 int func_extrn_write( int ieval, double *x, void *data ) // Create a series of input files for parallel execution
 {
 	struct opt_data *p = ( struct opt_data * )data;
-	char buf[1000], dir[500];
+	char buf[1000], buf2[1000], dir[500];
 	int i, k;
-	DeTransform( x, p, p->pd->var_current );
+	DeTransform( x, p, x );
 	if( p->cd->fdebug >= 3 ) tprintf( "Optimized model parameters (%d; model run = %d):\n", p->pd->nOptParam, ieval );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
-		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, p->pd->var_current[i] );
-		else p->cd->var[k] = p->pd->var_current[i];
+		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, x[i] );
+		else p->cd->var[k] = x[i];
 		if( p->cd->fdebug >= 3 )
 			tprintf( "%s %.12g log %d\n", p->pd->var_name[k], p->cd->var[k], p->pd->var_log[k] );
 	}
@@ -324,7 +327,8 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
-		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
+		sprintf( buf2, "../%s/%s", dir, p->ed->fn_tpl[i] );
+		if( par_tpl( p->pd->nParam, p->pd->var_id, x, buf2, buf, p->cd->tpldebug ) == -1 )
 			mads_quits( p->root );
 	}
 	// Update model input files in zip restart files
@@ -395,28 +399,31 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 		sprintf( buf, "%s \"cd ../%s; ls -altr\"", SHELL, dir ); // Check directory content
 		system( buf );
 	}
+	int *obs_count;
+	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
 		if( Ftestread( buf ) == 1 ) { if( p->cd->pardebug ) tprintf( "File %s cannot be opened to read.", buf ); return( 0 ); }
-		else if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, 0 ) == -1 )
+		else if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, obs_count, p->ed->fn_ins[i], buf, 0 ) == -1 )
 			return( 0 );
 	}
 	bad_data = 0;
 	for( i = 0; i < p->od->nObs; i++ )
 	{
-		if( p->od->res[i] < 0 )
+		if( obs_count[i] < 0 )
 		{
 			if( p->cd->pardebug ) tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
 		}
-		else if( p->od->res[i] > 1.5 )
+		else if( obs_count[i] > 1 )
 		{
 			if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug || p->cd->pardebug )
-				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
-			p->od->obs_current[i] /= p->od->res[i];
+				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], obs_count[i] );
+			p->od->obs_current[i] /= obs_count[i];
 		}
 	}
+	free( obs_count );
 	if( bad_data ) return( 0 );
 	if( ( p->cd->time_infile - Fdatetime_t( buf, 0 ) ) > 0 )
 	{
@@ -429,32 +436,36 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 int func_extrn_read( int ieval, void *data, double *f ) // Read a series of output files after parallel execution
 {
 	struct opt_data *p = ( struct opt_data * )data;
-	char buf[1000], dir[500];
+	char buf[1000], buf2[1000], dir[500];
 	double c, t, w, min, max, dx, err, phi = 0.0;
 	int i, success, success_all = 1, bad_data;
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
+	int *obs_count;
+	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
+	bad_data = 0;
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
-		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
-			mads_quits( p->root );
+		sprintf( buf2, "../%s/%s", dir, p->ed->fn_ins[i] );
+		if( ins_obs( p->od->nObs, p->od->obs_id, f, obs_count, buf2, buf, p->cd->insdebug ) == -1 )
+			bad_data = 1;
 	}
-	bad_data = 0;
 	for( i = 0; i < p->od->nObs; i++ )
 	{
-		if( p->od->res[i] < 0 )
+		if( obs_count[i] < 0 )
 		{
 			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
 		}
-		else if( p->od->res[i] > 1.5 )
+		else if( obs_count[i] > 1 )
 		{
 			if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug )
-				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], ( int ) p->od->res[i] );
-			p->od->obs_current[i] /= p->od->res[i];
+				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], obs_count[i] );
+			f[i] /= obs_count[i];
 		}
 	}
+	free( obs_count );
 	if( bad_data ) return( bad_data );
 	if( p->cd->restart )
 	{
@@ -481,7 +492,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions (model run = %d):\n", ieval );
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
-		c = p->od->obs_current[i];
+		c = f[i];
 		t = p->od->obs_target[i];
 		w = p->od->obs_weight[i];
 		min = p->od->obs_min[i];
@@ -928,39 +939,29 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 {
 	int i, j, k, count, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
-	double *opt_params;
-	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	for( count = 0; count < n_sub; count++ )
-	{
-		for( i = 0; i < op->pd->nOptParam; i++ )
-		{
-			k = op->pd->var_index[i];
-			opt_params[i] = op->pd->var[k] = var_mat[count][i];
-			if( op->cd->sintrans )
-				DeTransform( opt_params, op, opt_params );
-			tprintf( "%s %.12g\n", op->pd->var_name[k], opt_params[i] );
-		}
-	}
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 ) // Parallel job
 	{
 		int ieval = op->cd->neval;
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
 		time_start = time( NULL );
-		if( op->cd->pardebug > 4 )
+		if( op->cd->pardebug > 4 || op->cd->omp )
 		{
+			#pragma omp parallel for private(count)
 			for( count = 0; count < n_sub; count++ ) // Write all the files
 			{
 				if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 				if( op->cd->mdebug ) tprintf( "\n" );
 				if( op->cd->debug || op->cd->mdebug )  tprintf( "Set #%d: ", count + 1 );
+				double *opt_params;
+				if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 				{
 					k = op->pd->var_index[i];
 					opt_params[i] = op->pd->var[k] = var_mat[count][i];
 				}
 				if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-				func_extrn_write( ++ieval, opt_params, op );
+				func_extrn_write( ieval + count + 1, opt_params, op );
 				if( op->cd->debug || op->cd->mdebug ) tprintf( "external model input file(s) generated ...\n" );
 				if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 				if( op->cd->mdebug )
@@ -981,6 +982,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 					fprintf( out, "\n" );
 				}
 			}
+			ieval += n_sub;
 		}
 		else if( mprunwrite( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
 		{
@@ -991,16 +993,17 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel lambda writing PT = %ld seconds\n", time_elapsed );
 		time_start = time_end;
-		if( op->cd->pardebug > 4 )
+		if( op->cd->pardebug > 4 || op->cd->omp )
 		{
 			ieval -= n_sub;
-			for( count = 0; count < n_sub; count ++ ) // Perform all the runs in serial model (for testing)
+			#pragma omp parallel for private(count)
+			for( count = 0; count < n_sub; count++ ) // Perform all the runs in serial model (for testing)
 			{
-				ieval++;
-				tprintf( "Execute model #%d ... ", ieval );
-				func_extrn_exec_serial( ieval, op );
+				tprintf( "Execute model #%d ... ", ieval + count + 1 );
+				func_extrn_exec_serial( ieval + count + 1, op );
 				tprintf( "done!\n" );
 			}
+			ieval += n_sub;
 		}
 		else if( mprun( n_sub, op ) < 0 ) // Perform all the runs in parallel
 		{
@@ -1011,16 +1014,19 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel lambda execution PT = %ld seconds\n", time_elapsed );
 		time_start = time_end;
-		if( op->cd->pardebug > 4 )
+		if( op->cd->pardebug > 4 || op->cd->omp )
 		{
 			ieval -= n_sub;
-			for( count = 0; count < n_sub; count ++ ) // Read all the files in serial
+			int read_error = 0;
+			#pragma omp parallel for private(count)
+			for( count = 0; count < n_sub; count++ ) // Read all the files in serial
 			{
+				double *opt_res;
+				if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 				if( op->cd->debug || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
-				ieval++;
 				if( out != NULL )
 				{
-					fprintf( out, "%d :\n", ieval ); // counter
+					fprintf( out, "%d :\n", ieval + count + 1 ); // counter
 					for( i = 0; i < op->pd->nOptParam; i++ ) // re
 					{
 						k = op->pd->var_index[i];
@@ -1029,12 +1035,18 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 					}
 					fflush( out );
 				}
-				if( func_extrn_read( ieval, op, op->od->res ) ) return( 0 );
-				if( phi != NULL ) phi[count] = op->phi;
-				if( f != NULL )
-					for( j = 0; j < op->od->nTObs; j++ )
-						f[count][j] = op->od->res[j];
+				if( func_extrn_read( ieval + count + 1, op, opt_res ) )
+					read_error = 1;
+				else
+				{
+					if( phi != NULL ) phi[count] = op->phi;
+					if( f != NULL )
+						for( j = 0; j < op->od->nTObs; j++ )
+							f[count][j] = opt_res[j];
+				}
 			}
+			ieval += n_sub;
+			if( read_error == 1 ) return( 0 );
 		}
 		else if( mprunread( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
 		{
@@ -1047,6 +1059,8 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 	}
 	else // Serial job
 	{
+		double *opt_params;
+		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		for( count = 0; count < n_sub; count++ )
 		{
 			for( i = 0; i < op->pd->nOptParam; i++ )

@@ -229,6 +229,8 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 			else
 			{
 				if( wait != 2 && p->cd->pardebug > 1 ) tprintf( "All the jobs are started!\n" );
+				int nKidsnewcount = 0; for( j = 0; j < nHosts; j++ ) if( kidstatus[j] == 1 && kidattempt[j] > 0 ) nKidsnewcount++;
+				if( nKidsnewcount != nKids ) { tprintf( "Kids count mismatch (%d != %d)\n", nKidsnewcount, nKids ); nKids = nKidsnewcount; }
 				if( nKids > 0 )
 				{
 					wait = 2;
@@ -355,13 +357,13 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 				strcpy( kiddir[child], dir );
 			}
 		}
-		if( p->cd->pardebug > 1 ) tprintf( " : \'%s\' in \'%s\'\n", exec_name, dir );
+		if( p->cd->pardebug > 1 ) tprintf( " : writing in \'%s\'\n", dir );
 		else if( p->cd->pardebug ) { if( nJob > 1 ) tprintf( " ...\n" ); else tprintf( " ... " ); }
 		if( refork )
 		{
 			if( kidhost[child][0] == 0 ) continue;
 			if( cJob > nJob ) continue;
-			if( ( return_fork = vfork() ) == 0 )
+			if( ( return_fork = fork() ) == 0 )
 			{
 				/*
 				for( w = 0; w < nProc; w++ )
@@ -376,7 +378,6 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 				nanosleep( &tspec, &tspec2 );
 				pid = getpid();
 				setpgid( pid, pid );
-				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : writing in \'%s\'\n", child1, kidhost[child], pid, dir );
 				if( p->cd->debug || p->cd->mdebug || p->cd->pardebug > 3 ) tprintf( "Parallel writing of the model output files for case %d ...\n", ieval + cJob );
 				int ii;
@@ -387,8 +388,9 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 					tprintf( "%s %.12g\n", p->pd->var_name[kk], p->cd->var[kk] );
 				}
 				func_extrn_write( ieval + cJob, opt_params, p );
-				sleep( 1 );
-				exit( 7 );
+				// execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", "sleep 4", ( char * ) 0 );
+				// sleep( 1 );
+				_exit( 7 );
 			}
 			if( return_fork > 0 )
 			{
@@ -405,7 +407,7 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 		else if( refresh )
 		{
 			strcpy( kiddir[child], dir );
-			tprintf( "Refreshed Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], kidids[child], exec_name, kiddir[child] );
+			tprintf( "Refreshed Process %i [%s:%d] : writing in \'%s\'\n", child1, kidhost[child], kidids[child], kiddir[child] );
 			sleep( 1 );
 			if( kidids[child] > 0 ) kill( kidids[child] * -1, SIGCONT );
 			else tprintf( "ERROR: something is wrong destroying process\n!" );
@@ -603,6 +605,8 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 			else
 			{
 				if( wait != 2 && p->cd->pardebug > 1 ) tprintf( "All the jobs are started!\n" );
+				int nKidsnewcount = 0; for( j = 0; j < nHosts; j++ ) if( kidstatus[j] == 1 && kidattempt[j] > 0 ) nKidsnewcount++;
+				if( nKidsnewcount != nKids ) { tprintf( "Kids count mismatch (%d != %d)\n", nKidsnewcount, nKids ); nKids = nKidsnewcount; }
 				if( nKids > 0 )
 				{
 					wait = 2;
@@ -729,14 +733,14 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 				strcpy( kiddir[child], dir );
 			}
 		}
-		if( p->cd->pardebug > 1 ) tprintf( " : \'%s\' in \'%s\'\n", exec_name, dir );
+		if( p->cd->pardebug > 1 ) tprintf( " : reading in \'%s\'\n", dir );
 		else if( p->cd->pardebug ) { if( nJob > 1 ) tprintf( " ...\n" ); else tprintf( " ... " ); }
 		if( refork )
 		{
 			if( kidhost[child][0] == 0 ) continue;
 			if( cJob > nJob ) continue;
 			ieval++;
-			if( ( return_fork = vfork() ) == 0 )
+			if( ( return_fork = fork() ) == 0 )
 			{
 				/*
 				for( w = 0; w < nProc; w++ )
@@ -751,7 +755,6 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 				nanosleep( &tspec, &tspec2 );
 				pid = getpid();
 				setpgid( pid, pid );
-				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : reading in \'%s\'\n", child1, kidhost[child], pid, dir );
 				if( p->cd->debug || p->cd->mdebug ) tprintf( "Parallel reading the model output files for case %d ... \n", ieval );
 				if( p->cd->pardebug > 3 )
@@ -771,8 +774,9 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 				if( f != NULL )
 					for( j = 0; j < p->od->nTObs; j++ )
 						f[cJob - 1][j] = p->od->res[j];
-				sleep( 1 );
-				exit( 7 );
+				// sleep( 1 );
+				// execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", "sleep 4", ( char * ) 0 );
+				_exit( 7 );
 			}
 			if( return_fork > 0 )
 			{
@@ -789,7 +793,7 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 		else if( refresh )
 		{
 			strcpy( kiddir[child], dir );
-			tprintf( "Refreshed Process %i [%s:%d] : \'%s\' in \'%s\'\n", child1, kidhost[child], kidids[child], exec_name, kiddir[child] );
+			tprintf( "Refreshed Process %i [%s:%d] : reading in \'%s\'\n", child1, kidhost[child], kidids[child], kiddir[child] );
 			sleep( 1 );
 			if( kidids[child] > 0 ) kill( kidids[child] * -1, SIGCONT );
 			else tprintf( "ERROR: something is wrong destroying process\n!" );
@@ -988,6 +992,8 @@ int mprun( int nJob, void *data )
 			else
 			{
 				if( wait != 2 && p->cd->pardebug > 1 ) tprintf( "All the jobs are started!\n" );
+				int nKidsnewcount = 0; for( j = 0; j < nHosts; j++ ) if( kidstatus[j] == 1 && kidattempt[j] > 0 ) nKidsnewcount++;
+				if( nKidsnewcount != nKids ) { tprintf( "Kids count mismatch (%d != %d)\n", nKidsnewcount, nKids ); nKids = nKidsnewcount; }
 				if( nKids > 0 )
 				{
 					wait = 2;
@@ -1043,7 +1049,7 @@ int mprun( int nJob, void *data )
 				refork = 1;  // refork; do not refresh
 				refresh = 0;
 				kidids[child] = 0;
-				if( kidattempt[child] == -1 ) { if( p->cd->pardebug > 1 ) tprintf( "Initializing " ); }
+				if( kidattempt[child] == -1 ) { if( p->cd->pardebug > 1 ) tprintf( "qizing " ); }
 				else                          { if( p->cd->pardebug > 1 ) tprintf( "finished; Starting " ); }
 				kidattempt[child] = 1;
 			}
@@ -1140,7 +1146,7 @@ int mprun( int nJob, void *data )
 				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-				exit( 7 );
+				_exit( 7 );
 			}
 			if( return_fork > 0 )
 			{

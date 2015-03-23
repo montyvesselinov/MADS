@@ -35,6 +35,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <stdbool.h>
+#include <omp.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -64,6 +66,8 @@ int quiet = 0;
 FILE *mads_output;
 int quiet;
 #endif
+
+#define iswhite(c) ((c)== ' ' || (c)=='\t' || (c)=='\n' || (c)=='\r' )
 
 #define COMPARE_EPSILON pow( FLT_EPSILON, (double) 1/2 ) // EPSILON FOR BOUND COMPARISON
 
@@ -95,6 +99,7 @@ struct opt_data // TODO class MADS (in C++)
 struct calc_data // calculation parameters; TODO some of the flags can be boolean type
 {
 	int quit;
+	bool omp; // OpenMP parallelization
 	int ioml; // YAML/XML input / output format
 	int problem_type; // problem type: forward, calibration, ...
 	int analysis_type; // calibration type: simple, igpd, ...
@@ -408,8 +413,8 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 void compute_btc( char *filename, struct opt_data *op );
 // mads_io_external.c
 int load_pst( char *filename, struct opt_data *op );
-int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
-int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
+int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_t, int debug );
+int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_t, char *fn_in_d, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 //io.c

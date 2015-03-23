@@ -44,8 +44,8 @@
 
 /* Functions here */
 int load_pst( char *filename, struct opt_data *op );
-int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
-int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_t, char *fn_in_d, int debug );
+int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_t, int debug );
+int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_t, char *fn_in_d, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 /* Functions elsewhere */
@@ -204,7 +204,7 @@ int load_pst( char *filename, struct opt_data *op )
 	return( 1 );
 }
 
-int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int debug )
+int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_i, int debug )
 {
 	FILE *infile_inst;
 	char *separator = " \t\n";
@@ -218,7 +218,8 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	}
 	fgets( buf_inst, 1000, infile_inst );
 	if( debug ) tprintf( "\nFirst instruction line: %s\n", buf_inst );
-	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
+	pnt_inst = &buf_inst[0];
+	for( c = 0, word_inst = strtok_r( buf_inst, separator, &pnt_inst ); word_inst; c++, word_inst = strtok_r( NULL, separator, &pnt_inst ), pnt_inst )
 	{
 		if( c == 0 ) // first entry
 		{
@@ -291,7 +292,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	}
 	while( !feof( infile_inst ) ) // IMPORTANT: strtok below modifies buf_inst by adding '\0's; if needed strcpy buf_inst
 	{
-		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of instruction file (%s).\n", buf_inst ); break; }
+		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) tprintf( "END of instruction file.\n" ); break; }
 		pnt_inst = &buf_inst[0];
 		word_inst = 0;
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
@@ -342,7 +343,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 						{
 							if( check[i] < 0 ) { check[i] = 1; }
 							else { check[i] += 1; }
-							if( debug ) tprintf( "\'%s\' detected %g times\n", obs_id[i], check[i] );
+							if( debug ) tprintf( "\'%s\' detected %d times\n", obs_id[i], check[i] );
 							break;
 						}
 					}
@@ -373,7 +374,7 @@ int check_ins_obs( int nobs, char **obs_id, double *check, char *fn_in_i, int de
 	else return( 0 );
 }
 
-int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i, char *fn_in_d, int debug )
+int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_i, char *fn_in_d, int debug )
 {
 	FILE *infile_inst, *infile_data;
 	char *separator = " \t\n";
@@ -393,7 +394,8 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	if( debug ) tprintf( "\nReading output file \'%s\' obtained from external model execution using instruction file \'%s\'.\n", fn_in_d, fn_in_i );
 	fgets( buf_inst, 1000, infile_inst );
 	if( debug > 1 ) tprintf( "First instruction line: %s\n", buf_inst );
-	for( c = 0, word_inst = strtok( buf_inst, separator ); word_inst; c++, word_inst = strtok( NULL, separator ) )
+	pnt_inst = &buf_inst[0];
+	for( c = 0, word_inst = strtok_r( buf_inst, separator, &pnt_inst ); word_inst; c++, word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 	{
 		if( c == 0 ) // first entry
 		{
@@ -465,7 +467,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 	buf_data[0] = 0; word_data = NULL;
 	while( !feof( infile_inst ) )
 	{
-		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of instruction file (%s).\n", buf_inst ); break; }
+		if( fgets( buf_inst, 1000, infile_inst ) == NULL ) { if( debug > 1 ) tprintf( "END of instruction file.\n" ); break; }
 		pnt_inst = &buf_inst[0];
 		word_inst = 0;
 		white_trim( pnt_inst ); white_skip( &pnt_inst );
@@ -487,7 +489,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 		}
 		if( pnt_data == NULL ) // if there was no "l" (skip line) command, read the next "data" line
 		{
-			if( debug > 1 ) tprintf( "No \'l\' (skip line) command, read the next \'data\'line\n" );
+			if( debug > 1 ) tprintf( "Read the next \'data\' line (there was no \'l\' (skip line) command)\n" );
 			fgets( buf_data, 1000, infile_data );
 			white_trim( buf_data );
 			pnt_data = &buf_data[0];
@@ -540,7 +542,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				else if( word_inst[0] == 'w' ) // white space
 				{
 					if( debug > 1 ) tprintf( "Skip white space!\n" );
-					if( pnt_data[0] != ' ' )
+					if( !iswhite( pnt_data[0] ) )
 					{
 						if( word_data == NULL ) word_data = strtok_r( NULL, separator, &pnt_data );
 						word_data = strtok_r( NULL, separator, &pnt_data );
@@ -553,6 +555,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 				}
 				else if( word_inst[0] == token_obs[0] ) // observation variable
 				{
+					if( debug ) tprintf( "Observation variable\n" );
 					c++;
 					if( word_data == NULL || c > 1 ) word_data = strtok_r( NULL, separator, &pnt_data );
 					if( strlen( word_inst ) == 1 ) word_inst = strtok_r( NULL, separator, &pnt_inst );
@@ -565,7 +568,7 @@ int ins_obs( int nobs, char **obs_id, double *obs, double *check, char *fn_in_i,
 					if( debug ) tprintf( "Observation keyword \'%s\' & data field \'%s\' ... ", word_inst, word_data );
 					if( word_data == NULL || strlen( word_data ) == 0 )
 					{
-						tprintf( "\nERROR: Mismatch between the instruction file \'%s\' and the data file \'%s\'!\n", fn_in_i, fn_in_d );
+						tprintf( "ERROR: Mismatch between the instruction file \'%s\' and the data file \'%s\'!\n", fn_in_i, fn_in_d );
 						tprintf( "INSTRUCTION word \'%s\'\n", word_inst );
 						tprintf( "Current location in instruction input file: => \'%s\' <= \'%s\'\n", word_inst, pnt_inst );
 						tprintf( "Current location in model output file: => \'%s\' <= \'%s\'\n", word_data, pnt_data );
@@ -614,7 +617,7 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 {
 	FILE *in;
 	char *sep = " \t\n"; // White spaces
-	char *word, token[2], buf[1000];
+	char *word, token[2], buf[1000], *pnt_inst;
 	int i, l, c, start = 0, bad_data = 0;
 	if( ( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
@@ -623,7 +626,8 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 	}
 	if( debug ) tprintf( "\nChecking the template file \'%s\'.\n", fn_in_t );
 	fgets( buf, 1000, in );
-	for( c = 0, word = strtok( buf, sep ); word; c++, word = strtok( NULL, sep ) )
+	pnt_inst = &buf[0];
+	for( c = 0, word = strtok_r( buf, sep, &pnt_inst ); word; c++, word = strtok_r( NULL, sep, &pnt_inst ) )
 	{
 		if( c == 0 ) // first entry
 		{
@@ -658,11 +662,12 @@ int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debu
 	if( debug ) tprintf( "Parameter separator: %s\n", token );
 	while( !feof( in ) )
 	{
-		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of template file (%s).\n", buf ); break; }
+		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) tprintf( "END of template file.\n" ); break; }
 		l = strlen( buf );
 		buf[l - 1] = 0;
 		if( buf[0] == token[0] ) start = 0; else start = 1;
-		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
+		pnt_inst = &buf[0];
+		for( c = 0, word = strtok_r( buf, token, &pnt_inst ); word; c++, word = strtok_r( NULL, token, &pnt_inst ) ) // separation between the tokens is expected; e.g. space # b  #"
 		{
 //			tprintf( "%d %s\n", c, word );
 			if( c % 2 == start )
@@ -699,7 +704,8 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 {
 	FILE *in, *out;
 	char *sep = " \t\n";
-	char *word, token[2], number[80], buf[1000];
+	char *word, token[2], number[80], buf[1000], *pnt_inst;
+	word = ( char * ) malloc( 1000 * sizeof( char ) );
 	int i, l, l2, c, start, space = 0, bad_data = 0, preserve;
 	if( ( in = fopen( fn_in_t, "r" ) ) == NULL )
 	{
@@ -715,7 +721,8 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	}
 	if( debug ) tprintf( "\nCreating model input file \'%s\' for external model execution using template file \'%s\'.\n", fn_out, fn_in_t );
 	fgets( buf, 1000, in );
-	for( c = 0, word = strtok( buf, sep ); word; c++, word = strtok( NULL, sep ) )
+	pnt_inst = &buf[0];
+	for( c = 0, word = strtok_r( buf, sep, &pnt_inst ); word; c++, word = strtok_r( NULL, sep, &pnt_inst ) )
 	{
 		if( c == 0 ) // first entry
 		{
@@ -750,12 +757,13 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 	if( debug > 1 ) tprintf( "Parameter separator: %s\n", token );
 	while( !feof( in ) )
 	{
-		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) tprintf( "\nEND of template file (%s).\n", buf ); break; }
+		if( fgets( buf, 1000, in ) == NULL ) { if( debug > 1 ) tprintf( "END of template file.\n" ); break; }
 		l = strlen( buf );
 		buf[l - 1] = 0; // remove 'new line' character
 		if( buf[0] == token[0] ) start = 0; else start = 1; // if first character is a token it will be not considered a separator
 		space = 0;
-		for( c = 0, word = strtok( buf, token ); word; c++, word = strtok( NULL, token ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
+		pnt_inst = &buf[0];
+		for( c = 0, word = strtok_r( buf, token, &pnt_inst ); word; c++, word = strtok_r( NULL, token, &pnt_inst ) ) // separation between the tokens is expected; e.g. "# a   # space # b  #"
 		{
 			if( c % 2 == start )
 			{
@@ -781,7 +789,7 @@ int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, 
 							sprintf( number, "%.15g", par[i] );
 						if( space ) fprintf( out, " %s", number );
 						else { space = 0; fprintf( out, "%s", number ); } // TODO originally was space = 1
-						if( debug ) tprintf( "replaced with \'%s\'\n", number );
+						if( debug ) tprintf( "is replaced with \'%s\'\n", number );
 						break;
 					}
 				}

@@ -121,7 +121,7 @@ char *Fdatetime( char *filename, int debug );
 time_t Fdatetime_t( char *filename, int debug );
 int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2 );
 // External IO
-int check_ins_obs( int nobs, char **obs_id, double *obs, char *fn_in_t, int debug );
+int check_ins_obs( int nobs, char **obs_id, int *obs, char *fn_in_t, int debug );
 int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
 // Random sampling
 double epsilon();
@@ -514,22 +514,25 @@ int main( int argn, char *argv[] )
 		if( ed.nins <= 0 ) { tprintf( "ERROR: No instruction file(s)!\n" ); bad_data = 1; }
 		else tprintf( "Checking the instruction files for errors ...\n" );
 		if( bad_data ) mads_quits( op.root );
-		for( i = 0; i < od.nObs; i++ ) od.obs_current[i] = ( double ) - 1;
+		int *obs_count;
+		obs_count = ( int * ) malloc( od.nObs * sizeof( int ) );
+		for( i = 0; i < od.nObs; i++ ) obs_count[i] = -1;
 		for( i = 0; i < ed.nins; i++ )
-			if( check_ins_obs( od.nObs, od.obs_id, od.obs_current, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
+			if( check_ins_obs( od.nObs, od.obs_id, obs_count, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
 				bad_data = 1;
 		for( i = 0; i < od.nObs; i++ )
 		{
-			if( od.obs_current[i] < 0 )
+			if( obs_count[i] < 0 )
 			{
 				tprintf( "ERROR: Observation \'%s\' is not defined in the instruction file(s)!\n", od.obs_id[i] );
 				bad_data = 1;
 			}
-			else if( od.obs_current[i] > 1.5 )
-				tprintf( "WARNING: Observation \'%s\' is defined more than once (%d times) in the instruction file(s)! Arithmetic average will be computed!\n", od.obs_id[i], ( int ) od.obs_current[i] );
+			else if( obs_count[i] > 1 )
+				tprintf( "WARNING: Observation \'%s\' is defined more than once (%d times) in the instruction file(s)! Arithmetic average will be computed!\n", od.obs_id[i], obs_count[i] );
 		}
+		free( obs_count );
 		if( !bad_data ) tprintf( "Instruction files are ok.\n" );
-		if( bad_data ) mads_quits( op.root );
+		else mads_quits( op.root );
 		if( cd.sintrans ) { if( cd.sindx < DBL_EPSILON ) cd.sindx = 0.1; else if( cd.sindx < 1e-3 ) tprintf( "WARNING: sindx (%g) is potentially too small for external problems; consider increasing sindx (add sindx=1e-2)\n", cd.sindx ); }
 		else { if( cd.lindx < DBL_EPSILON ) cd.lindx = 0.01; }
 	}
@@ -1908,18 +1911,21 @@ int check( struct opt_data *op )
 	for( i = 0; i < p->ed->ntpl; i++ )
 		if( par_tpl( p->pd->nParam, p->pd->var_id, p->cd->var, p->ed->fn_tpl[i], p->ed->fn_out[i], p->cd->tpldebug + 1 ) == -1 )
 			bad_data = 1;
-	for( i = 0; i < p->od->nTObs; i++ ) p->od->obs_current[i] = p->od->res[i] = 0;
+	int *obs_count;
+	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
+	for( i = 0; i < p->od->nTObs; i++ ) { p->od->obs_current[i] = 0; obs_count[i] = -1; }
 	for( i = 0; i < p->ed->nins; i++ )
-		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, p->od->res, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug + 1 ) == -1 )
+		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, obs_count, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug + 1 ) == -1 )
 			bad_data = 1;
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
-		if( p->od->res[i] < 0 )
+		if( obs_count[i] < 0 )
 		{
 			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
 		}
 	}
+	free( obs_count );
 	if( bad_data ) return( 0 );
 	return( 1 );
 }
