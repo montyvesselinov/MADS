@@ -341,8 +341,7 @@ int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_i, int debug
 					{
 						if( strcmp( word_inst, obs_id[i] ) == 0 )
 						{
-							if( check[i] < 0 ) { check[i] = 1; }
-							else { check[i] += 1; }
+							check[i]++;
 							if( debug ) tprintf( "\'%s\' detected %d times\n", obs_id[i], check[i] );
 							break;
 						}
@@ -580,9 +579,9 @@ int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_i, ch
 						if( strcmp( word_inst, obs_id[i] ) == 0 )
 						{
 							sscanf( word_data, "%lf", &v );
-							if( check[i] < 0 ) { obs[i] = v; check[i] = 1; }
-							else { obs[i] += v; check[i] += 1; }
-							if( debug ) tprintf( "\'%s\'=%g\n", obs_id[i], obs[i] );
+							if( check[i] == 0 ) { obs[i] = v; check[i] = 1; }
+							else { obs[i] += v; check[i]++; }
+							if( debug ) tprintf( "\'%s\'=%d\n", obs_id[i], obs[i] );
 							break;
 						}
 					}

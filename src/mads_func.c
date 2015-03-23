@@ -159,13 +159,13 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	int *obs_count;
 	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
-	for( i = 0; i < p->od->nObs; i++ ) obs_count[i] = -1;
+	for( i = 0; i < p->od->nObs; i++ ) obs_count[i] = 0;
 	for( i = 0; i < p->ed->nins; i++ )
 		if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, obs_count, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug ) == -1 )
-			mads_quits( p->root );
+			bad_data = 1;
 	for( i = 0; i < p->od->nObs; i++ )
 	{
-		if( obs_count[i] < 0 )
+		if( obs_count[i] == 0 )
 		{
 			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
@@ -262,7 +262,7 @@ int func_extrn( double *x, void *data, double *f )
 int func_extrn_write( int ieval, double *x, void *data ) // Create a series of input files for parallel execution
 {
 	struct opt_data *p = ( struct opt_data * )data;
-	char buf[1000], buf2[1000], dir[500];
+	char buf[1000], dir[500];
 	int i, k;
 	DeTransform( x, p, x );
 	if( p->cd->fdebug >= 3 ) tprintf( "Optimized model parameters (%d; model run = %d):\n", p->pd->nOptParam, ieval );
@@ -327,9 +327,8 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
-		sprintf( buf2, "../%s/%s", dir, p->ed->fn_tpl[i] );
-		if( par_tpl( p->pd->nParam, p->pd->var_id, x, buf2, buf, p->cd->tpldebug ) == -1 )
-			mads_quits( p->root );
+		if( par_tpl( p->pd->nParam, p->pd->var_id, x, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
+			return( 0 );
 	}
 	// Update model input files in zip restart files
 	if( p->cd->restart )
@@ -436,7 +435,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 int func_extrn_read( int ieval, void *data, double *f ) // Read a series of output files after parallel execution
 {
 	struct opt_data *p = ( struct opt_data * )data;
-	char buf[1000], buf2[1000], dir[500];
+	char buf[1000], dir[500];
 	double c, t, w, min, max, dx, err, phi = 0.0;
 	int i, success, success_all = 1, bad_data;
 	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
@@ -447,8 +446,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
-		sprintf( buf2, "../%s/%s", dir, p->ed->fn_ins[i] );
-		if( ins_obs( p->od->nObs, p->od->obs_id, f, obs_count, buf2, buf, p->cd->insdebug ) == -1 )
+		if( ins_obs( p->od->nObs, p->od->obs_id, f, obs_count, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
 			bad_data = 1;
 	}
 	for( i = 0; i < p->od->nObs; i++ )
@@ -1039,10 +1037,16 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 					read_error = 1;
 				else
 				{
-					if( phi != NULL ) phi[count] = op->phi;
 					if( f != NULL )
+					{
+						double lphi = 0;
 						for( j = 0; j < op->od->nTObs; j++ )
+						{
 							f[count][j] = opt_res[j];
+							lphi += opt_res[j] * opt_res[j];
+						}
+						if( phi != NULL ) phi[count] = lphi;
+					}
 				}
 			}
 			ieval += n_sub;
