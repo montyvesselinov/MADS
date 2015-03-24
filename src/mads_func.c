@@ -263,14 +263,16 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
-	int i, k;
-	DeTransform( x, p, x );
+	int i, k, bad_data;
+	double *opt_params;
+	if( ( opt_params = ( double * ) malloc( p->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" ); // needed for parallel runs
+	DeTransform( x, p, opt_params );
 	if( p->cd->fdebug >= 3 ) tprintf( "Optimized model parameters (%d; model run = %d):\n", p->pd->nOptParam, ieval );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
-		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, x[i] );
-		else p->cd->var[k] = x[i];
+		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, opt_params[i] );
+		else p->cd->var[k] = opt_params[i];
 		if( p->cd->fdebug >= 3 )
 			tprintf( "%s %.12g log %d\n", p->pd->var_name[k], p->cd->var[k], p->pd->var_log[k] );
 	}
@@ -322,14 +324,15 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		if( p->cd->pardebug > 3 ) tprintf( "Delete the expected output files before execution ...\n" );
 	}
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
-	tprintf( "create dir %s\n", dir );
 	create_mprun_dir( dir ); // Create the child directory for parallel runs with link to the files in the working root directory
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
-		if( par_tpl( p->pd->nParam, p->pd->var_id, x, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
-			return( 0 );
+		if( par_tpl( p->pd->nParam, p->pd->var_id, opt_params, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
+			bad_data = 1;
 	}
+	free( opt_params );
+	if( bad_data ) return( 0 );
 	// Update model input files in zip restart files
 	if( p->cd->restart )
 	{
@@ -391,7 +394,6 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
 	int i, bad_data;
-	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	if( p->cd->pardebug > 2 )
 	{
@@ -400,6 +402,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	}
 	int *obs_count;
 	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
+	for( i = 0; i < p->od->nObs; i++ ) obs_count[i] = 0;
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
@@ -410,7 +413,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	bad_data = 0;
 	for( i = 0; i < p->od->nObs; i++ )
 	{
-		if( obs_count[i] < 0 )
+		if( obs_count[i] == 0 )
 		{
 			if( p->cd->pardebug ) tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
@@ -438,10 +441,10 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	char buf[1000], dir[500];
 	double c, t, w, min, max, dx, err, phi = 0.0;
 	int i, success, success_all = 1, bad_data;
-	for( i = 0; i < p->od->nObs; i++ ) p->od->res[i] = -1;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	int *obs_count;
 	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
+	for( i = 0; i < p->od->nObs; i++ ) obs_count[i] = 0;
 	bad_data = 0;
 	for( i = 0; i < p->ed->nins; i++ )
 	{
@@ -451,7 +454,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	}
 	for( i = 0; i < p->od->nObs; i++ )
 	{
-		if( obs_count[i] < 0 )
+		if( obs_count[i] == 0 )
 		{
 			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;
@@ -491,6 +494,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		c = f[i];
+		p->od->obs_current[i] = c;
 		t = p->od->obs_target[i];
 		w = p->od->obs_weight[i];
 		min = p->od->obs_min[i];
@@ -943,55 +947,52 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
 		time_start = time( NULL );
-		if( op->cd->pardebug > 4 || op->cd->omp )
+		#pragma omp parallel for private(count)
+		for( count = 0; count < n_sub; count++ ) // Write all the files
 		{
-			#pragma omp parallel for private(count)
-			for( count = 0; count < n_sub; count++ ) // Write all the files
+			if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
+			if( op->cd->mdebug ) tprintf( "\n" );
+			if( op->cd->debug || op->cd->mdebug )  tprintf( "Set #%d: ", count + 1 );
+			double *opt_params;
+			if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
+			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
-				if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
-				if( op->cd->mdebug ) tprintf( "\n" );
-				if( op->cd->debug || op->cd->mdebug )  tprintf( "Set #%d: ", count + 1 );
-				double *opt_params;
-				if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
-				for( i = 0; i < op->pd->nOptParam; i++ )
-				{
-					k = op->pd->var_index[i];
-					opt_params[i] = op->pd->var[k] = var_mat[count][i];
-				}
-				if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-				func_extrn_write( ieval + count + 1, opt_params, op );
-				if( op->cd->debug || op->cd->mdebug ) tprintf( "external model input file(s) generated ...\n" );
-				if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
-				if( op->cd->mdebug )
-				{
-					tprintf( "Parameter values:\n" );
-					for( i = 0; i < op->pd->nOptParam; i++ )
-						if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
-						else tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );
-				}
-				if( out != NULL )
-				{
-					for( i = 0; i < op->pd->nParam; i++ )
-						if( op->pd->var_opt[i] >= 1 )
-						{
-							if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
-							else fprintf( out, " %.15g", op->pd->var[i] );
-						}
-					fprintf( out, "\n" );
-				}
+				k = op->pd->var_index[i];
+				opt_params[i] = op->pd->var[k] = var_mat[count][i];
 			}
-			ieval += n_sub;
+			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+			func_extrn_write( ieval + count + 1, opt_params, op );
+			if( op->cd->debug || op->cd->mdebug ) tprintf( "external model input file(s) generated ...\n" );
+			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
+			if( op->cd->mdebug )
+			{
+				tprintf( "Parameter values:\n" );
+				for( i = 0; i < op->pd->nOptParam; i++ )
+					if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
+					else tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );
+			}
+			if( out != NULL )
+			{
+				for( i = 0; i < op->pd->nParam; i++ )
+					if( op->pd->var_opt[i] >= 1 )
+					{
+						if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
+						else fprintf( out, " %.15g", op->pd->var[i] );
+					}
+				fprintf( out, "\n" );
+			}
 		}
-		else if( mprunwrite( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
-		{
-			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
-			return( 0 );
-		}
+		ieval += n_sub;
+		// else if( mprunwrite( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
+		//{
+		//	tprintf( "ERROR: there is a problem with the parallel execution!\n" );
+		//	return( 0 );
+		//}
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel lambda writing PT = %ld seconds\n", time_elapsed );
 		time_start = time_end;
-		if( op->cd->pardebug > 4 || op->cd->omp )
+		if( op->cd->pardebug > 9 || op->cd->omp )
 		{
 			ieval -= n_sub;
 			#pragma omp parallel for private(count)
@@ -1012,51 +1013,48 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel lambda execution PT = %ld seconds\n", time_elapsed );
 		time_start = time_end;
-		if( op->cd->pardebug > 4 || op->cd->omp )
+		ieval -= n_sub;
+		int read_error = 0;
+		#pragma omp parallel for private(count)
+		for( count = 0; count < n_sub; count++ ) // Read all the files in serial
 		{
-			ieval -= n_sub;
-			int read_error = 0;
-			#pragma omp parallel for private(count)
-			for( count = 0; count < n_sub; count++ ) // Read all the files in serial
+			double *opt_res;
+			if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
+			if( op->cd->debug || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
+			if( out != NULL )
 			{
-				double *opt_res;
-				if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
-				if( op->cd->debug || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
-				if( out != NULL )
+				fprintf( out, "%d :\n", ieval + count + 1 ); // counter
+				for( i = 0; i < op->pd->nOptParam; i++ ) // re
 				{
-					fprintf( out, "%d :\n", ieval + count + 1 ); // counter
-					for( i = 0; i < op->pd->nOptParam; i++ ) // re
-					{
-						k = op->pd->var_index[i];
-						op->pd->var[k] = var_mat[count][i];
-						fprintf( out, "%s %.12g\n", op->pd->var_name[k], op->pd->var[k] );
-					}
-					fflush( out );
+					k = op->pd->var_index[i];
+					op->pd->var[k] = var_mat[count][i];
+					fprintf( out, "%s %.12g\n", op->pd->var_name[k], op->pd->var[k] );
 				}
-				if( func_extrn_read( ieval + count + 1, op, opt_res ) )
-					read_error = 1;
-				else
+				fflush( out );
+			}
+			if( func_extrn_read( ieval + count + 1, op, opt_res ) )
+				read_error = 1;
+			else
+			{
+				if( f != NULL )
 				{
-					if( f != NULL )
+					double lphi = 0;
+					for( j = 0; j < op->od->nTObs; j++ )
 					{
-						double lphi = 0;
-						for( j = 0; j < op->od->nTObs; j++ )
-						{
-							f[count][j] = opt_res[j];
-							lphi += opt_res[j] * opt_res[j];
-						}
-						if( phi != NULL ) phi[count] = lphi;
+						f[count][j] = opt_res[j];
+						lphi += opt_res[j] * opt_res[j];
 					}
+					if( phi != NULL ) phi[count] = lphi;
 				}
 			}
-			ieval += n_sub;
-			if( read_error == 1 ) return( 0 );
 		}
-		else if( mprunread( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
-		{
-			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
-			return( 0 );
-		}
+		ieval += n_sub;
+		if( read_error == 1 ) return( 0 );
+		// else if( mprunread( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
+		// {
+		//	tprintf( "ERROR: there is a problem with the parallel execution!\n" );
+		//	return( 0 );
+		//}
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel lambda reading PT = %ld seconds\n", time_elapsed );
@@ -1304,10 +1302,7 @@ void DeTransform( double *v, void *data, double *vt )
 	int i, k;
 	if( p->cd->sintrans == 0 )
 		for( i = 0; i < p->pd->nOptParam; i++ )
-		{
 			vt[i] = v[i];
-			// tprintf( "detrans %s %g -> %g\n", p->pd->var_id[p->pd->var_index[i]], v[i], vt[i] );
-		}
 	else
 		for( i = 0; i < p->pd->nOptParam; i++ )
 		{

@@ -419,7 +419,6 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 	for( w = 0; w < nJob; w++ )
 		tprintf( "skip_job %d\n", skip_job[w] );
 	*/
-	tprintf( "Done:\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 	act.sa_handler = SIG_DFL; // Default handler
 	sigaction( SIGCHLD, &act, NULL );
 	if( opt_params != NULL ) free( opt_params );
@@ -805,7 +804,6 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 	for( w = 0; w < nJob; w++ )
 		tprintf( "skip_job %d\n", skip_job[w] );
 	*/
-	tprintf( "Done:\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 	act.sa_handler = SIG_DFL; // Default handler
 	sigaction( SIGCHLD, &act, NULL );
 	free( ( void * ) kidids );
@@ -1175,7 +1173,6 @@ int mprun( int nJob, void *data )
 	for( w = 0; w < nJob; w++ )
 		tprintf( "skip_job %d\n", skip_job[w] );
 	*/
-	tprintf( "Done:\nrJob = %d nJob = %d nProc = %d\n", rJob, nJob, nProc );
 	act.sa_handler = SIG_DFL; // Default handler
 	sigaction( SIGCHLD, &act, NULL );
 	free( ( void * ) kidids );

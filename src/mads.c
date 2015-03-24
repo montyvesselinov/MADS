@@ -516,13 +516,13 @@ int main( int argn, char *argv[] )
 		if( bad_data ) mads_quits( op.root );
 		int *obs_count;
 		obs_count = ( int * ) malloc( od.nObs * sizeof( int ) );
-		for( i = 0; i < od.nObs; i++ ) obs_count[i] = -1;
+		for( i = 0; i < od.nObs; i++ ) obs_count[i] = 0;
 		for( i = 0; i < ed.nins; i++ )
 			if( check_ins_obs( od.nObs, od.obs_id, obs_count, ed.fn_ins[i], cd.insdebug ) == -1 ) // Check instruction files.
 				bad_data = 1;
 		for( i = 0; i < od.nObs; i++ )
 		{
-			if( obs_count[i] < 0 )
+			if( obs_count[i] == 0 )
 			{
 				tprintf( "ERROR: Observation \'%s\' is not defined in the instruction file(s)!\n", od.obs_id[i] );
 				bad_data = 1;
@@ -1509,7 +1509,7 @@ int optimize_lm( struct opt_data *op )
 				op->od->res[i] = op->od->obs_best[i];
 	}
 	if( ( op->cd->lm_eigen || op->cd->ldebug || op->cd->debug ) && standalone && op->cd->analysis_type == SIMPLE ) // Eigen analysis
-		if( eigen( op, op->od->res, gsl_jacobian, NULL ) == 0 ) //TODO replace op->od->res with op->od->obs_best
+		if( eigen( op, op->od->res, gsl_jacobian, NULL ) == 0 ) // TODO replace op->od->res with op->od->obs_best
 			return( 0 );
 	if( !debug && standalone && op->cd->analysis_type == SIMPLE ) tprintf( "\n" );
 	if( op->cd->paranoid ) free( var_lhs );
@@ -1913,13 +1913,13 @@ int check( struct opt_data *op )
 			bad_data = 1;
 	int *obs_count;
 	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
-	for( i = 0; i < p->od->nTObs; i++ ) { p->od->obs_current[i] = 0; obs_count[i] = -1; }
+	for( i = 0; i < p->od->nTObs; i++ ) { p->od->obs_current[i] = 0; obs_count[i] = 0; }
 	for( i = 0; i < p->ed->nins; i++ )
 		if( ins_obs( p->od->nTObs, p->od->obs_id, p->od->obs_current, obs_count, p->ed->fn_ins[i], p->ed->fn_obs[i], p->cd->insdebug + 1 ) == -1 )
 			bad_data = 1;
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
-		if( obs_count[i] < 0 )
+		if( obs_count[i] == 0 )
 		{
 			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
 			bad_data = 1;

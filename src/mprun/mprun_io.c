@@ -53,10 +53,10 @@ int create_mprun_dir( char *dir )
 	DIR *dp;
 	struct dirent *ep;
 	getcwd( cwd, 1000 );
-	tprintf( "Working directory %s\n", cwd );
+	// tprintf( "Working directory %s\n", cwd );
 	char *root_dot = strrchr( cwd, '/' );
 	char *mydir = &root_dot[1];
-	tprintf( "Working directory %s\n", mydir );
+	// tprintf( "Working directory %s\n", mydir );
 	dp = opendir( "./" ); // working directory
 	if( dp != NULL )
 	{
@@ -78,7 +78,7 @@ int delete_mprun_dir( char *dir )
 {
 	char buf[1000];
 	sprintf( buf, "../%s", dir );
-	tprintf( "Delete directory %s\n", dir );
+	// tprintf( "Delete directory %s\n", dir );
 	DIR *dp;
 	struct dirent *ep;
 	dp = opendir( buf );
