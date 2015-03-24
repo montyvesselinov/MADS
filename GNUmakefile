@@ -688,7 +688,7 @@ verify-external-short2: mads wells
 	@echo "TEST 7: DONE"
 	@echo "$(NO_COLOR)"
 
-verify-parallel: mads wells
+verify-parallel: mads wells verify-parallel-sa
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Parallel execution of external problems "
@@ -793,7 +793,9 @@ verify-forward: mads
 	@echo "**************************************************************************************"
 	@echo "$(NO_COLOR)"
 
-verify-sa: mads wells
+verify-sa: mads wells verify-serial-sa verify-parallel-sa
+
+verify-serial-sa: mads wells
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo " Sensitivity analyses "
@@ -807,14 +809,23 @@ verify-sa: mads wells
 	@$(CMP) $(EXAMPLES)/sa/a01.sobol_sens_index $(EXAMPLES)/sa/a01.sobol_sens_index-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/sa/a01.sobol_sens_total $(EXAMPLES)/sa/a01.sobol_sens_total-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 10.2: Sobol external analysis  ..."
+	@echo "TEST 10.2: Sobol external analysis ..."
 	rm -f $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running
 	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
 	@echo "$(NO_COLOR)"
-	@echo "TEST 10.2: Sobol external analysis  ..."
+
+verify-parallel-sa: mads wells
+	@echo "TEST 10.3: Parallel execution of Sobol external analysis ..."
+	rm -f $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running $(EXAMPLES)/wells-short/w01.restart*
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 np=2 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
+	@echo "$(NO_COLOR)"
+	@echo "TEST 10.4: OpenMP parallel execution of Sobol external analysis  ..."
 	rm -f $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running $(EXAMPLES)/wells-short/w01.restart*
 	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 np=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"

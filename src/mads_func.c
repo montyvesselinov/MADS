@@ -49,6 +49,7 @@ void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void 
 int func_dx( double *x, double *f_x, void *data, double *jacobian ); // Jacobian order: param / obs
 int func_dx_omp( double *x, double *f_x, void *data, double *jacobian );
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
+int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
 void Transform( double *v, void *data, double *vt );
@@ -266,8 +267,13 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	char buf[1000], dir[500];
 	int i, k, bad_data;
 	double *opt_params;
-	if( ( opt_params = ( double * ) malloc( p->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" ); // needed for parallel runs
-	DeTransform( x, p, opt_params );
+	if( p->cd->sintrans )
+	{
+		if( ( opt_params = ( double * ) malloc( p->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" ); // needed for parallel runs
+		DeTransform( x, p, opt_params );
+	}
+	else
+		opt_params = x;
 	if( p->cd->fdebug >= 3 ) tprintf( "Optimized model parameters (%d; model run = %d):\n", p->pd->nOptParam, ieval );
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
@@ -943,6 +949,8 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 && op->cd->omp ) // OpenMP Parallel job
+		return( func_set_omp( n_sub, var_mat, phi, f, out, op ) );
 	int i, j, k, count, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 ) // Parallel job
@@ -951,7 +959,6 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
 		time_start = time( NULL );
-		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Write all the files
 		{
 			if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
@@ -996,10 +1003,9 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel lambda writing PT = %ld seconds\n", time_elapsed );
 		time_start = time_end;
-		if( op->cd->pardebug > 9 || op->cd->omp )
+		if( op->cd->pardebug > 9 )
 		{
 			ieval -= n_sub;
-			#pragma omp parallel for private(count)
 			for( count = 0; count < n_sub; count++ ) // Perform all the runs in serial model (for testing)
 			{
 				tprintf( "Execute model #%d ... ", ieval + count + 1 );
@@ -1019,7 +1025,6 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		time_start = time_end;
 		ieval -= n_sub;
 		int read_error = 0;
-		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Read all the files in serial
 		{
 			double *opt_res;
@@ -1096,6 +1101,85 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 	}
 	return( 1 );
 }
+
+int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
+{
+	int i, j, k, count, bad_data = 0, debug_level = 0;
+	time_t time_start, time_end, time_elapsed;
+	int ieval = op->cd->neval;
+	if( op->cd->debug || op->cd->mdebug ) tprintf( "OpenMP Parallel execution of external jobs ...\n" );
+	time_start = time( NULL );
+	#pragma omp parallel for private(count)
+	for( count = 0; count < n_sub; count++ ) // Write all the files
+	{
+		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
+		if( op->cd->mdebug ) tprintf( "\n" );
+		if( op->cd->debug || op->cd->mdebug )  tprintf( "Set #%d: ", count + 1 );
+		double *opt_params;
+		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
+		for( i = 0; i < op->pd->nOptParam; i++ )
+		{
+			k = op->pd->var_index[i];
+			opt_params[i] = op->pd->var[k] = var_mat[count][i];
+		}
+		if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+		func_extrn_write( ieval + count + 1, opt_params, op );
+		if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
+		if( op->cd->mdebug )
+		{
+			tprintf( "Parameter values:\n" );
+			for( i = 0; i < op->pd->nOptParam; i++ )
+				if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
+				else tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );
+		}
+		if( out != NULL )
+		{
+			for( i = 0; i < op->pd->nParam; i++ )
+				if( op->pd->var_opt[i] >= 1 )
+				{
+					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
+					else fprintf( out, " %.15g", op->pd->var[i] );
+				}
+			fprintf( out, "\n" );
+		}
+		func_extrn_exec_serial( ieval + count + 1, op );
+		double *opt_res;
+		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
+		if( out != NULL )
+		{
+			fprintf( out, "%d :\n", ieval + count + 1 ); // counter
+			for( i = 0; i < op->pd->nOptParam; i++ ) // re
+			{
+				k = op->pd->var_index[i];
+				op->pd->var[k] = var_mat[count][i];
+				fprintf( out, "%s %.12g\n", op->pd->var_name[k], op->pd->var[k] );
+			}
+			fflush( out );
+		}
+		if( func_extrn_read( ieval + count + 1, op, opt_res ) )
+			bad_data = 1;
+		else
+		{
+			if( f != NULL )
+			{
+				double lphi = 0;
+				for( j = 0; j < op->od->nTObs; j++ )
+				{
+					f[count][j] = opt_res[j];
+					lphi += opt_res[j] * opt_res[j];
+				}
+				if( phi != NULL ) phi[count] = lphi;
+			}
+		}
+	}
+	ieval += n_sub;
+	time_end = time( NULL );
+	time_elapsed = time_end - time_start;
+	if( op->cd->tdebug ) tprintf( "OpenMP Parallel execution PT = %ld seconds\n", time_elapsed );
+	if( bad_data ) return( 0 );
+	return( 1 );
+}
+
 
 int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
 {
@@ -1216,7 +1300,7 @@ int func_dx_omp( double *x, double *f_x, void *data, double *jacobian ) /* Compu
 	time_elapsed = time_end - time_start;
 	if( p->cd->tdebug ) tprintf( "Parallel jacobian writing PT = %ld seconds\n", time_elapsed );
 	time_start = time_end;
-	func_set( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, mads_output, p );
+	func_set_omp( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, mads_output, p );
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
 	if( p->cd->tdebug ) tprintf( "Parallel jacobian execution PT = %ld seconds\n", time_elapsed );
