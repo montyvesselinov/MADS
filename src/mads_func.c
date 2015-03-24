@@ -47,6 +47,7 @@ int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
 void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data ); // Jacobian order: obs / param
 int func_dx( double *x, double *f_x, void *data, double *jacobian ); // Jacobian order: param / obs
+int func_dx_omp( double *x, double *f_x, void *data, double *jacobian );
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
@@ -930,7 +931,10 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	double *jacobian;
 	int i, j, k;
 	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); mads_quits( p->root ); }
-	func_dx( x, f, data, jacobian );
+	if( p->cd->omp )
+		func_dx_omp( x, f, data, jacobian );
+	else
+		func_dx( x, f, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
 		for( i = 0; i < p->od->nTObs; i++, k++ )
 			jac[i * p->pd->nOptParam + j] = jacobian[k]; // order: obs / param
@@ -1099,9 +1103,8 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	double *f_xpdx;
 	double x_old, dx;
 	time_t time_start, time_end, time_elapsed;
-	int i, j, k, old, compute_center = 0, bad_data = 0, ieval;
-	if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
-	old = p->cd->compute_phi;
+	int i, j, k, old_phi, compute_center = 0, bad_data = 0, ieval;
+	old_phi = p->cd->compute_phi;
 	p->cd->compute_phi = 0;
 	if( p->cd->num_proc > 1 && p->cd->solution_type[0] == EXTERNAL ) // Parallel execution of external runs
 	{
@@ -1113,10 +1116,10 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_extrn_write( ++ieval, x, data );
 		}
-		for( k = j = 0; j < p->pd->nOptParam; j++ )
+		for( j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
-			if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
 			func_extrn_write( ++ieval, x, data );
@@ -1138,14 +1141,16 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		ieval -= ( p->pd->nOptParam + compute_center );
 		time_start = time_end;
 		if( compute_center ) func_extrn_read( ++ieval, data, f_x );
+		if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			bad_data = func_extrn_read( ++ieval, data, f_xpdx );
 			if( bad_data ) mads_quits( p->root );
-			if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
 		}
+		free( f_xpdx );
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
 		if( p->cd->tdebug ) tprintf( "Parallel jacobian reading PT = %ld seconds\n", time_elapsed );
@@ -1159,20 +1164,78 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			{ tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_global( x, data, f_x );
 		}
+		if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
-			if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
 			func_global( x, data, f_xpdx );
 			x[j] = x_old;
 			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
 		}
+		free( f_xpdx );
 	}
 	if( compute_center ) free( f_x );
-	free( f_xpdx );
-	p->cd->compute_phi = old;
+	p->cd->compute_phi = old_phi;
+	return GSL_SUCCESS;
+}
+
+int func_dx_omp( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
+{
+	struct opt_data *p = ( struct opt_data * )data;
+	double **par_mat, **obs_mat;
+	double x_old, dx;
+	time_t time_start, time_end, time_elapsed;
+	int i, j, k, old_phi, compute_center = 0, ieval;
+	old_phi = p->cd->compute_phi;
+	p->cd->compute_phi = 0;
+	time_start = time( NULL );
+	ieval = p->cd->neval;
+	if( ( par_mat = double_matrix( p->pd->nOptParam + compute_center, p->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( obs_mat = double_matrix( p->pd->nOptParam + compute_center, p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( f_x == NULL ) // Model predictions for x are not provided; need to compute
+	{
+		compute_center = 1;
+		for( k = 0; k < p->pd->nOptParam; k++ )
+			par_mat[0][k] = x[k];
+	}
+	for( j = 0; j < p->pd->nOptParam; j++ )
+	{
+		x_old = x[j];
+		if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+		else dx = p->cd->sindx;
+		x[j] += dx;
+		if( p->cd->omp )
+			for( k = 0; k < p->pd->nOptParam; k++ )
+				par_mat[compute_center + j][k] = x[k];
+		x[j] = x_old;
+	}
+	time_end = time( NULL );
+	time_elapsed = time_end - time_start;
+	if( p->cd->tdebug ) tprintf( "Parallel jacobian writing PT = %ld seconds\n", time_elapsed );
+	time_start = time_end;
+	func_set( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, mads_output, p );
+	time_end = time( NULL );
+	time_elapsed = time_end - time_start;
+	if( p->cd->tdebug ) tprintf( "Parallel jacobian execution PT = %ld seconds\n", time_elapsed );
+	if( compute_center ) f_x = obs_mat[0];
+	ieval -= ( p->pd->nOptParam + compute_center );
+	time_start = time_end;
+	for( k = j = 0; j < ( compute_center + p->pd->nOptParam ) ; j++ )
+	{
+		if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+		else dx = p->cd->sindx;
+		for( i = 0; i < p->od->nTObs; i++, k++ )
+			jacobian[k] = ( obs_mat[j][i] - f_x[i] ) / dx;
+	}
+	time_end = time( NULL );
+	time_elapsed = time_end - time_start;
+	if( p->cd->tdebug ) tprintf( "Parallel jacobian reading PT = %ld seconds\n", time_elapsed );
+	free_matrix( ( void ** ) par_mat, compute_center + p->pd->nOptParam );
+	free_matrix( ( void ** ) obs_mat, compute_center + p->pd->nOptParam );
+	p->cd->compute_phi = old_phi;
 	return GSL_SUCCESS;
 }
 

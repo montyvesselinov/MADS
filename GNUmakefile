@@ -707,6 +707,12 @@ verify-parallel: mads wells
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "TEST 8.3: OpenMP parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
+	rm -f $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel np=2 eval=10 omp $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
+	@echo "$(NO_COLOR)"
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 8: DONE"

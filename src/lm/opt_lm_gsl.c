@@ -202,7 +202,7 @@ int func_gsl_dx( const gsl_vector *x, void *data, gsl_matrix *jacobian ) /* Simp
 	for( j = 0; j < p->pd->nOptParam; j++ )
 	{
 		x_old = gsl_vector_get( x_c, j );
-		if( p->cd->sintrans < DBL_EPSILON ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
+		if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 		else dx = p->cd->sindx;
 		gsl_vector_set( x_c, j, x_old + dx );
 		func_gsl( x_c, data, f_xpdx );
