@@ -219,7 +219,7 @@ int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_i, int debug
 	fgets( buf_inst, 1000, infile_inst );
 	if( debug ) tprintf( "\nFirst instruction line: %s\n", buf_inst );
 	pnt_inst = &buf_inst[0];
-	for( c = 0, word_inst = strtok_r( buf_inst, separator, &pnt_inst ); word_inst; c++, word_inst = strtok_r( NULL, separator, &pnt_inst ), pnt_inst )
+	for( c = 0, word_inst = strtok_r( buf_inst, separator, &pnt_inst ); word_inst; c++, word_inst = strtok_r( NULL, separator, &pnt_inst ) )
 	{
 		if( c == 0 ) // first entry
 		{

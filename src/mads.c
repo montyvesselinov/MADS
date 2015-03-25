@@ -282,7 +282,7 @@ int main( int argn, char *argv[] )
 	op.label = ( char * ) malloc( 10 * sizeof( char ) ); op.label[0] = 0;
 	tprintf( "MADS: Model Analyses & Decision Support (v.%s) 2013\n", version_id );
 	tprintf( "---------------------------------------------------\n" );
-	tprintf( "Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com\nhttp://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
+	tprintf( "http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads\n\n" );
 	if( cd.debug > 1 )
 		for( i = 1; i < argn; i++ )
 			tprintf( "Argument[%d]: %s\n", i, argv[i] );
@@ -382,7 +382,20 @@ int main( int argn, char *argv[] )
 	 */
 	cd.paral_hosts = NULL;
 	hostlist = NULL;
-	if( ( nodelist = getenv( "SLURM_NTASKS" ) ) != NULL )
+	if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
+	{
+		cd.omp = 1;
+		if( cd.debug ) tprintf( "\nOpenMP Parallel environment is detected (environmental variable OMP_NUM_THREADS is defined)\n" );
+		if( cd.num_proc <= 0 )
+			sscanf( nodelist, "%d", &cd.num_proc );
+		else
+		{
+			sprintf( buf, "%d", cd.num_proc );
+			setenv( "OMP_NUM_THREADS", buf, 1 );
+		}
+		if( cd.debug ) tprintf( "Number of processors %d\n", cd.num_proc );
+	}
+	else if( ( nodelist = getenv( "SLURM_NTASKS" ) ) != NULL )
 	{
 		cd.parallel_type = 2;
 		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NTASKS is defined)\n" );
@@ -445,7 +458,9 @@ int main( int argn, char *argv[] )
 	else if( cd.num_proc > 0 && cd.parallel_type != 2 )
 	{
 		cd.parallel_type = 0;
-		tprintf( "\nLocal parallel execution is requested using %d processors (np=%d)\n", cd.num_proc, cd.num_proc );
+		if( cd.omp ) tprintf( "\nOpenMP");
+		else tprintf( "\nLocal");
+		tprintf( " parallel execution using %d processors (use np=%d to change)\n", cd.num_proc, cd.num_proc );
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
 		{
 			tprintf( "OS type: %s\n", cwd );
@@ -467,7 +482,6 @@ int main( int argn, char *argv[] )
 				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", SHELL ); // LINUX
 			}
 		}
-		// tprintf( buf );
 		system( buf );
 		in = Fread( "num_proc" );
 		fscanf( in, "%d", &k );
