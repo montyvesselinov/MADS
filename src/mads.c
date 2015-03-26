@@ -382,17 +382,28 @@ int main( int argn, char *argv[] )
 	 */
 	cd.paral_hosts = NULL;
 	hostlist = NULL;
-	if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
+	if( cd.omp )
+	{
+		int nProcessors = omp_get_max_threads();
+		if( cd.debug ) tprintf( "\nOpenMP Parallel run (max treads %d)\n", nProcessors );
+		if( cd.num_proc <= 0 ) cd.num_proc = nProcessors;
+		if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
+			omp_set_num_threads( cd.num_proc );
+		else
+		{
+			sscanf( nodelist, "%d", &cd.num_proc );
+			omp_set_num_threads( cd.num_proc );
+		}
+		if( cd.debug ) tprintf( "Number of processors %d\n", cd.num_proc );
+	}
+	else if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
 	{
 		cd.omp = 1;
 		if( cd.debug ) tprintf( "\nOpenMP Parallel environment is detected (environmental variable OMP_NUM_THREADS is defined)\n" );
 		if( cd.num_proc <= 0 )
 			sscanf( nodelist, "%d", &cd.num_proc );
 		else
-		{
-			sprintf( buf, "%d", cd.num_proc );
-			setenv( "OMP_NUM_THREADS", buf, 1 );
-		}
+			omp_set_num_threads( cd.num_proc );
 		if( cd.debug ) tprintf( "Number of processors %d\n", cd.num_proc );
 	}
 	else if( ( nodelist = getenv( "SLURM_NTASKS" ) ) != NULL )
@@ -458,8 +469,8 @@ int main( int argn, char *argv[] )
 	else if( cd.num_proc > 0 && cd.parallel_type != 2 )
 	{
 		cd.parallel_type = 0;
-		if( cd.omp ) tprintf( "\nOpenMP");
-		else tprintf( "\nLocal");
+		if( cd.omp ) tprintf( "\nOpenMP" );
+		else tprintf( "\nLocal" );
 		tprintf( " parallel execution using %d processors (use np=%d to change)\n", cd.num_proc, cd.num_proc );
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
 		{

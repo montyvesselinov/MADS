@@ -648,6 +648,8 @@ verify-external-short: mads wells
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01_yaml.results $(EXAMPLES)/wells-short/w01_yaml.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
+
+verify-xml: mads wells
 	@echo "TEST 6.6: Problem $(EXAMPLES)/wells-short/w01 (XML input format) ..."
 	rm -f $(EXAMPLES)/wells-short/w01_xml.results $(EXAMPLES)/wells-short/w01_xml.running
 	cd $(EXAMPLES)/wells-short; ln -sf w01-v1.inst w01.inst; $(DBG) ../../$(MADS) w01_xml $(OUTPUT)
@@ -827,7 +829,7 @@ verify-parallel-sa: mads wells
 	@echo "$(NO_COLOR)"
 	@echo "TEST 10.4: OpenMP parallel execution of Sobol external analysis  ..."
 	rm -f $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running $(EXAMPLES)/wells-short/w01.restart*
-	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 np=2 $(OUTPUT)
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 np=2 omp $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
@@ -841,11 +843,12 @@ compare-os:
 	./compare-results-os Linux Darwin
 
 clean-examples:
-	find . -name "*.mads_output_*" -print0 | xargs -0 rm
 	rm -f $(EXAMPLES)/*/*.ppsd_*.results $(EXAMPLES)/*/*.igpd_*.results $(EXAMPLES)/*/*igrnd-0000* $(EXAMPLES)/*/*.igrnd_*.results $(EXAMPLES)/*/*.restart_*.zip $(EXAMPLES)/*/*.restart_info $(EXAMPLES)/*/*.running $(EXAMPLES)/*/*-rerun.mads $(EXAMPLES)/*/*-error.mads
 	rm -fR $(EXAMPLES)/wells-short_w01_*
 	rm -fR $(EXAMPLES)/wells-short_w01parallel*
+	rm -fR $(EXAMPLES)/wells-short/zi*
 	rm -f *.mads_output* *.running *.cmdline *.cmdline_hist
+	find . -name "*.mads_output_*" -print0 | xargs -0 rm
 
 astyle:
 	astyle $(SOURCESTYLE)

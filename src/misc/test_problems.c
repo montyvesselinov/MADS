@@ -57,7 +57,7 @@ int set_test_problems( struct opt_data *op )
 	cd->test_func_npar = cd->test_func_dim;
 	switch( cd->test_func )
 	{
-		// All the 2D problems -- 2 parameters fixed
+			// All the 2D problems -- 2 parameters fixed
 		case 9:
 		case 10:
 		case 20:
@@ -66,7 +66,7 @@ int set_test_problems( struct opt_data *op )
 		case 35:
 			cd->test_func_npar = cd->test_func_dim = 2;
 			break;
-		// Fitting problems
+			// Fitting problems
 		case 40: cd->test_func_npar = 2; break; // 2 parameters fixed
 		case 41: cd->test_func_npar = 4; break; // 2 parameters fixed
 		case 42: cd->test_func_npar = 2; break; // 2 parameters fixed

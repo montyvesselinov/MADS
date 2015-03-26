@@ -676,7 +676,7 @@ int LEVMAR_DER2(
 				for( i = 0; i < nO; i++ )
 				{
 					register LM_REAL *jacrow;
-					for( l = 0, jacrow = jac + i * nP, tmp = obs_error[i]; l < nP; ++l )
+					for( l = 0, jacrow = jac + i *nP, tmp = obs_error[i]; l < nP; ++l )
 						JTe[l] += jacrow[l] * tmp;
 				}
 			}

@@ -385,7 +385,7 @@ struct interpolant_params *setup_interpolant( double alpha, double beta, double 
 	ip->acc = gsl_interp_accel_alloc();
 	ip->spline = gsl_spline_alloc( gsl_interp_linear, N + 1 );
 	gsl_spline_init( ip->spline, x_sorted, y_sorted, N + 1 );
-	ip->limiting_coefficient = sin( M_PI * alpha / 2. ) * gsl_sf_gamma( alpha ) / M_PI;
+	ip->limiting_coefficient = sin( M_PI *alpha / 2. ) *gsl_sf_gamma( alpha ) / M_PI;
 	ip->cdf_or_pdf = CDF_OR_PDF;
 	free( x_sorted );
 	free( y_sorted );

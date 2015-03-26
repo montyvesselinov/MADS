@@ -112,7 +112,7 @@ static void free_resnode( struct res_node * );
 struct kdtree *kd_create( int k )
 {
 	struct kdtree *tree;
-	if( !( tree = ( struct kdtree * ) malloc( sizeof * tree ) ) )
+	if( !( tree = ( struct kdtree * ) malloc( sizeof *tree ) ) )
 	{
 		return 0;
 	}
@@ -372,7 +372,7 @@ struct kdres *kd_nearest( struct kdtree *kd, const double *pos )
 	if( !kd ) return 0;
 	if( !kd->rect ) return 0;
 	/* Allocate result set */
-	if( !( rset = ( struct kdres * ) malloc( sizeof * rset ) ) )
+	if( !( rset = ( struct kdres * ) malloc( sizeof *rset ) ) )
 	{
 		return 0;
 	}
@@ -475,7 +475,7 @@ struct kdres *kd_nearest_range( struct kdtree *kd, const double *pos, double ran
 {
 	int ret;
 	struct kdres *rset;
-	if( !( rset = ( struct kdres * ) malloc( sizeof * rset ) ) )
+	if( !( rset = ( struct kdres * ) malloc( sizeof *rset ) ) )
 	{
 		return 0;
 	}
@@ -638,7 +638,7 @@ void *kd_res_item_data( struct kdres *set )
 /* ---- hyperrectangle helpers ---- */
 static struct kdhyperrect *hyperrect_create( int dim, const double *min, const double *max )
 {
-	size_t size = dim * sizeof( double );
+	size_t size = dim *sizeof( double );
 	struct kdhyperrect *rect = 0;
 	if( !( rect = ( struct kdhyperrect * ) malloc( sizeof( struct kdhyperrect ) ) ) )
 	{

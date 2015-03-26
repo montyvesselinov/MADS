@@ -1,6 +1,5 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.c5608a7) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.) 2013
 ---------------------------------------------------
-Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: p01lm.mads
@@ -30,7 +29,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20150306-133256
+Execution date & time stamp: 20150326-070314
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 10):
 No flagged parameters; all optimizable parameters are randomized
@@ -69,11 +68,10 @@ Parameter #2 0.999988
 Parameter #3 0.999929
 Objective function: 2.19572e-07 Success: 1 (1)
 SUCCESS: Objective function is below the predefined cutoff value (2.19572e-07 < 0.001)!
-Simulation time = 1 seconds
+Simulation time = 0 seconds
 Functional evaluations = 563
 Jacobian evaluations = 93
 Levenberg-Marquardt optimizations = 10
-Functional evaluations per second = 563
-Execution  started  on Fri Mar  6 13:32:56 2015
-Execution completed on Fri Mar  6 13:32:57 2015
-Execution date & time stamp: 20150306-133256
+Execution  started  on Thu Mar 26 07:03:14 2015
+Execution completed on Thu Mar 26 07:03:14 2015
+Execution date & time stamp: 20150326-070314

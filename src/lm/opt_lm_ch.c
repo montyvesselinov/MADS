@@ -243,9 +243,9 @@ int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
 						delx[i] = grad[i];
 					}
 					break;
-				/*
-				 * 								Cholesky decomposition
-				 */
+					/*
+					 * 								Cholesky decomposition
+					 */
 				case 155:
 					ier = lu_decomposition( work, work, n );
 					lu_elimination( work, delx, n, delx );

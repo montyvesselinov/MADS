@@ -1,6 +1,5 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.c5608a7) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.) 2013
 ---------------------------------------------------
-Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: ./examples/contamination/s01-regul_yaml.mads
@@ -189,7 +188,7 @@ Number of regularization terms = 3
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150306-133313
+Execution date & time stamp: 20150326-070323
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -942,6 +941,6 @@ Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 58
-Execution  started  on Fri Mar  6 13:33:13 2015
-Execution completed on Fri Mar  6 13:33:14 2015
-Execution date & time stamp: 20150306-133313
+Execution  started  on Thu Mar 26 07:03:23 2015
+Execution completed on Thu Mar 26 07:03:24 2015
+Execution date & time stamp: 20150326-070323
