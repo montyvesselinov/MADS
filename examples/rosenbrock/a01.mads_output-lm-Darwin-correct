@@ -1,6 +1,5 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.58a10bf+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.313c50b) 2013
 ---------------------------------------------------
-Velimir V Vesselinov (monty) vvv@lanl.gov -:- velimir.vesselinov@gmail.com
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a01.mads
@@ -31,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: 
 
 
-Execution date & time stamp: 20140907-100218
+Execution date & time stamp: 20150326-070144
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
 No flagged parameters; all optimizable parameters are randomized
@@ -127,10 +126,11 @@ Optimized model parameters:
 Parameter #1 1
 Parameter #2 0.999999
 Objective function: 2.57807e-12 Success: 1 (0)
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 44
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Sun Sep  7 10:02:18 2014
-Execution completed on Sun Sep  7 10:02:18 2014
-Execution date & time stamp: 20140907-100218
+Functional evaluations per second = 44
+Execution  started  on Thu Mar 26 07:01:44 2015
+Execution completed on Thu Mar 26 07:01:45 2015
+Execution date & time stamp: 20150326-070144
