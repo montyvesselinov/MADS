@@ -1,15 +1,20 @@
-find_path(LibMathEval_INCLUDEDIR
+find_path(LibMathEval_INCLUDE
     NAMES matheval.h HINTS
+	$ENV{MATHEVALROOT}/src/
+	/opt/local/include
+	/usr/local/include
+	/usr/include
     )
 
-set(LibMathEval_INCLUDE_DIRS ${Matheval_INCLUDEDIR})
-
-find_library( LibMathEval_LIBRARIES
+find_library( LibMathEval_LIB
     NAMES matheval HINTS
+	/opt/local/lib
+	/usr/local/lib
+	/usr/lib
     ${Matheval_LIBDIR}
     ${Matheval_LIBRARY_DIRS}
     )
 
 include( FindPackageHandleStandardArgs )
-find_package_handle_standard_args( LibMathEval DEFAULT_MSG LibMathEval_LIBRARIES LibMathEval_INCLUDE_DIRS)
-mark_as_advanced(LibMathEval_INCLUDE_DIRS LibMathEval_LIBRARIES)
+find_package_handle_standard_args( LibMathEval DEFAULT_MSG LibMathEval_LIB LibMathEval_INCLUDE)
+MARK_AS_ADVANCED( LibMathEval_INCLUDE_DIR LibMathEval_LIBRARIES )

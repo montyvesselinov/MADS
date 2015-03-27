@@ -76,11 +76,11 @@ endif()
 
 add_definitions(${GSL_CXX_FLAGS})
 # set(MADS_LIBS ${MADS_LIBS} lapack blas atlas cblas stdc++ gfortran refblas "-L/opt/local/lib" "-L/Users/monty/lib")
-set(MADS_LIBS ${MADS_LIBS} lapack blas stdc++ gsl "-L/opt/local/lib" )
+set(MADS_LIBS ${MADS_LIBS} lapack blas stdc++ gsl "-L/opt/local/lib" -fopenmp )
 # set(MADS_LIBS ${MADS_LIBS} stdc++ gfortran "-L/opt/local/lib")
 
-set(CMAKE_CXX_FLAGS "-Wall -O3 -Winit-self" )
-set(CMAKE_C_FLAGS "-Wall -O3 -Winit-self" )
+set(CMAKE_CXX_FLAGS "-Wall -O3 -Winit-self -fopenmp" )
+set(CMAKE_C_FLAGS "-Wall -O3 -Winit-self -fopenmp" )
 
 include(CheckLibraryExists)
 check_library_exists(dl dlopen "" LIBDL_FOUND)
