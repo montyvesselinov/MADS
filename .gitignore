@@ -16,6 +16,7 @@ tpls/gsl*
 tpls/libmatheval*
 tpls/libyaml*
 tpls/libxml2*
+tpls/yaml*
 latex/*
 html/*
 Debug/*
