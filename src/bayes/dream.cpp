@@ -144,8 +144,8 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	MCMCPar->steps = 10;                     // Number of steps before calculating convergence diagnostics
 	MCMCPar->k = 10;                         // Thinning parameter for appending X to Z
 	MCMCPar->eps = 0.05;                     // Perturbation for ergodicity
-	MCMCPar->nzee = MCMCPar->m0 + ( MCMCPar->seq * ( MCMCPar->ndraw - MCMCPar->m0 ) ) / ( MCMCPar->seq *MCMCPar->k ) + 2 * MCMCPar->seq;
-	MCMCPar->nzoff = 2 * MCMCPar->DEpairs *MCMCPar->seq;
+	MCMCPar->nzee = MCMCPar->m0 + ( MCMCPar->seq * ( MCMCPar->ndraw - MCMCPar->m0 ) ) / ( MCMCPar->seq * MCMCPar->k ) + 2 * MCMCPar->seq;
+	MCMCPar->nzoff = 2 * MCMCPar->DEpairs * MCMCPar->seq;
 	// -----------------------------------------------------------------------------------------------------------------------
 	MCMCPar->ppCR = PPCR_UPDATE;                   // Adaptive tuning of crossover values
 	// -----------------------------------------------------------------------------------------------------------------------
@@ -192,7 +192,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 	// make Zinit pointer to pass back and forth from functions
 	double **Zinit = double_matrix_cpp( MCMCPar->m0 + MCMCPar->seq, MCMCPar->n );
 	// make 3dArray Sequences pointer to pass back and forth from functions
-	double ** *Sequences = NULL;
+	double ***Sequences = NULL;
 	if( MCMCPar->save_in_memory )
 	{
 		Sequences = ( double ** * ) malloc( sizeof( double ** ) * MCMCPar->seq );
@@ -202,7 +202,7 @@ extern "C" struct MCMC *get_posterior_parameter_samples( struct opt_data *od )
 		}
 	}
 	// make 3dArray Sequences pointer to pass back and forth from functions
-	double ** *Reduced_Seq = NULL;
+	double ***Reduced_Seq = NULL;
 	if( MCMCPar->reduced_sample_collection )
 	{
 		Reduced_Seq = new double **[MCMCPar->seq];

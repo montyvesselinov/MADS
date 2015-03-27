@@ -483,7 +483,7 @@ static struct fitness position_eval( struct problem pb, struct position x )
 	fit.size = pb.fNb;
 	func_global( x.x, gop, res ); // evaluation ... either internal of external
 	f = 0;
-	for( i = 0; i < gop->od->nTObs; i++ ) f += res[i] *res[i];
+	for( i = 0; i < gop->od->nTObs; i++ ) f += res[i] * res[i];
 	fit.f[0] = fabs( f - pb.objective[0] );
 	for( i = 0; i < pb.fNb; i++ ) // Save the min and the max fitness ever found
 	{
@@ -518,8 +518,8 @@ static struct problem problemset( struct opt_data *op )
 		fprintf( stderr, "\nYou may increase DMax (%i)\n", DMax );
 		exit( 1 );
 	}
-	if( ( opt_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
-	if( ( tr_var = ( double * ) malloc( pb.D *sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( opt_var = ( double * ) malloc( pb.D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
+	if( ( tr_var = ( double * ) malloc( pb.D * sizeof( double ) ) ) == NULL ) { tprintf( "No memory!\n" ); exit( 1 ); }
 	for( d = 0; d < pb.D; d++ )
 		opt_var[d] = op->pd->var[ op->pd->var_index[d] ];
 	Transform( opt_var, op, tr_var );
@@ -1085,7 +1085,7 @@ static double minXY( double x, double y )
 static struct particle particle_init( struct problem pb, int initOption, struct position guide1, struct position guide2, struct swarm S )
 {
 	struct particle part = {0};
-	double mean, range, sort_vec[2 * tribMax *partMax];
+	double mean, range, sort_vec[2 * tribMax * partMax];
 	int i, ip, it, k, count, rank;
 	part.x.size = pb.D; // Initial number of particles equal number of dimensions (optimized variables)
 	switch( initOption )

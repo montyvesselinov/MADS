@@ -340,8 +340,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	free( opt_params );
 	if( bad_data ) return( 0 );
-	// Update model input files in zip restart files
-	if( p->cd->restart )
+	if( p->cd->restart ) // Update model input files in zip restart files
 	{
 		sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive input files
 		for( i = 0; i < p->ed->ntpl; i++ )
@@ -477,16 +476,20 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	if( bad_data ) return( bad_data );
 	if( p->cd->restart )
 	{
-		sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive output files
-		for( i = 0; i < p->ed->nins; i++ )
-			sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
-		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
-		else strcat( buf, "\"" );
-		if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
-		system( buf );
-		if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
+		if( !p->cd->omp )
+		{
+			sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive output files
+			for( i = 0; i < p->ed->nins; i++ )
+				sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
+			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
+			else strcat( buf, "\"" );
+			if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
+			system( buf );
+			if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
+		}
 	}
-	delete_mprun_dir( dir ); // Delete directory for parallel runs
+	if( !p->cd->omp )
+		delete_mprun_dir( dir ); // Delete directory for parallel runs
 #ifdef MATHEVAL
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
 		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expression[i - p->od->nObs], p->rd->regul_nMap, p->rd->regul_map_id, p->rd->regul_map_val );
@@ -686,7 +689,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	}
 	else
 	{
-		for( p1 = p->cd->num_source_params *p->cd->num_sources, p2 = p->cd->num_source_params; p1 < p->pd->nAnalParam; p1++, p2++ )
+		for( p1 = p->cd->num_source_params * p->cd->num_sources, p2 = p->cd->num_source_params; p1 < p->pd->nAnalParam; p1++, p2++ )
 			p->ad->var[p2] = p->cd->var[p1];
 		if( p->cd->disp_tied && p->cd->disp_scaled == 0 ) // Tied dispersivities
 		{
@@ -1113,8 +1116,17 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 	for( count = 0; count < n_sub; count++ ) // Write all the files
 	{
 		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
-		if( op->cd->mdebug ) tprintf( "\n" );
-		if( op->cd->debug || op->cd->mdebug )  tprintf( "Set #%d: ", count + 1 );
+		if( op->cd->mdebug ) tprintf( "\nSet #%d: ", count + 1 );
+		if( op->cd->restart ) // Check for already computed jobs (smart restart)
+		{
+			int done = func_extrn_check_read( ieval + count + 1, op );
+			if( op->cd->pardebug > 1 )
+			{
+				if( done ) tprintf( "Job %d is already completed; it will be skipped!\n", ieval + count + 1 );
+				else tprintf( "Job %d will be executed!\n", ieval + count + 1 );
+			}
+			if( done ) continue;
+		}
 		double *opt_params;
 		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1124,6 +1136,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 		}
 		if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 		func_extrn_write( ieval + count + 1, opt_params, op );
+		free( opt_params );
 		if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 		if( op->cd->mdebug )
 		{
@@ -1171,6 +1184,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 				if( phi != NULL ) phi[count] = lphi;
 			}
 		}
+		free( opt_res );
 	}
 	ieval += n_sub;
 	time_end = time( NULL );
