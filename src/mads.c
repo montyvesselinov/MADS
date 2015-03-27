@@ -387,7 +387,7 @@ int main( int argn, char *argv[] )
 		int nProcessors = omp_get_max_threads();
 		if( cd.debug ) tprintf( "\nOpenMP Parallel run (max treads %d)\n", nProcessors );
 		if( cd.num_proc <= 0 ) cd.num_proc = nProcessors;
-		if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
+		if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) == NULL )
 			omp_set_num_threads( cd.num_proc );
 		else
 		{

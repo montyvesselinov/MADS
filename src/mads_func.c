@@ -1110,11 +1110,15 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 	int i, j, k, count, bad_data = 0, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
 	int ieval = op->cd->neval;
+	double *opt_params;
+	double *opt_res;
 	if( op->cd->debug || op->cd->mdebug ) tprintf( "OpenMP Parallel execution of external jobs ...\n" );
 	time_start = time( NULL );
-	#pragma omp parallel for private(count)
+	#pragma omp parallel for private(count,opt_params,opt_res)
 	for( count = 0; count < n_sub; count++ ) // Write all the files
 	{
+		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
+		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 		if( op->cd->mdebug ) tprintf( "\nSet #%d: ", count + 1 );
 		if( op->cd->restart ) // Check for already computed jobs (smart restart)
@@ -1127,8 +1131,6 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 			}
 			if( done ) continue;
 		}
-		double *opt_params;
-		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
 			k = op->pd->var_index[i];
@@ -1136,7 +1138,6 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 		}
 		if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 		func_extrn_write( ieval + count + 1, opt_params, op );
-		free( opt_params );
 		if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 		if( op->cd->mdebug )
 		{
@@ -1156,8 +1157,6 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 			fprintf( out, "\n" );
 		}
 		func_extrn_exec_serial( ieval + count + 1, op );
-		double *opt_res;
-		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 		if( out != NULL )
 		{
 			fprintf( out, "%d :\n", ieval + count + 1 ); // counter
@@ -1184,6 +1183,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 				if( phi != NULL ) phi[count] = lphi;
 			}
 		}
+		free( opt_params );
 		free( opt_res );
 	}
 	ieval += n_sub;
