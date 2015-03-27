@@ -25,8 +25,13 @@ else()
     message(WARNING "You are using an unsupported compiler! GNU compiler is required!.")
 endif()
 
-set(MADS_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+set(MADS_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_MODULE_PATH  ${MADS_MODULE_PATH})
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${PROJECT_SOURCE_DIR}/tpls/lib)
+set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${PROJECT_SOURCE_DIR}/tpls/include)
+set(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${PROJECT_SOURCE_DIR}/tpls/lib)
+
+message( WARNING "${LD_LIBRARY_PATH}")
 
 include(PrintVariable)
 
@@ -62,7 +67,8 @@ find_package(GLIB2 ${GLIB2_VERSION})
 find_package(GSL ${GSL_VERSION})
 find_package(LibYAML ${LIBYAML_VERSION})
 find_package(LibXML2 ${LIBXML2_VERSION})
-find_package(LibMathEval ${LIBMATHEVAL_VERSION})
+find_library(LibMathEval ${LIBMATHEVAL_VERSION} PATH
+	~/mads/repo-github/tpls/lib)
 if(NOT (GIT_FOUND))
 	message(WARNING "\nGIT is missing! Please install it!\nCheckout http://git-scm.com")
 endif()

@@ -124,10 +124,10 @@ $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -L/usr/local/lib -Wl,--rpath,/home/monty/local/lib
 endif
-ifeq ($(ND),pi-fe1.lanl.gov)
+ifeq (,$(findsting fe,$(ND)))
 $(info Machine -- turquoise)
-CFLAGS += -I/users/vvv/mads/repo-scp/tpls/include
-LDLIBS += -L/users/vvv/mads/repo-scp/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-scp/tpls/lib
+CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
+LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github/tpls/lib
 endif
 else #----------------------------------------------------
 ifeq ($(OS),Cygwin)
