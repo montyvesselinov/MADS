@@ -38,7 +38,6 @@ message(STATUS "TPL Install directory: ${TPL_INSTALL_PREFIX}")
 
 include(ExternalProject)
 
-include(BuildLibYAML)
 if(NOT (LAPACK_FOUND) AND USE_LAPACK)
 	include(BuildLAPACK)
 endif()
