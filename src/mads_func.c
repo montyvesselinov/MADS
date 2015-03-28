@@ -1116,57 +1116,60 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 	#pragma omp parallel for private(count)
 	for( count = 0; count < n_sub; count++ ) // Write all the files
 	{
+		int done = 0;
 		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 		if( op->cd->mdebug ) tprintf( "\nSet #%d: ", count + 1 );
 		if( op->cd->restart ) // Check for already computed jobs (smart restart)
 		{
-			int done = func_extrn_check_read( ieval + count + 1, op );
+			done = func_extrn_check_read( ieval + count + 1, op );
 			if( op->cd->pardebug > 1 )
 			{
 				if( done ) tprintf( "Job %d is already completed; it will be skipped!\n", ieval + count + 1 );
 				else tprintf( "Job %d will be executed!\n", ieval + count + 1 );
 			}
-			if( done ) continue;
 		}
-		double *opt_params;
-		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
-		for( i = 0; i < op->pd->nOptParam; i++ )
+		if( !done )
 		{
-			k = op->pd->var_index[i];
-			opt_params[i] = op->pd->var[k] = var_mat[count][i];
-		}
-		if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-		func_extrn_write( ieval + count + 1, opt_params, op );
-		free( opt_params );
-		if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
-		if( op->cd->mdebug )
-		{
-			tprintf( "Parameter values:\n" );
+			double *opt_params;
+			if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
 			for( i = 0; i < op->pd->nOptParam; i++ )
-				if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
-				else tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );
-		}
-		if( out != NULL )
-		{
-			for( i = 0; i < op->pd->nParam; i++ )
-				if( op->pd->var_opt[i] >= 1 )
-				{
-					if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
-					else fprintf( out, " %.15g", op->pd->var[i] );
-				}
-			fprintf( out, "\n" );
-		}
-		func_extrn_exec_serial( ieval + count + 1, op );
-		if( out != NULL )
-		{
-			fprintf( out, "%d :\n", ieval + count + 1 ); // counter
-			for( i = 0; i < op->pd->nOptParam; i++ ) // re
 			{
 				k = op->pd->var_index[i];
-				op->pd->var[k] = var_mat[count][i];
-				fprintf( out, "%s %.12g\n", op->pd->var_name[k], op->pd->var[k] );
+				opt_params[i] = op->pd->var[k] = var_mat[count][i];
 			}
-			fflush( out );
+			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
+			func_extrn_write( ieval + count + 1, opt_params, op );
+			free( opt_params );
+			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
+			if( op->cd->mdebug )
+			{
+				tprintf( "Parameter values:\n" );
+				for( i = 0; i < op->pd->nOptParam; i++ )
+					if( op->pd->var_log[op->pd->var_index[i]] == 0 ) tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], op->pd->var[op->pd->var_index[i]] );
+					else tprintf( "%s %g\n", op->pd->var_name[op->pd->var_index[i]], pow( 10, op->pd->var[op->pd->var_index[i]] ) );
+			}
+			if( out != NULL )
+			{
+				for( i = 0; i < op->pd->nParam; i++ )
+					if( op->pd->var_opt[i] >= 1 )
+					{
+						if( op->pd->var_log[i] ) fprintf( out, " %.15g", pow( 10, op->pd->var[i] ) );
+						else fprintf( out, " %.15g", op->pd->var[i] );
+					}
+				fprintf( out, "\n" );
+			}
+			func_extrn_exec_serial( ieval + count + 1, op );
+			if( out != NULL )
+			{
+				fprintf( out, "%d :\n", ieval + count + 1 ); // counter
+				for( i = 0; i < op->pd->nOptParam; i++ ) // re
+				{
+					k = op->pd->var_index[i];
+					op->pd->var[k] = var_mat[count][i];
+					fprintf( out, "%s %.12g\n", op->pd->var_name[k], op->pd->var[k] );
+				}
+				fflush( out );
+			}
 		}
 		double *opt_res;
 		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
@@ -1187,11 +1190,18 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 		}
 		free( opt_res );
 	}
-	ieval += n_sub;
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
 	if( op->cd->tdebug ) tprintf( "OpenMP Parallel execution PT = %ld seconds\n", time_elapsed );
-	if( bad_data ) return( 0 );
+	if( bad_data ) return( 0 ); // return without deleting the directories
+	#pragma omp parallel for private(count)
+	for( count = 0; count < n_sub; count++ ) // Write all the files
+	{
+		char dir[500];
+		sprintf( dir, "%s_%08d", op->cd->mydir_hosts, ieval + count + 1 );
+		delete_mprun_dir( dir );
+	}
+	ieval += n_sub;
 	return( 1 );
 }
 
