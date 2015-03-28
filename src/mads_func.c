@@ -338,7 +338,8 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		if( par_tpl( p->pd->nParam, p->pd->var_id, opt_params, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
 			bad_data = 1;
 	}
-	free( opt_params );
+	if( p->cd->sintrans )
+		free( opt_params );
 	if( bad_data ) return( 0 );
 	if( p->cd->restart ) // Update model input files in zip restart files
 	{
@@ -1110,15 +1111,11 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 	int i, j, k, count, bad_data = 0, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
 	int ieval = op->cd->neval;
-	double *opt_params;
-	double *opt_res;
 	if( op->cd->debug || op->cd->mdebug ) tprintf( "OpenMP Parallel execution of external jobs ...\n" );
 	time_start = time( NULL );
-	#pragma omp parallel for private(count,opt_params,opt_res)
+	#pragma omp parallel for private(count)
 	for( count = 0; count < n_sub; count++ ) // Write all the files
 	{
-		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
-		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 		if( op->cd->mdebug ) tprintf( "\nSet #%d: ", count + 1 );
 		if( op->cd->restart ) // Check for already computed jobs (smart restart)
@@ -1131,6 +1128,8 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 			}
 			if( done ) continue;
 		}
+		double *opt_params;
+		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 		{
 			k = op->pd->var_index[i];
@@ -1138,6 +1137,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 		}
 		if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 		func_extrn_write( ieval + count + 1, opt_params, op );
+		free( opt_params );
 		if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 		if( op->cd->mdebug )
 		{
@@ -1168,6 +1168,8 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 			}
 			fflush( out );
 		}
+		double *opt_res;
+		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 		if( func_extrn_read( ieval + count + 1, op, opt_res ) )
 			bad_data = 1;
 		else
@@ -1183,7 +1185,6 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 				if( phi != NULL ) phi[count] = lphi;
 			}
 		}
-		free( opt_params );
 		free( opt_res );
 	}
 	ieval += n_sub;

@@ -843,12 +843,11 @@ compare-os:
 	./compare-results-os Linux Darwin
 
 clean-examples:
-	rm -f $(EXAMPLES)/*/*.ppsd_*.results $(EXAMPLES)/*/*.igpd_*.results $(EXAMPLES)/*/*igrnd-0000* $(EXAMPLES)/*/*.igrnd_*.results $(EXAMPLES)/*/*.restart_*.zip $(EXAMPLES)/*/*.restart_info $(EXAMPLES)/*/*.running $(EXAMPLES)/*/*-rerun.mads $(EXAMPLES)/*/*-error.mads
-	rm -fR $(EXAMPLES)/wells-short_w01_*
-	rm -fR $(EXAMPLES)/wells-short_w01parallel*
-	rm -fR $(EXAMPLES)/wells-short/zi*
 	rm -f *.mads_output* *.running *.cmdline *.cmdline_hist
 	find . -name "*.mads_output_*" -print0 | xargs -0 rm
+	find . -name "wells-short_w01*" -print0 | xargs -0 rm -fR
+	rm -fR $(EXAMPLES)/wells-short/zi*
+	rm -f $(EXAMPLES)/*/*.ppsd_*.results $(EXAMPLES)/*/*.igpd_*.results $(EXAMPLES)/*/*igrnd-0000* $(EXAMPLES)/*/*.igrnd_*.results $(EXAMPLES)/*/*.restart_*.zip $(EXAMPLES)/*/*.restart_info $(EXAMPLES)/*/*.running $(EXAMPLES)/*/*-rerun.mads $(EXAMPLES)/*/*-error.mads
 
 astyle:
 	astyle $(SOURCESTYLE)
