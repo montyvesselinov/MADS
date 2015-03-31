@@ -477,19 +477,40 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	if( bad_data ) return( bad_data );
 	if( p->cd->restart )
 	{
-		if( !p->cd->omp )
+		if( p->cd->omp )
 		{
-			sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_container ); // Archive output files
+			FILE *outfileb;
+			sprintf( buf, "%s/%020d.par", p->cd->restart_container, ieval ); // Archive model inputs
+			if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "Binary file %s cannot be opened to save problem information!\n", buf );
+			else
+			{
+				fwrite( ( void * ) p->pd->var_id, sizeof( p->pd->var_id ), p->pd->nParam, outfileb );
+				fwrite( ( void * ) p->pd->var, sizeof( p->pd->var ), p->pd->nParam, outfileb );
+				fclose( outfileb );
+			}
+			sprintf( buf, "%s/%020d.obs", p->cd->restart_container, ieval ); // Archive model output
+			if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "Binary file %s cannot be opened to save problem information!\n", buf );
+			else
+			{
+				fwrite( ( void * ) p->od->obs_id, sizeof( p->od->obs_id ), p->od->nObs, outfileb );
+				fwrite( ( void * ) f, sizeof( f ), p->od->nObs, outfileb );
+				fclose( outfileb );
+			}
+			if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived is directory %s!\n", ieval, p->cd->restart_container );
+		}
+		else
+		{
+			sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_container ); // Archive model output files
 			for( i = 0; i < p->ed->nins; i++ )
 				sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
 			else strcat( buf, "\"" );
 			if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
 			system( buf );
-			if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived!\n", ieval );
+			if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived in zip file %s!\n", ieval, p->cd->restart_container );
 		}
 	}
-	if( !p->cd->omp )
+	if( !p->cd->omp ) // TODO remove when omp restart works
 		delete_mprun_dir( dir ); // Delete directory for parallel runs
 #ifdef MATHEVAL
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
