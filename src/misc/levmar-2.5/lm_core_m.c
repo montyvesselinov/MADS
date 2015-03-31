@@ -50,6 +50,7 @@
 /* precision-specific definitions */
 #include <string.h>
 #include <math.h>
+#include "misc.h"
 #include "../../mads.h"
 
 #define LEVMAR_DER LM_ADD_PREFIX(levmar_der)
@@ -610,8 +611,11 @@ int LEVMAR_DER2(
 			if( op->cd->lm_eigen )
 			{
 				for( l = j = 0; j < op->od->nTObs; j++ )
+				{
+					op->od->obs_current[i] = obs_current[i];
 					for( i = 0; i < op->pd->nOptParam; i++ )
 						gsl_matrix_set( gsl_jacobian, j, i, jac[l++] ); // LEVMAR is using different jacobian order
+				}
 				DeTransform( par_current, op, jac_min );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					op->pd->var[op->pd->var_index[i]] = jac_min[i];
@@ -974,7 +978,7 @@ int LEVMAR_DER2(
 			for( i = 0; i < nP; i++ )
 				par_best[i] = par_update[i];
 			for( i = 0; i < nO; i++ )
-				obs_best[i] = obs_update[i];
+				op->od->obs_current[i] = obs_best[i] = obs_update[i];
 			if( op->cd->ldebug >= 1 ) tprintf( "New Best OF %g\n", phi_best );
 		}
 		DeTransform( par_update, op, jac_min );
@@ -1336,6 +1340,7 @@ int LEVMAR_DIF(
 
 /* undefine everything. THIS MUST REMAIN AT THE END OF THE FILE */
 #undef LEVMAR_DER
+#undef LEVMAR_DER2
 #undef LEVMAR_DIF
 #undef LEVMAR_FDIF_FORW_JAC_APPROX
 #undef LEVMAR_FDIF_CENT_JAC_APPROX

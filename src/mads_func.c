@@ -343,7 +343,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	if( bad_data ) return( 0 );
 	if( p->cd->restart ) // Update model input files in zip restart files
 	{
-		sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive input files
+		sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_container ); // Archive input files
 		for( i = 0; i < p->ed->ntpl; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
 		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
@@ -366,7 +366,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	else // Just in case; the restart file should have been already extracted
 	{
-		sprintf( buf, "%s \"unzip -u -: %s ", SHELL, p->cd->restart_zip_file ); // Archive input files
+		sprintf( buf, "%s \"unzip -u -: %s ", SHELL, p->cd->restart_container ); // Archive input files
 		for( i = 0; i < p->ed->nins; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
@@ -479,7 +479,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	{
 		if( !p->cd->omp )
 		{
-			sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_zip_file ); // Archive output files
+			sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_container ); // Archive output files
 			for( i = 0; i < p->ed->nins; i++ )
 				sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );

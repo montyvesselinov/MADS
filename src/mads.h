@@ -162,7 +162,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	char **paral_hosts; // parallel host identifier (name)
 	time_t time_infile; // time of the input problem file (*.mads)
 	char *datetime_infile; // date & time of the input problem file (*.mads) (equivalent to time_infile but in different format)
-	char *restart_zip_file; // filename of the zip restart file
+	char *restart_container; // directory name or zip filename with the restart files
 	char *infile; // old results file from pssa to be read in to initialize kdtree
 	int resultscase; // read specific case
 	char *resultsfile; // read existing results file

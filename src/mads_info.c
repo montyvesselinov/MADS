@@ -134,6 +134,7 @@ void mads_info()
 	printf( "   np=[integer]       - Number of requested parallel jobs [optional]\n" );
 	printf( "   nplambda=[integer] - Number of requested parallel lambda runs in the case of Levenberg-Marquardt optimization [optional; nplambda <= np]\n" );
 	printf( "   rstfile=[string]   - name of existing ZIP restart file to be used (created by previous Parallel MADS run) [optional]\n" );
+	printf( "   rstdir=[string]    - name of existing restart directory to be used (created by previous Parallel MADS run) [optional]\n" );
 	printf( "   restart=[integer]  - restart=1 (default; automatic restart if possible); restart=0 (force no restart); restart=2 (force restart)\n" );
 	printf( "                        by default the analyses will be restarted automatically (restart=1)\n" );
 	printf( "\nABAGUS (Agent-Based Global Uncertainty & Sensitivity Analysis) options:\n" );
