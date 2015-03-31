@@ -394,7 +394,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
 		if( !strncasecmp( word, "np=", 3 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( !strncasecmp( word, "nplambda", 8 ) ) { w = 1; cd->lm_num_parallel_lambda = 0; sscanf( word, "nplambda=%d", &cd->lm_num_parallel_lambda ); if( cd->lm_num_parallel_lambda <= 0 ) cd->lm_num_parallel_lambda = 0; }
-		if( !strncasecmp( word, "restart", 7 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = -1; }
+		if( !strncasecmp( word, "restart", 7 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 || cd->restart > 1 ) cd->restart = 1; }
 		if( !strncasecmp( word, "rstfile=", 8 ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_container ); cd->restart = -1; }
 		if( !strncasecmp( word, "rstdir=", 7 ) ) { w = 1; sscanf( word, "rstdir=%s", cd->restart_container ); cd->restart = -1; }
 		if( !strncasecmp( word, "resultsfile=", 12 ) ) { w = 1; sscanf( word, "resultsfile=%s", cd->resultsfile ); cd->problem_type = FORWARD; }

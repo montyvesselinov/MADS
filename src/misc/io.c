@@ -39,6 +39,7 @@
 
 /* Functions here */
 int Ftest( char *filename );
+int Ftestdir( char *filename );
 int Ftestread( char *filename );
 FILE *Fread( char *filename );
 FILE *Fwrite( char *filename );
@@ -54,10 +55,16 @@ int Ftest( char *filename )
 	return( access( filename, R_OK ) );
 }
 
+int Ftestdir( char *filename )
+{
+	return( access( filename, X_OK ) );
+}
+
 int Ftestread( char *filename )
 {
 	FILE *in;
-	if( ( in = fopen( filename, "rb" ) ) == NULL ) return( 1 );
+	if( ( in = fopen( filename, "rb" ) ) == NULL )
+		return( -1 );
 	fclose( in );
 	return( 0 );
 }

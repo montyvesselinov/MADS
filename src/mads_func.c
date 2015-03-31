@@ -413,7 +413,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	for( i = 0; i < p->ed->nins; i++ )
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
-		if( Ftestread( buf ) == 1 ) { if( p->cd->pardebug ) tprintf( "File %s cannot be opened to read.", buf ); return( 0 ); }
+		if( Ftestread( buf ) != 0 ) { if( p->cd->pardebug > 2 ) tprintf( "File %s cannot be opened to read.\n", buf ); return( 0 ); }
 		else if( ins_obs( p->od->nObs, p->od->obs_id, p->od->obs_current, obs_count, p->ed->fn_ins[i], buf, 0 ) == -1 )
 			return( 0 );
 	}
@@ -434,10 +434,10 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	}
 	free( obs_count );
 	if( bad_data ) return( 0 );
-	if( ( p->cd->time_infile - Fdatetime_t( buf, 0 ) ) > 0 )
+	if( ( p->cd->time_infile - Fdatetime_t( buf, 0 ) ) > 0 && p->cd->restart != -1 )
 	{
-		if( p->cd->pardebug ) tprintf( "File %s is older than the MADS input file.\n", buf );
-		if( p->cd->restart == -1 ) return( 1 ); else return( 0 );
+		tprintf( "RESTART ERROR: File %s is older than the MADS input file.\n", buf );
+		return( 0 );
 	}
 	return( 1 );
 }
@@ -484,19 +484,17 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "Binary file %s cannot be opened to save problem information!\n", buf );
 			else
 			{
-				fwrite( ( void * ) p->pd->var_id, sizeof( p->pd->var_id ), p->pd->nParam, outfileb );
-				fwrite( ( void * ) p->pd->var, sizeof( p->pd->var ), p->pd->nParam, outfileb );
+				fwrite( ( void * ) p->pd->var, sizeof( p->pd->var[0] ), p->pd->nParam, outfileb );
 				fclose( outfileb );
 			}
 			sprintf( buf, "%s/%020d.obs", p->cd->restart_container, ieval ); // Archive model output
 			if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "Binary file %s cannot be opened to save problem information!\n", buf );
 			else
 			{
-				fwrite( ( void * ) p->od->obs_id, sizeof( p->od->obs_id ), p->od->nObs, outfileb );
-				fwrite( ( void * ) f, sizeof( f ), p->od->nObs, outfileb );
+				fwrite( ( void * ) f, sizeof( f[0] ), p->od->nTObs, outfileb );
 				fclose( outfileb );
 			}
-			if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived is directory %s!\n", ieval, p->cd->restart_container );
+			if( p->cd->pardebug > 3 ) tprintf( "Results (model predictions) from parallel run #%d are archived is directory %s!\n", ieval, p->cd->restart_container );
 		}
 		else
 		{
@@ -510,8 +508,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived in zip file %s!\n", ieval, p->cd->restart_container );
 		}
 	}
-	if( !p->cd->omp ) // TODO remove when omp restart works
-		delete_mprun_dir( dir ); // Delete directory for parallel runs
+	delete_mprun_dir( dir ); // Delete directory for parallel runs
 #ifdef MATHEVAL
 	for( i = p->od->nObs; i < p->od->nTObs; i++ )
 		p->od->obs_current[i] = evaluator_evaluate( p->rd->regul_expression[i - p->od->nObs], p->rd->regul_nMap, p->rd->regul_map_id, p->rd->regul_map_val );
@@ -575,6 +572,18 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			if( !p->cd->compute_phi ) phi += f[i] * f[i];
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
+	}
+	if( p->cd->restart && p->cd->omp )
+	{
+		FILE *outfileb;
+		sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval ); // Archive model output
+		if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "RESTART: Binary file %s cannot be opened to save problem information!\n", buf );
+		else
+		{
+			fwrite( ( void * ) f, sizeof( f[0] ), p->od->nTObs, outfileb );
+			fclose( outfileb );
+		}
+		if( p->cd->pardebug > 3 ) tprintf( "RESTART: Results (model residuals) from parallel run #%d are archived is directory %s!\n", ieval, p->cd->restart_container );
 	}
 	p->success = success_all; // Just in case
 	if( p->cd->fdebug >= 2 ) tprintf( "Objective function %g\n", phi );
@@ -1140,12 +1149,30 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 		int done = 0;
 		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 		if( op->cd->mdebug ) tprintf( "\nSet #%d: ", count + 1 );
+		double *opt_res;
+		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 		if( op->cd->restart ) // Check for already computed jobs (smart restart)
 		{
 			done = func_extrn_check_read( ieval + count + 1, op );
+			if( !done )
+			{
+				FILE *infileb;
+				char buf[1000];
+				sprintf( buf, "%s/%020d.res", op->cd->restart_container, ieval + count + 1 ); // Archive model inputs
+				if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+				{
+					int obj_read = fread( ( void * ) opt_res, sizeof( opt_res[0] ), op->od->nTObs, infileb );
+					fclose( infileb );
+					if( obj_read != op->od->nTObs ) { tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf ); done = 0; }
+					else { if( op->cd->pardebug ) tprintf( "RESTART: Binary file %s is applied to read model predictions\n", buf ); done = 2; }
+					if( op->cd->pardebug > 4 )
+						for( i = 0; i < op->od->nTObs; i++ )
+							tprintf( "%-27s: binary observations %15.12g\n", op->od->obs_id[i], opt_res[i] );
+				}
+			}
 			if( op->cd->pardebug > 1 )
 			{
-				if( done ) tprintf( "Job %d is already completed; it will be skipped!\n", ieval + count + 1 );
+				if( done ) tprintf( "RESTART: Job %d is already completed; it will be skipped!\n", ieval + count + 1 );
 				else tprintf( "Job %d will be executed!\n", ieval + count + 1 );
 			}
 		}
@@ -1192,37 +1219,28 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 				fflush( out );
 			}
 		}
-		double *opt_res;
-		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
-		if( func_extrn_read( ieval + count + 1, op, opt_res ) )
-			bad_data = 1;
-		else
+		if( done != 2 )
 		{
-			if( f != NULL )
+			if( func_extrn_read( ieval + count + 1, op, opt_res ) )
+				bad_data = 1;
+		}
+		if( bad_data == 0 && f != NULL )
+		{
+			double lphi = 0;
+			for( j = 0; j < op->od->nTObs; j++ )
 			{
-				double lphi = 0;
-				for( j = 0; j < op->od->nTObs; j++ )
-				{
-					f[count][j] = opt_res[j];
-					lphi += opt_res[j] * opt_res[j];
-				}
-				if( phi != NULL ) phi[count] = lphi;
+				f[count][j] = opt_res[j];
+				lphi += opt_res[j] * opt_res[j];
 			}
+			if( phi != NULL ) phi[count] = lphi;
 		}
 		free( opt_res );
 	}
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
+	op->cd->neval = ieval + n_sub;
 	if( op->cd->tdebug ) tprintf( "OpenMP Parallel execution PT = %ld seconds\n", time_elapsed );
 	if( bad_data ) return( 0 ); // return without deleting the directories
-	#pragma omp parallel for private(count)
-	for( count = 0; count < n_sub; count++ ) // Write all the files
-	{
-		char dir[500];
-		sprintf( dir, "%s_%08d", op->cd->mydir_hosts, ieval + count + 1 );
-		delete_mprun_dir( dir );
-	}
-	ieval += n_sub;
 	return( 1 );
 }
 
