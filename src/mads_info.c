@@ -39,9 +39,9 @@ void mads_info()
 	printf( "MADS utilizes adaptive rules and techniques which allows the analyses to be performed with minimum user input. The code\n" );
 	printf( "provides a series of alternative algorithms to perform each type of model analyses. The code allows for coupled model\n" );
 	printf( "parameters and regularization terms that are internally computed based on user-defined mathematical expressions.\n\n" );
-	printf( "USAGE: mads problem_name [ keywords | options ]       OR\n" );
-	printf( "       mads MADS_input_file [ keywords | options ]    OR\n" );
-	printf( "       mads PEST_input_file [ keywords | options ] (MADS is compatible with PEST control, template and instruction files)\n\n" );
+	printf( "USAGE: mads problem_name    [ keywords | options ]  OR\n" );
+	printf( "       mads MADS_input_file [ keywords | options ]  OR\n" );
+	printf( "       mads PEST_input_file [ keywords | options ]  (MADS is compatible with PEST control, template and instruction files)\n\n" );
 	printf( "problem_name:         name of the solved problem; MADS_input_file named problem_name.mads is expected\n" );
 	printf( "MADS_input_file:      problem input file in MADS format (typically *.mads)\n" );
 	printf( "PEST_input_file:      problem input file in PEST format (PEST control file; *.pst)\n\n" );
@@ -63,7 +63,7 @@ void mads_info()
 	printf( "   single             - single calibration using initial guesses provided in the input file [default]\n" );
 	printf( "   igrnd              - sequential calibrations using a set of random initial values (number of realizations defined by real=X)\n" );
 	printf( "   igpd               - sequential calibrations using a set of discretized initial values (discretization defined in the input file)\n" );
-	printf( "   ppsd               - sequential calibrations using partial parameter space discretization (PPSD) method\n" );
+	printf( "   ppsd               - sequential calibrations using partial parameter space discretization (PPSD) method (discretization defined in the input file)\n" );
 	printf( "\ncalibration termination criteria:\n" );
 	printf( "   eval=[integer]     - functional evaluations exceed the predefined value [default eval=5000]\n" );
 	printf( "   cutoff=[real]      - objective function is below the cutoff value [default cutoff=0]\n" );
@@ -88,7 +88,7 @@ void mads_info()
 	printf( "   particles=[integer]- number of initial particles or tribes [default particles=10+2*sqrt(Number_of_parameters)]\n" );
 	printf( "   lmeigen|eigen      - eigen analysis of the intermediate / final optimized solution\n" );
 	printf( "\nLevenberg-Marquardt optimization options:\n" );
-	printf( "   lmfactor=[double]  - multiplier applied to compute when to initiate LM searches within SQUADS algorithm [default lmfactor=1]\n" );
+	printf( "   lmfactor=[double]  - multiplier applied to compute when to initiate LM searches within SQUADS algorithm [default lmfactor=1.0]\n" );
 	printf( "   lmindirect         - Indirect computation of LM alpha coefficient [default DIRECT/Delayed gratification computation]\n" );
 	printf( "   lmmu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF decreases [default lmmu=0.1]\n" );
 	printf( "   lmnu=[integer]     - LM alpha multiplier for direct computation of LM alpha coefficient when OF increases [default lmnu=10]\n" );
@@ -122,7 +122,7 @@ void mads_info()
 	printf( "   lindx              - Parameter space step for numerical derivatives of not transformed parameters [default lindx=0.001]\n" );
 	printf( "   pardx              - Parameter space step for parameter space discretization [default pardx=0.1]\n" );
 	printf( "   plog=[-1,0,1]      - Log transformation of all optimized parameters is enforced (1) or disabled (0)\n" );
-	printf( "                        [default plog=-1; log tr$ansformation is explicitly defined for each parameter in the input file]\n" );
+	printf( "                        [default plog=-1; log transformation is explicitly defined for each parameter in the input file]\n" );
 	printf( "   olog=[-1,0,1]      - Log transformation of all the observations (simulated and measured) is enforced (1) or disabled (0)\n" );
 	printf( "                        [default olog=-1; log transformation is explicitly defined for each observation in the input file]\n" );
 	printf( "   oweight=[-1,0,1,2] - Weights for all the observation residuals are defined:\n" );
@@ -142,7 +142,7 @@ void mads_info()
 	printf( "   energy=[integer]   - initial energy for particles [default energy=10000]\n" );
 	printf( "\noptions for the build-in analytical solutions:\n" );
 	printf( "   point              - point contaminant source in 3D flow domain\n" );
-	printf( "   plane              - areal contaminant source in 3D flow domain\n" );
+	printf( "   plane              - plane contaminant source in 3D flow domain\n" );
 	printf( "   box                - brick contaminant source in 3D flow domain\n" );
 	printf( "   obs_int=[1,2]      - concentration integration along observation well screens (1 - mid point; 2 - two end points [default=1]\n" );
 	printf( "   disp_tied          - lateral and vertical transverse dispersivities are fractions of the longitudinal dispersivity\n" );
