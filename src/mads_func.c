@@ -1146,6 +1146,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 	#pragma omp parallel for private(count)
 	for( count = 0; count < n_sub; count++ ) // Write all the files
 	{
+		int rank = omp_get_thread_num();
 		int done = 0;
 		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 		if( op->cd->mdebug ) tprintf( "\nSet #%d: ", count + 1 );
@@ -1172,8 +1173,8 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 			}
 			if( op->cd->pardebug > 1 )
 			{
-				if( done ) tprintf( "RESTART: Job %d is already completed; it will be skipped!\n", ieval + count + 1 );
-				else tprintf( "Job %d will be executed!\n", ieval + count + 1 );
+				if( done ) tprintf( "OPENMP #%d RESTART: Job %d is already completed; it will be skipped!\n", rank, ieval + count + 1 );
+				else tprintf( "OPENMP #%d: Job %d will be executed!\n", rank, ieval + count + 1 );
 			}
 		}
 		if( !done )
