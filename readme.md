@@ -12,12 +12,6 @@ The code allows for coupled model parameters and regularization terms that are i
 
 For more information check out he MADS website at http://mads.lanl.gov
 
-USAGE:  
-* mads problem\_name [ keywords | options ] 
-* mads MADS\_input\_file [ keywords | options ] 
-* mads PEST\_input\_file [ keywords | options ]; MADS is compatible with PEST control, template and instruction files
-* mads (execution without arguments provides information about command-line keywords)
-
 Licensing: GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
 
 Download:  
@@ -40,13 +34,13 @@ Required third party libraries (TPL's):
   
 The required TPL's can be downloaded at http://gitlab.com/mads/mads-tpls  
   
-The code has been tested on Apple MAC OS X, Linux (RHEL / CentOS / Fedora / Ubuntu/ Debian) and Cygwin/Microsoft Windows.  
+The code has been tested on Apple MAC OS X, Linux (RHEL / CentOS / Fedora / Ubuntu / Debian) and Cygwin/Microsoft Windows.  
   
 Checkout the 'readme' file for installation instructions.  
   
 Compilation:  
 * make
-* cmake -f CMakeLists.txt (cmake version 3.0 is required)
+* cmake -f CMakeLists.txt (cmake version 3.1 is required)
   
 Verification:  
 * make verify (all test problems listed below)  
@@ -71,10 +65,11 @@ Comparisons:
 Manual: http://mads.lanl.gov/#manual  
   
 USAGE:
-*      mads problem_name    [ keywords | options ]  OR
-*      mads MADS_input_file [ keywords | options ]  OR
-*      mads PEST_input_file [ keywords | options ]  (MADS is compatible with PEST control, template and instruction files)
+      mads problem_name    [ keywords | options ]  OR
+      mads MADS_input_file [ keywords | options ]  OR
+      mads PEST_input_file [ keywords | options ]  (MADS is compatible with PEST control, template and instruction files)
 
+where:
 * problem_name:         name of the solved problem; MADS_input_file named problem_name.mads is expected
 * MADS_input_file:      problem input file in MADS format (typically *.mads)
 * PEST_input_file:      problem input file in PEST format (PEST control file; *.pst)
@@ -263,42 +258,42 @@ pre-/post-processing:
 *  save               - Save MADS input/output files for successful parameter sets [default save=0]
 
 Examples:
-*  mads a01 test=2 opt=lm eigen igrnd real=1 (no input files are needed for execution)
-*  mads a01 test=2 opt=squads igrnd real=1
-*  mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)
-*  mads a01 test=3 abagus cutoff=20 eval=100000  (collect solutions of Rosenbrock function below phi cutoff)
-*  mads examples/contamination/s01 ldebug lmeigen (file s01.mads is located in examples/contamination)
-*  mads examples/contamination/s01 ldebug lmeigen igrnd real=1
-*  mads examples/contamination/s01 seed=1549170842 obsrange igrnd real=1
-*  mads examples/contamination/s01 opt=squads seed=1549170842 eigen obsrange pdebug igrnd real=1
-*  mads examples/contamination/s01 opt=pso seed=1549170842 eigen obsrange igrnd real=1
-*  mads examples/contamination/s01-flagged ppsd (Partial Parameter Space Discretization)
-*  mads examples/contamination/s01-flagged igpd (Initial Guesses based on Discreetly distributed model parameters)
-*  mads examples/contamination/s01 igrnd real=10 (Random Initial Guesses; all parameters)
-*  mads examples/contamination/s01-flagged igrnd real=10 (Random Initial Guesses; only flagged parameters)
-*  mads examples/contamination/s01 monte real=10 (Monte Carlo Analysis)
-*  cd examples/wells; mads w01.mads igrnd real=1 seed=501228648 eigen
+       mads a01 test=2 opt=lm eigen igrnd real=1 (no input files are needed for execution)
+       mads a01 test=2 opt=squads igrnd real=1
+       mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)
+       mads a01 test=3 abagus cutoff=20 eval=100000  (collect solutions of Rosenbrock function below phi cutoff)
+       mads examples/contamination/s01 ldebug lmeigen (file s01.mads is located in examples/contamination)
+       mads examples/contamination/s01 ldebug lmeigen igrnd real=1
+       mads examples/contamination/s01 seed=1549170842 obsrange igrnd real=1
+       mads examples/contamination/s01 opt=squads seed=1549170842 eigen obsrange pdebug igrnd real=1
+       mads examples/contamination/s01 opt=pso seed=1549170842 eigen obsrange igrnd real=1
+       mads examples/contamination/s01-flagged ppsd (Partial Parameter Space Discretization)
+       mads examples/contamination/s01-flagged igpd (Initial Guesses based on Discreetly distributed model parameters)
+       mads examples/contamination/s01 igrnd real=10 (Random Initial Guesses; all parameters)
+       mads examples/contamination/s01-flagged igrnd real=10 (Random Initial Guesses; only flagged parameters)
+       mads examples/contamination/s01 monte real=10 (Monte Carlo Analysis)
+       cd examples/wells; mads w01.mads igrnd real=1 seed=501228648 eigen
 
 Parallel Levenberg-Marquardt optimization:
-*  cd examples/wells-short
-*  mads w01parallel.mads restart=0 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors)
-*  mads w01parallel.mads restart=0 np=11 nplambda=11
-*  mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlam=21 lmnlamof=12 (if a small number of processors is used, lmnlam & lmnlamof should be increased)
+       cd examples/wells-short
+       mads w01parallel.mads restart=0 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors)
+       mads w01parallel.mads restart=0 np=11 nplambda=11
+       mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlam=21 lmnlamof=12 (if a small number of processors is used, lmnlam & lmnlamof should be increased)
 
 Comparisons between local and global methods:
-*  mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)
-*  mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)
-*  mads a01 test=3 opt=swarm  igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization Standard2006)
-*  mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization TRIBES-D)
-*  mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3 (Adaptive hybrid optimization Squads)
+       mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)
+       mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)
+       mads a01 test=3 opt=swarm  igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization Standard2006)
+       mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization TRIBES-D)
+       mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3 (Adaptive hybrid optimization Squads)
 
 Comparisons with PEST (http://www.sspa.com/pest/):
-*  cd examples/contamination
-*  mads s02 lmeigen                  (file s02.mads is located in examples/contamination)
-*  pest s02pest                   (file s02pest.pst is located in examples/contamination)
-*  mads w01 lmeigen     (files associated with problem w01 are located in examples/wells)
-*  pest w01pest     (files associated with problem w01pest are located in examples/wells)
-*  pest w02pest     (files associated with problem w02pest are located in examples/wells)
+       cd examples/contamination
+       mads s02 lmeigen                  (file s02.mads is located in examples/contamination)
+       pest s02pest                   (file s02pest.pst is located in examples/contamination)
+       mads w01 lmeigen     (files associated with problem w01 are located in examples/wells)
+       pest w01pest     (files associated with problem w01pest are located in examples/wells)
+       pest w02pest     (files associated with problem w02pest are located in examples/wells)
 
 For additional information:
 *  web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
