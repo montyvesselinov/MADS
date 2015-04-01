@@ -39,21 +39,21 @@ The code has been tested on Apple MAC OS X, Linux (RHEL / CentOS / Fedora / Ubun
 Checkout the 'readme' file for installation instructions.  
   
 Compilation:  
-* make
-* cmake -f CMakeLists.txt (cmake version 3.1 is required)
+* `make` OR
+* `cmake -f CMakeLists.txt` (cmake version 3.1 is required)
   
 Verification:  
-* make verify (all test problems listed below)  
-* make verify-internal (internal test functions)  
-* make verify-forward (forward contaminant transport simulations)  
-* make verify-contaminant (inverse contaminant transport analyses)  
-* make verify-multistart1 verify-multistart2 (multi-start inverse problems using random initial parameter guesses)  
-* make verify-external verify-external-short (inverse problems using the code WELLS; http://wells.lanl.gov)  
-* make verify-parallel (parallel inverse analysis)  
-* make verify-sa (global sensitivity analysis)  
+* `make verify` (all test problems listed below)  
+* `make verify-internal` (internal test functions)  
+* `make verify-forward` (forward contaminant transport simulations)  
+* `make verify-contaminant` (inverse contaminant transport analyses)  
+* `make verify-multistart1` verify-multistart2 (multi-start inverse problems using random initial parameter guesses)  
+* `make verify-external` verify-external-short (inverse problems using the code WELLS; http://wells.lanl.gov)  
+* `make verify-parallel` (parallel inverse analysis)  
+* `make verify-sa` (global sensitivity analysis)  
   
 Examples:  
-* make examples  
+* `make examples`  
 * additional examples can be found in directory 'example' (check the 'readme' files in the directory 'example')  
 * see also http://mads.lanl.gov/#examples and http://mads.lanl.gov/#demos  
   
@@ -65,14 +65,14 @@ Comparisons:
 Manual: http://mads.lanl.gov/#manual  
   
 USAGE:
-      mads problem_name    [ keywords | options ]  OR
-      mads MADS_input_file [ keywords | options ]  OR
-      mads PEST_input_file [ keywords | options ]  (MADS is compatible with PEST control, template and instruction files)
+*      `mads problem_name    [ keywords | options ]`  OR
+*      `mads MADS_input_file [ keywords | options ]`  OR
+*      `mads PEST_input_file [ keywords | options ]`  (MADS is compatible with PEST control, template and instruction files)
 
 where:
-* problem_name:         name of the solved problem; MADS_input_file named problem_name.mads is expected
-* MADS_input_file:      problem input file in MADS format (typically *.mads)
-* PEST_input_file:      problem input file in PEST format (PEST control file; *.pst)
+* `problem_name`:         name of the solved problem; `MADS_input_file` named `problem_name.mads` is expected
+* `MADS_input_file`:      problem input file in MADS format (typically `*.mads`)
+* `PEST_input_file`:      problem input file in PEST format (PEST control file; `*.pst`)
 
 keywords & options (can be provided in any order):
 
@@ -120,7 +120,7 @@ optimization method (opt=[string]; various combinations are possible, e.g. pso_s
 
 general calibration/optimization options:
 *  retry=[integer]    - number of optimization retries [default retry=0]
-*  particles=[integer]- number of initial particles or tribes [default particles=10+2*sqrt(Number_of_parameters)]
+*  particles=[integer]- number of initial particles or tribes [default `particles=10+2*sqrt(Number_of_parameters)`]
 *  lmeigen|eigen      - eigen analysis of the intermediate / final optimized solution
 
 Levenberg-Marquardt optimization options:
@@ -199,35 +199,35 @@ options for the build-in analytical solutions:
 
 build-in test problems for optimization / uncertainty-quantification techniques (local and global methods):
 *  test=[integer]     - test problem ID [default=1]:
-*                          1: Parabola (Sphere)
-*                          2: Griewank
-*                          3: Rosenbrock
-*                          4: De Jong's Function #4
-*                          5: Step
-*                          6: Alpine function (Clerc's Function #1)
-*                          7: Rastrigin
-*                          8: Krishna Kumar
-*                          9: Tripod function 2D
-*                         10: Shekel's Foxholes 2D
-*                         11: Shekel's Foxholes 5D
-*                         12: Shekel's Foxholes 10D
-*                         20: Shekel's Foxholes 2D (alternative; global methods only)
-*                         21: Polynomial fitting (global methods only)
-*                         22: Ackley (global methods only)
-*                         23: Eason 2D (global methods only)
-*                         31: Rosenbrock (2D simplified alternative)
-*                         32: Griewank (alternative)
-*                         33: Rosenbrock (alternative with d*(d-1) observations
-*                         34: Powell's Quadratic
-*                         35: Booth
-*                         36: Beale
-*                         37: Parsopoulos
-*                         Curve-fitting test functions:
-*                         40: Sin/Cos test function (2 parameters)
-*                         41: Sin/Cos test function (4 parameters)
-*                         42: Sin/Cos test function (2 parameters; simplified)
-*                         43: Exponential Data Fitting I (5 parameters)
-*                         44: Exponential Data Fitting II (11 parameters)
+	*                          1: Parabola (Sphere)
+	*                          2: Griewank
+	*                          3: Rosenbrock
+	*                          4: De Jong's Function #4
+	*                          5: Step
+	*                          6: Alpine function (Clerc's Function #1)
+	*                          7: Rastrigin
+	*                          8: Krishna Kumar
+	*                          9: Tripod function 2D
+	*                         10: Shekel's Foxholes 2D
+	*                         11: Shekel's Foxholes 5D
+	*                         12: Shekel's Foxholes 10D
+	*                         20: Shekel's Foxholes 2D (alternative; global methods only)
+	*                         21: Polynomial fitting (global methods only)
+	*                         22: Ackley (global methods only)
+	*                         23: Eason 2D (global methods only)
+	*                         31: Rosenbrock (2D simplified alternative)
+	*                         32: Griewank (alternative)
+	*                         33: Rosenbrock (alternative with d*(d-1) observations
+	*                         34: Powell's Quadratic
+	*                         35: Booth
+	*                         36: Beale
+	*                         37: Parsopoulos
+	*                         Curve-fitting test functions:
+	*                         40: Sin/Cos test function (2 parameters)
+	*                         41: Sin/Cos test function (4 parameters)
+	*                         42: Sin/Cos test function (2 parameters; simplified)
+	*                         43: Exponential Data Fitting I (5 parameters)
+	*                         44: Exponential Data Fitting II (11 parameters)
 *  dim=[integer]      - dimensionality of parameter space for the test problem (fixed for some of the problems) [default=2]
 *  npar=[integer]     - number of model parameters for the test problem (fixed for some of the problems) [default=2]
 *  nobs=[integer]     - number of observations for the test problem (fixed for some of the problems) [default=2]
@@ -258,42 +258,42 @@ pre-/post-processing:
 *  save               - Save MADS input/output files for successful parameter sets [default save=0]
 
 Examples:
-       mads a01 test=2 opt=lm eigen igrnd real=1 (no input files are needed for execution)
-       mads a01 test=2 opt=squads igrnd real=1
-       mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)
-       mads a01 test=3 abagus cutoff=20 eval=100000  (collect solutions of Rosenbrock function below phi cutoff)
-       mads examples/contamination/s01 ldebug lmeigen (file s01.mads is located in examples/contamination)
-       mads examples/contamination/s01 ldebug lmeigen igrnd real=1
-       mads examples/contamination/s01 seed=1549170842 obsrange igrnd real=1
-       mads examples/contamination/s01 opt=squads seed=1549170842 eigen obsrange pdebug igrnd real=1
-       mads examples/contamination/s01 opt=pso seed=1549170842 eigen obsrange igrnd real=1
-       mads examples/contamination/s01-flagged ppsd (Partial Parameter Space Discretization)
-       mads examples/contamination/s01-flagged igpd (Initial Guesses based on Discreetly distributed model parameters)
-       mads examples/contamination/s01 igrnd real=10 (Random Initial Guesses; all parameters)
-       mads examples/contamination/s01-flagged igrnd real=10 (Random Initial Guesses; only flagged parameters)
-       mads examples/contamination/s01 monte real=10 (Monte Carlo Analysis)
-       cd examples/wells; mads w01.mads igrnd real=1 seed=501228648 eigen
+*  mads a01 test=2 opt=lm eigen igrnd real=1 (no input files are needed for execution)
+*  mads a01 test=2 opt=squads igrnd real=1
+*  mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)
+*  mads a01 test=3 abagus cutoff=20 eval=100000  (collect solutions of Rosenbrock function below phi cutoff)
+*  mads examples/contamination/s01 ldebug lmeigen (file s01.mads is located in examples/contamination)
+*  mads examples/contamination/s01 ldebug lmeigen igrnd real=1
+*  mads examples/contamination/s01 seed=1549170842 obsrange igrnd real=1
+*  mads examples/contamination/s01 opt=squads seed=1549170842 eigen obsrange pdebug igrnd real=1
+*  mads examples/contamination/s01 opt=pso seed=1549170842 eigen obsrange igrnd real=1
+*  mads examples/contamination/s01-flagged ppsd (Partial Parameter Space Discretization)
+*  mads examples/contamination/s01-flagged igpd (Initial Guesses based on Discreetly distributed model parameters)
+*  mads examples/contamination/s01 igrnd real=10 (Random Initial Guesses; all parameters)
+*  mads examples/contamination/s01-flagged igrnd real=10 (Random Initial Guesses; only flagged parameters)
+*  mads examples/contamination/s01 monte real=10 (Monte Carlo Analysis)
+*  cd examples/wells; mads w01.mads igrnd real=1 seed=501228648 eigen
 
 Parallel Levenberg-Marquardt optimization:
-       cd examples/wells-short
-       mads w01parallel.mads restart=0 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors)
-       mads w01parallel.mads restart=0 np=11 nplambda=11
-       mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlam=21 lmnlamof=12 (if a small number of processors is used, lmnlam & lmnlamof should be increased)
+*  cd examples/wells-short
+*  mads w01parallel.mads restart=0 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors)
+*  mads w01parallel.mads restart=0 np=11 nplambda=11
+*  mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlam=21 lmnlamof=12 (if a small number of processors is used, lmnlam & lmnlamof should be increased)
 
 Comparisons between local and global methods:
-       mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)
-       mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)
-       mads a01 test=3 opt=swarm  igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization Standard2006)
-       mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization TRIBES-D)
-       mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3 (Adaptive hybrid optimization Squads)
+*  mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)
+*  mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)
+*  mads a01 test=3 opt=swarm  igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization Standard2006)
+*  mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization TRIBES-D)
+*  mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3 (Adaptive hybrid optimization Squads)
 
 Comparisons with PEST (http://www.sspa.com/pest/):
-       cd examples/contamination
-       mads s02 lmeigen                  (file s02.mads is located in examples/contamination)
-       pest s02pest                   (file s02pest.pst is located in examples/contamination)
-       mads w01 lmeigen     (files associated with problem w01 are located in examples/wells)
-       pest w01pest     (files associated with problem w01pest are located in examples/wells)
-       pest w02pest     (files associated with problem w02pest are located in examples/wells)
+*  cd examples/contamination
+*  mads s02 lmeigen                  (file s02.mads is located in examples/contamination)
+*  pest s02pest                   (file s02pest.pst is located in examples/contamination)
+*  mads w01 lmeigen     (files associated with problem w01 are located in examples/wells)
+*  pest w01pest     (files associated with problem w01pest are located in examples/wells)
+*  pest w02pest     (files associated with problem w02pest are located in examples/wells)
 
 For additional information:
 *  web:   http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
