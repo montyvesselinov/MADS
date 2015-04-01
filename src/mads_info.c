@@ -140,6 +140,7 @@ void mads_info()
 	printf( "   rstdir=[string]    - name of existing restart directory to be used (created by previous Parallel MADS run) [optional]\n" );
 	printf( "   restart=[integer]  - restart=1 (default; automatic restart if possible); restart=0 (force no restart); restart=-1 (force restart)\n" );
 	printf( "                        by default the analyses will be restarted automatically (restart=1)\n" );
+	printf( "   bin_restart        - restart information is stored in binary files (by default, model outputs are added in a zip file for restart)\n" );
 	printf( "\nABAGUS (Agent-Based Global Uncertainty & Sensitivity Analysis) options:\n" );
 	printf( "   infile=[string]    - name of previous results file to be used to initialize Kd-tree [default=NULL]\n" );
 	printf( "   energy=[integer]   - initial energy for particles [default energy=10000]\n" );

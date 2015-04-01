@@ -72,8 +72,6 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 int create_mprun_dir( char *dir );
 int delete_mprun_dir( char *dir );
 int mprun( int nJob, void *data );
-int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[] );
-int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[] );
 int Ftestread( char *filename );
 time_t Fdatetime_t( char *filename, int debug );
 
@@ -450,6 +448,28 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	int i, success, success_all = 1, bad_data;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	int *obs_count;
+	if( p->cd->restart && p->cd->bin_restart )
+	{
+		FILE *infileb;
+		sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval ); // Archive model output
+		if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+		{
+			int obj_read = fread( ( void * ) f, sizeof( f[0] ), p->od->nTObs, infileb );
+			fclose( infileb );
+			int done = 1;
+			if( obj_read != p->od->nTObs ) { tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf ); done = 0; }
+			else { if( p->cd->pardebug > 1 ) tprintf( "RESTART: Results (model residuals) from parallel run #%d are read from a file in directory %s!\n", ieval, p->cd->restart_container ); }
+			if( p->cd->pardebug > 4 )
+				for( i = 0; i < p->od->nTObs; i++ )
+					tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], f[i] );
+			double lphi = 0;
+			for( i = 0; i < p->od->nTObs; i++ )
+				lphi += f[i] * f[i];
+			p->phi = lphi;
+			if( done )
+				return( GSL_SUCCESS );
+		}
+	}
 	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
 	for( i = 0; i < p->od->nObs; i++ ) obs_count[i] = 0;
 	bad_data = 0;
@@ -477,7 +497,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	if( bad_data ) return( bad_data );
 	if( p->cd->restart )
 	{
-		if( p->cd->omp )
+		if( p->cd->bin_restart )
 		{
 			FILE *outfileb;
 			sprintf( buf, "%s/%020d.par", p->cd->restart_container, ieval ); // Archive model inputs
@@ -573,7 +593,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
-	if( p->cd->restart && p->cd->omp )
+	if( p->cd->restart && p->cd->bin_restart )
 	{
 		FILE *outfileb;
 		sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval ); // Archive model output

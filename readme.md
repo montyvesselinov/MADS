@@ -179,8 +179,8 @@ parallelization (parallelization environment and available resources are interna
 *  nplambda=[integer] - Number of requested parallel lambda runs in the case of Levenberg-Marquardt optimization [optional; nplambda <= np]
 *  rstfile=[string]   - name of existing ZIP restart file to be used (created by previous Parallel MADS run) [optional]
 *  rstdir=[string]    - name of existing restart directory to be used (created by previous Parallel MADS run) [optional]
-*  restart=[integer]  - restart=1 (default; automatic restart if possible); restart=0 (force no restart); restart=-1 (force restart)
-*                       by default the analyses will be restarted automatically (restart=1)
+*  restart=[integer]  - restart=1 (default; automatic restart if possible); restart=0 (force no restart); restart=-1 (force restart) by default the analyses will be restarted automatically (restart=1)
+*  bin_restart        - restart information is stored in binary files (by default, model outputs are added in a zip file for restart)
 
 ABAGUS (Agent-Based Global Uncertainty & Sensitivity Analysis) options:
 *  infile=[string]    - name of previous results file to be used to initialize Kd-tree [default=NULL]

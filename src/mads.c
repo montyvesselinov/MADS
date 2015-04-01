@@ -414,6 +414,12 @@ int main( int argn, char *argv[] )
 		cd.parallel_type = 2;
 		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NTASKS is defined)\n" );
 		sscanf( nodelist, "%d", &cd.num_proc );
+		if( ( nodelist = getenv( "SLURM_CPUS_ON_NODE" ) ) != NULL )
+		{
+			int cpus_per_node;
+			sscanf( nodelist, "%d", &cpus_per_node );
+			cd.num_proc *= cpus_per_node;
+		}
 		if( cd.debug ) tprintf( "Number of processors %d\n", cd.num_proc );
 	}
 	else if( ( nodelist = getenv( "NODELIST" ) ) != NULL )
@@ -473,7 +479,7 @@ int main( int argn, char *argv[] )
 	{
 		cd.parallel_type = 0;
 		if( cd.omp ) tprintf( "\nOpenMP" );
-		else tprintf( "\nLocal" );
+		else tprintf( "\nPOSIX" );
 		tprintf( " parallel execution using %d processors (use np=%d to change)\n", cd.num_proc, cd.num_proc );
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
 		{
@@ -575,7 +581,7 @@ int main( int argn, char *argv[] )
 	tprintf( "\nExecution date & time stamp: %s\n", op.datetime_stamp ); // Stamp will be applied to name / rename various output files
 	if( cd.solution_type[0] == EXTERNAL && cd.num_proc > 1 )
 	{
-		if( cd.omp )
+		if( cd.bin_restart )
 		{
 			if( cd.restart == 1 ) // Restart by default
 			{

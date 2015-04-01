@@ -88,7 +88,7 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 		for( i = 0; i < nJob; i++ )
 		{
 			done += skip_job[i] = func_extrn_check_read( ieval + i + 1, p );
-			if( p->cd->pardebug > 1 )
+			if( p->cd->pardebug )
 			{
 				if( skip_job[i] == 1 ) tprintf( "Job %d is already completed; it will be skipped!\n", ieval + i + 1 );
 				else tprintf( "Job %d will be executed!\n", ieval + i + 1 );
@@ -851,7 +851,23 @@ int mprun( int nJob, void *data )
 		for( i = 0; i < nJob; i++ )
 		{
 			done += skip_job[i] = func_extrn_check_read( ieval + i + 1, p );
-			if( p->cd->pardebug > 1 )
+			if( !skip_job[i] && p->cd->bin_restart )
+			{
+				FILE *infileb;
+				char buf[1000];
+				sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval + i + 1 ); // Archive model inputs
+				if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+				{
+					int obj_read = fread( ( void * ) p->od->obs_current, sizeof( p->od->obs_current[0] ), p->od->nTObs, infileb );
+					fclose( infileb );
+					if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
+					else { if( p->cd->pardebug ) tprintf( "RESTART: Binary file %s is applied to read model predictions\n", buf ); skip_job[i] = 1; done++; }
+					if( p->cd->pardebug > 4 )
+						for( i = 0; i < p->od->nTObs; i++ )
+							tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], p->od->obs_current[i] );
+				}
+			}
+			if( p->cd->pardebug )
 			{
 				if( skip_job[i] == 1 ) tprintf( "Job %d is already completed; it will be skipped!\n", ieval + i + 1 );
 				else tprintf( "Job %d will be executed!\n", ieval + i + 1 );

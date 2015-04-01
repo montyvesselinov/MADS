@@ -132,6 +132,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int num_proc; // number of processors for parallel execution
 	int lm_num_parallel_lambda; // number of parallel lambda runs in the case of Levenberg-Marquardt optimization (<= num_proc)
 	int restart; // flag restart for parallel jobs
+	bool bin_restart;
 	int njob; // number of parallel jobs
 	int energy; // starting energy for pssa particles
 	int disp_tied;

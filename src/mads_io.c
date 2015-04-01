@@ -270,6 +270,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->num_proc = -1;
 	cd->lm_num_parallel_lambda = 0;
 	cd->restart = 1;
+	cd->bin_restart = false;
 	cd->nreal = 0;
 	cd->lm_niter = 0;
 	cd->disp_tied = 0;
@@ -319,7 +320,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "force", 5 ) ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "f", 1 ) && strlen( word ) == 1 ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "posix", 5 ) ) { w = 1; cd->omp = false; };
-		if( !strncasecmp( word, "omp", 3 ) ) { w = 1; cd->omp = true; };
+		if( !strncasecmp( word, "omp", 3 ) ) { w = 1; cd->omp = true; cd->bin_restart = true; };
 		if( !strncasecmp( word, "text", 4 ) ) { w = 1; cd->ioml = IO_TEXT; }
 		if( !strncasecmp( word, "yaml", 4 ) ) { w = 1; cd->ioml = IO_YAML; }
 		if( !strncasecmp( word, "xml", 3 ) ) { w = 1; cd->ioml = IO_XML; }
@@ -396,8 +397,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "np=", 3 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( !strncasecmp( word, "nplambda", 8 ) ) { w = 1; cd->lm_num_parallel_lambda = 0; sscanf( word, "nplambda=%d", &cd->lm_num_parallel_lambda ); if( cd->lm_num_parallel_lambda <= 0 ) cd->lm_num_parallel_lambda = 0; }
 		if( !strncasecmp( word, "restart=", 8 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 ) cd->restart = -1; if( cd->restart > 1 ) cd->restart = 1; }
-		if( !strncasecmp( word, "rstfile=", 8 ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_container ); cd->restart = -1; }
-		if( !strncasecmp( word, "rstdir=", 7 ) ) { w = 1; sscanf( word, "rstdir=%s", cd->restart_container ); cd->restart = -1; }
+		if( !strncasecmp( word, "bin_restart", 11 ) ) { w = 1; cd->bin_restart = true; }
+		if( !strncasecmp( word, "rstfile=", 8 ) ) { w = 1; sscanf( word, "rstfile=%s", cd->restart_container ); cd->restart = -1; cd->bin_restart = false; }
+		if( !strncasecmp( word, "rstdir=", 7 ) ) { w = 1; sscanf( word, "rstdir=%s", cd->restart_container ); cd->restart = -1; cd->bin_restart = true; }
 		if( !strncasecmp( word, "resultsfile=", 12 ) ) { w = 1; sscanf( word, "resultsfile=%s", cd->resultsfile ); cd->problem_type = FORWARD; }
 		if( !strncasecmp( word, "resultscase=", 12 ) ) { w = 1; sscanf( word, "resultscase=%d", &cd->resultscase ); }
 		if( !strncasecmp( word, "debug", 5 ) ) { w = 1; if( sscanf( word, "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
