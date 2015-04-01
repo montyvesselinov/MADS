@@ -1,78 +1,496 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>MADS by montyvesselinov</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="description" content="MADS : Model Analyses &amp; Decision Support (MADS)">
 
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>MADS</title>
   </head>
+
   <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/montyvesselinov/MADS">View On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/montyvesselinov/MADS/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/montyvesselinov/MADS/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
 
-    <div class="wrapper">
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/montyvesselinov/MADS">View on GitHub</a>
 
-      <section>
-        <div id="title">
-          <h1>MADS</h1>
-          <p>Model Analyses &amp; Decision Support (MADS)</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/montyvesselinov">montyvesselinov</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
-        </div>
+          <h1 id="project_title">MADS</h1>
+          <h2 id="project_tagline">Model Analyses &amp; Decision Support (MADS)</h2>
 
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
-
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/montyvesselinov/MADS/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/montyvesselinov/MADS/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>MADS is an open-source code designed as an integrated high-performance computational framework performing a wide range of model-based analyses:</p>
+
+<ul>
+<li>Sensitivity Analysis</li>
+<li>Parameter Estimation</li>
+<li>Model Inversion and Calibration</li>
+<li>Uncertainty Quantification</li>
+<li>Model Selection and Averaging</li>
+<li>Decision Support</li>
+</ul>
+
+<p>MADS utilizes adaptive rules and techniques which allows the analyses to be performed with minimum user input.
+The code provides a series of alternative algorithms to perform each type of model analyses.
+The code allows for coupled model parameters and regularization terms that are internally computed based on user-defined mathematical expressions.</p>
+
+<p>For more information check out he MADS website at <a href="http://mads.lanl.gov">http://mads.lanl.gov</a></p>
+
+<p>Licensing: GPLv3: <a href="http://www.gnu.org/licenses/gpl-3.0.html">http://www.gnu.org/licenses/gpl-3.0.html</a></p>
+
+<p>Download:  </p>
+
+<ul>
+<li>
+<a href="http://gitlab.com/monty/mads">http://gitlab.com/monty/mads</a><br>
+</li>
+<li>
+<a href="http://github.com/montyvesselinov/MADS">http://github.com/montyvesselinov/MADS</a><br>
+</li>
+<li>
+<a href="http://bitbucket.org/monty_vesselinov/mads">http://bitbucket.org/monty_vesselinov/mads</a><br>
+</li>
+</ul>
+
+<p>Clone GIT repositories:  </p>
+
+<ul>
+<li>git clone <a href="mailto:git@gitlab.com">git@gitlab.com</a>:monty/mads.git<br>
+</li>
+<li>git clone <a href="mailto:git@github.com">git@github.com</a>:montyvesselinov/MADS.git<br>
+</li>
+<li>git clone <a href="mailto:git@bitbucket.org">git@bitbucket.org</a>:monty_vesselinov/mads.git<br>
+</li>
+</ul>
+
+<p>Required third party libraries (TPL's):  </p>
+
+<ul>
+<li>GSL: <a href="http://www.gnu.org/s/gsl">http://www.gnu.org/s/gsl</a><br>
+</li>
+<li>LAPACK: <a href="http://www.netlib.org/lapack">http://www.netlib.org/lapack</a><br>
+</li>
+<li>BLAS: <a href="http://www.netlib.org/blas">http://www.netlib.org/blas</a><br>
+</li>
+<li>MATHEVAL: <a href="http://www.gnu.org/software/libmatheval">http://www.gnu.org/software/libmatheval</a><br>
+</li>
+<li>YAML: <a href="http://pyyaml.org/wiki/LibYAML">http://pyyaml.org/wiki/LibYAML</a>; <a href="http://www.yaml.org">http://www.yaml.org</a><br>
+</li>
+<li>GLIB: <a href="http://developer.gnome.org/glib">http://developer.gnome.org/glib</a><br>
+</li>
+</ul>
+
+<p>The required TPL's can be downloaded at <a href="http://gitlab.com/mads/mads-tpls">http://gitlab.com/mads/mads-tpls</a>  </p>
+
+<p>The code has been tested on Apple MAC OS X, Linux (RHEL / CentOS / Fedora / Ubuntu / Debian) and Cygwin/Microsoft Windows.  </p>
+
+<p>Checkout the 'readme' file for installation instructions.  </p>
+
+<p>Compilation:  </p>
+
+<ul>
+<li>
+<code>make</code> OR</li>
+<li>
+<code>cmake -f CMakeLists.txt</code> (cmake version 3.1 is required)</li>
+</ul>
+
+<p>Verification:  </p>
+
+<ul>
+<li>
+<code>make verify</code> (all test problems listed below)<br>
+</li>
+<li>
+<code>make verify-internal</code> (internal test functions)<br>
+</li>
+<li>
+<code>make verify-forward</code> (forward contaminant transport simulations)<br>
+</li>
+<li>
+<code>make verify-contaminant</code> (inverse contaminant transport analyses)<br>
+</li>
+<li>
+<code>make verify-multistart1</code> verify-multistart2 (multi-start inverse problems using random initial parameter guesses)<br>
+</li>
+<li>
+<code>make verify-external</code> verify-external-short (inverse problems using the code WELLS; <a href="http://wells.lanl.gov">http://wells.lanl.gov</a>)<br>
+</li>
+<li>
+<code>make verify-parallel</code> (parallel inverse analysis)<br>
+</li>
+<li>
+<code>make verify-sa</code> (global sensitivity analysis)<br>
+</li>
+</ul>
+
+<p>Examples:  </p>
+
+<ul>
+<li>
+<code>make examples</code><br>
+</li>
+<li>additional examples can be found in directory 'example' (check the 'readme' files in the directory 'example')<br>
+</li>
+<li>see also <a href="http://mads.lanl.gov/#examples">http://mads.lanl.gov/#examples</a> and <a href="http://mads.lanl.gov/#demos">http://mads.lanl.gov/#demos</a><br>
+</li>
+</ul>
+
+<p>Comparisons:</p>
+
+<ul>
+<li>test probelems are available</li>
+<li>comparisons with the code PEST are available as well (in subdirectories of 'example', check the 'readme' files)<br>
+</li>
+<li>see also <a href="http://mads.lanl.gov/#comparisons">http://mads.lanl.gov/#comparisons</a><br>
+</li>
+</ul>
+
+<p>Manual: <a href="http://mads.lanl.gov/#manual">http://mads.lanl.gov/#manual</a>  </p>
+
+<p>USAGE:</p>
+
+<ul>
+<li>     <code>mads problem_name    [ keywords | options ]</code>  OR</li>
+<li>     <code>mads MADS_input_file [ keywords | options ]</code>  OR</li>
+<li>     <code>mads PEST_input_file [ keywords | options ]</code>  (MADS is compatible with PEST control, template and instruction files)</li>
+</ul>
+
+<p>where:</p>
+
+<ul>
+<li>
+<code>problem_name</code>:         name of the solved problem; <code>MADS_input_file</code> named <code>problem_name.mads</code> is expected</li>
+<li>
+<code>MADS_input_file</code>:      problem input file in MADS format (typically <code>*.mads</code>)</li>
+<li>
+<code>PEST_input_file</code>:      problem input file in PEST format (PEST control file; <code>*.pst</code>)</li>
+</ul>
+
+<p>keywords &amp; options (can be provided in any order):</p>
+
+<p>problem type keywords:</p>
+
+<ul>
+<li> check              - check model setup and input/output files (no model execution)</li>
+<li> create             - create calibration problem based on provided model parameters (single model execution to compute calibration targets)</li>
+<li> forward            - forward model run (no calibration); recommended for model setup checking</li>
+<li> calibrate          - calibration run [default if no problem type keyword is provided]</li>
+<li> montecarlo         - Monte-Carlo analysis</li>
+<li> gsens              - global sensitivity analysis</li>
+<li> glue               - Generalized Likelihood Uncertainty Estimation</li>
+<li> lsens              - local sensitivity analysis (standalone or at the end of the calibration)</li>
+<li> eigen              - local eigensystem analysis (standalone or at the end of the calibration)</li>
+<li> abagus             - Agent-Based Global Uncertainty &amp; Sensitivity Analysis</li>
+<li> infogap            - Info-gap decision analysis</li>
+<li> postpua            - predictive uncertainty analysis of sampling results (currently for abagus PSSA files only)</li>
+</ul>
+
+<p>calibration method keywords (select one):</p>
+
+<ul>
+<li> single             - single calibration using initial guesses provided in the input file [default]</li>
+<li> igrnd              - sequential calibrations using a set of random initial values (number of realizations defined by real=X)</li>
+<li> igpd               - sequential calibrations using a set of discretized initial values (discretization defined in the input file)</li>
+<li> ppsd               - sequential calibrations using partial parameter space discretization (PPSD) method (discretization defined in the input file)</li>
+</ul>
+
+<p>calibration termination criteria:</p>
+
+<ul>
+<li> eval=[integer]     - functional evaluations exceed the predefined value [default eval=5000]</li>
+<li> cutoff=[real]      - objective function is below the cutoff value [default cutoff=0]</li>
+<li> obsrange           - model predictions are within predefined calibration ranges</li>
+<li> obserror=[real]    - model predictions are within a predefined absolute error [default obserror=0.1]</li>
+<li> parerror=[real]    - model parameters are within a predefined absolute error from their known 'true' values [default parerror=0.1]</li>
+</ul>
+
+<p>user-enforced termination:</p>
+
+<ul>
+<li> problem_name.quit  - if file with this name exists in the running directory, MADS terminates as soon as possible.</li>
+<li> problem_name.stop  - if file with this name exists in the running directory, MADS terminates after saving intermediate results.</li>
+</ul>
+
+<p>optimization method (opt=[string]; various combinations are possible, e.g. pso_std_lm_gsl):</p>
+
+<ul>
+<li> opt=lm             - Local Levenberg-Marquardt optimization [default]</li>
+<li> opt=lm_levmar      - Local Levenberg-Marquardt optimization using LEVMAR library</li>
+<li> opt=lm_gsl         - Local Levenberg-Marquardt optimization using GSL library</li>
+<li> opt=lm_ms          - Local Multi-Start (Multi-Try) Levenberg-Marquardt (MSLM) optimization using multiple random initial guesses</li>
+<li> opt=pso            - Global Particle Swarm optimization (default Standard2006; <a href="http://clerc.maurice.free.fr/pso">http://clerc.maurice.free.fr/pso</a>)</li>
+<li> opt=apso           - Global Adaptive Particle Swarm optimization (default TRIBES)</li>
+<li> opt=swarm          - Global Particle Swarm optimization Standard2006 (also opt=pso_std)</li>
+<li> opt=tribes         - Global Particle Swarm optimization TRIBES-D (Clerc 2004; <a href="http://clerc.maurice.free.fr/pso">http://clerc.maurice.free.fr/pso</a>)</li>
+<li> opt=squads         - SQUADS: Adaptive hybrid optimization using coupled local and global optimization techniques</li>
+</ul>
+
+<p>general calibration/optimization options:</p>
+
+<ul>
+<li> retry=[integer]    - number of optimization retries [default retry=0]</li>
+<li> particles=[integer]- number of initial particles or tribes [default <code>particles=10+2*sqrt(Number_of_parameters)</code>]</li>
+<li> lmeigen|eigen      - eigen analysis of the intermediate / final optimized solution</li>
+</ul>
+
+<p>Levenberg-Marquardt optimization options:</p>
+
+<ul>
+<li> lmfactor=[double]  - multiplier applied to compute when to initiate LM searches within SQUADS algorithm [default lmfactor=1.0]</li>
+<li> lmindirect         - Indirect computation of LM alpha coefficient [default DIRECT/Delayed gratification computation]</li>
+<li> lmmu=[double]      - LM alpha multiplier for direct computation of LM alpha coefficient when OF decreases [default lmmu=0.1]</li>
+<li> lmnu=[integer]     - LM alpha multiplier for direct computation of LM alpha coefficient when OF increases [default lmnu=10]</li>
+<li> lmaccel            - LM geodesic acceleration as proposed by Transtrum et al (2011) [default NO acceleration]</li>
+<li> lmratio=[double]   - LM acceleration velocity ratio for recomputing the Jacobian [default lmratio=(3/4)^2]</li>
+<li> lmh=[double]       - LM acceleration multiplier [default lmh=0.1]</li>
+<li> lmiter=[integer]   - number of LM iterations [default computed internally based on number of evaluations]</li>
+<li> lmnlam=[integer]   - Maximum number of linear solves (lambda searches) after each Jacobian estimate [default lmnlam=10]</li>
+<li> lmnlamof=[integer] - Number of acceptable linear solves (lambda searches) with similar OF's during LM optimization [default lmnlamof=3]</li>
+<li> lmnjacof=[integer] - Number of acceptable jacobian iterations with similar OF's during LM optimization [default lmnjacof=5]</li>
+<li> lmerror=[double]   - LM convergence error [default lmerror=1e-5]</li>
+</ul>
+
+<p>sampling method (smp=[string] OR mslm=[string] for Multi-Start Levenberg-Marquardt (MSLM) analysis using multiple retries):</p>
+
+<ul>
+<li> smp=olhs           - Optimal Latin Hyper Cube sampling <a href="if%20real=1%20RANDOM;%20if%20real%3E1%20IDLHS;%20if%20real%3E500%20LHS">default</a>
+</li>
+<li> smp=lhs            - Latin Hyper Cube sampling (LHS)</li>
+<li> smp=idlhs          - Improved Distributed Latin Hyper Cube sampling (IDLHS)</li>
+<li> smp=random         - Random sampling</li>
+</ul>
+
+<p>sampling options:</p>
+
+<ul>
+<li> real=[integer]     - number of random realizations / samples [default real=100]</li>
+<li> case=[integer]     - execute a single case from all the realizations / samples (applied in PPSD, IGDP, IGRND, MONTECARLO)</li>
+<li> seed=[integer]     - random seed value [randomly generated by default]</li>
+</ul>
+
+<p>objective function functional form options (select one; regularizaiton terms can be added separately):</p>
+
+<ul>
+<li> ssr                - sum of the squared residuals [default]</li>
+<li> ssd0               - sum of the squared discrepancies</li>
+<li> ssdx               - sum of the squared discrepancies increased to get in the bounds</li>
+<li> ssda               - sum of the squared discrepancies and absolute residuals</li>
+<li> ssdr               - sum of the squared discrepancies and squared residuals</li>
+</ul>
+
+<p>transformation of parameter and observation properties:</p>
+
+<ul>
+<li> nosin              - Sin transformation of optimized parameters is not applied [parameters are sin transformed by default]</li>
+<li> sindx              - Parameter space step for numerical derivatives of sin transformed parameters</li>
+<li>                      [default sindx=1e-7 for internal problems; sindx=0.1 for external problems]</li>
+<li> lindx              - Parameter space step for numerical derivatives of not transformed parameters [default lindx=0.001]</li>
+<li> pardx              - Parameter space step for parameter space discretization [default pardx=0.1]</li>
+<li> plog=[-1,0,1]      - Log transformation of all optimized parameters is enforced (1) or disabled (0)</li>
+<li>                      [default plog=-1; log transformation is explicitly defined for each parameter in the input file]</li>
+<li> olog=[-1,0,1]      - Log transformation of all the observations (simulated and measured) is enforced (1) or disabled (0)</li>
+<li>                      [default olog=-1; log transformation is explicitly defined for each observation in the input file]</li>
+<li> oweight=[-1,0,1,2] - Weights for all the observation residuals are defined:</li>
+<li>                      0 = zero weight, 1 = unit weight, 2 = weight reversely proportional to observation</li>
+<li>                      [default oweight=-1; weights for each observation are explicitly defined in the input file]</li>
+<li> obsdomain=[float]  - observation space domain size [default provided in the MADS input file]</li>
+<li> obsstep=[float]    - observation space domain step to explore info-gap observation uncertainty [default ignored]</li>
+</ul>
+
+<p>parallelization (parallelization environment and available resources are internally detected by default; supported - SLURM, OpenMP, Moab, ...):</p>
+
+<ul>
+<li> posix              - POSIX parallel threading [default]</li>
+<li> omp                - OpenMP parallel threading [optional]</li>
+<li> np=[integer]       - Number of requested parallel jobs [optional]</li>
+<li> nplambda=[integer] - Number of requested parallel lambda runs in the case of Levenberg-Marquardt optimization [optional; nplambda &lt;= np]</li>
+<li> rstfile=[string]   - name of existing ZIP restart file to be used (created by previous Parallel MADS run) [optional]</li>
+<li> rstdir=[string]    - name of existing restart directory to be used (created by previous Parallel MADS run) [optional]</li>
+<li> restart=[integer]  - restart=1 (default; automatic restart if possible); restart=0 (force no restart); restart=-1 (force restart)</li>
+<li>                      by default the analyses will be restarted automatically (restart=1)</li>
+</ul>
+
+<p>ABAGUS (Agent-Based Global Uncertainty &amp; Sensitivity Analysis) options:</p>
+
+<ul>
+<li> infile=[string]    - name of previous results file to be used to initialize Kd-tree [default=NULL]</li>
+<li> energy=[integer]   - initial energy for particles [default energy=10000]</li>
+</ul>
+
+<p>options for the build-in analytical solutions:</p>
+
+<ul>
+<li> point              - point contaminant source in 3D flow domain</li>
+<li> plane              - plane contaminant source in 3D flow domain</li>
+<li> box                - brick contaminant source in 3D flow domain</li>
+<li> obs_int=[1,2]      - concentration integration along observation well screens (1 - mid point; 2 - two end points [default=1]</li>
+<li> disp_tied          - lateral and vertical transverse dispersivities are fractions of the longitudinal dispersivity</li>
+<li> disp_scaled        - longitudinal dispersivity is scaled with the travel distance</li>
+<li>                      if disp_scaled and disp_tied are applied, longitudinal dispersivity is scaled and</li>
+<li>                      lateral and vertical transverse dispersivities are fractions of the scaled longitudinal dispersivity</li>
+<li> disp_scaled=2      - longitudinal, lateral and vertical transverse dispersivities are scaled with the travel distance</li>
+<li> time_step          - parameter "end time" is representing the period (dt) within which the source is active</li>
+</ul>
+
+<p>build-in test problems for optimization / uncertainty-quantification techniques (local and global methods):</p>
+
+<ul>
+<li> test=[integer]     - test problem ID [default=1]:
+
+<ul>
+<li>                         1: Parabola (Sphere)</li>
+<li>                         2: Griewank</li>
+<li>                         3: Rosenbrock</li>
+<li>                         4: De Jong's Function #4</li>
+<li>                         5: Step</li>
+<li>                         6: Alpine function (Clerc's Function #1)</li>
+<li>                         7: Rastrigin</li>
+<li>                         8: Krishna Kumar</li>
+<li>                         9: Tripod function 2D</li>
+<li>                        10: Shekel's Foxholes 2D</li>
+<li>                        11: Shekel's Foxholes 5D</li>
+<li>                        12: Shekel's Foxholes 10D</li>
+<li>                        20: Shekel's Foxholes 2D (alternative; global methods only)</li>
+<li>                        21: Polynomial fitting (global methods only)</li>
+<li>                        22: Ackley (global methods only)</li>
+<li>                        23: Eason 2D (global methods only)</li>
+<li>                        31: Rosenbrock (2D simplified alternative)</li>
+<li>                        32: Griewank (alternative)</li>
+<li>                        33: Rosenbrock (alternative with d*(d-1) observations</li>
+<li>                        34: Powell's Quadratic</li>
+<li>                        35: Booth</li>
+<li>                        36: Beale</li>
+<li>                        37: Parsopoulos</li>
+<li>                        Curve-fitting test functions:</li>
+<li>                        40: Sin/Cos test function (2 parameters)</li>
+<li>                        41: Sin/Cos test function (4 parameters)</li>
+<li>                        42: Sin/Cos test function (2 parameters; simplified)</li>
+<li>                        43: Exponential Data Fitting I (5 parameters)</li>
+<li>                        44: Exponential Data Fitting II (11 parameters)</li>
+</ul>
+</li>
+<li> dim=[integer]      - dimensionality of parameter space for the test problem (fixed for some of the problems) [default=2]</li>
+<li> npar=[integer]     - number of model parameters for the test problem (fixed for some of the problems) [default=2]</li>
+<li> nobs=[integer]     - number of observations for the test problem (fixed for some of the problems) [default=2]</li>
+<li> pardomain=[float]  - parameter space domain size [default pardomain=100]</li>
+</ul>
+
+<p>debugging / verbose levels:</p>
+
+<ul>
+<li> force | f          - enforce running even if a file *.running exists (the file *.running is to prevent overlapping executions)</li>
+<li> quiet | q          - no screen output (all the screen output is saved in a file with extension mads_output</li>
+<li> debug=[0-5]        - general debugging [default debug=0]</li>
+<li> fdebug=[0-5]       - model evaluation debugging [default fdebug=0]</li>
+<li> ldebug=[0-3]       - Levenberg-Marquardt optimization debugging [default ldebug=0]</li>
+<li> pdebug=[0-3]       - Particle Swarm optimization debugging [default pdebug=0]</li>
+<li> mdebug=[0-3]       - Random sampling debugging [default mdebug=0]</li>
+<li> odebug=[0-1]       - Record objective function progress in a file with extension 'ofe' [default odebug=0]</li>
+<li> tdebug=[0-1]       - Output process times for various tasks [default tdebug=0]</li>
+<li> tpldebug=[0-3]     - Debug the writing of external files [default tpldebug=0]</li>
+<li> insdebug=[0-3]     - Debug the reading of external files [default insdebug=0]</li>
+<li> pardebug=[0-3]     - Debug the parallel execution [default pardebug=0]</li>
+</ul>
+
+<p>pre-/post-processing:</p>
+
+<ul>
+<li> yaml               - Reads/writes/converts MADS files in YAML format</li>
+<li> xml                - Reads/writes/converts MADS files in XML format</li>
+<li> resultsfile=[file] - Post process results saved in a previously generated resultsfile (e.g. using 'igrnd' analysis)</li>
+<li> resultscase=[int]  - Post process specific case saved in resultsfile (if resultscase&lt;0, first abs(resultscase) cases)</li>
+<li> cutoff=[real]      - Post process all cases saved in resultsfile with objective function below the cutoff value</li>
+<li> obsrange           - Post process all cases saved in resultsfile with model predictions within predefined calibration ranges</li>
+<li> pargen             - Generate MADS input files for independent multi-processor runs [default pargen=0]</li>
+<li> save               - Save MADS input/output files for successful parameter sets [default save=0]</li>
+</ul>
+
+<p>Examples:</p>
+
+<ul>
+<li> mads a01 test=2 opt=lm eigen igrnd real=1 (no input files are needed for execution)</li>
+<li> mads a01 test=2 opt=squads igrnd real=1</li>
+<li> mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)</li>
+<li> mads a01 test=3 abagus cutoff=20 eval=100000  (collect solutions of Rosenbrock function below phi cutoff)</li>
+<li> mads examples/contamination/s01 ldebug lmeigen (file s01.mads is located in examples/contamination)</li>
+<li> mads examples/contamination/s01 ldebug lmeigen igrnd real=1</li>
+<li> mads examples/contamination/s01 seed=1549170842 obsrange igrnd real=1</li>
+<li> mads examples/contamination/s01 opt=squads seed=1549170842 eigen obsrange pdebug igrnd real=1</li>
+<li> mads examples/contamination/s01 opt=pso seed=1549170842 eigen obsrange igrnd real=1</li>
+<li> mads examples/contamination/s01-flagged ppsd (Partial Parameter Space Discretization)</li>
+<li> mads examples/contamination/s01-flagged igpd (Initial Guesses based on Discreetly distributed model parameters)</li>
+<li> mads examples/contamination/s01 igrnd real=10 (Random Initial Guesses; all parameters)</li>
+<li> mads examples/contamination/s01-flagged igrnd real=10 (Random Initial Guesses; only flagged parameters)</li>
+<li> mads examples/contamination/s01 monte real=10 (Monte Carlo Analysis)</li>
+<li> cd examples/wells; mads w01.mads igrnd real=1 seed=501228648 eigen</li>
+</ul>
+
+<p>Parallel Levenberg-Marquardt optimization:</p>
+
+<ul>
+<li> cd examples/wells-short</li>
+<li> mads w01parallel.mads restart=0 np=2 ldebug pardebug=2 (Parallel optimization using 2 processors)</li>
+<li> mads w01parallel.mads restart=0 np=11 nplambda=11</li>
+<li> mads w01parallel.mads restart=0 np=3 nplambda=3 lmnlam=21 lmnlamof=12 (if a small number of processors is used, lmnlam &amp; lmnlamof should be increased)</li>
+</ul>
+
+<p>Comparisons between local and global methods:</p>
+
+<ul>
+<li> mads a01 test=3 opt=lm     igrnd real=1000 cutoff=1e-3 (Levenberg-Marquardt optimization)</li>
+<li> mads a01 test=3 opt=lm_ms  igrnd real=1000 cutoff=1e-3 (Multi-Start Levenberg-Marquardt optimization)</li>
+<li> mads a01 test=3 opt=swarm  igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization Standard2006)</li>
+<li> mads a01 test=3 opt=tribes igrnd real=1000 cutoff=1e-3 (Particle Swarm optimization TRIBES-D)</li>
+<li> mads a01 test=3 opt=squads igrnd real=1000 cutoff=1e-3 (Adaptive hybrid optimization Squads)</li>
+</ul>
+
+<p>Comparisons with PEST (<a href="http://www.sspa.com/pest/">http://www.sspa.com/pest/</a>):</p>
+
+<ul>
+<li> cd examples/contamination</li>
+<li> mads s02 lmeigen                  (file s02.mads is located in examples/contamination)</li>
+<li> pest s02pest                   (file s02pest.pst is located in examples/contamination)</li>
+<li> mads w01 lmeigen     (files associated with problem w01 are located in examples/wells)</li>
+<li> pest w01pest     (files associated with problem w01pest are located in examples/wells)</li>
+<li> pest w02pest     (files associated with problem w02pest are located in examples/wells)</li>
+</ul>
+
+<p>For additional information:</p>
+
+<ul>
+<li> web:   <a href="http://mads.lanl.gov">http://mads.lanl.gov</a> -:- <a href="http://www.ees.lanl.gov/staff/monty/codes/mads">http://www.ees.lanl.gov/staff/monty/codes/mads</a>
+</li>
+<li> repo:  <a href="http://gitlab.com/monty/mads">http://gitlab.com/monty/mads</a>
+</li>
+<li> git:   git clone <a href="mailto:git@gitlab.com">git@gitlab.com</a>:monty/mads.git</li>
+<li> email: Velimir V Vesselinov (monty) <a href="mailto:vvv@lanl.gov">vvv@lanl.gov</a> -:- <a href="mailto:velimir.vesselinov@gmail.com">velimir.vesselinov@gmail.com</a>
+</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">MADS maintained by <a href="https://github.com/montyvesselinov">montyvesselinov</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
     
+
   </body>
 </html>
