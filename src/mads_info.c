@@ -42,9 +42,9 @@ void mads_info()
 	printf( "USAGE: mads problem_name    [ keywords | options ]  OR\n" );
 	printf( "       mads MADS_input_file [ keywords | options ]  OR\n" );
 	printf( "       mads PEST_input_file [ keywords | options ]  (MADS is compatible with PEST control, template and instruction files)\n\n" );
-	printf( "problem_name:         name of the solved problem; MADS_input_file named problem_name.mads is expected\n" );
-	printf( "MADS_input_file:      problem input file in MADS format (typically *.mads)\n" );
-	printf( "PEST_input_file:      problem input file in PEST format (PEST control file; *.pst)\n\n" );
+	printf( "       problem_name:        name of the solved problem; MADS_input_file named problem_name.mads is expected\n" );
+	printf( "       MADS_input_file:     problem input file in MADS format (typically *.mads)\n" );
+	printf( "       PEST_input_file:     problem input file in PEST format (PEST control file; *.pst)\n\n" );
 	printf( "keywords & options (can be provided in any order):\n\n" );
 	printf( "problem type keywords:\n" );
 	printf( "   check              - check model setup and input/output files (no model execution)\n" );
@@ -59,6 +59,7 @@ void mads_info()
 	printf( "   abagus             - Agent-Based Global Uncertainty & Sensitivity Analysis\n" );
 	printf( "   infogap            - Info-gap decision analysis\n" );
 	printf( "   postpua            - predictive uncertainty analysis of sampling results (currently for abagus PSSA files only)\n" );
+	printf( "   bayes              - Bayesian parameter sampling using DREAM (DiffeRential Evolution Adaptive Metropolis; Vrugt et al. 2009)\n" );
 	printf( "\ncalibration method keywords (select one):\n" );
 	printf( "   single             - single calibration using initial guesses provided in the input file [default]\n" );
 	printf( "   igrnd              - sequential calibrations using a set of random initial values (number of realizations defined by real=X)\n" );

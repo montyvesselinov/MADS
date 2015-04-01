@@ -89,6 +89,7 @@ problem type keywords:
 *  abagus             - Agent-Based Global Uncertainty & Sensitivity Analysis
 *  infogap            - Info-gap decision analysis
 *  postpua            - predictive uncertainty analysis of sampling results (currently for abagus PSSA files only)
+*  bayes              - Bayesian parameter sampling using DREAM (DiffeRential Evolution Adaptive Metropolis; Vrugt et al. 2009)
 
 calibration method keywords (select one):
 *  single             - single calibration using initial guesses provided in the input file [default]

@@ -1237,7 +1237,7 @@ int main( int argn, char *argv[] )
 	ptr_ts = localtime( &time_end );
 	tprintf( "Execution completed on %s", asctime( ptr_ts ) );
 	tprintf( "Execution date & time stamp: %s\n", op.datetime_stamp );
-	sprintf( buf, "%s.running\"", op.root ); remove( buf );
+	sprintf( buf, "%s.running", op.root ); remove( buf );
 	if( op.f_ofe != NULL ) { fclose( op.f_ofe ); op.f_ofe = NULL; }
 	free( cd.solution_id );
 	free( cd.solution_type );
@@ -3386,6 +3386,7 @@ void mads_quits( char *root )
 	char buf[100];
 	buf[0] = 0;
 	tprintf( "MADS Quits!\n" );
-	sprintf( buf, "%s.running\"", root ); remove( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
+	sprintf( buf, "%s.running", root );
+	remove( buf ); // Delete a file named root.running to prevent simultaneous execution of multiple problems
 	exit( 0 );
 }
