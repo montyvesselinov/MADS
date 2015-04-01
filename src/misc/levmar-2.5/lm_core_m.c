@@ -799,7 +799,7 @@ int LEVMAR_DER2(
 			}
 			par_change_L2_norm_sq = sqrt( par_change_L2_norm );
 			for( i = 0 ; i < nO; i++ )
-				obs_update[i] = obs_matrix[npl_min][i];
+				op->od->obs_current[i] = obs_update[i] = obs_matrix[npl_min][i];
 			if( npl_min != 0 )
 			{
 				if( npl_min % 2 ) // even number
@@ -978,7 +978,7 @@ int LEVMAR_DER2(
 			for( i = 0; i < nP; i++ )
 				par_best[i] = par_update[i];
 			for( i = 0; i < nO; i++ )
-				op->od->obs_current[i] = obs_best[i] = obs_update[i];
+				obs_best[i] = obs_update[i];
 			if( op->cd->ldebug >= 1 ) tprintf( "New Best OF %g\n", phi_best );
 		}
 		DeTransform( par_update, op, jac_min );

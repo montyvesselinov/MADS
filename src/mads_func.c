@@ -456,18 +456,35 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		{
 			int obj_read = fread( ( void * ) f, sizeof( f[0] ), p->od->nTObs, infileb );
 			fclose( infileb );
-			int done = 1;
-			if( obj_read != p->od->nTObs ) { tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf ); done = 0; }
-			else { if( p->cd->pardebug > 1 ) tprintf( "RESTART: Results (model residuals) from parallel run #%d are read from a file in directory %s!\n", ieval, p->cd->restart_container ); }
-			if( p->cd->pardebug > 4 )
+			if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
+			else
+			{
+				if( p->cd->pardebug > 1 )
+					tprintf( "RESTART: Results (model residuals) from parallel run #%d are read from a file in directory %s!\n", ieval, p->cd->restart_container );
+				if( p->cd->pardebug > 4 )
+					for( i = 0; i < p->od->nTObs; i++ )
+						tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], f[i] );
+				double lphi = 0;
 				for( i = 0; i < p->od->nTObs; i++ )
-					tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], f[i] );
-			double lphi = 0;
-			for( i = 0; i < p->od->nTObs; i++ )
-				lphi += f[i] * f[i];
-			p->phi = lphi;
-			if( done )
+					lphi += f[i] * f[i];
+				p->phi = lphi;
+				sprintf( buf, "%s/%020d.obs", p->cd->restart_container, ieval ); // Archive model output
+				if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+				{
+					int obj_read = fread( ( void * ) p->od->obs_current, sizeof( p->od->obs_current[0] ), p->od->nTObs, infileb );
+					fclose( infileb );
+					if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
+					else
+					{
+						if( p->cd->pardebug > 1 )
+							tprintf( "RESTART: Results (model residuals) from parallel run #%d are read from a file in directory %s!\n", ieval, p->cd->restart_container );
+						if( p->cd->pardebug > 4 )
+							for( i = 0; i < p->od->nTObs; i++ )
+								tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], p->od->obs_current[i] );
+					}
+				}
 				return( GSL_SUCCESS );
+			}
 		}
 	}
 	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
