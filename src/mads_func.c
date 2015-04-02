@@ -81,7 +81,7 @@ int func_extrn( double *x, void *data, double *f )
 	char buf[1000];
 	double c, t, w, min, max, dx, err, phi = 0.0;
 	int i, k, success, success_all = 1, bad_data = 0;
-	if( p->cd->num_proc > 1 ) // Parallel execution of a serial job to archive all the intermediate results
+	if( p->cd->parallel_type ) // Parallel execution of a serial job to archive all the intermediate results
 	{
 		func_extrn_write( p->cd->neval + 1, x, data );
 		if( mprun( 1, data ) < 0 ) // Perform one (1) run in parallel
@@ -263,7 +263,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
-	int i, k, bad_data;
+	int i, k, bad_data = 0;
 	double *opt_params;
 	if( p->cd->sintrans )
 	{
@@ -306,20 +306,6 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 				if( p->pd->var_opt[i] == 0 || ( p->pd->var_opt[i] == 2 && p->cd->analysis_type == PPSD ) )
 					tprintf( "%s %.12g\n", p->pd->var_name[i], p->cd->var[i] );
 		}
-	}
-	if( p->cd->fdebug >= 4 )
-	{
-		tprintf( "Objective function: " );
-		switch( p->cd->objfunc_type )
-		{
-			case SSR: tprintf( "sum of squared residuals" ); break;
-			case SSDR: tprintf( "sum of squared discrepancies and squared residuals" ); break;
-			case SSDA: tprintf( "sum of squared discrepancies and absolute residuals" ); break;
-			case SSDX: tprintf( "sum of squared discrepancies with increased to get within the bounds" ); break;
-			case SSD0: tprintf( "sum of squared discrepancies" ); break;
-			default: tprintf( "unknown value; sum of squared residuals assumed" ); p->cd->objfunc_type = SSR; break;
-		}
-		tprintf( "\n" );
 	}
 	// Delete expected output files in the root directory to prevent the creation of links to these files in the "child" directories
 	if( p->ed->nins > 0 )
@@ -1020,18 +1006,20 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
-	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 && op->cd->omp ) // OpenMP Parallel job
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type == 4 && op->cd->omp ) // OpenMP Parallel job
 		return( func_set_omp( n_sub, var_mat, phi, f, out, op ) );
 	int i, j, k, count, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
-	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 ) // Parallel job
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type ) // Parallel job
 	{
 		int ieval = op->cd->neval;
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
 		time_start = time( NULL );
+		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Write all the files
 		{
+			int rank = omp_get_thread_num();
 			if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 			if( op->cd->mdebug ) tprintf( "\n" );
 			if( op->cd->debug || op->cd->mdebug )  tprintf( "Set #%d: ", count + 1 );
@@ -1044,6 +1032,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 			}
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 			func_extrn_write( ieval + count + 1, opt_params, op );
+			free( opt_params );
 			if( op->cd->debug || op->cd->mdebug ) tprintf( "external model input file(s) generated ...\n" );
 			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 			if( op->cd->mdebug )
@@ -1065,7 +1054,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 			}
 		}
 		ieval += n_sub;
-		// else if( mprunwrite( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
+		// else if( mprunwrite( n_sub, op, var_mat, phi, f ) < 0 ) // Write all the files in parallel
 		//{
 		//	tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 		//	return( 0 );
@@ -1096,6 +1085,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		time_start = time_end;
 		ieval -= n_sub;
 		int read_error = 0;
+		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Read all the files in serial
 		{
 			double *opt_res;
@@ -1169,6 +1159,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 				fflush( out );
 			}
 		}
+		free( opt_params );
 	}
 	return( 1 );
 }
@@ -1292,7 +1283,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	int i, j, k, old_phi, compute_center = 0, bad_data = 0, ieval;
 	old_phi = p->cd->compute_phi;
 	p->cd->compute_phi = 0;
-	if( p->cd->num_proc > 1 && p->cd->solution_type[0] == EXTERNAL ) // Parallel execution of external runs
+	if( p->cd->parallel_type && p->cd->solution_type[0] == EXTERNAL ) // Parallel execution of external runs
 	{
 		time_start = time( NULL );
 		ieval = p->cd->neval;

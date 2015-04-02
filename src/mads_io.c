@@ -236,7 +236,6 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	int w;
 	char *sep = " \t\n", *word;
 	cd->quit = 0;
-	cd->omp = false;
 	cd->opt_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->opt_method[0] = 0;
 	cd->smp_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->smp_method[0] = 0;
 	cd->paran_method = ( char * ) malloc( 50 * sizeof( char ) ); cd->paran_method[0] = 0;
@@ -267,6 +266,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->plogtrans = -1;
 	cd->ologtrans = -1;
 	cd->oweight = -1;
+	cd->omp = false;
+	cd->omp_threads = -1;
 	cd->num_proc = -1;
 	cd->lm_num_parallel_lambda = 0;
 	cd->restart = 1;
@@ -320,7 +321,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "force", 5 ) ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "f", 1 ) && strlen( word ) == 1 ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "posix", 5 ) ) { w = 1; cd->omp = false; };
-		if( !strncasecmp( word, "omp", 3 ) ) { w = 1; cd->omp = true; cd->bin_restart = true; };
+		if( !strncasecmp( word, "omp", 3 ) ) { w = 1; sscanf( word, "omp=%d", &cd->omp_threads ); cd->omp = true; cd->bin_restart = true; };
 		if( !strncasecmp( word, "text", 4 ) ) { w = 1; cd->ioml = IO_TEXT; }
 		if( !strncasecmp( word, "yaml", 4 ) ) { w = 1; cd->ioml = IO_YAML; }
 		if( !strncasecmp( word, "xml", 3 ) ) { w = 1; cd->ioml = IO_XML; }
@@ -538,7 +539,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		else if( cd->lm_num_parallel_lambda > cd->num_proc ) cd->lm_num_parallel_lambda = cd->num_proc;
 		tprintf( "Number of parallel lambda searches per a Levenberg-Marquardt iteration = %d\n", cd->lm_num_parallel_lambda );
 	}
-	else if( cd->num_proc > 0 && strcasestr( cd->opt_method, "lm" ) )
+	else if( ( cd->num_proc > 0 || cd->omp_threads > 0 ) && strcasestr( cd->opt_method, "lm" ) )
 		tprintf( "WARNING: Levenberg-Marquardt may perform better if a parallel lambda search is evoked (nplambda>0)\n" );
 	if( strcasestr( cd->opt_method, "apso" ) || strcasestr( cd->opt_method, "tribe" ) || strcasestr( cd->opt_method, "squad" ) )
 	{
@@ -619,7 +620,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	}
 	if( ( cd->debug || cd->mdebug ) && cd->problem_type != CREATE && cd->problem_type != EIGEN )
 		tprintf( "Debug (verbosity) level for random sets: mdebug=%d\n", cd->mdebug );
-	if( ( cd->debug || cd->pardebug ) && cd->num_proc > 1 )
+	if( ( cd->debug || cd->pardebug ) && ( cd->num_proc > 1 || cd->omp_threads > 1 ) )
 		tprintf( "Debug (verbosity) level for parallel execution: pardebug=%d\n", cd->pardebug );
 	if( ( cd->debug || cd->tpldebug || cd->insdebug ) && cd->solution_type[0] == EXTERNAL )
 	{

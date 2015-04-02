@@ -385,42 +385,40 @@ int main( int argn, char *argv[] )
 	 */
 	cd.paral_hosts = NULL;
 	hostlist = NULL;
+	cd.parallel_type = 0;
 	if( cd.omp )
 	{
-		int nProcessors = omp_get_max_threads();
-		if( cd.debug ) tprintf( "\nOpenMP Parallel run (max treads %d)\n", nProcessors );
-		if( cd.num_proc <= 0 ) cd.num_proc = nProcessors;
-		if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) == NULL )
-			omp_set_num_threads( cd.num_proc );
-		else
-		{
-			sscanf( nodelist, "%d", &cd.num_proc );
-			omp_set_num_threads( cd.num_proc );
-		}
-		if( cd.debug ) tprintf( "Number of processors %d\n", cd.num_proc );
+		cd.parallel_type = 4;
+		int num_threads = omp_get_max_threads();
+		if( cd.debug ) tprintf( "\nOpenMP Parallel run (max threads %d)\n", num_threads );
+		if( cd.omp_threads <= 0 ) cd.omp_threads = num_threads;
+		if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads );
 	}
 	else if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
 	{
+		cd.parallel_type = 4;
 		cd.omp = 1;
 		if( cd.debug ) tprintf( "\nOpenMP Parallel environment is detected (environmental variable OMP_NUM_THREADS is defined)\n" );
-		if( cd.num_proc <= 0 )
-			sscanf( nodelist, "%d", &cd.num_proc );
+		if( cd.omp_threads <= 0 )
+			sscanf( nodelist, "%d", &cd.omp_threads );
 		else
-			omp_set_num_threads( cd.num_proc );
-		if( cd.debug ) tprintf( "Number of processors %d\n", cd.num_proc );
+			omp_set_num_threads( cd.omp_threads );
+		if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads );
 	}
-	else if( ( nodelist = getenv( "SLURM_NTASKS" ) ) != NULL )
+	if( ( nodelist = getenv( "SLURM_NTASKS" ) ) != NULL )
 	{
 		cd.parallel_type = 2;
 		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NTASKS is defined)\n" );
-		sscanf( nodelist, "%d", &cd.num_proc );
+		int num_proc;
+		sscanf( nodelist, "%d", &num_proc );
 		if( ( nodelist = getenv( "SLURM_CPUS_ON_NODE" ) ) != NULL )
 		{
 			int cpus_per_node;
 			sscanf( nodelist, "%d", &cpus_per_node );
-			cd.num_proc *= cpus_per_node;
+			num_proc *= cpus_per_node;
 		}
-		if( cd.debug ) tprintf( "Number of processors %d\n", cd.num_proc );
+		if( cd.debug ) tprintf( "Number of available processors %d\n", num_proc );
+		if( cd.num_proc < 0 ) cd.num_proc = num_proc;
 	}
 	else if( ( nodelist = getenv( "NODELIST" ) ) != NULL )
 	{
@@ -441,7 +439,7 @@ int main( int argn, char *argv[] )
 		hostlist = lsblist;
 		if( ( proclist = getenv( "LSB_MCPU_HOSTS" ) ) != NULL && cd.debug ) tprintf( "LSB_MCPU_HOSTS Processors list %s\n", proclist );
 	}
-	if( hostlist != NULL )
+	if( hostlist != NULL ) // it is not a Posix, SLURM or OpenMP job
 	{
 		cd.parallel_type = 1;
 		if( cd.debug == 0 ) tprintf( "\nParallel environment is detected.\n" );
@@ -463,7 +461,7 @@ int main( int argn, char *argv[] )
 			tprintf( "ERROR: There is problem with the description of execution nodes!\n" );
 		else
 		{
-			cd.num_proc = count;
+			if( cd.num_proc < 0 ) cd.num_proc = count;
 			cd.paral_hosts = char_matrix( cd.num_proc, 95 );
 			k = strlen( hostlist );
 			i = 0;
@@ -475,15 +473,12 @@ int main( int argn, char *argv[] )
 			}
 		}
 	}
-	else if( cd.num_proc > 0 && cd.parallel_type != 2 )
+	else if( cd.num_proc > 0 ) // it is a Posix, SLURM or OpenMP job
 	{
-		cd.parallel_type = 0;
-		if( cd.omp ) tprintf( "\nOpenMP" );
-		else tprintf( "\nPOSIX" );
-		tprintf( " parallel execution using %d processors (use np=%d to change)\n", cd.num_proc, cd.num_proc );
+		if( cd.parallel_type == 4 || cd.parallel_type == 0 ) cd.parallel_type = 3;
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
 		{
-			tprintf( "OS type: %s\n", cwd );
+			if( cd.debug ) tprintf( "OS type: %s\n", cwd );
 			if( strncasecmp( cwd, "darwin", 6 ) == 0 )
 				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", SHELL );  // MAC OS
 			else
@@ -493,12 +488,12 @@ int main( int argn, char *argv[] )
 		{
 			if( access( "/proc/cpuinfo", R_OK ) == -1 )
 			{
-				tprintf( "OS type: OS X (assumed) \n" );
+				if( cd.debug ) tprintf( "OS type: OS X (assumed)\n" );
 				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", SHELL );  // MAC OS
 			}
 			else
 			{
-				tprintf( "OS type: Linux (assumed) \n" );
+				if( cd.debug ) tprintf( "OS type: Linux (assumed)\n" );
 				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", SHELL ); // LINUX
 			}
 		}
@@ -508,9 +503,17 @@ int main( int argn, char *argv[] )
 		fclose( in );
 		remove( "num_proc" );
 		tprintf( "Number of local processors available for parallel execution: %i\n", k );
-		if( k < cd.num_proc ) tprintf( "WARNING: Number of requested processors exceeds the available resources!\n" );
+		tprintf( "\n" );
+		if( cd.parallel_type == 2 ) tprintf( "SLURM " );
+		else tprintf( "POSIX " );
+		tprintf( "parallel execution using %d processors (use np=%d to change the number of processors)\n", cd.num_proc, cd.num_proc );
+		if( k < cd.num_proc ) tprintf( "WARNING: Number of requested processors exceeds the available nodes!\n" );
 	}
-	if( cd.num_proc > 1 ) // Parallel job
+	if( cd.omp_threads > 1 )
+		tprintf( "OpenMP execution using %d threads (use omp=%d to change the number of threads)\n", cd.omp_threads, cd.omp_threads );
+	if( ( cd.omp_threads == 1 && cd.num_proc == -1 ) || ( cd.omp_threads == -1 && cd.num_proc == 1 ) ) cd.parallel_type = 0;
+	if( cd.debug ) tprintf( "Parallel type %d\n", cd.parallel_type );
+	if( cd.parallel_type ) // Parallel job
 	{
 		pid = getpid();
 		if( cd.debug ) tprintf( "Parent ID [%d]\n", pid );
@@ -519,6 +522,7 @@ int main( int argn, char *argv[] )
 		cd.mydir = &root_dot[1];
 		if( cd.debug ) tprintf( "Working directory: %s (%s)\n", cwd, cd.mydir );
 		cd.mydir_hosts = dir_hosts( &op, op.datetime_stamp ); // Directories for parallel execution have unique name based on the execution time
+		if( cd.debug ) tprintf( "Host directory: %s\n", cd.mydir_hosts );
 	}
 	tprintf( "\n" );
 	/*
@@ -579,7 +583,7 @@ int main( int argn, char *argv[] )
 	 *  Check for restart conditions
 	 */
 	tprintf( "\nExecution date & time stamp: %s\n", op.datetime_stamp ); // Stamp will be applied to name / rename various output files
-	if( cd.solution_type[0] == EXTERNAL && cd.num_proc > 1 )
+	if( cd.solution_type[0] == EXTERNAL && cd.parallel_type )
 	{
 		if( cd.bin_restart )
 		{
@@ -1231,7 +1235,7 @@ int main( int argn, char *argv[] )
 	if( cd.nlmo > 0 ) tprintf( "Levenberg-Marquardt optimizations = %d\n", cd.nlmo );
 	if( time_elapsed > 0 )
 	{
-		c = cd.neval / time_elapsed;
+		c = ( double ) cd.neval / time_elapsed;
 		if( c < ( ( double ) 1 / 86400 ) ) tprintf( "Functional evaluations per day = %g\n", c * 86400 );
 		else if( c < ( ( double ) 1 / 3600 ) ) tprintf( "Functional evaluations per hour = %g\n", c * 3600 );
 		else if( c < ( ( double ) 1 / 60 ) ) tprintf( "Functional evaluations per minute = %g\n", c * 60 );
@@ -2820,7 +2824,7 @@ int montecarlo( struct opt_data *op )
 	phi_min = HUGE_VAL;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1;
 	else k = 0;
-	if( op->cd->solution_type[0] == EXTERNAL && op->cd->num_proc > 1 && k == 0 ) // Parallel job
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type && k == 0 ) // Parallel job
 	{
 		out = Fwrite( filename );
 		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );

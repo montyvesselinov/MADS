@@ -114,14 +114,14 @@ int mprunwrite( int nJob, void *data, double *var_mat[], double *phi, double *f[
 		kidids[w] = 0;
 		kidstatus[w] = kidattempt[w] = -1;
 	}
-	if( type == 0 )
+	if( type == 3 ) // local
 	{
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
 	}
-	else if( type == 1 )
+	else if( type == 1 ) // PBS/...
 		kidhost = p->cd->paral_hosts; // List of processors/hosts
-	else if( type == 2 )
+	else if( type == 2 ) // slurm
 	{
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ )
@@ -492,7 +492,7 @@ int mprunread( int nJob, void *data, double *var_mat[], double *phi, double *f[]
 		kidids[w] = 0;
 		kidstatus[w] = kidattempt[w] = -1;
 	}
-	if( type == 0 )
+	if( type == 3 )
 	{
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
@@ -894,18 +894,18 @@ int mprun( int nJob, void *data )
 		kidids[w] = 0;
 		kidstatus[w] = kidattempt[w] = -1;
 	}
-	if( type == 0 )
-	{
-		kidhost = char_matrix( nProc, 95 );
-		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
-	}
-	else if( type == 1 )
+	if( type == 1 )
 		kidhost = p->cd->paral_hosts; // List of processors/hosts
 	else if( type == 2 )
 	{
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ )
 			strcpy( kidhost[i], "slurm" );
+	}
+	else if( type == 3 )
+	{
+		kidhost = char_matrix( nProc, 95 );
+		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
 	}
 	/*
 	for( w = 0; w < nProc; w++ )
@@ -918,9 +918,8 @@ int mprun( int nJob, void *data )
 	act.sa_flags = 0;
 	if( sigaction( SIGCHLD, &act, NULL ) < 0 )
 	{
-		tprintf( "sigaction failed!!!\n" );
-		free( skip_job );
-		return( -1 );
+		tprintf( "ERROR: Threading sigaction call failed!!!\n" );
+		mads_quits( p->root );
 	}
 	nFailed = 0; nKids = 0; cJob = 0; rJob = 0; wait = 0; done = 0;
 	while( 1 ) // Main loop
@@ -935,7 +934,7 @@ int mprun( int nJob, void *data )
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
 			free_matrix( ( void ** ) rerundir, nProc );
-			if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
+			if( type == 1 || type == 2 ) free_matrix( ( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -1197,7 +1196,7 @@ int mprun( int nJob, void *data )
 	free( skip_job );
 	free_matrix( ( void ** ) kiddir, nProc );
 	free_matrix( ( void ** ) rerundir, nProc );
-	if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
+	if( type == 2 || type == 3 ) free_matrix( ( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }

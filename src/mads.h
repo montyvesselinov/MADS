@@ -99,7 +99,6 @@ struct opt_data // TODO class MADS (in C++)
 struct calc_data // calculation parameters; TODO some of the flags can be boolean type
 {
 	int quit;
-	bool omp; // OpenMP parallelization
 	int ioml; // YAML/XML input / output format
 	int problem_type; // problem type: forward, calibration, ...
 	int analysis_type; // calibration type: simple, igpd, ...
@@ -129,6 +128,8 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int test_func_npar; // test function number of parameters
 	int test_func_nobs; // test function number of observations
 	int parallel_type; // type of parallelization
+	bool omp; // OpenMP parallelization
+	int omp_threads; // number of threads for parallel execution
 	int num_proc; // number of processors for parallel execution
 	int lm_num_parallel_lambda; // number of parallel lambda runs in the case of Levenberg-Marquardt optimization (<= num_proc)
 	int restart; // flag restart for parallel jobs

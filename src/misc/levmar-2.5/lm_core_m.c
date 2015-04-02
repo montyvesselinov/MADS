@@ -319,7 +319,7 @@ int LEVMAR_DER2(
 		else
 		{
 			tprintf( "LM without parallel lambda search\n" );
-			if( op->cd->num_proc > 0 )
+			if( op->cd->parallel_type )
 				tprintf( "WARNING: LM may perform better if parallel lambda search is evoked (nplambda>0)\n" );
 		}
 		if( op->cd->lm_acc ) tprintf( "LM with acceleration\n" );
