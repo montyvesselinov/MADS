@@ -391,7 +391,7 @@ int main( int argn, char *argv[] )
 		cd.parallel_type = 4;
 		int num_threads = omp_get_max_threads();
 		if( cd.debug ) tprintf( "\nOpenMP Parallel run (max threads %d)\n", num_threads );
-		if( cd.omp_threads <= 0 ) cd.omp_threads = num_threads;
+		// if( cd.omp_threads <= 0 ) cd.omp_threads = num_threads;
 		if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads );
 	}
 	else if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
