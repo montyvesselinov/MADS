@@ -1013,16 +1013,20 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type ) // Parallel job
 	{
 		int ieval = op->cd->neval;
-		if( op->cd->debug || op->cd->mdebug ) tprintf( "Parallel execution of external jobs ...\n" );
-		if( op->cd->debug || op->cd->mdebug ) tprintf( "Generation of all the model input files ...\n" );
+		if( op->cd->debug || op->cd->mdebug ) tprintf( "MPRUN Parallel execution of external jobs ...\n" );
+		if( op->cd->debug || op->cd->mdebug )
+		{
+			if( op->cd->omp ) tprintf( "OpenMP parallel" );
+			else tprintf( "Serial" );
+			tprintf( " generation of all the model input files ...\n" );
+		}
 		time_start = time( NULL );
 		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Write all the files
 		{
-			int rank = omp_get_thread_num();
 			if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 			if( op->cd->mdebug ) tprintf( "\n" );
-			if( op->cd->debug || op->cd->mdebug )  tprintf( "Set #%d: ", count + 1 );
+			if( op->cd->debug > 1 || op->cd->mdebug )  tprintf( "Set #%d (%d): ", count + 1, omp_get_thread_num() );
 			double *opt_params;
 			if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1033,7 +1037,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 			func_extrn_write( ieval + count + 1, opt_params, op );
 			free( opt_params );
-			if( op->cd->debug || op->cd->mdebug ) tprintf( "external model input file(s) generated ...\n" );
+			if( op->cd->debug > 1 || op->cd->mdebug ) tprintf( "external model input file(s) generated ...\n" );
 			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 			if( op->cd->mdebug )
 			{
@@ -1061,11 +1065,11 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		//}
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
-		if( op->cd->tdebug ) tprintf( "Parallel lambda writing PT = %ld seconds\n", time_elapsed );
+		if( op->cd->tdebug ) tprintf( "Parallel set writing PT = %ld seconds\n", time_elapsed );
 		time_start = time_end;
 		if( op->cd->pardebug > 9 )
 		{
-			ieval -= n_sub;
+			tprintf( "Serial execution of external jobs ...\n" );			ieval -= n_sub;
 			for( count = 0; count < n_sub; count++ ) // Perform all the runs in serial model (for testing)
 			{
 				tprintf( "Execute model #%d ... ", ieval + count + 1 );
@@ -1074,14 +1078,24 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 			}
 			ieval += n_sub;
 		}
-		else if( mprun( n_sub, op ) < 0 ) // Perform all the runs in parallel
+		else
 		{
-			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
-			return( 0 );
+			tprintf( "MPRUN parallel execution of external jobs ...\n" );
+			if( mprun( n_sub, op ) < 0 )
+			{
+				tprintf( "ERROR: there is a problem with the parallel execution!\n" );
+				return( 0 );
+			}
 		}
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
-		if( op->cd->tdebug ) tprintf( "Parallel lambda execution PT = %ld seconds\n", time_elapsed );
+		if( op->cd->tdebug ) tprintf( "Parallel set execution PT = %ld seconds\n", time_elapsed );
+		if( op->cd->debug || op->cd->mdebug )
+		{
+			if( op->cd->omp ) tprintf( "OpenMP parallel" );
+			else tprintf( "Serial" );
+			tprintf( " reading of all the model input files ...\n" );
+		}
 		time_start = time_end;
 		ieval -= n_sub;
 		int read_error = 0;
@@ -1090,7 +1104,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		{
 			double *opt_res;
 			if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
-			if( op->cd->debug || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
+			if( op->cd->debug > 1 || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
 			if( out != NULL )
 			{
 				fprintf( out, "%d :\n", ieval + count + 1 ); // counter
@@ -1127,7 +1141,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		//}
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
-		if( op->cd->tdebug ) tprintf( "Parallel lambda reading PT = %ld seconds\n", time_elapsed );
+		if( op->cd->tdebug ) tprintf( "Parallel set reading PT = %ld seconds\n", time_elapsed );
 	}
 	else // Serial job
 	{

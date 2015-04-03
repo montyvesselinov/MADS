@@ -391,8 +391,8 @@ int main( int argn, char *argv[] )
 		cd.parallel_type = 4;
 		int num_threads = omp_get_max_threads();
 		if( cd.debug ) tprintf( "\nOpenMP Parallel run (max threads %d)\n", num_threads );
-		// if( cd.omp_threads <= 0 ) cd.omp_threads = num_threads;
-		if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads );
+		if( cd.omp_threads > 1 ) { omp_set_num_threads( cd.omp_threads ); if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads ); }
+		else { omp_set_num_threads( 1 ); if( cd.debug ) tprintf( "Number of threads 1\n" ); }
 	}
 	else if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
 	{
@@ -475,7 +475,12 @@ int main( int argn, char *argv[] )
 	}
 	else if( cd.num_proc > 0 ) // it is a Posix, SLURM or OpenMP job
 	{
-		if( cd.parallel_type == 4 || cd.parallel_type == 0 ) cd.parallel_type = 3;
+		if( cd.parallel_type == 4 )
+		{
+			if( cd.omp_threads <= 0 ) { omp_set_num_threads( cd.num_proc ); if( cd.debug ) tprintf( "Number of threads %d\n", cd.num_proc ); }
+			else cd.parallel_type = 3;
+		}
+		if( cd.parallel_type == 0 ) cd.parallel_type = 3;
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
 		{
 			if( cd.debug ) tprintf( "OS type: %s\n", cwd );
@@ -504,7 +509,8 @@ int main( int argn, char *argv[] )
 		remove( "num_proc" );
 		tprintf( "Number of local processors available for parallel execution: %i\n", k );
 		tprintf( "\n" );
-		if( cd.parallel_type == 2 ) tprintf( "SLURM " );
+		if( cd.parallel_type == 4 ) tprintf( "OpenMP " );
+		else if( cd.parallel_type == 2 ) tprintf( "SLURM " );
 		else tprintf( "POSIX " );
 		tprintf( "parallel execution using %d processors (use np=%d to change the number of processors)\n", cd.num_proc, cd.num_proc );
 		if( k < cd.num_proc ) tprintf( "WARNING: Number of requested processors exceeds the available nodes!\n" );
@@ -512,7 +518,7 @@ int main( int argn, char *argv[] )
 	if( cd.omp_threads > 1 )
 		tprintf( "OpenMP execution using %d threads (use omp=%d to change the number of threads)\n", cd.omp_threads, cd.omp_threads );
 	if( ( cd.omp_threads == 1 && cd.num_proc == -1 ) || ( cd.omp_threads == -1 && cd.num_proc == 1 ) ) cd.parallel_type = 0;
-	if( cd.debug ) tprintf( "Parallel type %d\n", cd.parallel_type );
+	if( cd.debug > 1 ) tprintf( "Parallel type %d\n", cd.parallel_type );
 	if( cd.parallel_type ) // Parallel job
 	{
 		pid = getpid();
@@ -1262,6 +1268,7 @@ int main( int argn, char *argv[] )
 	if( ed.nins > 0 ) { free_matrix( ( void ** ) ed.fn_ins, ed.nins ); free_matrix( ( void ** ) ed.fn_obs, ed.nins ); }
 	if( cd.num_source_params > 0 ) { free( ad.var ); free_matrix( ( void ** ) sd.param_id, cd.num_source_params ); free_matrix( ( void ** ) sd.param_name, cd.num_source_params ); }
 	if( cd.num_aquifer_params > 0 ) { free_matrix( ( void ** ) qd.param_id, cd.num_aquifer_params ); free_matrix( ( void ** ) qd.param_name, cd.num_aquifer_params ); }
+	if( cd.parallel_type == 1 ) free_matrix( ( void ** ) cd.paral_hosts, cd.num_proc );
 	fclose( mads_output );
 	exit( 0 ); // DONE
 }

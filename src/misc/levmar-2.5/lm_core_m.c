@@ -612,7 +612,7 @@ int LEVMAR_DER2(
 			{
 				for( l = j = 0; j < op->od->nTObs; j++ )
 				{
-					op->od->obs_current[i] = obs_current[i];
+					op->od->obs_current[j] = obs_current[j];
 					for( i = 0; i < op->pd->nOptParam; i++ )
 						gsl_matrix_set( gsl_jacobian, j, i, jac[l++] ); // LEVMAR is using different jacobian order
 				}

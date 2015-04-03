@@ -255,7 +255,8 @@ int sa_sobol( struct opt_data *op )
 		for( j = 0; j < n_obs1; j++ )
 			t1[j] = t2[j] = 0;
 		k = op->pd->var_index[i];
-		tprintf( "Processing parameter %d out of %d ... %s ... ", i + 1, op->pd->nOptParam, op->pd->var_name[k] );
+		tprintf( "Processing parameter %s (%d out of %d) ... ", op->pd->var_name[k] , i + 1, op->pd->nOptParam );
+		if( op->cd->debug || op->cd->mdebug ) tprintf( "\n" );
 		for( count = 0; count < n_sub; count++ )
 		{
 			for( j = 0; j < op->pd->nOptParam; j++ )
@@ -284,6 +285,7 @@ int sa_sobol( struct opt_data *op )
 			}
 		}
 		k = op->pd->var_index[i];
+		if( op->cd->debug || op->cd->mdebug ) tprintf( "Processed  parameter %s (%d out of %d)", op->pd->var_name[k], i + 1, op->pd->nOptParam );
 		tprintf( " %g (total) %g\n", sens_index[i][n_phi], sens_total[i][n_phi] );
 	}
 	tprintf( "done.\n" );

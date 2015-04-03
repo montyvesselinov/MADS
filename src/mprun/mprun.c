@@ -902,10 +902,11 @@ int mprun( int nJob, void *data )
 		for( i = 0; i < nProc; i++ )
 			strcpy( kidhost[i], "slurm" );
 	}
-	else if( type == 3 )
+	else if( type == 3 || type == 4 )
 	{
 		kidhost = char_matrix( nProc, 95 );
-		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
+		for( i = 0; i < nProc; i++ )
+			strcpy( kidhost[i], "local" );
 	}
 	/*
 	for( w = 0; w < nProc; w++ )
@@ -934,7 +935,7 @@ int mprun( int nJob, void *data )
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
 			free_matrix( ( void ** ) rerundir, nProc );
-			if( type == 1 || type == 2 ) free_matrix( ( void ** ) kidhost, nProc );
+			if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -1196,7 +1197,7 @@ int mprun( int nJob, void *data )
 	free( skip_job );
 	free_matrix( ( void ** ) kiddir, nProc );
 	free_matrix( ( void ** ) rerundir, nProc );
-	if( type == 2 || type == 3 ) free_matrix( ( void ** ) kidhost, nProc );
+	if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }
