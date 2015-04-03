@@ -47,7 +47,7 @@ int func_intrn( double *x, void *data, double *f );
 void func_levmar( double *x, double *f, int m, int n, void *data );
 void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data ); // Jacobian order: obs / param
 int func_dx( double *x, double *f_x, void *data, double *jacobian ); // Jacobian order: param / obs
-int func_dx_omp( double *x, double *f_x, void *data, double *jacobian );
+int func_dx_set( double *x, double *f_x, void *data, double *jacobian );
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
 int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
@@ -72,6 +72,7 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 int create_mprun_dir( char *dir );
 int delete_mprun_dir( char *dir );
 int mprun( int nJob, void *data );
+int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] );
 int Ftestread( char *filename );
 time_t Fdatetime_t( char *filename, int debug );
 
@@ -325,7 +326,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	if( p->cd->sintrans )
 		free( opt_params );
 	if( bad_data ) return( 0 );
-	if( p->cd->restart ) // Update model input files in zip restart files
+	if( p->cd->restart && !p->cd->bin_restart ) // Update model input files in zip restart files
 	{
 		sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_container ); // Archive input files
 		for( i = 0; i < p->ed->ntpl; i++ )
@@ -348,7 +349,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 			}
 		}
 	}
-	else // Just in case; the restart file should have been already extracted
+	else if( !p->cd->bin_restart ) // Just in case; the restart file should have been already extracted
 	{
 		sprintf( buf, "%s \"unzip -u -: %s ", SHELL, p->cd->restart_container ); // Archive input files
 		for( i = 0; i < p->ed->nins; i++ )
@@ -368,7 +369,7 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 	p->cd->neval++;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval ); // Name of directory for parallel runs
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "\nWorking directory: ../%s\n", dir );
-	if( p->cd->pardebug > 2 )
+	if( p->cd->pardebug > 9 )
 	{
 		sprintf( buf, "%s \"cd ../%s; ls -altr\"", SHELL, dir ); // Check directory content
 		system( buf );
@@ -386,7 +387,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	char buf[1000], dir[500];
 	int i, bad_data;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
-	if( p->cd->pardebug > 2 )
+	if( p->cd->pardebug > 9 )
 	{
 		sprintf( buf, "%s \"cd ../%s; ls -altr\"", SHELL, dir ); // Check directory content
 		system( buf );
@@ -504,22 +505,22 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		{
 			FILE *outfileb;
 			sprintf( buf, "%s/%020d.par", p->cd->restart_container, ieval ); // Archive model inputs
-			if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "Binary file %s cannot be opened to save problem information!\n", buf );
+			if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "RESTART ERROR: Binary file %s cannot be opened to save problem information!\n", buf );
 			else
 			{
 				fwrite( ( void * ) p->pd->var, sizeof( p->pd->var[0] ), p->pd->nParam, outfileb );
 				fclose( outfileb );
 			}
 			sprintf( buf, "%s/%020d.obs", p->cd->restart_container, ieval ); // Archive model output
-			if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "Binary file %s cannot be opened to save problem information!\n", buf );
+			if( ( outfileb = fopen( buf, "wb" ) ) == NULL ) tprintf( "RESTART ERROR: Binary file %s cannot be opened to save problem information!\n", buf );
 			else
 			{
 				fwrite( ( void * ) f, sizeof( f[0] ), p->od->nTObs, outfileb );
 				fclose( outfileb );
 			}
-			if( p->cd->pardebug > 3 ) tprintf( "Results (model predictions) from parallel run #%d are archived is directory %s!\n", ieval, p->cd->restart_container );
+			if( p->cd->pardebug > 3 ) tprintf( "RESTART: Results (model predictions) from parallel run #%d are archived in directory %s!\n", ieval, p->cd->restart_container );
 		}
-		else
+		else if( !p->cd->bin_restart )
 		{
 			sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_container ); // Archive model output files
 			for( i = 0; i < p->ed->nins; i++ )
@@ -528,7 +529,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			else strcat( buf, "\"" );
 			if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
 			system( buf );
-			if( p->cd->pardebug > 3 ) tprintf( "Results from parallel run #%d are archived in zip file %s!\n", ieval, p->cd->restart_container );
+			if( p->cd->pardebug > 3 ) tprintf( "RESTART: Results from parallel run #%d are archived in zip file %s!\n", ieval, p->cd->restart_container );
 		}
 	}
 	delete_mprun_dir( dir ); // Delete directory for parallel runs
@@ -606,7 +607,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			fwrite( ( void * ) f, sizeof( f[0] ), p->od->nTObs, outfileb );
 			fclose( outfileb );
 		}
-		if( p->cd->pardebug > 3 ) tprintf( "RESTART: Results (model residuals) from parallel run #%d are archived is directory %s!\n", ieval, p->cd->restart_container );
+		if( p->cd->pardebug > 3 ) tprintf( "RESTART: Results (model residuals) from parallel run #%d are archived in directory %s!\n", ieval, p->cd->restart_container );
 	}
 	p->success = success_all; // Just in case
 	if( p->cd->fdebug >= 2 ) tprintf( "Objective function %g\n", phi );
@@ -990,12 +991,12 @@ void func_levmar( double *x, double *f, int m, int n, void *data ) /* forward ru
 
 void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data ) /* forward run for LevMar */
 {
-	struct opt_data *p = ( struct opt_data * )data;
+	struct opt_data *p = ( struct opt_data * ) data;
 	double *jacobian;
 	int i, j, k;
 	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); mads_quits( p->root ); }
-	if( p->cd->omp )
-		func_dx_omp( x, f, data, jacobian );
+	if( p->cd->omp || p->cd->mprunall )
+		func_dx_set( x, f, data, jacobian );
 	else
 		func_dx( x, f, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
@@ -1006,15 +1007,57 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
-	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type == 4 && op->cd->omp ) // OpenMP Parallel job
-		return( func_set_omp( n_sub, var_mat, phi, f, out, op ) );
 	int i, j, k, count, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
-	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type ) // Parallel job
+	int ieval = op->cd->neval;
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->mprunall ) // POSIX/MPRUN Parallel job
 	{
-		int ieval = op->cd->neval;
-		if( op->cd->debug || op->cd->mdebug ) tprintf( "MPRUN Parallel execution of external jobs ...\n" );
-		if( op->cd->debug || op->cd->mdebug )
+		if( op->cd->pardebug ) tprintf( "POSIX/MPRUN Parallel execution of all external jobs ...\n" );
+		time_start = time( NULL );
+		if( mprunall( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
+		{
+			tprintf( "ERROR: there is a problem with the MPRUNALL parallel execution!\n" );
+			return( 0 );
+		}
+		time_end = time( NULL );
+		time_elapsed = time_end - time_start;
+		if( op->cd->tdebug ) tprintf( "Parallel set writing & execution PT = %ld seconds\n", time_elapsed );
+		time_start = time_end;
+		int read_error = 0;
+		#pragma omp parallel for private(count)
+		for( count = 0; count < n_sub; count++ ) // Read all the files in serial
+		{
+			double *opt_res;
+			if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
+			if( op->cd->pardebug ) tprintf( "OpenMP reading the model output files %d for case ...\n", ieval + count + 1 );
+			if( func_extrn_read( ieval + count + 1, op, opt_res ) )
+				read_error = 1;
+			else
+			{
+				if( f != NULL )
+				{
+					double lphi = 0;
+					for( j = 0; j < op->od->nTObs; j++ )
+					{
+						f[count][j] = opt_res[j];
+						lphi += opt_res[j] * opt_res[j];
+					}
+					if( phi != NULL ) phi[count] = lphi;
+				}
+			}
+		}
+		if( read_error == 1 ) return( 0 );
+		time_end = time( NULL );
+		time_elapsed = time_end - time_start;
+		if( op->cd->tdebug ) tprintf( "Parallel set reading PT = %ld seconds\n", time_elapsed );
+		return( 1 );
+	}
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type == 4 && op->cd->omp ) // OpenMP Parallel job
+		return( func_set_omp( n_sub, var_mat, phi, f, out, op ) );
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type ) // Parallel job; potentially mix of OpenMP and POSIX threads
+	{
+		if( op->cd->pardebug ) tprintf( "MPRUN Parallel execution of external jobs ...\n" );
+		if( op->cd->pardebug )
 		{
 			if( op->cd->omp ) tprintf( "OpenMP parallel" );
 			else tprintf( "Serial" );
@@ -1057,26 +1100,19 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 				fprintf( out, "\n" );
 			}
 		}
-		ieval += n_sub;
-		// else if( mprunwrite( n_sub, op, var_mat, phi, f ) < 0 ) // Write all the files in parallel
-		//{
-		//	tprintf( "ERROR: there is a problem with the parallel execution!\n" );
-		//	return( 0 );
-		//}
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel set writing PT = %ld seconds\n", time_elapsed );
 		time_start = time_end;
 		if( op->cd->pardebug > 9 )
 		{
-			tprintf( "Serial execution of external jobs ...\n" );			ieval -= n_sub;
+			tprintf( "Serial execution of external jobs ...\n" );
 			for( count = 0; count < n_sub; count++ ) // Perform all the runs in serial model (for testing)
 			{
 				tprintf( "Execute model #%d ... ", ieval + count + 1 );
 				func_extrn_exec_serial( ieval + count + 1, op );
 				tprintf( "done!\n" );
 			}
-			ieval += n_sub;
 		}
 		else
 		{
@@ -1090,14 +1126,13 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel set execution PT = %ld seconds\n", time_elapsed );
-		if( op->cd->debug || op->cd->mdebug )
+		if( op->cd->pardebug )
 		{
 			if( op->cd->omp ) tprintf( "OpenMP parallel" );
 			else tprintf( "Serial" );
 			tprintf( " reading of all the model input files ...\n" );
 		}
 		time_start = time_end;
-		ieval -= n_sub;
 		int read_error = 0;
 		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Read all the files in serial
@@ -1132,19 +1167,14 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 				}
 			}
 		}
-		ieval += n_sub;
 		if( read_error == 1 ) return( 0 );
-		// else if( mprunread( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
-		// {
-		//	tprintf( "ERROR: there is a problem with the parallel execution!\n" );
-		//	return( 0 );
-		//}
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
 		if( op->cd->tdebug ) tprintf( "Parallel set reading PT = %ld seconds\n", time_elapsed );
 	}
 	else // Serial job
 	{
+		if( op->cd->pardebug ) tprintf( "Serial jobs ...\n" );
 		double *opt_params;
 		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		for( count = 0; count < n_sub; count++ )
@@ -1373,16 +1403,16 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	return GSL_SUCCESS;
 }
 
-int func_dx_omp( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
+int func_dx_set( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	double **par_mat, **obs_mat;
 	double x_old, dx;
 	time_t time_start, time_end, time_elapsed;
 	int i, j, k, old_phi, compute_center = 0, ieval;
+	if( p->cd->pardebug ) tprintf( "Parallel jacobian execution ...\n" );
 	old_phi = p->cd->compute_phi;
 	p->cd->compute_phi = 0;
-	time_start = time( NULL );
 	ieval = p->cd->neval;
 	if( ( par_mat = double_matrix( p->pd->nOptParam + compute_center, p->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( obs_mat = double_matrix( p->pd->nOptParam + compute_center, p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -1398,16 +1428,20 @@ int func_dx_omp( double *x, double *f_x, void *data, double *jacobian ) /* Compu
 		if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 		else dx = p->cd->sindx;
 		x[j] += dx;
-		if( p->cd->omp )
-			for( k = 0; k < p->pd->nOptParam; k++ )
-				par_mat[compute_center + j][k] = x[k];
+		for( k = 0; k < p->pd->nOptParam; k++ )
+			par_mat[compute_center + j][k] = x[k];
 		x[j] = x_old;
 	}
-	time_end = time( NULL );
-	time_elapsed = time_end - time_start;
-	if( p->cd->tdebug ) tprintf( "Parallel jacobian writing PT = %ld seconds\n", time_elapsed );
-	time_start = time_end;
-	func_set_omp( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, mads_output, p );
+	/*
+	for( j = 0; j < ( compute_center + p->pd->nOptParam ) ; j++ )
+	{
+		for( k = 0; k < p->pd->nOptParam; k++ )
+			tprintf( "%g ", par_mat[compute_center + j][k] );
+		tprintf( "\n" );
+	}
+	*/
+	time_start = time( NULL );
+	func_set( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, mads_output, p );
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
 	if( p->cd->tdebug ) tprintf( "Parallel jacobian execution PT = %ld seconds\n", time_elapsed );

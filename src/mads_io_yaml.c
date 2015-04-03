@@ -110,8 +110,17 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	GNode *gnode_data = g_node_new( filename );
 	if( !gnode_data ) { tprintf( "ERROR: GNode array cannot be created.\n" ); mads_quits( 0 ); }
 	cd = op->cd;
+	op->pd->nParam = op->pd->nFixParam = op->pd->nFlgParam = op->pd->nOptParam = op->pd->nExpParam = 0;
+	op->od->nObs = op->od->nTObs = op->od->nCObs = 0;
+	// IMPORTANT
+	// internal problem: nCObs = nObs
+	// external problem: nTObs = nObs
+	// internal test problem: nTObs = nCObs = nObs
+	op->gd->min_t = op->gd->time = 0;
 	op->gd->min_t = op->gd->time = 0;
 	op->od->include_predictions = 1;
+	op->wd->nW = 0;
+	op->ed->ntpl = op->ed->nins = 0;
 	if( op->cd->problem_type == INFOGAP ) op->od->include_predictions = 0;
 	if( fabs( op->cd->obsstep ) > DBL_EPSILON ) op->od->include_predictions = 1;
 	if( ( infile = fopen( filename, "rb" ) ) == NULL )

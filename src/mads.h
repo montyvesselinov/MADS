@@ -128,6 +128,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int test_func_npar; // test function number of parameters
 	int test_func_nobs; // test function number of observations
 	int parallel_type; // type of parallelization
+	bool mprunall; // Write/Execute/Read in a POSIX thread
 	bool omp; // OpenMP parallelization
 	int omp_threads; // number of threads for parallel execution
 	int num_proc; // number of processors for parallel execution

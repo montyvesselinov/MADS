@@ -267,6 +267,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->ologtrans = -1;
 	cd->oweight = -1;
 	cd->omp = false;
+	cd->mprunall = false;
 	cd->omp_threads = -1;
 	cd->num_proc = -1;
 	cd->lm_num_parallel_lambda = 0;
@@ -320,8 +321,6 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "q", 1 ) && strlen( word ) == 1 ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "force", 5 ) ) { w = 1; }; // processed in parse_cmd_init
 		if( !strncasecmp( word, "f", 1 ) && strlen( word ) == 1 ) { w = 1; }; // processed in parse_cmd_init
-		if( !strncasecmp( word, "posix", 5 ) ) { w = 1; cd->omp = false; };
-		if( !strncasecmp( word, "omp", 3 ) ) { w = 1; sscanf( word, "omp=%d", &cd->omp_threads ); cd->omp = true; cd->bin_restart = true; };
 		if( !strncasecmp( word, "text", 4 ) ) { w = 1; cd->ioml = IO_TEXT; }
 		if( !strncasecmp( word, "yaml", 4 ) ) { w = 1; cd->ioml = IO_YAML; }
 		if( !strncasecmp( word, "xml", 3 ) ) { w = 1; cd->ioml = IO_XML; }
@@ -395,6 +394,9 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "obsdomain=", 10 ) ) { w = 1; sscanf( word, "obsdomain=%lf", &cd->obsdomain ); if( cd->obsdomain < DBL_EPSILON ) cd->pardomain = ( double ) 0; }
 		if( !strncasecmp( word, "obsstep=", 8 ) ) { w = 1; sscanf( word, "obsstep=%lf", &cd->obsstep ); if( fabs( cd->obsstep ) < DBL_EPSILON ) cd->obsstep = ( double ) 0; else cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
+		if( !strncasecmp( word, "posix", 5 ) ) { w = 1; cd->omp = false; cd->mprunall = true; cd->bin_restart = true; sscanf( word, "posix=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; };
+		if( !strncasecmp( word, "mprunall", 8 ) ) { w = 1; cd->mprunall = true; cd->bin_restart = true; };
+		if( !strncasecmp( word, "omp", 3 ) ) { w = 1; sscanf( word, "omp=%d", &cd->omp_threads ); cd->omp = true; cd->bin_restart = true; };
 		if( !strncasecmp( word, "np=", 3 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
 		if( !strncasecmp( word, "nplambda", 8 ) ) { w = 1; cd->lm_num_parallel_lambda = 0; sscanf( word, "nplambda=%d", &cd->lm_num_parallel_lambda ); if( cd->lm_num_parallel_lambda <= 0 ) cd->lm_num_parallel_lambda = 0; }
 		if( !strncasecmp( word, "restart=", 8 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 ) cd->restart = -1; if( cd->restart > 1 ) cd->restart = 1; }
@@ -659,14 +661,13 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 	ed = op->ed;
 	pd->nParam = pd->nFixParam = pd->nFlgParam = pd->nOptParam = pd->nExpParam = 0;
 	od->nObs = od->nTObs = od->nCObs = 0;
-	gd->min_t = gd->time = 0;
 	// IMPORTANT
 	// internal problem: nCObs = nObs
 	// external problem: nTObs = nObs
 	// internal test problem: nTObs = nCObs = nObs
 	wd->nW = 0;
 	ed->ntpl = ed->nins = 0;
-	gd->min_t = 0;
+	gd->min_t = gd->time = 0;
 	bad_data = 0;
 	if( ( infile = fopen( filename, "r" ) ) == NULL )
 	{

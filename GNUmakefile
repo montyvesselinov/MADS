@@ -196,6 +196,7 @@ ifeq ($(MATHEVAL),true)
     LDLIBS += -lmatheval
 endif
 CXXFLAGS = $(CFLAGS)
+# CFLAGS += -std=c11
 $(info ----------------------------------------------------------------------)
 
 SOURCES = $(SRC_MADS) $(SRC_PSO) $(SRC_MPUN) $(SRC_SA) $(SRC_DS) $(SRC_LEVMAR) $(SRC_KDTREE) $(SRC_ASTABLE) $(SRC_BAYES)
@@ -862,6 +863,8 @@ clean-examples:
 	rm -fR $(EXAMPLES)/wells-short/zi*
 	rm -f $(EXAMPLES)/*/*.ppsd_*.results $(EXAMPLES)/*/*.igpd_*.results $(EXAMPLES)/*/*igrnd-0000* $(EXAMPLES)/*/*.igrnd_*.results $(EXAMPLES)/*/*.restart_*.zip $(EXAMPLES)/*/*.restart_info $(EXAMPLES)/*/*.running $(EXAMPLES)/*/*-rerun.mads $(EXAMPLES)/*/*-error.mads
 	rm -fR $(EXAMPLES)/*/*.restart_*
+
+clean-examples-all: clean-examples mads
 
 astyle:
 	astyle $(SOURCESTYLE)
