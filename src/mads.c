@@ -115,7 +115,8 @@ int load_pst( char *filename, struct opt_data *op );
 void compute_grid( char *filename, struct calc_data *cd, struct grid_data *gd );
 void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 int Ftest( char *filename );
-int Ftestdir( char *filename );
+int Ftestdir( char *dirname );
+int Ftestdirempty( char *dirname );
 int Ftestread( char *filename );
 FILE *Fread( char *filename );
 FILE *Fwrite( char *filename );
@@ -669,9 +670,9 @@ int main( int argn, char *argv[] )
 					fclose( out );
 				}
 			}
-			if( Ftestdir( cd.restart_container ) == 0 ) // Preserve the existing restart directory
+			if( Ftestdirempty( cd.restart_container ) == 0 ) // Preserve the existing restart directory if not empty
 			{
-				if( cd.pardebug ) tprintf( "RESTART: Previous restart directory (%s) exists!\n", cd.restart_container );
+				if( cd.pardebug ) tprintf( "RESTART: Previous non-empty restart directory (%s) exists!\n", cd.restart_container );
 				if( cd.restart ) sprintf( buf, "%s \"cp -fR %s %s.restart_%s_%s >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
 				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) ); // Move if no restart
 				system( buf );
