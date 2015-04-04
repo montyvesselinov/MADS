@@ -604,14 +604,11 @@ int main( int argn, char *argv[] )
 						tprintf( "RESTART ERROR: Directory named %s cannot be opened.\n", cd.restart_container );
 						cd.restart = 0;
 					}
+					else
+						tprintf( "RESTART: Restart directory named %s created.\n", cd.restart_container );
 				}
 				else
-				{
-					time_elapsed = cd.time_infile - Fdatetime_t( cd.restart_container, 0 ); // time_infile - time_zipfile ...
-					if( time_elapsed >= 0 ) { if( cd.pardebug ) tprintf( "RESTART SKIPPED: Directory named %s with the restart information is older than the MADS input file (%s)\nRESTART NOTICE: restart can be enforced using \'restart=-1\' or \'rstfile=%s\'\n", cd.restart_container, filename, cd.restart_container ); cd.restart = 0; } // No restart
-				}
-				if( cd.restart )
-					tprintf( "RESTART IMPLEMETED: Directory named %s is consistent with date/time stamp of the MADS input file\nRESTART NOTICE: to avoid restart either delete the directory %s, or use keyword \'restart=0\'\n", filename2, filename2 );
+					tprintf( "RESTART: Restart directory named %s already exists from a previous run.\n", cd.restart_container );
 			}
 			else if( cd.restart == -1 ) // Forced restart
 			{
@@ -622,28 +619,54 @@ int main( int argn, char *argv[] )
 					tprintf( "RESTART ERROR: Restart is requested but a directory named %s with restart information is not available.\n", cd.restart_container );
 					cd.restart = 0;
 				}
-				else tprintf( "RESTART FORCED: using directory named %s ...\n", cd.restart_container );
+				else
+				{
+					time_elapsed = cd.time_infile - Fdatetime_t( cd.restart_container, 0 ); // time_infile - time_zipfile ...
+					if( time_elapsed >= 0 )
+					{
+						if( cd.pardebug )
+						{
+							tprintf( "RESTART SKIPPED: Directory named %s with the restart information is older than the MADS input file (%s)\n" );
+							tprintf( "RESTART NOTICE: restart can be enforced using \'restart=-1\' or \'rstdir=%s\'\n", cd.restart_container, filename, cd.restart_container );
+						}
+						cd.restart = 0; // No restart
+					}
+					else
+					{
+						tprintf( "RESTART FORCED: using directory named %s; directory date/time stamp of the MADS input file\n" );
+						tprintf( "RESTART NOTICE: to avoid restart either delete the directory %s, or use keyword \'restart=0\'\n", filename2, filename2 );
+					}
+				}
 			}
 			if( cd.restart )
 			{
-				tprintf( "RESTART: MADS  input  file \'%40s\' last modified on %s\n", filename, Fdatetime( filename, 0 ) );
-				sprintf( filename2, "%s.results", op.root );
-				if( Ftest( filename2 ) != 0 ) tprintf( "RESTART: MADS results file \'%40s\' last modified on %s\n", filename2, Fdatetime( filename2, 0 ) );
-				tprintf( "RESTART: MADS restart  dir \'%40s\' last modified on %s\n", cd.restart_container, Fdatetime( cd.restart_container, 0 ) );
-				tprintf( "RESTART: Directory named %s with restart information will be used ... \n", cd.restart_container );
+				tprintf( "RESTART: MADS problem input file last modified on %s (\'%s\')\n", Fdatetime( filename, 0 ), filename );
+				if( Ftestdir( cd.restart_container ) == 0 )
+				{
+					tprintf( "RESTART: MADS restart  directory last modified on %s (\'%s\')\n", Fdatetime( cd.restart_container, 0 ), cd.restart_container );
+					tprintf( "RESTART: Directory named %s with restart information will be used ... \n", cd.restart_container );
+				}
 				sprintf( filename2, "%s.restart_info", op.root );
 				if( Ftestread( filename2 ) == 0 )
 				{
+					tprintf( "RESTART: MADS restart info  file last modified on %s (\'%s\')\n", Fdatetime( filename2, 0 ), filename2 );
 					in = Fread( filename2 );
 					fgets( buf, 255, in );
-					white_trim( buf );
-					cd.mydir_hosts = dir_hosts( &op, buf ); // Directories for parallel execution have unique name based on the old execution time (when restart files were created)
+					white_trim( buf ); // Read date stamp for the restart runs
 					fclose( in );
+					cd.mydir_hosts = dir_hosts( &op, buf ); // Directories for parallel execution have unique name based on the old execution time (when restart files were created)
 					tprintf( "RESTART: Date & time stamp of the previous run: %s\n", buf );
 				}
 				else
 				{
 					if( cd.pardebug ) tprintf( "RESTART: Restart info file %s is missing.\n", filename2 );
+					sprintf( filename2, "%s.restart_info", op.root );
+					out = Fwrite( filename2 );
+					fprintf( out, "%s\n", op.datetime_stamp );
+					for( i = 0; i < argn; i++ )
+						fprintf( out, "%s ", argv[i] );
+					fprintf( out, "\n" );
+					fclose( out );
 				}
 			}
 			if( Ftestdir( cd.restart_container ) == 0 ) // Preserve the existing restart directory
@@ -653,16 +676,6 @@ int main( int argn, char *argv[] )
 				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) ); // Move if no restart
 				system( buf );
 			}
-			if( cd.restart == 0 )
-			{
-				sprintf( filename2, "%s.restart_info", op.root );
-				out = Fwrite( filename2 );
-				fprintf( out, "%s\n", op.datetime_stamp );
-				for( i = 0; i < argn; i++ )
-					fprintf( out, "%s ", argv[i] );
-				fprintf( out, "\n" );
-				fclose( out );
-			}
 		}
 		else // ZIP file based restart
 		{
@@ -670,18 +683,19 @@ int main( int argn, char *argv[] )
 			{
 				sprintf( filename2, "%s.restart_%s.zip", op.root, cd.datetime_infile );
 				strcpy( cd.restart_container, filename2 );
-				if( Ftestread( cd.restart_container ) != 0 )
-				{
-					tprintf( "RESTART SKIPPED: zip file %s with restart information does not exist\n", cd.restart_container ); // No restart
-					cd.restart = 0;
-				}
-				else
+				if( Ftestread( cd.restart_container ) == 0 )
 				{
 					time_elapsed = cd.time_infile - Fdatetime_t( cd.restart_container, 0 ); // time_infile - time_zipfile ...
-					if( time_elapsed >= 0 ) { if( cd.pardebug ) tprintf( "RESTART SKIPPED: zip file %s with restart information is older than the MADS input file (%s)\n(restart can be enforced using \'restart=-1\' or \'rstfile=%s\')\n", cd.restart_container, filename, cd.restart_container ); cd.restart = 0; } // No restart
+					if( time_elapsed >= 0 )
+					{
+						tprintf( "RESTART SKIPPED: zip file %s with restart information is older than the MADS input file (%s)\n(restart can be enforced using \'restart=-1\' or \'rstfile=%s\')\n", cd.restart_container, filename, cd.restart_container );
+						cd.restart = 0; // No restart
+					}
 					else
 						tprintf( "RESTART IMPLEMENTED: zip file %s is consistent with date/time stamp of the MADS input file\nRESTART NOTICE: to avoid restart either delete zip file %s, or use keyword \'restart=0\'\n", filename2, filename2 );
 				}
+				else
+					tprintf( "RESTART: zip file %s with restart information will be created\n", cd.restart_container ); // No restart
 			}
 			else if( cd.restart == -1 ) // Forced restart
 			{
@@ -690,18 +704,27 @@ int main( int argn, char *argv[] )
 				if( Ftest( cd.restart_container ) != 0 ) { tprintf( "Restart is requested but a zip file (%s) with restart information is not available.\n", cd.restart_container ); cd.restart = 0; }
 				else tprintf( "RESTART FORCED: using zip file %s ...\n", cd.restart_container );
 			}
+			if( Ftest( cd.restart_container ) == 0 ) // Preserve the existing restart zip file
+			{
+				if( cd.pardebug ) tprintf( "RESTART: Previous restart file (%s) exists!\n", cd.restart_container );
+				if( cd.restart ) sprintf( buf, "%s \"cp %s %s.restart_%s_%s.zip >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
+				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s.zip >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Move if no restart
+				system( buf );
+			}
 			if( cd.restart )
 			{
-				tprintf( "RESTART: MADS  input  file \'%40s\' last modified on %s\n", filename, Fdatetime( filename, 0 ) );
-				sprintf( filename2, "%s.results", op.root );
-				if( Ftest( filename2 ) != 0 ) tprintf( "RESTART: MADS results file \'%40s\' last modified on %s\n", filename2, Fdatetime( filename2, 0 ) );
-				tprintf( "RESTART: MADS restart file \'%40s\' last modified on %s\n", cd.restart_container, Fdatetime( cd.restart_container, 0 ) );
-				tprintf( "RESTART: ZIP file %s with restart information is unzipped ... \n", cd.restart_container );
-				sprintf( buf, "%s \"( set nonomatch; rm -fR ../%s* %s.restart_info; unzip -o -u -: %s ) >& /dev/null\"", SHELL, cd.mydir_hosts, op.root, cd.restart_container ); // the input file name was temporarily in buf; not any more ...
-				system( buf );
+				tprintf( "RESTART: MADS problem input file last modified on %s (\'%s\')\n", Fdatetime( filename, 0 ), filename );
+				if( Ftest( cd.restart_container ) == 0 )
+				{
+					tprintf( "RESTART: MADS restart  zip  file last modified on %s (\'%s\')\n", Fdatetime( cd.restart_container, 0 ), cd.restart_container );
+					tprintf( "RESTART: ZIP file %s with restart information is unzipped ... \n", cd.restart_container );
+					sprintf( buf, "%s \"( set nonomatch; rm -fR ../%s* %s.restart_info; unzip -o -u -: %s ) >& /dev/null\"", SHELL, cd.mydir_hosts, op.root, cd.restart_container ); // the input file name was temporarily in buf; not any more ...
+					system( buf );
+				}
 				sprintf( filename2, "%s.restart_info", op.root );
 				if( Ftestread( filename2 ) == 0 )
 				{
+					tprintf( "RESTART: MADS restart info  file last modified on %s (\'%s\')\n", Fdatetime( filename2, 0 ), filename2 );
 					in = Fread( filename2 );
 					fgets( buf, 255, in );
 					white_trim( buf );
@@ -712,26 +735,16 @@ int main( int argn, char *argv[] )
 				else
 				{
 					if( cd.pardebug ) tprintf( "RESTART: Restart info file %s is missing.\n", filename2 );
+					sprintf( filename2, "%s.restart_info", op.root );
+					out = Fwrite( filename2 );
+					fprintf( out, "%s\n", op.datetime_stamp );
+					for( i = 0; i < argn; i++ )
+						fprintf( out, "%s ", argv[i] );
+					fprintf( out, "\n" );
+					fclose( out );
+					sprintf( buf, "%s \"zip %s %s.restart_info >& /dev/null\"", SHELL, cd.restart_container, op.root );
+					system( buf );
 				}
-			}
-			if( Ftest( cd.restart_container ) == 0 ) // Preserve the existing restart zip file
-			{
-				if( cd.pardebug ) tprintf( "RESTART: Previous restart file (%s) exists!\n", cd.restart_container );
-				if( cd.restart ) sprintf( buf, "%s \"cp %s %s.restart_%s_%s.zip >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
-				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s.zip >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Move if no restart
-				system( buf );
-			}
-			if( cd.restart == 0 )
-			{
-				sprintf( filename2, "%s.restart_info", op.root );
-				out = Fwrite( filename2 );
-				fprintf( out, "%s\n", op.datetime_stamp );
-				for( i = 0; i < argn; i++ )
-					fprintf( out, "%s ", argv[i] );
-				fprintf( out, "\n" );
-				fclose( out );
-				sprintf( buf, "%s \"zip %s %s.restart_info >& /dev/null\"", SHELL, cd.restart_container, op.root );
-				system( buf );
 			}
 		}
 	}

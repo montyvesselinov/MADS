@@ -345,6 +345,22 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 				if( p->cd->restart ) // Check for already computed jobs (smart restart)
 				{
 					thread_done = skip_job[cJob - 1] = func_extrn_check_read( ieval + cJob, p );
+					if( !thread_done )
+					{
+						FILE *infileb;
+						char buf[1000];
+						sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval + cJob ); // Archive model inputs
+						if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+						{
+							double *opt_res;
+							if( ( opt_res = ( double * ) malloc( p->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
+							int obj_read = fread( ( void * ) opt_res, sizeof( opt_res[0] ), p->od->nTObs, infileb );
+							free( opt_res );
+							fclose( infileb );
+							if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
+							else { thread_done = 1; if( p->cd->pardebug ) tprintf( "RESTART: Binary file %s is applied to read model predictions\n", buf ); }
+						}
+					}
 					if( p->cd->pardebug )
 					{
 						if( thread_done ) tprintf( "Case %d is already completed; Job %d will be skipped!\n", ieval + cJob, cJob );
@@ -366,6 +382,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 				func_extrn_write( ieval + cJob, opt_params, p );
 				free( opt_params );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
+				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
 				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );

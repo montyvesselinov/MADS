@@ -1231,7 +1231,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 			{
 				FILE *infileb;
 				char buf[1000];
-				sprintf( buf, "%s/%020d.res", op->cd->restart_container, ieval + count + 1 ); // Archive model inputs
+				sprintf( buf, "%s/%020d.res", op->cd->restart_container, ieval + count + 1 );
 				if( ( infileb = fopen( buf, "rb" ) ) != NULL )
 				{
 					int obj_read = fread( ( void * ) opt_res, sizeof( opt_res[0] ), op->od->nTObs, infileb );

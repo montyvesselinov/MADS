@@ -132,7 +132,7 @@ void mads_info()
 	printf( "   obsdomain=[float]  - observation space domain size [default provided in the MADS input file]\n" );
 	printf( "   obsstep=[float]    - observation space domain step to explore info-gap observation uncertainty [default ignored]\n" );
 	printf( "\nparallelization (parallelization environment and available resources are internally detected by default; supported: SLURM, OpenMP, Moab, BProc, Beowulf, ...):\n" );
-	printf( "   posix[=integer]    - POSIX parallel threading [default]\n" );
+	printf( "   posix[=integer]    - POSIX parallel threading [optional]\n" );
 	printf( "   omp[=integer]      - OpenMP parallel threading [optional]\n" );
 	printf( "   np=[integer]       - Number of requested parallel jobs [optional]\n" );
 	printf( "   nplambda=[integer] - Number of requested parallel lambda runs in the case of Levenberg-Marquardt optimization [optional; nplambda <= np]\n" );
