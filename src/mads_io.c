@@ -267,7 +267,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->ologtrans = -1;
 	cd->oweight = -1;
 	cd->omp = false;
-	cd->mprunall = false;
+	cd->posix = false;
+	cd->proc_per_task = 1;
 	cd->omp_threads = -1;
 	cd->num_proc = -1;
 	cd->lm_num_parallel_lambda = 0;
@@ -394,10 +395,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "obsdomain=", 10 ) ) { w = 1; sscanf( word, "obsdomain=%lf", &cd->obsdomain ); if( cd->obsdomain < DBL_EPSILON ) cd->pardomain = ( double ) 0; }
 		if( !strncasecmp( word, "obsstep=", 8 ) ) { w = 1; sscanf( word, "obsstep=%lf", &cd->obsstep ); if( fabs( cd->obsstep ) < DBL_EPSILON ) cd->obsstep = ( double ) 0; else cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
-		if( !strncasecmp( word, "posix", 5 ) ) { w = 1; cd->omp = false; cd->mprunall = true; cd->bin_restart = true; sscanf( word, "posix=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; };
-		if( !strncasecmp( word, "mprunall", 8 ) ) { w = 1; cd->mprunall = true; cd->bin_restart = true; };
+		if( !strncasecmp( word, "posix", 5 ) ) { w = 1; cd->omp = false; cd->posix = true; cd->bin_restart = true; sscanf( word, "posix=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; };
+		if( !strncasecmp( word, "posix", 8 ) ) { w = 1; cd->posix = true; cd->bin_restart = true; };
 		if( !strncasecmp( word, "omp", 3 ) ) { w = 1; sscanf( word, "omp=%d", &cd->omp_threads ); cd->omp = true; cd->bin_restart = true; };
 		if( !strncasecmp( word, "np=", 3 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
+		if( !strncasecmp( word, "ppt=", 4 ) ) { w = 1; sscanf( word, "ppt=%d", &cd->proc_per_task ); if( cd->proc_per_task <= 0 ) cd->proc_per_task = 1; }
 		if( !strncasecmp( word, "nplambda", 8 ) ) { w = 1; cd->lm_num_parallel_lambda = 0; sscanf( word, "nplambda=%d", &cd->lm_num_parallel_lambda ); if( cd->lm_num_parallel_lambda <= 0 ) cd->lm_num_parallel_lambda = 0; }
 		if( !strncasecmp( word, "restart=", 8 ) ) { w = 1; sscanf( word, "restart=%d", &cd->restart ); if( cd->restart < 0 ) cd->restart = -1; if( cd->restart > 1 ) cd->restart = 1; }
 		if( !strncasecmp( word, "bin_restart", 11 ) ) { cd->bin_restart = true; sscanf( word, "bin_restart=%d", &w ); if( w == 0 ) cd->bin_restart = false; w = 1; }
@@ -535,6 +537,11 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->lm_niter < 0 ) cd->lm_niter = 0;
 	if( cd->lm_niter > 0 ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", cd->lm_niter );
 	else tprintf( "Number of Levenberg-Marquardt iterations = will be computed internally\n" );
+	if( cd->proc_per_task > cd->num_proc )
+	{
+		tprintf( "WARNING: Number of processors per task (%d) is larger than the number of processors (%d)\n", cd->proc_per_task, cd->num_proc );
+		cd->proc_per_task = cd->num_proc;
+	}
 	if( cd->lm_num_parallel_lambda > 0 )
 	{
 		if( cd->num_proc <= 0 ) cd->num_proc = cd->lm_num_parallel_lambda;

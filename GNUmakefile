@@ -722,6 +722,18 @@ verify-parallel: mads wells verify-parallel-sa
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "TEST 8.5: POSIX/OpenMP parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
+	rm -fR $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running $(EXAMPLES)/wells-short/w01.restart*
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel eval=10 omp=2 posix=2 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
+	@echo "$(NO_COLOR)"
+	@echo "TEST 8.6: POSIX/OpenMP parallel execution of $(EXAMPLES)/wells-short/w01parallel with restart ..."
+	rm -fR $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel eval=10 omp=2 posix=2 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
+	@echo "$(NO_COLOR)"
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"
 	@echo "TEST 8: DONE"
@@ -844,6 +856,20 @@ verify-parallel-sa: mads wells
 	@echo "TEST 10.5: OpenMP parallel execution of Sobol external analysis with restart ..."
 	rm -fR $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running
 	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 np=2 omp $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
+	@echo "$(NO_COLOR)"
+	@echo "TEST 10.6: POSIX/OpenMP parallel execution of Sobol external analysis  ..."
+	rm -fR $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running $(EXAMPLES)/wells-short/w01.restart*
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 omp=2 posix=2 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
+	@echo "$(NO_COLOR)"
+	@echo "TEST 10.7: POSIX/OpenMP parallel execution of Sobol external analysis with restart ..."
+	rm -fR $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 omp=2 posix=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct

@@ -995,7 +995,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 	double *jacobian;
 	int i, j, k;
 	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); mads_quits( p->root ); }
-	if( p->cd->omp || p->cd->mprunall )
+	if( p->cd->omp || p->cd->posix )
 		func_dx_set( x, f, data, jacobian );
 	else
 		func_dx( x, f, data, jacobian );
@@ -1010,7 +1010,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 	int i, j, k, count, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
 	int ieval = op->cd->neval;
-	if( op->cd->solution_type[0] == EXTERNAL && op->cd->mprunall ) // POSIX/MPRUN Parallel job
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->posix ) // POSIX/MPRUN Parallel job
 	{
 		if( op->cd->pardebug ) tprintf( "POSIX/MPRUN Parallel execution of all external jobs ...\n" );
 		time_start = time( NULL );

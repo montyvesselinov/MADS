@@ -173,9 +173,10 @@ transformation of parameter and observation properties:
 *  obsstep=[float]    - observation space domain step to explore info-gap observation uncertainty [default ignored]
 
 parallelization (parallelization environment and available resources are internally detected by default; supported: SLURM, OpenMP, Moab, BProc, Beowulf, ...):
-*  posix              - POSIX parallel threading [default]
-*  omp                - OpenMP parallel threading [optional]
 *  np=[integer]       - Number of requested parallel jobs [optional]
+*  posix[=integer]    - POSIX parallel threading [optional]; number of threads can be defined as well
+*  omp[=integer]      - OpenMP parallel threading [optional]; number of threads can be defined as well
+*  ppt=[integer]      - Number of processors per an external model task [optional]
 *  nplambda=[integer] - Number of requested parallel lambda runs in the case of Levenberg-Marquardt optimization [optional; nplambda <= np]
 *  rstfile=[string]   - name of existing ZIP restart file to be used (created by previous Parallel MADS run) [optional]
 *  rstdir=[string]    - name of existing restart directory to be used (created by previous Parallel MADS run) [optional]

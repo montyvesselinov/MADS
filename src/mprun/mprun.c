@@ -58,7 +58,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 	struct sigaction act;
 	int w, i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
-	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], *atime;
+	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], cpu_per_task[100], *atime;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
 	if( p->cd->pardebug > 3 )
 	{
@@ -87,6 +87,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 		kidhost = p->cd->paral_hosts; // List of processors/hosts
 	else if( type == 2 ) // slurm
 	{
+		sprintf( cpu_per_task, "-c%d", p->cd->proc_per_task );
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ )
 			strcpy( kidhost[i], "slurm" );
@@ -384,7 +385,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
 				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				// IMPORTANT NO COMMAND WILL BE EXECUTED AFTER execlp
 				// Commads below can be used if mprunread is developed; It appears that OpenMP reading is more efficient
@@ -458,7 +459,7 @@ int mprun( int nJob, void *data )
 	struct sigaction act;
 	int w, i, j, ieval, type, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
-	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], *atime;
+	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], cpu_per_task[100], *atime;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
 	if( p->cd->pardebug > 9 )
 	{
@@ -533,6 +534,7 @@ int mprun( int nJob, void *data )
 		kidhost = p->cd->paral_hosts; // List of processors/hosts
 	else if( type == 2 )
 	{
+		sprintf( cpu_per_task, "-c%d", p->cd->proc_per_task );
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ )
 			strcpy( kidhost[i], "slurm" );
@@ -791,7 +793,7 @@ int mprun( int nJob, void *data )
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				// IMPORTANT NO COMMAND WILL BE EXECUTED AFTER execlp
 				_exit( 7 );

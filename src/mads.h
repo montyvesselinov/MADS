@@ -128,10 +128,11 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int test_func_npar; // test function number of parameters
 	int test_func_nobs; // test function number of observations
 	int parallel_type; // type of parallelization
-	bool mprunall; // Write/Execute/Read in a POSIX thread
+	bool posix; // Write/Execute in a POSIX thread
 	bool omp; // OpenMP parallelization
 	int omp_threads; // number of threads for parallel execution
 	int num_proc; // number of processors for parallel execution
+	int proc_per_task; // number of processors per external job task for srun
 	int lm_num_parallel_lambda; // number of parallel lambda runs in the case of Levenberg-Marquardt optimization (<= num_proc)
 	int restart; // flag restart for parallel jobs
 	bool bin_restart;
