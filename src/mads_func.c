@@ -328,11 +328,12 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	if( bad_data ) return( 0 );
 	if( p->cd->restart && !p->cd->bin_restart ) // Update model input files in zip restart files
 	{
-		sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_container ); // Archive input files
+		sprintf( buf, "%s \'WAIT_TIME=0; until zip -u %s ", BASH, p->cd->restart_container ); // Archive input files
 		for( i = 0; i < p->ed->ntpl; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
-		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
-		else strcat( buf, "\"" );
+		strcat( buf, "|| [ $? -ne 3 ] || [ $WAIT_TIME -eq 15 ]; do sleep $(( WAIT_TIME++ )); done " );
+		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " &> /dev/null\'" );
+		else strcat( buf, "\'" );
 		if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
 		system( buf );
 		if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
@@ -351,10 +352,10 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	else if( !p->cd->bin_restart ) // Just in case; the restart file should have been already extracted
 	{
-		sprintf( buf, "%s \"unzip -u -: %s ", SHELL, p->cd->restart_container ); // Archive input files
+		sprintf( buf, "%s \"unzip -u -: %s ", BASH, p->cd->restart_container ); // Archive input files
 		for( i = 0; i < p->ed->nins; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
-		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
+		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " &> /dev/null\"" );
 		else strcat( buf, "\"" );
 		if( p->cd->pardebug > 2 ) tprintf( "Extract the expected output files before execution (\'%s\')\n", buf );
 		system( buf );
@@ -522,10 +523,11 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		else if( !p->cd->bin_restart )
 		{
-			sprintf( buf, "%s \"zip -u %s ", SHELL, p->cd->restart_container ); // Archive model output files
+			sprintf( buf, "%s \'WAIT_TIME=0; until zip -u %s ", BASH, p->cd->restart_container ); // Archive model output files
 			for( i = 0; i < p->ed->nins; i++ )
 				sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
-			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " >& /dev/null\"" );
+			strcat( buf, "|| [ $? -ne 3 ] || [ $WAIT_TIME -eq 15 ]; do sleep $(( WAIT_TIME++ )); done " );
+			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " &> /dev/null\'" );
 			else strcat( buf, "\"" );
 			if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
 			system( buf );
