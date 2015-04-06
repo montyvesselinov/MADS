@@ -155,7 +155,7 @@ int func_extrn( double *x, void *data, double *f )
 			remove( p->ed->fn_obs[i] );
 	}
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
-	sprintf( buf, "%s \"%s\"", SHELL, p->ed->cmdline );
+	sprintf( buf, "%s \"%s\"", BASH, p->ed->cmdline );
 	system( buf );
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	int *obs_count;
@@ -372,11 +372,11 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "\nWorking directory: ../%s\n", dir );
 	if( p->cd->pardebug > 9 )
 	{
-		sprintf( buf, "%s \"cd ../%s; ls -altr\"", SHELL, dir ); // Check directory content
+		sprintf( buf, "%s \"cd ../%s; ls -altr\"", BASH, dir ); // Check directory content
 		system( buf );
 	}
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
-	sprintf( buf, "%s \"cd ../%s; %s\"", SHELL, dir, p->ed->cmdline );
+	sprintf( buf, "%s \"cd ../%s; %s\"", BASH, dir, p->ed->cmdline );
 	system( buf );
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	return GSL_SUCCESS;
@@ -390,7 +390,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	if( p->cd->pardebug > 9 )
 	{
-		sprintf( buf, "%s \"cd ../%s; ls -altr\"", SHELL, dir ); // Check directory content
+		sprintf( buf, "%s \"cd ../%s; ls -altr\"", BASH, dir ); // Check directory content
 		system( buf );
 	}
 	int *obs_count;

@@ -254,10 +254,10 @@ int main( int argn, char *argv[] )
 	sprintf( filename2, "%s.mads_output", op.root );
 	if( Ftest( filename2 ) == 0 ) // If file already exists rename the output file ...
 	{
-		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s >& /dev/null\"", SHELL, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
+		sprintf( buf, "%s \"mv %s.mads_output %s.mads_output_%s &> /dev/null\"", BASH, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
 		system( buf );
-		sprintf( buf, "%s \"rm -f %s.quit %s.stop %s.results %s.residuals %s.eigen %s.jacobian %s.covariance %s.correlation %s.intermediate_residuals %s.intermediate_results >& /dev/null\"",
-				 SHELL, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root );  // Delete old output files
+		sprintf( buf, "%s \"rm -f %s.quit %s.stop %s.results %s.residuals %s.eigen %s.jacobian %s.covariance %s.correlation %s.intermediate_residuals %s.intermediate_results &> /dev/null\"",
+				 BASH, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root );  // Delete old output files
 		system( buf );
 	}
 	mads_output = Fwrite( filename2 );
@@ -486,21 +486,21 @@ int main( int argn, char *argv[] )
 		{
 			if( cd.debug ) tprintf( "OS type: %s\n", cwd );
 			if( strncasecmp( cwd, "darwin", 6 ) == 0 )
-				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", SHELL );  // MAC OS
+				sprintf( buf, "%s \"rm -f num_proc &> /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", BASH );  // MAC OS
 			else
-				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", SHELL ); // LINUX
+				sprintf( buf, "%s \"rm -f num_proc &> /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", BASH ); // LINUX
 		}
 		else
 		{
 			if( access( "/proc/cpuinfo", R_OK ) == -1 )
 			{
 				if( cd.debug ) tprintf( "OS type: OS X (assumed)\n" );
-				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", SHELL );  // MAC OS
+				sprintf( buf, "%s \"rm -f num_proc &> /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", BASH );  // MAC OS
 			}
 			else
 			{
 				if( cd.debug ) tprintf( "OS type: Linux (assumed)\n" );
-				sprintf( buf, "%s \"rm -f num_proc >& /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", SHELL ); // LINUX
+				sprintf( buf, "%s \"rm -f num_proc &> /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", BASH ); // LINUX
 			}
 		}
 		system( buf );
@@ -673,8 +673,8 @@ int main( int argn, char *argv[] )
 			if( Ftestdirempty( cd.restart_container ) == 0 ) // Preserve the existing restart directory if not empty
 			{
 				if( cd.pardebug ) tprintf( "RESTART: Previous non-empty restart directory (%s) exists!\n", cd.restart_container );
-				if( cd.restart ) sprintf( buf, "%s \"cp -fR %s %s.restart_%s_%s >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
-				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) ); // Move if no restart
+				if( cd.restart ) sprintf( buf, "%s \"cp -fR %s %s.restart_%s_%s &> /dev/null\"", BASH, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
+				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s &> /dev/null\"", BASH, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) ); // Move if no restart
 				system( buf );
 			}
 		}
@@ -708,8 +708,8 @@ int main( int argn, char *argv[] )
 			if( Ftest( cd.restart_container ) == 0 ) // Preserve the existing restart zip file
 			{
 				if( cd.pardebug ) tprintf( "RESTART: Previous restart file (%s) exists!\n", cd.restart_container );
-				if( cd.restart ) sprintf( buf, "%s \"cp %s %s.restart_%s_%s.zip >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
-				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s.zip >& /dev/null\"", SHELL, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Move if no restart
+				if( cd.restart ) sprintf( buf, "%s \"cp %s %s.restart_%s_%s.zip &> /dev/null\"", BASH, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
+				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s.zip &> /dev/null\"", BASH, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Move if no restart
 				system( buf );
 			}
 			if( cd.restart )
@@ -719,7 +719,8 @@ int main( int argn, char *argv[] )
 				{
 					tprintf( "RESTART: MADS restart  zip  file last modified on %s (\'%s\')\n", Fdatetime( cd.restart_container, 0 ), cd.restart_container );
 					tprintf( "RESTART: ZIP file %s with restart information is unzipped ... \n", cd.restart_container );
-					sprintf( buf, "%s \"( set nonomatch; rm -fR ../%s* %s.restart_info; unzip -o -u -: %s ) >& /dev/null\"", SHELL, cd.mydir_hosts, op.root, cd.restart_container ); // the input file name was temporarily in buf; not any more ...
+					// sprintf( buf, "%s \"( set nonomatch; rm -fR ../%s* %s.restart_info; unzip -o -u -: %s ) &> /dev/null\"", TCSH, cd.mydir_hosts, op.root, cd.restart_container ); // the input file name was temporarily in buf; not any more ...
+					sprintf( buf, "%s \"( shopt -s nullglob; rm -fR ../%s* %s.restart_info; unzip -o -u -: %s ) &> /dev/null\"", BASH, cd.mydir_hosts, op.root, cd.restart_container ); // the input file name was temporarily in buf; not any more ...
 					system( buf );
 				}
 				sprintf( filename2, "%s.restart_info", op.root );
@@ -743,7 +744,7 @@ int main( int argn, char *argv[] )
 						fprintf( out, "%s ", argv[i] );
 					fprintf( out, "\n" );
 					fclose( out );
-					sprintf( buf, "%s \"zip %s %s.restart_info >& /dev/null\"", SHELL, cd.restart_container, op.root );
+					sprintf( buf, "%s \"zip %s %s.restart_info &> /dev/null\"", BASH, cd.restart_container, op.root );
 					system( buf );
 				}
 			}
@@ -2168,11 +2169,11 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	// File management
 	sprintf( filename, "%s.igrnd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	sprintf( buf, "%s \"zip -m %s.igrnd.zip %s.igrnd-[0-9]*.* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-	sprintf( buf, "%s \"mv %s.igrnd.zip %s.igrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.igrnd.zip %s.igrnd_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "%s \"zip -m %s.igrnd.zip %s.igrnd-[0-9]*.* &> /dev/null\"", BASH, op->root, op->root ); system( buf );
+	sprintf( buf, "%s \"mv %s.igrnd.zip %s.igrnd_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.igrnd.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.igrnd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.igrnd_%s.results &> /dev/null\"", BASH, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 	out = Fwrite( filename );
 	sprintf( filename, "%s.igrnd-opt=%s_eval=%d_real=%d", op->root, op->cd->opt_method, op->cd->maxeval, op->cd->nreal );
 	out2 = Fwrite( filename );
@@ -2432,11 +2433,11 @@ int igpd( struct opt_data *op )
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	// File management
 	sprintf( filename, "%s.igpd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	sprintf( buf, "%s \"zip -m %s.igpd.zip %s.igpd-[0-9]*.* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-	sprintf( buf, "%s \"mv %s.igpd.zip %s.igpd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.igpd.zip %s.igpd_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "%s \"zip -m %s.igpd.zip %s.igpd-[0-9]*.* &> /dev/null\"", BASH, op->root, op->root ); system( buf );
+	sprintf( buf, "%s \"mv %s.igpd.zip %s.igpd_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.igpd.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.igpd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.igpd_%s.results &> /dev/null\"", BASH, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 	out = Fwrite( filename );
 	k = 1;
 	for( i = 0; i < op->pd->nParam; i++ )
@@ -2612,11 +2613,11 @@ int ppsd( struct opt_data *op )
 	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	sprintf( filename, "%s.ppsd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.ppsd.zip %s.ppsd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	sprintf( buf, "%s \"zip -m %s.ppsd.zip %s.ppsd-[0-9]*.* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-	sprintf( buf, "%s \"mv %s.ppsd.zip %s.ppsd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.ppsd.zip %s.ppsd_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "%s \"zip -m %s.ppsd.zip %s.ppsd-[0-9]*.* &> /dev/null\"", BASH, op->root, op->root ); system( buf );
+	sprintf( buf, "%s \"mv %s.ppsd.zip %s.ppsd_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.ppsd.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.ppsd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.ppsd_%s.results &> /dev/null\"", BASH, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 	out = Fwrite( filename );
 	k = 1;
 	for( i = 0; i < op->pd->nParam; i++ )
@@ -2836,11 +2837,11 @@ int montecarlo( struct opt_data *op )
 		tprintf( "Randomly sampled parameters saved in %s.mcrnd_param\n", op->root );
 	}
 	sprintf( filename, "%s.mcrnd.zip", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-	sprintf( buf, "%s \"zip -m %s.mcrnd.zip %s.mcrnd-[0-9]*.* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-	sprintf( buf, "%s \"mv %s.mcrnd.zip %s.mcrnd_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.mcrnd.zip %s.mcrnd_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	sprintf( buf, "%s \"zip -m %s.mcrnd.zip %s.mcrnd-[0-9]*.* &> /dev/null\"", BASH, op->root, op->root ); system( buf );
+	sprintf( buf, "%s \"mv %s.mcrnd.zip %s.mcrnd_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 	sprintf( filename, "%s.mcrnd.results", op->root );
-	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.mcrnd_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+	if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.mcrnd_%s.results &> /dev/null\"", BASH, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 	phi_global = success_global = success_all = 0;
 	phi_min = HUGE_VAL;
 	if( op->cd->ireal != 0 ) k = op->cd->ireal - 1;
@@ -3237,7 +3238,7 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 {
 	FILE *out, *out2;
 	int i, k, success_all;
-	char filename[255], filename2[255], fileroot[255], buf[1000];
+	char filename[255], filename2[255], fileroot[255];
 	success_all = 1;
 	sprintf( filename, "%s.quit", op->root );
 	if( Ftest( filename ) == 0 ) op->cd->quit = 1;
@@ -3271,8 +3272,7 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 	if( final )
 	{
 		sprintf( filename, "%s-rerun-intermediate.mads", fileroot );
-		sprintf( buf, "%s \"rm -f %s\"", SHELL, filename );
-		system( buf );
+		remove( filename );
 		// Save MADS final rerun file
 		if( k == -1 ) sprintf( filename, "%s-rerun.mads", fileroot );
 		else sprintf( filename, "%s-v%02d.mads", filename2, k + 1 ); // create new version mads file

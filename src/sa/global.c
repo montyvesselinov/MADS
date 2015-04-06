@@ -135,9 +135,9 @@ int sa_sobol( struct opt_data *op )
 	if( op->cd->mdebug )
 	{
 		sprintf( filename, "%s.sobol.zip", op->root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.sobol.zip %s.sobol_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
-		sprintf( buf, "%s \"zip -m %s.sobol.zip %s.sobol_set_* >& /dev/null\"", SHELL, op->root, op->root ); system( buf );
-		sprintf( buf, "%s \"mv %s.sobol.zip %s.sobol_%s.zip >& /dev/null\"", SHELL, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s.sobol.zip %s.sobol_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+		sprintf( buf, "%s \"zip -m %s.sobol.zip %s.sobol_set_* &> /dev/null\"", BASH, op->root, op->root ); system( buf );
+		sprintf( buf, "%s \"mv %s.sobol.zip %s.sobol_%s.zip &> /dev/null\"", BASH, op->root, op->root, Fdatetime( filename, 0 ) ); system( buf );
 		sprintf( filename, "%s.sobol_set_a", op->root ); out = Fwrite( filename );
 		sprintf( filename, "%s.sobol_set_b", op->root ); out2 = Fwrite( filename );
 		for( count = 0; count < n_sub; count++ )
@@ -157,7 +157,7 @@ int sa_sobol( struct opt_data *op )
 	if( op->cd->mdebug > 1 )
 	{
 		sprintf( filename, "%s.sobol.results", op->root );
-		if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.sobol_%s.results >& /dev/null\"", SHELL, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
+		if( Ftest( filename ) == 0 ) { sprintf( buf, "%s \"mv %s %s.sobol_%s.results &> /dev/null\"", BASH, filename, op->root, Fdatetime( filename, 0 ) ); system( buf ); }
 		out = Fwrite( filename );
 	}
 	// Accumulate phis into fhat and fhat2 for total output mean and variance

@@ -537,7 +537,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	if( cd->lm_niter < 0 ) cd->lm_niter = 0;
 	if( cd->lm_niter > 0 ) tprintf( "Number of Levenberg-Marquardt iterations = %d\n", cd->lm_niter );
 	else tprintf( "Number of Levenberg-Marquardt iterations = will be computed internally\n" );
-	if( cd->proc_per_task > cd->num_proc )
+	if( cd->num_proc > 0 && cd->proc_per_task > cd->num_proc )
 	{
 		tprintf( "WARNING: Number of processors per task (%d) is larger than the number of processors (%d)\n", cd->proc_per_task, cd->num_proc );
 		cd->proc_per_task = cd->num_proc;
