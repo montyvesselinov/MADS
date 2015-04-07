@@ -328,10 +328,11 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	if( bad_data ) return( 0 );
 	if( p->cd->restart && !p->cd->bin_restart ) // Update model input files in zip restart files
 	{
-		sprintf( buf, "%s \'WAIT_TIME=0; until zip -u %s ", BASH, p->cd->restart_container ); // Archive input files
+		// sprintf( buf, "%s \'WAIT_TIME=0; until [ $WAIT_TIME -eq 15 ]; do zip -q -u %s ", BASH, p->cd->restart_container ); // Archive input files
+		sprintf( buf, "%s \'zip -q -u %s ", BASH, p->cd->restart_container ); // Archive input files
 		for( i = 0; i < p->ed->ntpl; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
-		strcat( buf, "|| [ $? -ne 3 ] || [ $WAIT_TIME -eq 15 ]; do sleep $(( WAIT_TIME++ )); done " );
+		// strcat( buf, "; E=$?; echo ERROR=$E; if [[ $E -eq 0 || $E -eq 12 ]]; then break; fi; sleep $(( WAIT_TIME++ )); done" );
 		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " &> /dev/null\'" );
 		else strcat( buf, "\'" );
 		if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
@@ -523,12 +524,13 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		else if( !p->cd->bin_restart )
 		{
-			sprintf( buf, "%s \'WAIT_TIME=0; until zip -u %s ", BASH, p->cd->restart_container ); // Archive model output files
+			// sprintf( buf, "%s \'WAIT_TIME=0; until [ $WAIT_TIME -eq 15 ]; do zip -q -u %s ", BASH, p->cd->restart_container ); // Archive input files
+			sprintf( buf, "%s \'zip -q -u %s ", BASH, p->cd->restart_container ); // Archive input files
 			for( i = 0; i < p->ed->nins; i++ )
 				sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
-			strcat( buf, "|| [ $? -ne 3 ] || [ $WAIT_TIME -eq 15 ]; do sleep $(( WAIT_TIME++ )); done " );
+			// strcat( buf, "; E=$?; echo ERROR=$E; if [[ $E -eq 0 || $E -eq 12 ]]; then break; fi; sleep $(( WAIT_TIME++ )); done" );
 			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " &> /dev/null\'" );
-			else strcat( buf, "\"" );
+			else strcat( buf, "\'" );
 			if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
 			system( buf );
 			if( p->cd->pardebug > 3 ) tprintf( "RESTART: Results from parallel run #%d are archived in zip file %s!\n", ieval, p->cd->restart_container );
