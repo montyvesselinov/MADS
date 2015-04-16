@@ -265,8 +265,9 @@ transformation of parameter and observation properties:
    obsdomain=[float]  - observation space domain size [default provided in the MADS input file]
    obsstep=[float]    - observation space domain step to explore info-gap observation uncertainty [default ignored]
 
-parallelization (parallelization environment and available resources are internally detected by default; supported: SLURM, OpenMP, Moab, BProc, Beowulf, ...):
+parallelization (available parallelization resources are internally detected by default; supported: Slurm, Moab, BProc, LSB, PBS, Beowulf, OpenMPI, OpenMP, POSIX, ...):
    np=[integer]       - Number of requested parallel jobs [optional]
+   mpi                - Use OpenMPI parallelization [optional]
    posix[=integer]    - POSIX parallel threading [optional]; number of threads can be defined as well
    omp[=integer]      - OpenMP parallel threading [optional]; number of threads can be defined as well
    ppt=[integer]      - Number of processors per an external model task [optional]

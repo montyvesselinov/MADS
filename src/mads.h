@@ -132,6 +132,8 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int parallel_type; // type of parallelization
 	bool posix; // Write/Execute in a POSIX thread
 	bool omp; // OpenMP parallelization
+	bool mpi; // OpenMPI parallelization
+	bool ssh; // use ssh to push the jobs to the nodes
 	int omp_threads; // number of threads for parallel execution
 	int num_proc; // number of processors for parallel execution
 	int proc_per_task; // number of processors per external job task for srun

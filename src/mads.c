@@ -420,6 +420,31 @@ int main( int argn, char *argv[] )
 		}
 		if( cd.debug ) tprintf( "Number of available processors %d\n", num_proc );
 		if( cd.num_proc < 0 ) cd.num_proc = num_proc;
+		if( ( nodelist = getenv( "SLURM_NODELIST" ) ) != NULL )
+		{
+			if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable SLURM_NODELIST is defined)\n" );
+			if( cd.debug ) tprintf( "Node list: %s\n", nodelist );
+			if( cd.ssh )
+			{
+				/* Open the command for reading. */
+				FILE *fp = popen( "scontrol show hostnames $SLURM_JOB_NODELIST", "r" );
+				if( fp == NULL )
+					printf( "Failed to run SLURM command \"scontrol show hostnames $SLURM_JOB_NODELIST\"\n" );
+				else
+				{
+					cd.paral_hosts = char_matrix( cd.num_proc, 95 );
+					tprintf( "Nodes:" );
+					j = 0;
+					while( fgets( buf, sizeof( buf ) - 1, fp ) != NULL ) // Read the output a line at a time
+					{
+						sscanf( buf, "%s", cd.paral_hosts[j] );
+						tprintf( " %s", cd.paral_hosts[j] );
+						j++;
+					}
+					pclose( fp );
+				}
+			}
+		}
 	}
 	else if( ( nodelist = getenv( "NODELIST" ) ) != NULL )
 	{
@@ -474,7 +499,7 @@ int main( int argn, char *argv[] )
 			}
 		}
 	}
-	else if( cd.num_proc > 0 ) // it is a Posix, SLURM or OpenMP job
+	else if( cd.num_proc > 0 && cd.paral_hosts == NULL ) // it is a Posix, SLURM or OpenMP job
 	{
 		if( cd.parallel_type == 4 )
 		{

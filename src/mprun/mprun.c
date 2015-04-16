@@ -385,7 +385,11 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
 				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				else if( type == 2 )
+				{
+					if( p->cd->ssh ) execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					else             execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				}
 				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				// IMPORTANT NO COMMAND WILL BE EXECUTED AFTER execlp
 				// Commads below can be used if mprunread is developed; It appears that OpenMP reading is more efficient
@@ -793,7 +797,11 @@ int mprun( int nJob, void *data )
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-				else if( type == 2 ) execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				else if( type == 2 )
+				{
+					if( p->cd->ssh ) execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					else             execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				}
 				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				// IMPORTANT NO COMMAND WILL BE EXECUTED AFTER execlp
 				_exit( 7 );

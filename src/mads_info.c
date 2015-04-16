@@ -131,11 +131,13 @@ void mads_info()
 	printf( "                        [default oweight=-1; weights for each observation are explicitly defined in the input file]\n" );
 	printf( "   obsdomain=[float]  - observation space domain size [default provided in the MADS input file]\n" );
 	printf( "   obsstep=[float]    - observation space domain step to explore info-gap observation uncertainty [default ignored]\n" );
-	printf( "\nparallelization (parallelization environment and available resources are internally detected by default; supported: SLURM, OpenMP, Moab, BProc, Beowulf, ...):\n" );
+	printf( "\nparallelization (available parallelization resources are internally detected by default; supported: Slurm, Moab, BProc, LSB, PBS, Beowulf, OpenMPI, OpenMP, POSIX, ...):\n" );
 	printf( "   np=[integer]       - Number of requested parallel jobs [optional]\n" );
+	printf( "   mpi                - Use OpenMPI parallelization [optional]\n" );
 	printf( "   posix[=integer]    - POSIX parallel threading [optional]; number of threads can be defined as well\n" );
 	printf( "   omp[=integer]      - OpenMP parallel threading [optional]; number of threads can be defined as well\n" );
-	printf( "   ppt=[integer]      - Number of processors per an external model task [optional]\n" );
+	printf( "   ssh                - Forces the use of ssh to execute external jobs at the comptuer nodes\n" );
+	printf( "   ppt=[integer]      - Number of processors per an external task [optional]\n" );
 	printf( "   nplambda=[integer] - Number of requested parallel lambda runs in the case of Levenberg-Marquardt optimization [optional; nplambda <= np]\n" );
 	printf( "   rstfile=[string]   - name of existing ZIP restart file to be used (created by previous Parallel MADS run) [optional]\n" );
 	printf( "   rstdir=[string]    - name of existing restart directory to be used (created by previous Parallel MADS run) [optional]\n" );
