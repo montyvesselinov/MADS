@@ -693,6 +693,7 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 #else
 				bad_data = 1;
 #endif
+				pd->var_opt[index] = -1;
 				pd->nExpParam++;
 			}
 		}
