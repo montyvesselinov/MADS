@@ -673,7 +673,7 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 			if( !strcasecmp( ( char * ) node_key->data, "log" ) ) if( !strcasecmp( ( char * ) node_value->data, "yes" ) || !strcasecmp( ( char * ) node_value->data, "1" ) ) pd->var_log[index] = 1;
 			if( !strcasecmp( ( char * ) node_key->data, "type" ) )
 			{
-				if( !strcasecmp( ( char * ) node_value->data, "null" ) || !strcasecmp( ( char * ) node_value->data, "0" ) ) pd->var_opt[index] = 0;
+				if( !strcasecmp( ( char * ) node_value->data, "null" ) || !strcasecmp( ( char * ) node_value->data, "none" ) || !strcasecmp( ( char * ) node_value->data, "0" ) ) pd->var_opt[index] = 0;
 				else if( !strcasecmp( ( char * ) node_value->data, "flag" ) || !strcasecmp( ( char * ) node_value->data, "2" ) ) pd->var_opt[index] = 2;
 			}
 			if( !strcasecmp( ( char * ) node_key->data, "init" ) ) sscanf( ( char * ) node_value->data, "%lf", &pd->var[index] );
@@ -693,7 +693,6 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 #else
 				bad_data = 1;
 #endif
-				pd->var_opt[index] = -1;
 				pd->nExpParam++;
 			}
 		}
@@ -1008,6 +1007,7 @@ int parse_gnode_class_observations( GNode *node, gpointer data )
 			tprintf( "Observation %s: min %g max %g\n", od->obs_id[i], od->obs_min[i], od->obs_max[i] );
 			bad_data = 1;
 		}
+		if( !bad_data ) tprintf( "\n" );
 		if( cd->ologtrans == 1 ) od->obs_log[i] = 1;
 		else if( cd->ologtrans == 0 ) od->obs_log[i] = 0;
 		if( cd->oweight == 1 ) od->obs_weight[i] = 1;

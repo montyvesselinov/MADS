@@ -2164,7 +2164,7 @@ int set_optimized_params( struct opt_data *op )
 		{
 			for( i = 0; i < pd->nParam; i++ )
 				if( pd->var_opt[i] == 0 && pd->var_name[i][0] != 0 )
-					tprintf( "%-27s:%-6s: %g\n", pd->var_name[i], pd->var_id[i],  pd->var[i] );
+					tprintf( "%-27s:%-6s: %g\n", pd->var_name[i], pd->var_id[i], pd->var[i] );
 		}
 	}
 	tprintf( "Number of parameters with computational expressions (coupled or tied parameters) = %d\n", pd->nExpParam );

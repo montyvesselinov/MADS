@@ -76,7 +76,7 @@ char *Fdatetime( char *filename, int debug );
 int sa_sobol( struct opt_data *op )
 {
 	int i, j, k, count, n_sub, n_obs, n_obs1, n_phi;
-	double *opt_params, **var_a_lhs, **var_b_lhs, **var_c_lhs, *var_a_lhs_local, *var_b_lhs_local;
+	double **var_a_lhs, **var_b_lhs, **var_c_lhs, *var_a_lhs_local, *var_b_lhs_local;
 	char filename[255], buf[255];
 	FILE *out, *out2;
 	strcpy( op->label, "sobol" );
@@ -89,7 +89,6 @@ int sa_sobol( struct opt_data *op )
 	n_phi = n_obs;
 	out = out2 = NULL;
 	op->cd->sintrans = 0; // IMPORTANT; no sin transformation
-	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( phis_full = ( double * ) malloc( 2 * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( var_a_lhs_local = ( double * ) malloc( op->pd->nOptParam * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( var_b_lhs_local = ( double * ) malloc( op->pd->nOptParam * n_sub * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -122,6 +121,8 @@ int sa_sobol( struct opt_data *op )
 	tprintf( "Random sampling set 2 (variables %d; realizations %d) using ", op->pd->nOptParam, n_sub );
 	sampling( op->pd->nOptParam, n_sub, &op->cd->seed, var_b_lhs_local, op, 1 );
 	tprintf( "done.\n" );
+	for( i = 0; i < op->pd->nParam; i++ )
+		op->cd->var[i] = op->pd->var[i]; // TODO this should be redundant but it is need to make it work for fixed parameters
 	// Copy temp lhs vectors to matrices
 	for( count = 0; count < n_sub; count++ )
 		for( i = 0; i < op->pd->nOptParam; i++ )
@@ -328,7 +329,7 @@ int sa_sobol( struct opt_data *op )
 		fclose( out );
 	}
 	free( phis_full );
-	free( opt_params ); free( t1 ); free( t2 ); free( fhat ); free( fhat2 );
+	free( t1 ); free( t2 ); free( fhat ); free( fhat2 );
 	free_matrix( ( void ** ) f_a, n_sub );
 	free_matrix( ( void ** ) f_b, n_sub );
 	free_matrix( ( void ** ) f_c, n_sub );
@@ -646,11 +647,11 @@ int sa_saltelli( struct opt_data *op )
 	r = gsl_rng_alloc( T );
 	s = do_gsl_monte_miser_alloc( op->pd->nOptParam );
 	p.func_params = ( void * ) &salt;
-	for( j = 0; j < op->wd->nW; j++ )//loop through the wells
+	for( j = 0; j < op->wd->nW; j++ ) // loop through the wells
 	{
-		for( n = 0; n < op->wd->nWellObs[j]; n++ )//loop through the observations
+		for( n = 0; n < op->wd->nWellObs[j]; n++ ) // loop through the observations
 		{
-			if( op->wd->obs_weight[j][n] < 0 )//making the weight less than zero is a trick to "flag" the observation
+			if( op->wd->obs_weight[j][n] < 0 ) // making the weight less than zero is a trick to "flag" the observation
 			{
 				tprintf( "%s at t=%g:\n", op->wd->id[j], op->wd->obs_time[j][n] );
 				salt.well_index = j;

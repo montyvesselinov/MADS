@@ -839,6 +839,13 @@ verify-serial-sa: mads wells
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
 	@echo "$(NO_COLOR)"
+	@echo "TEST 10.2a: Sobol external analysis ..."
+	rm -f $(EXAMPLES)/wells-short/w02.sobol_sens_index $(EXAMPLES)/wells-short/w02.sobol_sens_total $(EXAMPLES)/wells-short/w02.running
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w02_yaml gsens real=100 seed=1066732675 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w02_yaml.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/wells-short/w02_yaml.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
+	@echo "$(NO_COLOR)"
 
 verify-parallel-sa: mads wells
 	@echo "TEST 10.3: Parallel execution of Sobol external analysis ..."
