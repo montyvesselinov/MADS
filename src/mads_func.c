@@ -1016,7 +1016,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 	int ieval = op->cd->neval;
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->posix ) // POSIX/MPRUN Parallel job
 	{
-		if( op->cd->pardebug ) tprintf( "POSIX/MPRUN Parallel execution of all external jobs ...\n" );
+		tprintf( "POSIX/MPRUN Parallel writing and execution of all external jobs ...\n" );
 		time_start = time( NULL );
 		if( mprunall( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
 		{
@@ -1056,17 +1056,14 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		if( op->cd->tdebug ) tprintf( "Parallel set reading PT = %ld seconds\n", time_elapsed );
 		return( 1 );
 	}
-	if( op->cd->solution_type[0] == EXTERNAL && op->cd->omp ) // OpenMP Parallel job
+	if( op->cd->solution_type[0] == EXTERNAL && !op->cd->posix && op->cd->omp ) // Pure OpenMP Parallel job
 		return( func_set_omp( n_sub, var_mat, phi, f, out, op ) );
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type ) // Parallel job; potentially mix of OpenMP and POSIX threads
 	{
-		if( op->cd->pardebug ) tprintf( "MPRUN Parallel execution of external jobs ...\n" );
-		if( op->cd->pardebug )
-		{
-			if( op->cd->omp ) tprintf( "OpenMP parallel" );
-			else tprintf( "Serial" );
-			tprintf( " generation of all the model input files ...\n" );
-		}
+		tprintf( "MPRUN Parallel execution of external jobs ...\n" );
+		if( op->cd->omp ) tprintf( "OpenMP parallel" );
+		else tprintf( "Serial" );
+		tprintf( " generation of all the model input files ...\n" );
 		time_start = time( NULL );
 		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Write all the files
@@ -1217,7 +1214,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 	int i, j, k, count, bad_data = 0, debug_level = 0;
 	time_t time_start, time_end, time_elapsed;
 	int ieval = op->cd->neval;
-	if( op->cd->debug || op->cd->mdebug ) tprintf( "OpenMP Parallel execution of external jobs ...\n" );
+	tprintf( "OpenMP Parallel execution of external jobs ...\n" );
 	time_start = time( NULL );
 	#pragma omp parallel for private(count)
 	for( count = 0; count < n_sub; count++ ) // Write all the files

@@ -398,7 +398,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( !strncasecmp( word, "obsstep=", 8 ) ) { w = 1; sscanf( word, "obsstep=%lf", &cd->obsstep ); if( fabs( cd->obsstep ) < DBL_EPSILON ) cd->obsstep = ( double ) 0; else cd->problem_type = INFOGAP; }
 		if( !strncasecmp( word, "seed=", 5 ) ) { w = 1; sscanf( word, "seed=%d", &cd->seed ); cd->seed_init = cd->seed; }
 		if( !strncasecmp( word, "mpi", 3 ) ) { w = 1; cd->mpi = true; };
-		if( !strncasecmp( word, "posix", 5 ) ) { w = 1; cd->omp = false; cd->posix = true; cd->bin_restart = true; sscanf( word, "posix=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; };
+		if( !strncasecmp( word, "posix", 5 ) ) { w = 1; cd->posix = true; cd->bin_restart = true; sscanf( word, "posix=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; };
 		if( !strncasecmp( word, "ssh", 3 ) ) { w = 1; cd->ssh = true; };
 		if( !strncasecmp( word, "omp", 3 ) ) { w = 1; sscanf( word, "omp=%d", &cd->omp_threads ); cd->omp = true; cd->bin_restart = true; };
 		if( !strncasecmp( word, "np=", 3 ) ) { w = 1; cd->num_proc = 0; sscanf( word, "np=%d", &cd->num_proc ); if( cd->num_proc <= 0 ) cd->num_proc = 0; }
