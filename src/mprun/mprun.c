@@ -83,16 +83,16 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 		kidids[w] = 0;
 		kidstatus[w] = kidattempt[w] = -1;
 	}
-	if( type == 1 ) // PBS/...
+	if( type == 1 && type == 2 ) // PBS/...
 		kidhost = p->cd->paral_hosts; // List of processors/hosts
-	else if( type == 2 ) // slurm
+	else if( type == 3 ) // slurm
 	{
 		sprintf( cpu_per_task, "-c%d", p->cd->proc_per_task );
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ )
 			strcpy( kidhost[i], "slurm" );
 	}
-	if( type == 3 || type == 4 ) // local
+	if( type >= 4 ) // local
 	{
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ ) strcpy( kidhost[i], "local" );
@@ -126,7 +126,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
 			free_matrix( ( void ** ) rerundir, nProc );
-			if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
+			if( type > 2 ) free_matrix( ( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -384,13 +384,22 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 				free( opt_params );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
-				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-				else if( type == 2 )
+				switch( type )
 				{
-					if( p->cd->ssh ) execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-					else             execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				case 1:
+					execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					break;
+				case 2:
+					execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					break;
+				case 3:
+					execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					break;
+				case 4:
+				case 5:
+					execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					break;
 				}
-				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				// IMPORTANT NO COMMAND WILL BE EXECUTED AFTER execlp
 				// Commads below can be used if mprunread is developed; It appears that OpenMP reading is more efficient
 				/*
@@ -452,7 +461,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 	if( skip_job != NULL ) free( skip_job );
 	if( kiddir != NULL ) free_matrix( ( void ** ) kiddir, nProc );
 	if( rerundir != NULL ) free_matrix( ( void ** ) rerundir, nProc );
-	if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
+	if( type > 2 ) free_matrix( ( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }
@@ -534,16 +543,16 @@ int mprun( int nJob, void *data )
 		kidids[w] = 0;
 		kidstatus[w] = kidattempt[w] = -1;
 	}
-	if( type == 1 )
+	if( type == 1 && type == 2 )
 		kidhost = p->cd->paral_hosts; // List of processors/hosts
-	else if( type == 2 )
+	else if( type == 3 )
 	{
 		sprintf( cpu_per_task, "-c%d", p->cd->proc_per_task );
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ )
 			strcpy( kidhost[i], "slurm" );
 	}
-	else if( type == 3 || type == 4 )
+	else if( type >= 4 )
 	{
 		kidhost = char_matrix( nProc, 95 );
 		for( i = 0; i < nProc; i++ )
@@ -576,7 +585,7 @@ int mprun( int nJob, void *data )
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
 			free_matrix( ( void ** ) rerundir, nProc );
-			if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
+			if( type > 2 ) free_matrix( ( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -796,13 +805,22 @@ int mprun( int nJob, void *data )
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
-				if( type == 1 )      execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-				else if( type == 2 )
+				switch( type )
 				{
-					if( p->cd->ssh ) execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
-					else             execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+				case 1: // ssh
+					execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					break;
+				case 2: // bpsh
+					execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					break;
+				case 3: // slurm
+					execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					break;
+				case 4:
+				case 5: // openmp
+					execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+					break;
 				}
-				else                 execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 				// IMPORTANT NO COMMAND WILL BE EXECUTED AFTER execlp
 				_exit( 7 );
 			}
@@ -841,7 +859,7 @@ int mprun( int nJob, void *data )
 	free( skip_job );
 	free_matrix( ( void ** ) kiddir, nProc );
 	free_matrix( ( void ** ) rerundir, nProc );
-	if( type != 1 ) free_matrix( ( void ** ) kidhost, nProc );
+	if( type > 2 ) free_matrix( ( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }

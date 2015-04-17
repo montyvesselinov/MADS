@@ -397,7 +397,7 @@ int main( int argn, char *argv[] )
 	}
 	else if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
 	{
-		cd.parallel_type = 4;
+		cd.parallel_type = 5;
 		cd.omp = 1;
 		if( cd.debug ) tprintf( "\nOpenMP Parallel environment is detected (environmental variable OMP_NUM_THREADS is defined)\n" );
 		if( cd.omp_threads <= 0 )
@@ -408,13 +408,13 @@ int main( int argn, char *argv[] )
 	}
 	if( ( nodelist = getenv( "SLURM_NTASKS" ) ) != NULL )
 	{
-		cd.parallel_type = 2;
+		int cpus_per_node;
+		cd.parallel_type = 3;
 		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NTASKS is defined)\n" );
 		int num_proc;
 		sscanf( nodelist, "%d", &num_proc );
 		if( ( nodelist = getenv( "SLURM_CPUS_ON_NODE" ) ) != NULL )
 		{
-			int cpus_per_node;
 			sscanf( nodelist, "%d", &cpus_per_node );
 			num_proc *= cpus_per_node;
 		}
@@ -432,14 +432,22 @@ int main( int argn, char *argv[] )
 					printf( "Failed to run SLURM command \"scontrol show hostnames $SLURM_JOB_NODELIST\"\n" );
 				else
 				{
+					cd.parallel_type = 2;
+					if( cd.proc_per_task > 1 )
+					{
+						tprintf( "Number of processors per task: %d\n", cd.proc_per_task );
+						cd.num_proc /= cd.proc_per_task;
+						cpus_per_node /= cd.proc_per_task;
+						tprintf( "Number of execution nodes: %d\n", cd.num_proc );
+					}
 					cd.paral_hosts = char_matrix( cd.num_proc, 95 );
 					tprintf( "Nodes:" );
 					j = 0;
 					while( fgets( buf, sizeof( buf ) - 1, fp ) != NULL ) // Read the output a line at a time
 					{
-						sscanf( buf, "%s", cd.paral_hosts[j] );
-						tprintf( " %s", cd.paral_hosts[j] );
-						j++;
+						tprintf( " %s", buf );
+						for( i = 0; i < cpus_per_node; i++ )
+							sscanf( buf, "%s", cd.paral_hosts[j++] );
 					}
 					pclose( fp );
 				}
@@ -467,7 +475,8 @@ int main( int argn, char *argv[] )
 	}
 	if( hostlist != NULL ) // it is not a Posix, SLURM or OpenMP job
 	{
-		cd.parallel_type = 1;
+		if( cd.ssh ) cd.parallel_type = 1;
+		else cd.parallel_type = 2;
 		if( cd.debug == 0 ) tprintf( "\nParallel environment is detected.\n" );
 		if( ( host = getenv( "HOSTNAME" ) ) == NULL ) host = getenv( "HOST" );
 		tprintf( "Host: %s\n", host );
@@ -535,7 +544,7 @@ int main( int argn, char *argv[] )
 		remove( "num_proc" );
 		tprintf( "Number of local processors available for parallel execution: %i\n", k );
 		tprintf( "\n" );
-		if( cd.parallel_type == 4 ) tprintf( "OpenMP " );
+		if( cd.parallel_type == 5 ) tprintf( "OpenMP " );
 		else if( cd.parallel_type == 2 ) tprintf( "SLURM " );
 		else tprintf( "POSIX " );
 		tprintf( "parallel execution using %d processors (use np=%d to change the number of processors)\n", cd.num_proc, cd.num_proc );

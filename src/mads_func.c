@@ -1056,7 +1056,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		if( op->cd->tdebug ) tprintf( "Parallel set reading PT = %ld seconds\n", time_elapsed );
 		return( 1 );
 	}
-	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type == 4 && op->cd->omp ) // OpenMP Parallel job
+	if( op->cd->solution_type[0] == EXTERNAL && op->cd->omp ) // OpenMP Parallel job
 		return( func_set_omp( n_sub, var_mat, phi, f, out, op ) );
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type ) // Parallel job; potentially mix of OpenMP and POSIX threads
 	{
