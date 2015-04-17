@@ -58,7 +58,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 	struct sigaction act;
 	int w, i, j, ieval, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
-	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], cpu_per_task[100], *atime;
+	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], cpu_per_task[100], *atime, *cwd;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
 	if( p->cd->pardebug > 3 )
 	{
@@ -82,20 +82,21 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 		kidids[w] = 0;
 		kidstatus[w] = kidattempt[w] = -1;
 	}
+	kidhost = char_matrix( nProc, 95 );
 	switch( p->cd->parallel_type )
 	{
 		case SSH:
+			cwd = getenv( "PWD" );
 		case BPSH:
-			kidhost = p->cd->paral_hosts; // List of processors/hosts
+			for( i = 0; i < nProc; i++ )
+				strcpy( kidhost[i], p->cd->paral_hosts[i] );
 			break;
 		case SRUN:
 			sprintf( cpu_per_task, "-c%d", p->cd->proc_per_task );
-			kidhost = char_matrix( nProc, 95 );
 			for( i = 0; i < nProc; i++ )
 				strcpy( kidhost[i], "slurm" );
 			break;
 		case SHELL:
-			kidhost = char_matrix( nProc, 95 );
 			for( i = 0; i < nProc; i++ )
 				strcpy( kidhost[i], "local" );
 			break;
@@ -129,7 +130,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
 			free_matrix( ( void ** ) rerundir, nProc );
-			if( p->cd->parallel_type > BPSH ) free_matrix( ( void ** ) kidhost, nProc );
+			free_matrix( ( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -393,6 +394,8 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 				switch( p->cd->parallel_type )
 				{
 					case SSH:
+						sprintf( buf, "\'cd %s/%s; %s\'", cwd, dir, exec_name );
+						if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
 						execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 						break;
 					case BPSH:
@@ -466,7 +469,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 	if( skip_job != NULL ) free( skip_job );
 	if( kiddir != NULL ) free_matrix( ( void ** ) kiddir, nProc );
 	if( rerundir != NULL ) free_matrix( ( void ** ) rerundir, nProc );
-	if( p->cd->parallel_type > BPSH ) free_matrix( ( void ** ) kidhost, nProc );
+	free_matrix( ( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }
@@ -477,7 +480,7 @@ int mprun( int nJob, void *data )
 	struct sigaction act;
 	int w, i, j, ieval, cJob, nFailed, child, child1, wait, job_wait, done, next, refork = 0, refresh, destroy, rerun, rJob, *kidattempt, *skip_job;
 	pid_t pid, return_fork;
-	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], cpu_per_task[100], *atime;
+	char *exec_name, **kidhost, **kiddir, **rerundir, dir[1025], buf[1025], cpu_per_task[100], *atime, *cwd;
 	if( p->cd->num_proc <= 1 ) { tprintf( "\nERROR: Number of available processors is 1; cannot parallelize!\n" ); return( -1 ); }
 	if( p->cd->pardebug > 9 )
 	{
@@ -547,20 +550,21 @@ int mprun( int nJob, void *data )
 		kidids[w] = 0;
 		kidstatus[w] = kidattempt[w] = -1;
 	}
+	kidhost = char_matrix( nProc, 95 );
 	switch( p->cd->parallel_type )
 	{
 		case SSH:
+			cwd = getenv( "PWD" );
 		case BPSH:
-			kidhost = p->cd->paral_hosts; // List of processors/hosts
+			for( i = 0; i < nProc; i++ )
+				strcpy( kidhost[i], p->cd->paral_hosts[i] );
 			break;
 		case SRUN:
 			sprintf( cpu_per_task, "-c%d", p->cd->proc_per_task );
-			kidhost = char_matrix( nProc, 95 );
 			for( i = 0; i < nProc; i++ )
 				strcpy( kidhost[i], "slurm" );
 			break;
 		case SHELL:
-			kidhost = char_matrix( nProc, 95 );
 			for( i = 0; i < nProc; i++ )
 				strcpy( kidhost[i], "local" );
 			break;
@@ -592,7 +596,7 @@ int mprun( int nJob, void *data )
 			free( skip_job );
 			free_matrix( ( void ** ) kiddir, nProc );
 			free_matrix( ( void ** ) rerundir, nProc );
-			if( p->cd->parallel_type > BPSH ) free_matrix( ( void ** ) kidhost, nProc );
+			free_matrix( ( void ** ) kidhost, nProc );
 			return( -1 );
 		}
 		job_wait = 1;
@@ -812,9 +816,12 @@ int mprun( int nJob, void *data )
 				pid = getpid();
 				setpgid( pid, pid );
 				sprintf( buf, "cd %s; %s", dir, exec_name );
+				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
 				switch( p->cd->parallel_type )
 				{
 					case SSH:
+						sprintf( buf, "\'cd %s/%s; %s\'", cwd, dir, exec_name );
+						if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
 						execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
 						break;
 					case BPSH:
@@ -865,7 +872,7 @@ int mprun( int nJob, void *data )
 	free( skip_job );
 	free_matrix( ( void ** ) kiddir, nProc );
 	free_matrix( ( void ** ) rerundir, nProc );
-	if( p->cd->parallel_type > BPSH ) free_matrix( ( void ** ) kidhost, nProc );
+	free_matrix( ( void ** ) kidhost, nProc );
 	p->cd->neval += nJob;
 	return( 1 );
 }

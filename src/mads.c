@@ -515,7 +515,7 @@ int main( int argn, char *argv[] )
 		if( cd.omp )
 		{
 			if( cd.omp_threads <= 0 ) { omp_set_num_threads( cd.num_proc ); if( cd.debug ) tprintf( "Number of threads %d\n", cd.num_proc ); }
-			else cd.parallel_type = SHELL;
+			// else cd.parallel_type = SHELL;
 		}
 		if( cd.parallel_type == 0 ) cd.parallel_type = SHELL;
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )

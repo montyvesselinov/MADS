@@ -31,6 +31,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <unistd.h>
 #include <gsl/gsl_math.h>
 #include "mads.h"
 #ifdef MATHEVAL
@@ -1034,7 +1035,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		{
 			double *opt_res;
 			if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
-			if( op->cd->pardebug ) tprintf( "OpenMP reading the model output files %d for case ...\n", ieval + count + 1 );
+			if( op->cd->pardebug ) tprintf( "OpenMP reading the model output files for case %d ...\n", ieval + count + 1 );
 			if( func_extrn_read( ieval + count + 1, op, opt_res ) )
 				read_error = 1;
 			else
@@ -1360,6 +1361,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		time_end = time( NULL );
 		time_elapsed = time_end - time_start;
 		if( p->cd->tdebug ) tprintf( "Parallel jacobian execution PT = %ld seconds\n", time_elapsed );
+		// sleep( 1 ); 
 		system( "sleep 0" ); // TODO investigate how much sleep is needed
 		ieval -= ( p->pd->nOptParam + compute_center );
 		time_start = time_end;
