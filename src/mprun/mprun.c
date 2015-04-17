@@ -372,7 +372,10 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 					}
 				}
 				if( thread_done )
+				{
+					execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", "", ( char * ) 0 ); // empty call to terminate vfork`
 					_exit( 7 ); // Terminate the thread
+				}
 				if( p->cd->pardebug ) tprintf( "POSIX/MPRUN parallel writing of the model output files for case %d ...\n", ieval + cJob );
 				double *opt_params;
 				if( ( opt_params = ( double * ) malloc( p->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }

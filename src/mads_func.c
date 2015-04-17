@@ -472,6 +472,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 								tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], p->od->obs_current[i] );
 					}
 				}
+				delete_mprun_dir( dir );
 				return( GSL_SUCCESS );
 			}
 		}
