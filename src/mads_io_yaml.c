@@ -1007,7 +1007,7 @@ int parse_gnode_class_observations( GNode *node, gpointer data )
 			tprintf( "Observation %s: min %g max %g\n", od->obs_id[i], od->obs_min[i], od->obs_max[i] );
 			bad_data = 1;
 		}
-		if( !bad_data ) tprintf( "\n" );
+		if( !bad_data && cd->debug ) tprintf( "\n" );
 		if( cd->ologtrans == 1 ) od->obs_log[i] = 1;
 		else if( cd->ologtrans == 0 ) od->obs_log[i] = 0;
 		if( cd->oweight == 1 ) od->obs_weight[i] = 1;

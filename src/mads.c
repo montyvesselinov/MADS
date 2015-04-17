@@ -2189,7 +2189,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 		tprintf( "Randomly sampled parameters saved in %s.mcrnd_param\n", op->root );
 	}
 	for( i = 0; i < op->pd->nParam; i++ )
-		orig_params[i] = op->pd->var[i]; // Save original initial values for all parameters
+		orig_params[i] = op->cd->var[i] = op->pd->var[i]; // Save original initial values for all parameters
 	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	// File management
@@ -2244,7 +2244,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 				}
 				k++;
 			}
-			else op->pd->var[i] = orig_params[i];
+			else op->cd->var[i] = op->pd->var[i] = orig_params[i];
 		if( op->pd->nOptParam > 0 )
 		{
 			if( op->cd->pargen )
@@ -2478,7 +2478,7 @@ int igpd( struct opt_data *op )
 	out2 = Fwrite( filename );
 	for( i = 0; i < op->pd->nParam; i++ )
 		if( op->pd->var_opt[i] == 2 )
-			orig_params[i] = op->pd->var_min[i];
+			orig_params[i] = op->cd->var[i] = op->pd->var_min[i];
 	phi_global = success_global = 0;
 	phi_min = HUGE_VAL;
 	count = neval_total = njac_total = 0;
@@ -2494,7 +2494,7 @@ int igpd( struct opt_data *op )
 			if( op->cd->debug == 0 ) tprintf( "\n" );
 			for( i = 0; i < op->pd->nParam; i++ )
 			{
-				op->pd->var[i] = orig_params[i];
+				op->cd->var[i] = op->pd->var[i] = orig_params[i];
 				if( op->pd->var_opt[i] == 2 ) // Print flagged parameters
 				{
 					tprintf( "%s %g\n", op->pd->var_name[i], orig_params[i] );
@@ -2634,7 +2634,8 @@ int ppsd( struct opt_data *op )
 		if( op->cd->pargen &&  op->cd->solution_type[0] != TEST && op->cd->solution_type[0] != EXTERNAL )
 			tprintf( "WARNING: No analyses will be performed!\nMADS input file in the form \'%s-ppsd.000x.mads\' will be generated instead \n", op->root );
 	}
-	for( i = 0; i < op->pd->nParam; i++ ) orig_params[i] = op->pd->var[i]; // Save original initial values for all parameters
+	for( i = 0; i < op->pd->nParam; i++ )
+		orig_params[i] = op->cd->var[i] = op->pd->var[i]; // Save original initial values for all parameters
 	if( strncasecmp( op->cd->opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 	else optimize_func = optimize_pso; // Define optimization method: PSO
 	sprintf( filename, "%s.ppsd.zip", op->root );
