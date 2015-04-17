@@ -757,9 +757,8 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 				if( pd->var_min[index] < 0 || pd->var[index] < 0 )
 				{
 					tprintf( "WARNING: Parameter cannot be log transformed (negative values)!\n" );
-					tprintf( "Parameter %s: min %g max %g\n", pd->var_name[index], pd->var_min[index], pd->var_max[index] );
-					// if( cd->plogtrans == 1 ) { pd->var_log[index] = 0; pd->var_range[index] = pd->var_max[index] - pd->var_min[index]; }
-					// else bad_data = 1;
+					tprintf( "Parameter %s: init %g min %g max %g\n", pd->var_name[index], pd->var[index], pd->var_min[index], pd->var_max[index] );
+					bad_data = 1;
 					continue;
 				}
 				double d = 0;

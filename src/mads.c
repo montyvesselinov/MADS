@@ -389,7 +389,7 @@ int main( int argn, char *argv[] )
 	cd.parallel_type = 0;
 	if( cd.omp )
 	{
-		cd.parallel_type = 4;
+		cd.parallel_type = SHELL;
 		int num_threads = omp_get_max_threads();
 		if( cd.debug ) tprintf( "\nOpenMP Parallel run (max threads %d)\n", num_threads );
 		if( cd.omp_threads > 1 ) { omp_set_num_threads( cd.omp_threads ); if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads ); }
@@ -397,19 +397,17 @@ int main( int argn, char *argv[] )
 	}
 	else if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
 	{
-		cd.parallel_type = 5;
 		cd.omp = 1;
+		cd.parallel_type = SHELL;
 		if( cd.debug ) tprintf( "\nOpenMP Parallel environment is detected (environmental variable OMP_NUM_THREADS is defined)\n" );
-		if( cd.omp_threads <= 0 )
-			sscanf( nodelist, "%d", &cd.omp_threads );
-		else
-			omp_set_num_threads( cd.omp_threads );
+		if( cd.omp_threads <= 0 ) sscanf( nodelist, "%d", &cd.omp_threads );
+		else                      omp_set_num_threads( cd.omp_threads );
 		if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads );
 	}
 	if( ( nodelist = getenv( "SLURM_NNODES" ) ) != NULL )
 	{
 		int cpus_per_node;
-		cd.parallel_type = 3;
+		cd.parallel_type = SRUN;
 		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NNODES is defined)\n" );
 		int num_proc;
 		sscanf( nodelist, "%d", &num_proc );
@@ -432,7 +430,7 @@ int main( int argn, char *argv[] )
 					printf( "Failed to run SLURM command \"scontrol show hostnames $SLURM_JOB_NODELIST\"\n" );
 				else
 				{
-					cd.parallel_type = 2;
+					cd.parallel_type = SSH;
 					if( cd.proc_per_task > 1 )
 					{
 						tprintf( "Number of processors per task: %d\n", cd.proc_per_task );
@@ -450,6 +448,7 @@ int main( int argn, char *argv[] )
 						for( i = 0; i < cpus_per_node; i++ )
 							sscanf( buf, "%s", cd.paral_hosts[j++] );
 					}
+					tprintf( "\n", buf );
 					pclose( fp );
 				}
 			}
@@ -476,8 +475,8 @@ int main( int argn, char *argv[] )
 	}
 	if( hostlist != NULL ) // it is not a Posix, SLURM or OpenMP job
 	{
-		if( cd.ssh ) cd.parallel_type = 1;
-		else cd.parallel_type = 2;
+		if( cd.ssh ) cd.parallel_type = SSH;
+		else cd.parallel_type = BPSH;
 		if( cd.debug == 0 ) tprintf( "\nParallel environment is detected.\n" );
 		if( ( host = getenv( "HOSTNAME" ) ) == NULL ) host = getenv( "HOST" );
 		tprintf( "Host: %s\n", host );
@@ -511,12 +510,12 @@ int main( int argn, char *argv[] )
 	}
 	else if( cd.num_proc > 0 && cd.paral_hosts == NULL ) // it is a Posix, SLURM or OpenMP job
 	{
-		if( cd.parallel_type == 4 )
+		if( cd.omp )
 		{
 			if( cd.omp_threads <= 0 ) { omp_set_num_threads( cd.num_proc ); if( cd.debug ) tprintf( "Number of threads %d\n", cd.num_proc ); }
-			else cd.parallel_type = 3;
+			else cd.parallel_type = SHELL;
 		}
-		if( cd.parallel_type == 0 ) cd.parallel_type = 3;
+		if( cd.parallel_type == 0 ) cd.parallel_type = SHELL;
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
 		{
 			if( cd.debug ) tprintf( "OS type: %s\n", cwd );
@@ -545,8 +544,8 @@ int main( int argn, char *argv[] )
 		remove( "num_proc" );
 		tprintf( "Number of local processors available for parallel execution: %i\n", k );
 		tprintf( "\n" );
-		if( cd.parallel_type == 5 ) tprintf( "OpenMP " );
-		else if( cd.parallel_type == 2 ) tprintf( "SLURM " );
+		if( cd.omp ) tprintf( "OpenMP " );
+		else if( cd.parallel_type == SRUN ) tprintf( "SLURM " );
 		else tprintf( "POSIX " );
 		tprintf( "parallel execution using %d processors (use np=%d to change the number of processors)\n", cd.num_proc, cd.num_proc );
 		if( k < cd.num_proc ) tprintf( "WARNING: Number of requested processors exceeds the available nodes!\n" );
@@ -576,19 +575,19 @@ int main( int argn, char *argv[] )
 		else tprintf( "Checking the template files for errors ...\n" );
 		if( bad_data ) mads_quits( op.root );
 		bad_data = 0;
-		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = ( double ) - 1;
+		for( i = 0; i < pd.nParam; i++ ) pd.var_current[i] = ( double ) - 1;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
-			if( check_par_tpl( pd.nParam, pd.var_id, cd.var, ed.fn_tpl[i], cd.tpldebug ) == -1 )
+			if( check_par_tpl( pd.nParam, pd.var_id, pd.var_current, ed.fn_tpl[i], cd.tpldebug ) == -1 )
 				bad_data = 1;
 		for( i = 0; i < pd.nParam; i++ )
 		{
-			if( cd.var[i] < 0 )
+			if( pd.var_current[i] < 0 )
 			{
 				tprintf( "ERROR: Model parameter \'%s\' is not represented in the template file(s)!\n", pd.var_name[i] );
 				bad_data = 1;
 			}
-			else if( cd.var[i] > 1.5 )
-				tprintf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_name[i], ( int ) cd.var[i] );
+			else if( pd.var_current[i] > 1.5 )
+				tprintf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_name[i], ( int ) pd.var_current[i] );
 		}
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
 		if( ed.nins <= 0 ) { tprintf( "ERROR: No instruction file(s)!\n" ); bad_data = 1; }
@@ -832,7 +831,6 @@ int main( int argn, char *argv[] )
 		else tprintf( "\nSINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:\n" );
 		if( strncasecmp( cd.opt_method, "lm", 2 ) == 0 ) optimize_func = optimize_lm; // Define optimization method: LM
 		else optimize_func = optimize_pso; // Define optimization method: PSO
-		for( i = 0; i < pd.nParam; i++ ) cd.var[i] = pd.var[i]; // Set all the initial values
 		success = optimize_func( &op ); // Optimize
 		if( success == 0 ) { tprintf( "ERROR: Optimization did not start!\n" ); mads_quits( op.root ); }
 		if( cd.debug == 0 ) tprintf( "\n" );
@@ -2255,9 +2253,9 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 				k++;
 			}
 			else op->cd->var[i] = op->pd->var[i] = orig_params[i];
-		if( op->pd->nOptParam > 0 )
+		if( op->cd->problem_type == CALIBRATE && op->pd->nOptParam > 0 )
 		{
-			if( op->cd->pargen )
+			if( op->cd->pargen ) // Generate mads input files only
 			{
 				if( op->cd->solution_type[0] != TEST && op->cd->solution_type[0] != EXTERNAL )
 				{

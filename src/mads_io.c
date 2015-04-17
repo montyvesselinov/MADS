@@ -869,9 +869,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 					if( pd->var_min[i] < 0 || pd->var[i] < 0 )
 					{
 						tprintf( "ERROR: Parameter cannot be log transformed (negative values)!\n" );
-						tprintf( "Parameter %s: min %g max %g\n", pd->var_name[i], pd->var_min[i], pd->var_max[i] );
-						// if( cd->plogtrans == 1 ) { pd->var_log[i] = 0; pd->var_range[i] = pd->var_max[i] - pd->var_min[i]; }
-						// else bad_data = 1;
+						tprintf( "Parameter %s: init %g min %g max %g\n", pd->var_name[i], pd->var[i], pd->var_min[i], pd->var_max[i] );
+						bad_data = 1;
 						continue;
 					}
 					if( pd->var_dx[i] < 2 ) d = ( pd->var_max[i] - pd->var_min[i] ) / pd->var_dx[i];

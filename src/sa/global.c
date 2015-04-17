@@ -121,8 +121,6 @@ int sa_sobol( struct opt_data *op )
 	tprintf( "Random sampling set 2 (variables %d; realizations %d) using ", op->pd->nOptParam, n_sub );
 	sampling( op->pd->nOptParam, n_sub, &op->cd->seed, var_b_lhs_local, op, 1 );
 	tprintf( "done.\n" );
-	for( i = 0; i < op->pd->nParam; i++ )
-		op->cd->var[i] = op->pd->var[i]; // TODO this should be redundant but it is need to make it work for fixed parameters
 	// Copy temp lhs vectors to matrices
 	for( count = 0; count < n_sub; count++ )
 		for( i = 0; i < op->pd->nOptParam; i++ )
