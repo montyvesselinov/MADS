@@ -406,11 +406,11 @@ int main( int argn, char *argv[] )
 			omp_set_num_threads( cd.omp_threads );
 		if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads );
 	}
-	if( ( nodelist = getenv( "SLURM_NTASKS" ) ) != NULL )
+	if( ( nodelist = getenv( "SLURM_NNODES" ) ) != NULL )
 	{
 		int cpus_per_node;
 		cd.parallel_type = 3;
-		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NTASKS is defined)\n" );
+		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NNODES is defined)\n" );
 		int num_proc;
 		sscanf( nodelist, "%d", &num_proc );
 		if( ( nodelist = getenv( "SLURM_CPUS_ON_NODE" ) ) != NULL )
@@ -445,6 +445,7 @@ int main( int argn, char *argv[] )
 					j = 0;
 					while( fgets( buf, sizeof( buf ) - 1, fp ) != NULL ) // Read the output a line at a time
 					{
+						white_trim( buf );
 						tprintf( " %s", buf );
 						for( i = 0; i < cpus_per_node; i++ )
 							sscanf( buf, "%s", cd.paral_hosts[j++] );
