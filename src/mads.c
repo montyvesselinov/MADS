@@ -420,6 +420,11 @@ int main( int argn, char *argv[] )
 		if( cd.debug ) tprintf( "Number of available processors %d\n", num_proc );
 		if( cd.num_proc < 0 ) cd.num_proc = num_proc;
 		if( cd.num_proc > num_proc ) cd.num_proc = num_proc;
+		if( cd.proc_per_task > 1 )
+		{
+			tprintf( "Number of processors per task: %d\n", cd.proc_per_task );
+			if( cd.num_proc == num_proc ) { cd.num_proc /= cd.proc_per_task; tprintf( "Number of execution nodes: %d\n", cd.num_proc ); }
+		}
 		if( ( nodelist = getenv( "SLURM_NODELIST" ) ) != NULL )
 		{
 			if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable SLURM_NODELIST is defined)\n" );

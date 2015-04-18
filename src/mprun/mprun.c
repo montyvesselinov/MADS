@@ -396,7 +396,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 					case SSH:
 						sprintf( buf, "\'cd %s/%s; %s\'", cwd, dir, exec_name );
 						if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
-						execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
+						execlp( "ssh", "ssh", "-q", "-T", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case BPSH:
 						execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
@@ -822,7 +822,7 @@ int mprun( int nJob, void *data )
 					case SSH:
 						sprintf( buf, "\'cd %s/%s; %s\'", cwd, dir, exec_name );
 						if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
-						execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
+						execlp( "ssh", "ssh", "-q", "-T", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case BPSH:
 						execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
