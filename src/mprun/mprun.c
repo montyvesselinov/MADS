@@ -374,7 +374,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 				}
 				if( thread_done )
 				{
-					execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", "", ( char * ) 0 ); // empty call to terminate vfork`
+					execlp( "/usr/bin/env", "/usr/bin/env", "bash", "-c", "", ( char * ) 0 ); // empty call to terminate vfork`
 					_exit( 7 ); // Terminate the thread
 				}
 				if( p->cd->pardebug ) tprintf( "POSIX/MPRUN parallel writing of the model output files for case %d ...\n", ieval + cJob );
@@ -396,16 +396,16 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 					case SSH:
 						sprintf( buf, "\'cd %s/%s; %s\'", cwd, dir, exec_name );
 						if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
-						execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+						execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case BPSH:
-						execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+						execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case SRUN:
-						execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+						execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case SHELL:
-						execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+						execlp( "/usr/bin/env", "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 				}
 				// IMPORTANT NO COMMAND WILL BE EXECUTED AFTER execlp
@@ -822,16 +822,16 @@ int mprun( int nJob, void *data )
 					case SSH:
 						sprintf( buf, "\'cd %s/%s; %s\'", cwd, dir, exec_name );
 						if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : executing \'%s\' in \'%s\'\n", child1, kidhost[child], pid, buf, dir );
-						execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+						execlp( "ssh", "ssh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case BPSH:
-						execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+						execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case SRUN:
-						execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+						execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case SHELL:
-						execlp( "/usr/bin/env", "/usr/bin/env", "tcsh", "-f", "-c", buf, ( char * ) 0 );
+						execlp( "/usr/bin/env", "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 				}
 				// IMPORTANT NO COMMAND WILL BE EXECUTED AFTER execlp
