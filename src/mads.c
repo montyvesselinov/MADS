@@ -406,18 +406,20 @@ int main( int argn, char *argv[] )
 	}
 	if( ( nodelist = getenv( "SLURM_NNODES" ) ) != NULL )
 	{
-		int cpus_per_node;
+		int num_node, num_proc, cpus_per_node;
 		cd.parallel_type = SRUN;
 		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NNODES is defined)\n" );
-		int num_proc;
-		sscanf( nodelist, "%d", &num_proc );
+		sscanf( nodelist, "%d", &num_node );
+		num_proc = num_node;
 		if( ( nodelist = getenv( "SLURM_CPUS_ON_NODE" ) ) != NULL )
 		{
 			sscanf( nodelist, "%d", &cpus_per_node );
-			num_proc *= cpus_per_node;
+			tprintf( "Number of CPU's per nodes: %d\n", num_node * cpus_per_node );
+			num_proc = num_node * cpus_per_node;
 		}
 		if( cd.debug ) tprintf( "Number of available processors %d\n", num_proc );
 		if( cd.num_proc < 0 ) cd.num_proc = num_proc;
+		if( cd.num_proc > num_proc ) cd.num_proc = num_proc;
 		if( ( nodelist = getenv( "SLURM_NODELIST" ) ) != NULL )
 		{
 			if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable SLURM_NODELIST is defined)\n" );
@@ -434,10 +436,12 @@ int main( int argn, char *argv[] )
 					if( cd.proc_per_task > 1 )
 					{
 						tprintf( "Number of processors per task: %d\n", cd.proc_per_task );
-						cd.num_proc /= cd.proc_per_task;
 						cpus_per_node /= cd.proc_per_task;
-						tprintf( "Number of execution nodes: %d\n", cd.num_proc );
+						tprintf( "Number of tasks per node: %d\n", cpus_per_node );
 					}
+					if( cd.num_proc < num_node * cpus_per_node ) { cpus_per_node = cd.num_proc / num_node; tprintf( "Number of tasks per node: %d\n", cpus_per_node ); }
+					else cd.num_proc = num_node * cpus_per_node;
+					tprintf( "Number of execution nodes: %d\n", cd.num_proc );
 					cd.paral_hosts = char_matrix( cd.num_proc, 95 );
 					tprintf( "Nodes:" );
 					j = 0;
