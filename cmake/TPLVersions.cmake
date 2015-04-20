@@ -7,7 +7,7 @@ else()
 endif()
 set(FTP "ftp://")
 
-message(STATUS "TPLs' URL:")
+message(STATUS "List of TPLs' and their URL:")
 set(LAPACK_VERSION_MAJOR 3)
 set(LAPACK_VERSION_MINOR 5.0)
 set(LAPACK_VERSION ${LAPACK_VERSION_MAJOR}.${LAPACK_VERSION_MINOR})

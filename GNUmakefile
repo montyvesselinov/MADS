@@ -39,6 +39,7 @@ CCNOCOL=$(echo -e "$(NO_COLOR)")
 PATHPATERN="(/[^/]*)+:[0-9]+"
 # 2>&1 | sed -E -e "/[Ee]rror[: ]/ s%$PATHPATERN%$CCERROR&$CCNOCOL%g" -e "/[Ww]arning[: ]/ s%$PATHPATERN%$CCWARN&$CCNOCOL%g"
 
+MADS_DIR = $(shell pwd)
 SRC = ./src
 OBJ = ./obj
 BIN = ./bin
@@ -114,20 +115,20 @@ ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
 CFLAGS += -I/home/monty/local/include-aquifer
 LDLIBS = -lgfortran -lgsl -llapack -lstdc++ -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath,/home/monty/local/lib 
-endif
-ifeq ($(ND),madsmax)
+else ifeq ($(ND),madsmax)
 $(info Machine -- MadsMax)
 CFLAGS += -Wno-unused-result
-endif
-ifeq ($(ND),well.lanl.gov)
+else ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -L/usr/local/lib -Wl,--rpath,/home/monty/local/lib
-endif
-ifeq (,$(findsting fe,$(ND)))
+else ifeq ($(findstring -fe,$(ND)),-fe)
 $(info Machine -- turquoise)
 CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
 LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github/tpls/lib
+else
+CFLAGS += -I$(MADS_DIR)/tpls/include
+LDLIBS += -lgfortran -L$(MADS_DIR)/tpls/lib -Wl,--rpath,$(MADS_DIR)/tpls/lib
 endif
 else #----------------------------------------------------
 ifeq ($(OS),Cygwin)
@@ -144,14 +145,11 @@ DYNAMICLIB = -dynamiclib -undefined suppress -flat_namespace -shared
 MADS_LIB = $(BIN)/Lib/libmads.dylib
 ifeq ($(ND),bored.lanl.gov)
 LDLIBS += 
-endif
-ifeq ($(ND),pn1246281)
+else ifeq ($(ND),pn1246281)
 LDLIBS += -latlas
-endif
-ifeq ($(ND),macmonty.lanl.gov)
+else ifeq ($(ND),macmonty.lanl.gov)
 LDLIBS += -latlas
-endif
-ifeq ($(ND),dazed.local)
+else ifeq ($(ND),dazed.local)
 $(info Machine -- Dazed)
 CFLAGS += -I/Users/monty/include
 LDLIBS += -lrefblas -lcblas -L/Users/monty/lib -Wl,--rpath,/Users/monty/lib

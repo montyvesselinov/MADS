@@ -77,7 +77,7 @@ GLOBAL installation of the required libraries (faster and easier):
 	sudo port select gcc mp-gcc48
 	
 	RHEL/CentOS/Fedora:	
-	sudo yum install gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
+	sudo yum install gsl glib2 libyaml libxml2 libmatheval atlas libtool pkgconfig git tcsh gmake
 	sudo yum install gcc-c++-4.8
 
 	Ubuntu/Debian:
@@ -102,15 +102,15 @@ CMake compilation, building and installation of the required libraries (slower a
 	
 	To install:
 	MAC OS X:
-	sudo port install gcc48 cmake curl+ssl libtool pkgconfig gettext git tcsh gmake
+	sudo port install gcc48 cmake curl+ssl libtool guile flex pkgconfig gettext git tcsh gmake
 	sudo port select gcc mp-gcc48
 	
 	RHEL/CentOS/Fedora:	
-	sudo yum install cmake curl+ssl libtool pkgconfig git tcsh gmake
+	sudo yum install cmake curl+ssl libtool guile flex pkgconfig git tcsh gmake
 	sudo yum install gcc-c++-4.8
 
 	Ubuntu/Debian:
-	sudo apt-get install gcc-4.8 g++ cmake curl+ssl libtool pkg-config git tcsh gmake
+	sudo apt-get install gcc-4.8 g++ cmake curl+ssl libtool glib-2.0-dev guile flex pkg-config git tcsh gmake
 	sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
 
 	To get TPLs:

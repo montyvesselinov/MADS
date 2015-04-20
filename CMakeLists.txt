@@ -1,8 +1,6 @@
 # -*- mode: cmake -*-
 # MADS
 #
-# IMPORTANT: MADS requires GNU 4.8 or newer compiler
-#
 # USAGE:   cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=<gnu_c++_compiler> -DCMAKE_C_COMPILER=<gnu_c_compiler>   -DCMAKE_LINKER=<gnu_c_compiler>
 # EXAMPLE: cmake CMakeLists.txt -DCMAKE_CXX_COMPILER=/opt/local/bin/c++ -DCMAKE_C_COMPILER=/opt/local/bin/gcc -DCMAKE_LINKER=/opt/local/bin/gcc
 
@@ -11,13 +9,13 @@ cmake_minimum_required (VERSION 3.0 FATAL_ERROR)
 # enable_testing()
 
 message(STATUS "-------------------------------------------------------" )
-message(STATUS "MADS: Model Analyses & Decision Support (v.1.1.14) 2013")
+message(STATUS "MADS: Model Analyses & Decision Support (v.1.1.14) 2015")
 message(STATUS "-------------------------------------------------------" )
 project (mads)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.7)
-	message(FATAL_ERROR "GNU compiler version must be at least 4.7!")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
+	message(FATAL_ERROR "GNU compiler version must be at least 4.8!")
     endif()
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     message(FATAL_ERROR "You are using Clang compiler! GNU compiler is required!")
@@ -26,12 +24,11 @@ else()
 endif()
 
 set(MADS_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-set(CMAKE_MODULE_PATH  ${MADS_MODULE_PATH})
+set(CMAKE_MODULE_PATH ${MADS_MODULE_PATH})
 set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${PROJECT_SOURCE_DIR}/tpls/lib)
 set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${PROJECT_SOURCE_DIR}/tpls/include)
 set(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${PROJECT_SOURCE_DIR}/tpls/lib)
-
-message( WARNING "${LD_LIBRARY_PATH}")
+message(STATUS "Library path: ${LD_LIBRARY_PATH}" )
 
 include(PrintVariable)
 
@@ -58,7 +55,7 @@ option(USE_YAML "USE_YAML." TRUE)
 option(USE_XML "USE_XML." TRUE)
 option(USE_MATHEVAL "USE_MATHEVAL." TRUE)
 include(TPLVersions)
-find_package(Git 1.7)
+find_package(Git 1.9)
 find_package(PkgConfig 0.27)
 find_package(Atlas 3.10)
 find_package(LAPACK)
@@ -67,8 +64,7 @@ find_package(GLIB2 ${GLIB2_VERSION})
 find_package(GSL ${GSL_VERSION})
 find_package(LibYAML ${LIBYAML_VERSION})
 find_package(LibXML2 ${LIBXML2_VERSION})
-find_library(LibMathEval ${LIBMATHEVAL_VERSION} PATH
-	~/mads/repo-github/tpls/lib)
+find_library(LibMathEval ${LIBMATHEVAL_VERSION} PATH ~/mads/repo-github/tpls/lib)
 if(NOT (GIT_FOUND))
 	message(WARNING "\nGIT is missing! Please install it!\nCheckout http://git-scm.com")
 endif()
@@ -77,12 +73,12 @@ if(NOT (PKGCONFIG_FOUND))
 Checkout the MADS 'readme' file.
 MAC OS X: sudo port install gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
 RHEL/CentOS/Fedora: sudo yum install gsl glib2 libyaml libxml2 libmatheval atlas pkgconfig git tcsh gmake
-Ubuntu/Debian: sudo apt-get install libgsl0-dev libglib2.0 libyaml-dev libxml2 libmatheval-dev liblapack-dev gfortran pkg-config git tcsh gmake")
+Ubuntu/Debian: sudo apt-get install libgsl0-dev libglib2.0 libyaml-dev libxml2 libmatheval-dev liblapack-dev gfortran guile flex pkg-config git tcsh gmake")
 endif()
 
 add_definitions(${GSL_CXX_FLAGS})
 # set(MADS_LIBS ${MADS_LIBS} lapack blas atlas cblas stdc++ gfortran refblas "-L/opt/local/lib" "-L/Users/monty/lib")
-set(MADS_LIBS ${MADS_LIBS} lapack blas stdc++ gsl "-L/opt/local/lib" -fopenmp )
+set(MADS_LIBS ${MADS_LIBS} stdc++ gsl gslcblas gfortran -fopenmp "-L${LD_LIBRARY_PATH}" )
 # set(MADS_LIBS ${MADS_LIBS} stdc++ gfortran "-L/opt/local/lib")
 
 set(CMAKE_CXX_FLAGS "-Wall -O3 -Winit-self -fopenmp" )
@@ -101,7 +97,7 @@ if(TPL_MISSING)
 endif()
 
 message(STATUS "-------------------------------------------------------" )
-message(STATUS "MADS: Model Analyses & Decision Support (v.1.1.14) 2013")
+message(STATUS "MADS: Model Analyses & Decision Support (v.1.1.14) 2015")
 message(STATUS "-------------------------------------------------------" )
 if(GIT_FOUND)
 	execute_process(COMMAND git rev-parse --short HEAD OUTPUT_VARIABLE VER_N)
@@ -159,5 +155,4 @@ endforeach(file)
 
 add_custom_target(clean-all
    COMMAND ${CMAKE_BUILD_TOOL} clean
-   COMMAND ${CMAKE_COMMAND} -P clean-all.cmake
-)
+   COMMAND ${CMAKE_COMMAND} -P clean-all.cmake)

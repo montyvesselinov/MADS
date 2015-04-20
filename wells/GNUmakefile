@@ -4,6 +4,7 @@ CFLAGS = -Wall -lm
 LDFLAGS = -lm
 OBJ = wells.o
 $(PROG): $(OBJ)
+	$(CC) $(OBJ) $(LDFLAGS) -o $(PROG)
 
 wells.o: wells.c wells.h
 
