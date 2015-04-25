@@ -423,7 +423,7 @@ int LEVMAR_DER2(
 			if( using_ffdif ) /* use forward differences */
 			{
 				if( op->cd->ldebug > 5 ) tprintf( "Jacobian computed using forward differences\n" );
-				jacf( par_current, obs_current, jac, nP, nO, adata );
+				jacf( par_current, obs_current, jac, nP, nO, adata ); //TODO if parallel computer the initial run here!!!
 				njac++; nfev += nP;
 			}
 			else /* use central differences */

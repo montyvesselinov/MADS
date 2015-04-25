@@ -391,24 +391,24 @@ int main( int argn, char *argv[] )
 	{
 		cd.parallel_type = SHELL;
 		int num_threads = omp_get_max_threads();
-		if( cd.debug ) tprintf( "\nOpenMP Parallel run (max threads %d)\n", num_threads );
-		if( cd.omp_threads > 1 ) { omp_set_num_threads( cd.omp_threads ); if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads ); }
-		else { omp_set_num_threads( 1 ); if( cd.debug ) tprintf( "Number of threads 1\n" ); }
+		if( cd.pardebug ) tprintf( "\nOpenMP Parallel run (max threads %d)\n", num_threads );
+		if( cd.omp_threads > 1 ) { omp_set_num_threads( cd.omp_threads ); if( cd.pardebug ) tprintf( "Number of threads %d\n", cd.omp_threads ); }
+		else { omp_set_num_threads( 1 ); if( cd.pardebug ) tprintf( "Number of threads 1\n" ); }
 	}
 	else if( ( nodelist = getenv( "OMP_NUM_THREADS" ) ) != NULL )
 	{
 		cd.omp = true;
 		cd.parallel_type = SHELL;
-		if( cd.debug ) tprintf( "\nOpenMP Parallel environment is detected (environmental variable OMP_NUM_THREADS is defined)\n" );
+		if( cd.pardebug ) tprintf( "\nOpenMP Parallel environment is detected (environmental variable OMP_NUM_THREADS is defined)\n" );
 		if( cd.omp_threads <= 0 ) sscanf( nodelist, "%d", &cd.omp_threads );
 		else                      omp_set_num_threads( cd.omp_threads );
-		if( cd.debug ) tprintf( "Number of threads %d\n", cd.omp_threads );
+		if( cd.pardebug ) tprintf( "Number of threads %d\n", cd.omp_threads );
 	}
 	if( ( nodelist = getenv( "SLURM_NNODES" ) ) != NULL )
 	{
 		int num_node, num_proc, cpus_per_node;
 		cd.parallel_type = SRUN;
-		if( cd.debug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NNODES is defined)\n" );
+		if( cd.pardebug ) tprintf( "\nSLURM Parallel environment is detected (environmental variable SLURM_NNODES is defined)\n" );
 		sscanf( nodelist, "%d", &num_node );
 		num_proc = num_node;
 		if( ( nodelist = getenv( "SLURM_CPUS_ON_NODE" ) ) != NULL )
@@ -417,7 +417,7 @@ int main( int argn, char *argv[] )
 			tprintf( "Number of CPU's per nodes: %d\n", num_node * cpus_per_node );
 			num_proc = num_node * cpus_per_node;
 		}
-		if( cd.debug ) tprintf( "Number of available processors %d\n", num_proc );
+		if( cd.pardebug ) tprintf( "Number of available processors %d\n", num_proc );
 		if( cd.num_proc < 0 ) cd.num_proc = num_proc;
 		if( cd.num_proc > num_proc ) cd.num_proc = num_proc;
 		if( cd.proc_per_task > 1 )
@@ -427,8 +427,8 @@ int main( int argn, char *argv[] )
 		}
 		if( ( nodelist = getenv( "SLURM_NODELIST" ) ) != NULL )
 		{
-			if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable SLURM_NODELIST is defined)\n" );
-			if( cd.debug ) tprintf( "Node list: %s\n", nodelist );
+			if( cd.pardebug ) tprintf( "\nParallel environment is detected (environmental variable SLURM_NODELIST is defined)\n" );
+			if( cd.pardebug ) tprintf( "Node list: %s\n", nodelist );
 			if( cd.ssh )
 			{
 				/* Open the command for reading. */
@@ -465,28 +465,28 @@ int main( int argn, char *argv[] )
 	}
 	else if( ( nodelist = getenv( "NODELIST" ) ) != NULL )
 	{
-		if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable NODELIST is defined)\n" );
-		if( cd.debug ) tprintf( "Node list %s\n", nodelist );
+		if( cd.pardebug ) tprintf( "\nParallel environment is detected (environmental variable NODELIST is defined)\n" );
+		if( cd.pardebug ) tprintf( "Node list %s\n", nodelist );
 		hostlist = nodelist;
 	}
 	else if( ( beowlist = getenv( "BEOWULF_JOB_MAP" ) ) != NULL )
 	{
-		if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable BEOWULF_JOB_MAP is defined)\n" );
-		if( cd.debug ) tprintf( "Node list %s\n", beowlist );
+		if( cd.pardebug ) tprintf( "\nParallel environment is detected (environmental variable BEOWULF_JOB_MAP is defined)\n" );
+		if( cd.pardebug ) tprintf( "Node list %s\n", beowlist );
 		hostlist = beowlist;
 	}
 	else if( ( lsblist = getenv( "LSB_HOSTS" ) ) != NULL )
 	{
-		if( cd.debug ) tprintf( "\nParallel environment is detected (environmental variable LSB_HOSTS is defined)\n" );
-		if( cd.debug ) tprintf( "Node list %s\n", lsblist );
+		if( cd.pardebug ) tprintf( "\nParallel environment is detected (environmental variable LSB_HOSTS is defined)\n" );
+		if( cd.pardebug ) tprintf( "Node list %s\n", lsblist );
 		hostlist = lsblist;
-		if( ( proclist = getenv( "LSB_MCPU_HOSTS" ) ) != NULL && cd.debug ) tprintf( "LSB_MCPU_HOSTS Processors list %s\n", proclist );
+		if( ( proclist = getenv( "LSB_MCPU_HOSTS" ) ) != NULL && cd.pardebug ) tprintf( "LSB_MCPU_HOSTS Processors list %s\n", proclist );
 	}
 	if( hostlist != NULL ) // it is not a Posix, SLURM or OpenMP job
 	{
 		if( cd.ssh ) cd.parallel_type = SSH;
 		else cd.parallel_type = BPSH;
-		if( cd.debug == 0 ) tprintf( "\nParallel environment is detected.\n" );
+		if( cd.pardebug ) tprintf( "\nParallel environment is detected.\n" );
 		if( ( host = getenv( "HOSTNAME" ) ) == NULL ) host = getenv( "HOST" );
 		tprintf( "Host: %s\n", host );
 		k = strlen( hostlist );
@@ -521,15 +521,17 @@ int main( int argn, char *argv[] )
 		cd.num_proc = cd.omp_threads;
 	if( cd.num_proc > 0 && cd.paral_hosts == NULL ) // it is a Posix, SLURM or OpenMP job
 	{
+		if( ( host = getenv( "HOSTNAME" ) ) == NULL ) host = getenv( "HOST" );
+		tprintf( "Host: %s\n", host );
 		if( cd.omp )
 		{
-			if( cd.omp_threads <= 0 ) { omp_set_num_threads( cd.num_proc ); if( cd.debug ) tprintf( "Number of threads %d\n", cd.num_proc ); }
+			if( cd.omp_threads <= 0 ) { omp_set_num_threads( cd.num_proc ); if( cd.pardebug ) tprintf( "Number of threads %d\n", cd.num_proc ); }
 			// else cd.parallel_type = SHELL;
 		}
 		if( cd.parallel_type == 0 ) cd.parallel_type = SHELL;
 		if( ( cwd = getenv( "OSTYPE" ) ) != NULL )
 		{
-			if( cd.debug ) tprintf( "OS type: %s\n", cwd );
+			if( cd.pardebug ) tprintf( "OS type: %s\n", cwd );
 			if( strncasecmp( cwd, "darwin", 6 ) == 0 )
 				sprintf( buf, "%s \"rm -f num_proc &> /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", BASH );  // MAC OS
 			else
@@ -539,12 +541,12 @@ int main( int argn, char *argv[] )
 		{
 			if( access( "/proc/cpuinfo", R_OK ) == -1 )
 			{
-				if( cd.debug ) tprintf( "OS type: OS X (assumed)\n" );
+				if( cd.pardebug ) tprintf( "OS type: OS X (assumed)\n" );
 				sprintf( buf, "%s \"rm -f num_proc &> /dev/null; ( sysctl hw.logicalcpu | cut -d : -f 2 ) > num_proc\"", BASH );  // MAC OS
 			}
 			else
 			{
-				if( cd.debug ) tprintf( "OS type: Linux (assumed)\n" );
+				if( cd.pardebug ) tprintf( "OS type: Linux (assumed)\n" );
 				sprintf( buf, "%s \"rm -f num_proc &> /dev/null; ( cat /proc/cpuinfo | grep processor | wc -l ) > num_proc\"", BASH ); // LINUX
 			}
 		}
@@ -580,17 +582,17 @@ int main( int argn, char *argv[] )
 	if( cd.omp_threads > 1 )
 		tprintf( "OpenMP execution using %d threads (use omp=%d to change the number of threads)\n", cd.omp_threads, cd.omp_threads );
 	if( ( cd.omp_threads == 1 && cd.num_proc == -1 ) || ( cd.omp_threads == -1 && cd.num_proc == 1 ) ) cd.parallel_type = 0;
-	if( cd.debug > 1 ) tprintf( "Parallel type %d\n", cd.parallel_type );
+	if( cd.pardebug ) tprintf( "Parallel type %d\n", cd.parallel_type );
 	if( cd.parallel_type ) // Parallel job
 	{
 		pid = getpid();
-		if( cd.debug ) tprintf( "Parent ID [%d]\n", pid );
+		if( cd.pardebug ) tprintf( "Parent ID [%d]\n", pid );
 		cwd = getenv( "PWD" );
 		root_dot = strrchr( cwd, '/' );
 		cd.mydir = &root_dot[1];
-		if( cd.debug ) tprintf( "Working directory: %s (%s)\n", cwd, cd.mydir );
+		if( cd.pardebug ) tprintf( "Working directory: %s (%s)\n", cwd, cd.mydir );
 		cd.mydir_hosts = dir_hosts( &op, op.datetime_stamp ); // Directories for parallel execution have unique name based on the execution time
-		if( cd.debug ) tprintf( "Host directory: %s\n", cd.mydir_hosts );
+		if( cd.pardebug ) tprintf( "Host directory: %s\n", cd.mydir_hosts );
 	}
 	tprintf( "\n" );
 	/*
