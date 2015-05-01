@@ -787,7 +787,7 @@ int LEVMAR_DER2(
 				phi_lam_vector[phi_lam_count++] = phi_vector[npl];
 				if( phi_vector[npl] < phi_alpha_min ) { phi_alpha_min = phi_vector[npl]; npl_min = npl; }
 			}
-			tprintf( "Parallel OF (total): %d\n", phi_lam_count );
+			tprintf( "Parallel lambda runs (total): %d\n", phi_lam_count );
 			phi_lam_vector[phi_lam_count + npl_min] = phi_lam_vector[phi_lam_count];
 			phi_lam_vector[phi_lam_count] = phi_alpha_min;
 			for( i = 0 ; i < nP; i++ )
