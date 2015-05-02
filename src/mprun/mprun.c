@@ -409,6 +409,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 						execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case SRUN:
+						sprintf( buf, "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/projects/hpcsoft/toss2/common/gcc/4.9.2/lib64; cd %s; %s", dir, exec_name );
 						execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case SHELL:
@@ -843,6 +844,7 @@ int mprun( int nJob, void *data )
 						execlp( "bpsh", "bpsh", kidhost[child], "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case SRUN:
+						sprintf( buf, "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/projects/hpcsoft/toss2/common/gcc/4.9.2/lib64; cd %s; %s", dir, exec_name );
 						execlp( "srun", "srun", "--exclusive", "-N1", "-n1", cpu_per_task, "/usr/bin/env", "bash", "-c", buf, ( char * ) 0 );
 						break;
 					case SHELL:
