@@ -203,8 +203,9 @@ int parse_gnode_classes( GNode *gnode_data, int argn, char *argv[], struct opt_d
 	{
 		tprintf( "Process Problem ... " );
 		GNode *node_key, *node_value;
-		if( cd->debug > 2 )tprintf( "Number of components: %i ... Components:", g_node_n_children( key_pointer ) );
-		for( i = 0; i < g_node_n_children( key_pointer ); i++ )
+		int number_children = g_node_n_children( key_pointer );
+		if( cd->debug > 2 )tprintf( "Number of components: %i ... Components:", number_children );
+		for( i = 0; i < number_children; i++ )
 		{
 			node_key = g_node_nth_child( key_pointer, i );
 			if( cd->debug > 3 ) tprintf( " %s", ( char * ) node_key->data );
@@ -668,7 +669,8 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 		expvar_count = 0;
 		pd->var_init_min[index] = pd->var_min[index] = -HUGE_VAL; pd->var_init_max[index] = pd->var_max[index] = HUGE_VAL; pd->var[index] = 0; pd->var_opt[index] = 1; pd->var_log[index] = 0;
 		set_min = set_max = 0;
-		for( k = 0; k < g_node_n_children( node_par ); k++ )  // Number of parameter arguments
+		int number_children = g_node_n_children( node_par );
+		for( k = 0; k < number_children; k++ )  // Number of parameter arguments
 		{
 			node_key = g_node_nth_child( node_par, k );
 			node_value = g_node_nth_child( node_key, 0 );
@@ -831,7 +833,8 @@ int parse_gnode_class_regularizations( GNode *node, gpointer data )
 		node_regul = g_node_nth_child( node, i );
 		strcpy( rd->regul_id[i], node_regul->data );
 		rd->regul_min[i] = -HUGE_VAL; rd->regul_max[i] = HUGE_VAL; rd->regul_weight[i] = 1; rd->regul_log[i] = 0;
-		for( k = 0; k < g_node_n_children( node_regul ); k++ )  // Number of regulization components
+		int number_children = g_node_n_children( node_regul );
+		for( k = 0; k < number_children; k++ )  // Number of regularization components
 		{
 			node_key = g_node_nth_child( node_regul, k );
 			if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
@@ -979,7 +982,8 @@ int parse_gnode_class_observations( GNode *node, gpointer data )
 		}
 		else tprintf( "\n" );
 		od->obs_min[i] = -HUGE_VAL; od->obs_max[i] = HUGE_VAL; od->obs_weight[i] = 1; od->obs_log[i] = 0; od->obs_scale[i] = 1.; od->obs_location[i] = 0; od->obs_alpha[i] = 2.;
-		for( k = 0; k < g_node_n_children( node_obs ); k++ )  // Number of regulization components
+		int number_children = g_node_n_children( node_obs );
+		for( k = 0; k < number_children; k++ )  // Number of observation components
 		{
 			node_key = g_node_nth_child( node_obs, k );
 			if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
@@ -1035,13 +1039,18 @@ int parse_gnode_class_observations( GNode *node, gpointer data )
 		for( i = od->nObs; i < od->nTObs; i++ )
 			tprintf( "%-20s: %15g weight %7g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 	}
-	for( i = 0; i < od->nObs; i++ )
-		for( j = i + 1; j < od->nObs; j++ )
-			if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
-			{
-				tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
-				bad_data = 1;
-			}
+	if( od->nObs < 10000 || cd->problem_type == CHECK || cd->debug > 10 )
+	{
+		tprintf( "Checking for duplicate observations ... \n" );
+		if( od->nObs >= 10000 ) tprintf( "WARNING: The number of observations is large (%d); this may take a long time ... \n", od->nObs );
+		for( i = 0; i < od->nObs; i++ )
+			for( j = i + 1; j < od->nObs; j++ )
+				if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
+				{
+					tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
+					bad_data = 1;
+				}
+	}
 	if( bad_data ) return ( 0 );
 	else return( 1 );
 }
@@ -1081,7 +1090,8 @@ int parse_gnode_class_wells( GNode *node, gpointer data )
 	{
 		node_well = g_node_nth_child( node, i );
 		strcpy( wd->id[i], node_well->data );
-		for( k = 0; k < g_node_n_children( node_well ); k++ )  // Number of well parameters
+		int number_children = g_node_n_children( node_well );
+		for( k = 0; k < number_children; k++ )  // Number of well parameters
 		{
 			node_key = g_node_nth_child( node_well, k );
 			if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
@@ -1113,7 +1123,8 @@ int parse_gnode_class_wells( GNode *node, gpointer data )
 					{
 						node_obs = g_node_nth_child( node_key, j );
 						wd->obs_min[i][j] = -1e6; wd->obs_max[i][j] = 1e6; wd->obs_weight[i][j] = 1; wd->obs_log[i][j] = 0; wd->obs_scale[i][j] = 1.; wd->obs_location[i][j] = 0; wd->obs_alpha[i][j] = 2.;
-						for( m = 0; m < g_node_n_children( node_obs ); m++ )  // Number of well parameters
+						int number_children = g_node_n_children( node_obs );
+						for( m = 0; m < number_children; m++ )  // Number of well parameters
 						{
 							node_key2 = g_node_nth_child( node_obs, m );
 							if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key2->data );
@@ -1218,7 +1229,8 @@ int parse_gnode_class_grid( GNode *node, gpointer data )
 	int i;
 	tprintf( "Number of grid components: %i\n", g_node_n_children( node ) );
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
-	for( i = 0; i < g_node_n_children( node ); i++ )
+	int number_children = g_node_n_children( node );
+	for( i = 0; i < number_children; i++ )
 	{
 		node_key = g_node_nth_child( node, i );
 		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
@@ -1264,9 +1276,10 @@ int parse_gnode_class_time( GNode *node, gpointer data )
 	gd = op->gd;
 	cd = op->cd;
 	int i;
-	tprintf( "Number of time components: %i\n", g_node_n_children( node ) );
+	int number_children = g_node_n_children( node );
+	tprintf( "Number of time components: %i\n", number_children );
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
-	for( i = 0; i < g_node_n_children( node ); i++ )
+	for( i = 0; i < number_children; i++ )
 	{
 		node_key = g_node_nth_child( node, i );
 		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
@@ -1291,9 +1304,10 @@ int parse_gnode_class_problem_type( GNode *node, gpointer data )
 	GNode *node_key, *node_value;
 	cd = op->cd;
 	int i;
-	tprintf( "Number of problem components: %i\nComponents: ", g_node_n_children( node ) );
+	int number_children = g_node_n_children( node );
+	tprintf( "Number of problem components: %i\nComponents: ", number_children );
 	if( cd->debug > 1 ) tprintf( "\n%s\n", ( char * ) node->data );
-	for( i = 0; i < g_node_n_children( node ); i++ )
+	for( i = 0; i < number_children; i++ )
 	{
 		node_key = g_node_nth_child( node, i );
 		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
@@ -1313,9 +1327,10 @@ int parse_gnode_class_solution( GNode *node, gpointer data )
 	GNode *node_key, *node_value;
 	cd = op->cd;
 	int i;
-	tprintf( "Number of solution components: %i\n", g_node_n_children( node ) );
+	int number_children = g_node_n_children( node );
+	tprintf( "Number of solution components: %i\n", number_children );
 	if( cd->debug > 1 ) tprintf( "Components:\n%s\n", ( char * ) node->data );
-	for( i = 0; i < g_node_n_children( node ); i++ )
+	for( i = 0; i < number_children; i++ )
 	{
 		node_key = g_node_nth_child( node, i );
 		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
@@ -1342,9 +1357,10 @@ int parse_gnode_class_command( GNode *node, gpointer data )
 	ed = op->ed;
 	int i, k, bad_data = 0;
 	char buf[1000], *file, **path, exec[1000];
-	tprintf( "Number of command components: %i\n", g_node_n_children( node ) );
+	int number_children = g_node_n_children( node );
+	tprintf( "Number of command components: %i\n", number_children );
 	if( cd->debug > 1 ) tprintf( "Components:\n%s\n", ( char * ) node->data );
-	for( i = 0; i < g_node_n_children( node ); i++ )
+	for( i = 0; i < number_children; i++ )
 	{
 		node_key = g_node_nth_child( node, i );
 		if( cd->debug > 1 ) tprintf( "Key %s", ( char * ) node_key->data );
@@ -1432,7 +1448,8 @@ int parse_gnode_class_templates( GNode *node, gpointer data )
 			if( cd->debug > 1 ) tprintf( " = %s", ( char * ) node_value->data );
 		}
 		else { if( cd->debug > 1 ) { tprintf( " WARNING: No data\n" ); bad_data = 1; } else tprintf( "\n" ); continue; }
-		for( j = 0; j < g_node_n_children( node_key ); j++ )
+		int number_children = g_node_n_children( node_key );
+		for( j = 0; j < number_children; j++ )
 		{
 			node_key2 = g_node_nth_child( node_key, j );
 			if( cd->debug > 1 ) tprintf( "\nKey %s", ( char * ) node_key2->data );
@@ -1478,7 +1495,8 @@ int parse_gnode_class_instructions( GNode *node, gpointer data )
 			if( cd->debug > 1 ) tprintf( " = %s", ( char * ) node_value->data );
 		}
 		else { if( cd->debug > 1 ) { tprintf( " WARNING: No data\n" ); bad_data = 1; } else tprintf( "\n" ); continue; }
-		for( j = 0; j < g_node_n_children( node_key ); j++ )
+		int number_children = g_node_n_children( node_key );
+		for( j = 0; j < number_children; j++ )
 		{
 			node_key2 = g_node_nth_child( node_key, j );
 			if( cd->debug > 1 ) tprintf( "\nKey %s", ( char * ) node_key2->data );

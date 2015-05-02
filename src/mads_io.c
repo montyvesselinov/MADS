@@ -1146,13 +1146,18 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 			for( i = od->nObs; i < od->nTObs; i++ )
 				tprintf( "%-20s: %15g weight %7g log %1d acceptable range: min %15g max %15g\n", od->obs_id[i], od->obs_target[i], od->obs_weight[i], od->obs_log[i], od->obs_min[i], od->obs_max[i] );
 		}
-		for( i = 0; i < od->nObs; i++ )
-			for( j = i + 1; j < od->nObs; j++ )
-				if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
-				{
-					tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
-					bad_data = 1;
-				}
+		if( od->nObs < 10000 || cd->problem_type == CHECK || cd->debug > 10 )
+		{
+			tprintf( "Checking for duplicate observations ... \n" );
+			if( od->nObs >= 10000 ) tprintf( "WARNING: The number of observations is large (%d); this may take a long time ... \n", od->nObs );
+			for( i = 0; i < od->nObs; i++ )
+				for( j = i + 1; j < od->nObs; j++ )
+					if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
+					{
+						tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
+						bad_data = 1;
+					}
+		}
 	}
 	else
 	{

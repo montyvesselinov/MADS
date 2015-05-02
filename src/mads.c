@@ -517,7 +517,7 @@ int main( int argn, char *argv[] )
 			}
 		}
 	}
-	if( cd.num_proc < 1 && cd.omp_threads > cd.num_proc ) 
+	if( cd.num_proc < 1 && cd.omp_threads > cd.num_proc )
 		cd.num_proc = cd.omp_threads;
 	if( cd.num_proc > 0 && cd.paral_hosts == NULL ) // it is a Posix, SLURM or OpenMP job
 	{
@@ -578,7 +578,6 @@ int main( int argn, char *argv[] )
 		tprintf( "parallel execution using %d processors (use np=%d to change the number of processors)\n", cd.num_proc, cd.num_proc );
 		if( k < cd.num_proc ) tprintf( "WARNING: Number of requested processors exceeds the available nodes!\n" );
 	}
-
 	if( cd.omp_threads > 1 )
 		tprintf( "OpenMP execution using %d threads (use omp=%d to change the number of threads)\n", cd.omp_threads, cd.omp_threads );
 	if( ( cd.omp_threads == 1 && cd.num_proc == -1 ) || ( cd.omp_threads == -1 && cd.num_proc == 1 ) ) cd.parallel_type = 0;

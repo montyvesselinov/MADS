@@ -170,13 +170,18 @@ int load_pst( char *filename, struct opt_data *op )
 		od->obs_min[i] = 0; od->obs_max[i] = od->obs_target[i] * 2;
 		od->obs_log[i] = 0;
 	}
-	for( i = 0; i < od->nTObs; i++ )
-		for( j = i + 1; j < od->nTObs; j++ )
-			if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
-			{
-				tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
-				bad_data = 1;
-			}
+	if( od->nObs < 10000 || cd->problem_type == CHECK || cd->debug > 10 )
+	{
+		tprintf( "Checking for duplicate observations ... \n" );
+		if( od->nObs >= 10000 ) tprintf( "WARNING: The number of observations is large (%d); this may take a long time ... \n", od->nObs );
+		for( i = 0; i < od->nTObs; i++ )
+			for( j = i + 1; j < od->nTObs; j++ )
+				if( strcmp( od->obs_id[i], od->obs_id[j] ) == 0 )
+				{
+					tprintf( "ERROR: Observation names #%i (%s) and #%i (%s) are identical!\n", i + 1, od->obs_id[i], j + 1, od->obs_id[j] );
+					bad_data = 1;
+				}
+	}
 	if( bad_data ) return( 0 );
 	fgets( buf, 1000, in ); // skip line
 	ed->cmdline = ( char * ) malloc( 255 * sizeof( char ) );
