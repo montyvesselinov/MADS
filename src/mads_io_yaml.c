@@ -164,7 +164,11 @@ int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *
 	}
 	tprintf( "Number of YAML classes %d\n", g_node_n_children( gnode_data ) );
 	tprintf( "YAML Classes:\n" );
+	time_start = time( NULL );
 	g_node_children_foreach( gnode_data, G_TRAVERSE_ALL, ( GNodeForeachFunc )gnode_tree_dump_classes, NULL );
+	time_end = time( NULL );
+	time_elapsed = time_end - time_start;
+	if( op->cd->tdebug ) tprintf( "YAML traverse classes PT = %ld seconds\n", time_elapsed );
 	tprintf( "Process YAML Classes ...\n" );
 	time_start = time( NULL );
 	ier = parse_gnode_classes( gnode_data, argn, argv, op );

@@ -217,10 +217,12 @@ int parse_cmd_init( int argn, char *argv[], struct calc_data *cd )
 {
 	int i, r = 0;
 	cd->debug = 0;
+	cd->tdebug = 0;
 	quiet = 0; // Global variable
 	for( i = 2; i < argn; i++ )
 	{
 		if( !strncasecmp( argv[i], "debug", 5 ) ) { if( sscanf( argv[i], "debug=%d", &cd->debug ) == 0 || cd->debug == 0 ) cd->debug = 1; } // Global debug
+		if( !strncasecmp( argv[i], "tdebug", 6 ) ) { sscanf( argv[i], "tdebug=%d", &cd->tdebug ); if( cd->tdebug != 1 ) cd->tdebug = 1; }
 		if( !strncasecmp( argv[i], "quiet", 5 ) ) { quiet = 1; } // No output
 		if( !strncasecmp( argv[i], "q", 1 ) && strlen( argv[i] ) == 1 ) { quiet = 1; } // No output
 		if( !strncasecmp( argv[i], "force", 5 ) ) { r = 1; } // Force running
