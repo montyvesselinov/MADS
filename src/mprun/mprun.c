@@ -353,7 +353,7 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 					if( job_done )
 					{
 						if( p->cd->pardebug )
-							tprintf( "RESTART: Model output files are applied to read model predictions for case %d\n", ieval + cJob );
+							tprintf( "RESTART: Model output is applied to read model predictions for case %d\n", ieval + cJob );
 					}
 					else
 					{
@@ -514,7 +514,7 @@ int mprun( int nJob, void *data )
 		for( i = 0; i < nJob; i++ )
 		{
 			done += skip_job[i] = func_extrn_check_read( ieval + i + 1, p );
-			if( skip_job[1] )
+			if( skip_job[i] )
 			{
 				if( p->cd->pardebug )
 					tprintf( "RESTART: Model output is applied to read model predictions for case %d\n", ieval + i + 1 );
