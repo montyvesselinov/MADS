@@ -681,26 +681,35 @@ int main( int argn, char *argv[] )
 			}
 			else if( cd.restart == -1 ) // Forced restart
 			{
-				sprintf( filename2, "%s.restart_%s", op.root, cd.datetime_infile );
-				if( cd.restart_container[0] == 0 ) strcpy( cd.restart_container, filename2 );
+				int user_rstdir = 1;
+				if( cd.restart_container[0] == 0 )
+				{
+					sprintf( filename2, "%s.restart_%s", op.root, cd.datetime_infile );
+					strcpy( cd.restart_container, filename2 );
+					user_rstdir = 0;
+				}
 				if( Ftestdir( cd.restart_container ) != 0 )
 				{
-					tprintf( "RESTART ERROR: Restart is requested but a directory named %s with restart information is not available.\n", cd.restart_container );
+					tprintf( "RESTART FORCED ERROR: Restart is requested but the restart directory %s is not available.\n", cd.restart_container );
 					cd.restart = 0;
 				}
 				else
 				{
-					time_elapsed = cd.time_infile - Fdatetime_t( cd.restart_container, 0 ); // time_infile - time_zipfile ...
-					if( time_elapsed >= 0 )
+					time_elapsed = cd.time_infile - Fdatetime_t( cd.restart_container, 0 ); // time_infile - time_rstdir ...
+					if( time_elapsed < 0 )
+						tprintf( "RESTART FORCED: Restart directory named %s will be applied\n", cd.restart_container );
+					if( user_rstdir )
 					{
-						tprintf( "RESTART SKIPPED: Directory named %s with the restart information is older than the MADS input file (%s)\n" );
-						tprintf( "RESTART NOTICE: restart can be enforced using \'restart=-1\' or \'rstdir=%s\'\n", cd.restart_container, filename, cd.restart_container );
-						cd.restart = 0; // No restart
+						if( time_elapsed >= 0 )
+							tprintf( "RESTART FORCED WARNING: Restart directory %s is older than the MADS input file\n", cd.restart_container );
+						tprintf( "RESTART FORCED: Restart implemented using \'rstdir=%s\'\n", cd.restart_container );
 					}
 					else
 					{
-						tprintf( "RESTART FORCED: using directory named %s; directory date/time stamp of the MADS input file\n" );
-						tprintf( "RESTART NOTICE: to avoid restart either delete the directory %s, or use keyword \'restart=0\'\n", filename2, filename2 );
+						if( time_elapsed >= 0 )
+							tprintf( "RESTART FORCED ERROR: Restart directory %s is older than the MADS input file\n", cd.restart_container );
+						tprintf( "RESTART FORCED NOTICE: Restart for a specific restart directory can be enforced using \'rstdir=%s\'\n", cd.restart_container );
+						cd.restart = 0; // No restart
 					}
 				}
 			}
