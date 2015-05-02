@@ -251,6 +251,12 @@ int main( int argn, char *argv[] )
 		exit( 0 );
 	}
 	sprintf( buf, "touch %s.running", op.root ); system( buf ); // Create a file named root.running to prevent simultaneous execution of multiple problems
+	sprintf( filename2, "%s-rerun-intermediate.mads", op.root );
+	if( Ftest( filename2 ) == 0 ) // If file already exists rename the output file ...
+	{
+		sprintf( buf, "%s \"mv %s-rerun-intermediate.mads %s-rerun-intermediate.mads_%s &> /dev/null\"", BASH, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
+		system( buf );
+	}
 	sprintf( filename2, "%s.mads_output", op.root );
 	if( Ftest( filename2 ) == 0 ) // If file already exists rename the output file ...
 	{
@@ -258,12 +264,6 @@ int main( int argn, char *argv[] )
 		system( buf );
 		sprintf( buf, "%s \"rm -f %s.quit %s.stop %s.results %s.residuals %s.eigen %s.jacobian %s.covariance %s.correlation %s.intermediate_residuals %s.intermediate_results &> /dev/null\"",
 				 BASH, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root );  // Delete old output files
-		system( buf );
-	}
-	sprintf( filename2, "%s-rerun-intermediate.mads", op.root );
-	if( Ftest( filename2 ) == 0 ) // If file already exists rename the output file ...
-	{
-		sprintf( buf, "%s \"mv %s-rerun-intermediate.mads %s-rerun-intermediate.mads_%s &> /dev/null\"", BASH, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
 		system( buf );
 	}
 	mads_output = Fwrite( filename2 );
