@@ -345,38 +345,45 @@ int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] 
 				*/
 				pid = getpid();
 				setpgid( pid, pid );
-				int thread_done = 0;
+				int job_done = 0;
 				if( p->cd->pardebug > 3 ) tprintf( "Forked Process %i [%s:%d] : writing in \'%s\'\n", child1, kidhost[child], pid, dir );
 				if( p->cd->restart ) // Check for already computed jobs (smart restart)
 				{
-					thread_done = skip_job[cJob - 1] = func_extrn_check_read( ieval + cJob, p );
-					if( !thread_done )
+					job_done = skip_job[cJob - 1] = func_extrn_check_read( ieval + cJob, p );
+					if( job_done )
 					{
-						FILE *infileb;
-						char buf[1000];
-						sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval + cJob ); // Archive model inputs
-						if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+						if( p->cd->pardebug )
+							tprintf( "RESTART: Model output files are applied to read model predictions for case %d\n", ieval + cJob );
+					}
+					else
+					{
+						if( p->cd->bin_restart )
 						{
-							double *opt_res;
-							if( ( opt_res = ( double * ) malloc( p->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
-							int obj_read = fread( ( void * ) opt_res, sizeof( opt_res[0] ), p->od->nTObs, infileb );
-							free( opt_res );
-							fclose( infileb );
-							if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
-							else { thread_done = 1; if( p->cd->pardebug ) tprintf( "RESTART: Binary file %s is applied to read model predictions\n", buf ); }
+							FILE *infileb;
+							char buf[1000];
+							sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval + cJob ); // Archive model inputs
+							if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+							{
+								double *opt_res;
+								if( ( opt_res = ( double * ) malloc( p->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
+								int obj_read = fread( ( void * ) opt_res, sizeof( opt_res[0] ), p->od->nTObs, infileb );
+								free( opt_res );
+								fclose( infileb );
+								if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
+								else { job_done = 1; if( p->cd->pardebug ) tprintf( "RESTART: Binary file %s is applied to read model predictions\n", buf ); }
+							}
 						}
 					}
-					if( p->cd->pardebug )
-					{
-						if( thread_done ) tprintf( "Case %d is already completed; Job %d will be skipped!\n", ieval + cJob, cJob );
-						else tprintf( "Case %d will be executed (Job %d)!\n", ieval + cJob, cJob );
-					}
 				}
-				if( thread_done )
+				if( job_done )
 				{
+					if( p->cd->pardebug ) tprintf( "RESTART: Case %d is already completed; Job %d will be skipped!\n", ieval + cJob, cJob );
 					execlp( "/usr/bin/env", "/usr/bin/env", "bash", "-c", "", ( char * ) 0 ); // empty call to terminate vfork`
 					_exit( 7 ); // Terminate the thread
 				}
+				// Nothing below this line will be executed if the job is done
+				if( p->cd->pardebug )
+					tprintf( "Case %d will be executed (Job %d)!\n", ieval + cJob, cJob );
 				if( p->cd->pardebug ) tprintf( "POSIX/MPRUN parallel writing of the model output files for case %d ...\n", ieval + cJob );
 				double *opt_params;
 				if( ( opt_params = ( double * ) malloc( p->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -507,37 +514,45 @@ int mprun( int nJob, void *data )
 		for( i = 0; i < nJob; i++ )
 		{
 			done += skip_job[i] = func_extrn_check_read( ieval + i + 1, p );
-			if( !skip_job[i] && p->cd->bin_restart )
+			if( skip_job[1] )
 			{
-				FILE *infileb;
-				char buf[1000];
-				sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval + i + 1 ); // Archive model inputs
-				if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+				if( p->cd->pardebug )
+					tprintf( "RESTART: Model output is applied to read model predictions for case %d\n", ieval + i + 1 );
+			}
+			else
+			{
+				if( p->cd->bin_restart )
 				{
-					int obj_read = fread( ( void * ) p->od->obs_current, sizeof( p->od->obs_current[0] ), p->od->nTObs, infileb );
-					fclose( infileb );
-					if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
-					else { if( p->cd->pardebug ) tprintf( "RESTART: Binary file %s is applied to read model predictions\n", buf ); skip_job[i] = 1; done++; }
-					if( p->cd->pardebug > 4 )
-						for( i = 0; i < p->od->nTObs; i++ )
-							tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], p->od->obs_current[i] );
+					FILE *infileb;
+					char buf[1000];
+					sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval + i + 1 ); // Archive model inputs
+					if( ( infileb = fopen( buf, "rb" ) ) != NULL )
+					{
+						int obj_read = fread( ( void * ) p->od->obs_current, sizeof( p->od->obs_current[0] ), p->od->nTObs, infileb );
+						fclose( infileb );
+						if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
+						else { if( p->cd->pardebug ) tprintf( "RESTART: Binary file %s is applied to read model predictions\n", buf ); skip_job[i] = 1; done++; }
+						if( p->cd->pardebug > 4 )
+							for( i = 0; i < p->od->nTObs; i++ )
+								tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], p->od->obs_current[i] );
+					}
 				}
 			}
 			if( p->cd->pardebug )
 			{
-				if( skip_job[i] == 1 ) tprintf( "Job %d is already completed; it will be skipped!\n", ieval + i + 1 );
-				else tprintf( "Job %d will be executed!\n", ieval + i + 1 );
+				if( skip_job[i] == 1 ) tprintf( "RESTART: Job %d is already completed; it will be skipped!\n", ieval + i + 1 );
+				else tprintf( "RESTART: Job %d will be executed!\n", ieval + i + 1 );
 			}
 		}
 		if( done == nJob ) // All the jobs will be skipped
 		{
 			p->cd->neval += nJob;
 			free( skip_job );
-			if( p->cd->pardebug ) tprintf( "Restart: All %d jobs are already completed!\n", nJob );
+			if( p->cd->pardebug ) tprintf( "RESTART: All %d jobs are already completed!\n", nJob );
 			return( 1 );
 		}
 		else if( done > 0 )
-			tprintf( "WARNING Restart: %d jobs out of %d will be skipped because it appears to be already completed!\n", done, nJob );
+			tprintf( "RESTART: %d jobs out of %d will be skipped because it appears to be already completed!\n", done, nJob );
 	}
 	debug = ( p->cd->pardebug > 3 ) ? 1 : 0; // Debug level
 	kidids = ( pid_t * ) malloc( nProc * sizeof( pid_t ) ); // ID's of external jobs

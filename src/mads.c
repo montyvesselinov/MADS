@@ -260,6 +260,12 @@ int main( int argn, char *argv[] )
 				 BASH, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root, op.root );  // Delete old output files
 		system( buf );
 	}
+	sprintf( filename2, "%s-rerun-intermediate.mads", op.root );
+	if( Ftest( filename2 ) == 0 ) // If file already exists rename the output file ...
+	{
+		sprintf( buf, "%s \"mv %s-rerun-intermediate.mads %s-rerun-intermediate.mads_%s &> /dev/null\"", BASH, op.root, op.root, Fdatetime( filename2, 0 ) );  // Move existing output file
+		system( buf );
+	}
 	mads_output = Fwrite( filename2 );
 	buf[0] = 0;
 	op.pd = &pd; // create opt_data structures ...
@@ -687,11 +693,8 @@ int main( int argn, char *argv[] )
 					time_elapsed = cd.time_infile - Fdatetime_t( cd.restart_container, 0 ); // time_infile - time_zipfile ...
 					if( time_elapsed >= 0 )
 					{
-						if( cd.pardebug )
-						{
-							tprintf( "RESTART SKIPPED: Directory named %s with the restart information is older than the MADS input file (%s)\n" );
-							tprintf( "RESTART NOTICE: restart can be enforced using \'restart=-1\' or \'rstdir=%s\'\n", cd.restart_container, filename, cd.restart_container );
-						}
+						tprintf( "RESTART SKIPPED: Directory named %s with the restart information is older than the MADS input file (%s)\n" );
+						tprintf( "RESTART NOTICE: restart can be enforced using \'restart=-1\' or \'rstdir=%s\'\n", cd.restart_container, filename, cd.restart_container );
 						cd.restart = 0; // No restart
 					}
 					else
@@ -722,7 +725,7 @@ int main( int argn, char *argv[] )
 				}
 				else
 				{
-					if( cd.pardebug ) tprintf( "RESTART: Restart info file %s is missing.\n", filename2 );
+					tprintf( "RESTART: Restart info file %s is missing.\n", filename2 );
 					sprintf( filename2, "%s.restart_info", op.root );
 					out = Fwrite( filename2 );
 					fprintf( out, "%s\n", op.datetime_stamp );
@@ -734,7 +737,7 @@ int main( int argn, char *argv[] )
 			}
 			if( Ftestdirempty( cd.restart_container ) == 0 ) // Preserve the existing restart directory if not empty
 			{
-				if( cd.pardebug ) tprintf( "RESTART: Previous non-empty restart directory (%s) exists!\n", cd.restart_container );
+				tprintf( "RESTART: Previous non-empty restart directory (%s) exists!\n", cd.restart_container );
 				if( cd.restart ) sprintf( buf, "%s \"cp -fR %s %s.restart_%s_%s &> /dev/null\"", BASH, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
 				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s &> /dev/null\"", BASH, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) ); // Move if no restart
 				system( buf );
@@ -769,7 +772,7 @@ int main( int argn, char *argv[] )
 			}
 			if( Ftest( cd.restart_container ) == 0 ) // Preserve the existing restart zip file
 			{
-				if( cd.pardebug ) tprintf( "RESTART: Previous restart file (%s) exists!\n", cd.restart_container );
+				tprintf( "RESTART: Previous restart file (%s) exists!\n", cd.restart_container );
 				if( cd.restart ) sprintf( buf, "%s \"cp %s %s.restart_%s_%s.zip &> /dev/null\"", BASH, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Copy if restart
 				else sprintf( buf, "%s \"mv %s %s.restart_%s_%s.zip &> /dev/null\"", BASH, cd.restart_container, op.root, cd.datetime_infile, Fdatetime( cd.restart_container, 0 ) );  // Move if no restart
 				system( buf );
@@ -798,7 +801,7 @@ int main( int argn, char *argv[] )
 				}
 				else
 				{
-					if( cd.pardebug ) tprintf( "RESTART: Restart info file %s is missing.\n", filename2 );
+					tprintf( "RESTART: Restart info file %s is missing.\n", filename2 );
 					sprintf( filename2, "%s.restart_info", op.root );
 					out = Fwrite( filename2 );
 					fprintf( out, "%s\n", op.datetime_stamp );
