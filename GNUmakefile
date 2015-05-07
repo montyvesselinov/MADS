@@ -118,6 +118,9 @@ LDLIBS = -lgfortran -lgsl -llapack -lstdc++ -L/home/monty/local/lib -lgslcblas -
 else ifeq ($(ND),madsmax)
 $(info Machine -- MadsMax)
 CFLAGS += -Wno-unused-result
+else ifeq ($(ND),sumdsy-madsmen)
+$(info Machine -- MadsMen)
+CFLAGS += -Wno-unused-result
 else ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
