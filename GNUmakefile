@@ -702,7 +702,7 @@ verify-parallel-inv: mads wells
 	@echo "$(NO_COLOR)"
 	@echo "TEST 8: Parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
 	@echo "TEST 8.1: Initial parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
-	rm -f $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.restart_info $(EXAMPLES)/wells-short/w01parallel.restart_*.zip $(EXAMPLES)/wells-short/w01parallel.running
+	rm -fR $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.running $(EXAMPLES)/wells-short/w01parallel.restart*
 	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel np=2 eval=10 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
@@ -714,7 +714,7 @@ verify-parallel-inv: mads wells
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 8.3: OpenMP parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
-	rm -fR $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running $(EXAMPLES)/wells-short/w01.restart*
+	rm -fR $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running $(EXAMPLES)/wells-short/w01parallel.restart*
 	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel np=2 eval=10 omp $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
@@ -726,7 +726,7 @@ verify-parallel-inv: mads wells
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 8.5: POSIX/OpenMP parallel execution of $(EXAMPLES)/wells-short/w01parallel ..."
-	rm -fR $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running $(EXAMPLES)/wells-short/w01.restart*
+	rm -fR $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running $(EXAMPLES)/wells-short/w01parallel.restart*
 	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel eval=10 omp=2 posix=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
@@ -736,6 +736,18 @@ verify-parallel-inv: mads wells
 	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel eval=10 omp=2 posix=2 $(OUTPUT)
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel.results-$(OS)-correct
+	@echo "$(NO_COLOR)"
+	@echo "TEST 8.7: POSIX/OpenMP parallel LM with parallel lambda search of $(EXAMPLES)/wells-short/w01parallel ..."
+	rm -fR $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running $(EXAMPLES)/wells-short/w01parallel.restart*
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel eval=10 omp=4 posix=4 nplambda=4 lmmu=2 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel_nplambda.results-$(OS)-correct
+	@echo "$(NO_COLOR)"
+	@echo "TEST 8.8: POSIX/OpenMP parallel LM with parallel lambda search of $(EXAMPLES)/wells-short/w01parallel with restart ..."
+	rm -fR $(EXAMPLES)/wells/w01parallel.results $(EXAMPLES)/wells/w01parallel.running
+	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01parallel eval=10 omp=4 posix=4 nplambda=4 lmmu=2 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/wells-short/w01parallel.results $(EXAMPLES)/wells-short/w01parallel_nplambda.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "$(OK_COLOR)"
 	@echo "**************************************************************************************"

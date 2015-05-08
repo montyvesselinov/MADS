@@ -790,11 +790,11 @@ int LEVMAR_DER2(
 			tprintf( "Parallel lambda runs (total): %d\n", phi_lam_count );
 			phi_lam_vector[phi_lam_count + npl_min] = phi_lam_vector[phi_lam_count];
 			phi_lam_vector[phi_lam_count] = phi_alpha_min;
-			for( i = 0 ; i < nP; i++ )
-				par_update[i] = param_matrix[npl_min][i];
-			for( i = 0, par_change_L2_norm = 0.0; i < nP; i++ )
+			par_change_L2_norm = 0.0;
+			for( i = 0; i < nP; i++ )
 			{
-				par_change[i] = tmp = param_matrix[npl_min][i] - par_current[i];
+				par_update[i] = param_matrix[npl_min][i];
+				par_change[i] = tmp = par_update[i] - par_current[i];
 				par_change_L2_norm += tmp * tmp;
 			}
 			par_change_L2_norm_sq = sqrt( par_change_L2_norm );
