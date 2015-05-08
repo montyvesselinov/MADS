@@ -45,7 +45,7 @@ W-14a 972 869 3 6 1 50 0 1 0 0 5
 W-14b 940 1160 3 6 1 50 30 1 0 0 50
 W-14c 900 1260 3 6 1 50 10 0 0 0 20
 Grid Time: 0
-Grid lines: 25 29 1
-Grid Minimums: 499000 538300 0
-Grid Maximums: 500200 539400 0.1
+Grid lines: 28 14 3
+Grid Minimums: 300 700 0
+Grid Maximums: 3000 2000 10
 Time Window: 0 0 1

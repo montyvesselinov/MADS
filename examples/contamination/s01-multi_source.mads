@@ -65,8 +65,8 @@ Wells:
 - W-14b:  { x:  940, y: 1160, z0: 3    , z1:  6   , obs: [ 1: { t: 50, c:  30   , weight: 1, log: no, min:   0, max:   50 } ] }
 - W-14c:  { x:  900, y: 1260, z0: 3    , z1:  6   , obs: [ 1: { t: 50, c:  10   , weight: 0, log: no, min:   0, max:   20 } ] }
 Grid: {
- time: 0,
- xcount: 25, ycount: 29, zcount: 1,
- xmin: 499000, ymin: 538300, zmin: 0,
- xmax: 500200, ymax: 539400, zmax: 0.1 }
+ time: 49,
+ xcount: 28, ycount: 14, zcount: 3,
+ xmin: 300, ymin: 700, zmin: 0,
+ xmax: 3000, ymax: 2000, zmax: 10 }
 Time: { start: 0, end: 0, step: 1 }

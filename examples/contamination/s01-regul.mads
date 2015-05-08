@@ -48,7 +48,7 @@ f * ( 49 - t0 ) = 4000 1 0 2000 5000
 137 - ax = 0 1 0 -10 10
 W4_49 - W14b_50 = 450 1 0 300 500 
 Grid Time: 0
-Grid lines: 25 29 1
-Grid Minimums: 499000 538300 0
-Grid Maximums: 500200 539400 0.1
+Grid lines: 28 14 3
+Grid Minimums: 300 700 0
+Grid Maximums: 3000 2000 10
 Time Window: 0 0 1
