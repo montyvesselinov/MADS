@@ -1340,6 +1340,11 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_extrn_write( ++ieval, x, data );
 		}
+		else if( p->cd->compute_center ) // Model predictions have to be compute
+		{
+			compute_center = 1;
+			func_extrn_write( ++ieval, x, data );
+		}
 		for( j = 0; j < p->pd->nOptParam; j++ )
 		{
 			x_old = x[j];
@@ -1389,6 +1394,11 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			{ tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_global( x, data, f_x );
 		}
+		else if( p->cd->compute_center )
+		{
+			compute_center = 2;
+			func_global( x, data, f_x );
+		}
 		if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
@@ -1402,7 +1412,7 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		}
 		free( f_xpdx );
 	}
-	if( compute_center ) free( f_x );
+	if( compute_center && !p->cd->compute_center ) free( f_x );
 	p->cd->compute_phi = old_phi;
 	return GSL_SUCCESS;
 }
@@ -1418,11 +1428,11 @@ int func_dx_set( double *x, double *f_x, void *data, double *jacobian ) /* Compu
 	old_phi = p->cd->compute_phi;
 	p->cd->compute_phi = 0;
 	ieval = p->cd->neval;
+	if( f_x == NULL || p->cd->compute_center ) compute_center = 1; // Model predictions for x are not provided; need to compute
 	if( ( par_mat = double_matrix( p->pd->nOptParam + compute_center, p->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( obs_mat = double_matrix( p->pd->nOptParam + compute_center, p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( f_x == NULL ) // Model predictions for x are not provided; need to compute
+	if( compute_center )
 	{
-		compute_center = 1;
 		for( k = 0; k < p->pd->nOptParam; k++ )
 			par_mat[0][k] = x[k];
 	}
@@ -1449,10 +1459,13 @@ int func_dx_set( double *x, double *f_x, void *data, double *jacobian ) /* Compu
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
 	if( p->cd->tdebug ) tprintf( "Parallel jacobian execution PT = %ld seconds\n", time_elapsed );
-	if( compute_center ) f_x = obs_mat[0];
+	if( p->cd->compute_center )
+		for( i = 0; i < p->od->nTObs; i++ )
+			f_x[i] = obs_mat[0][i];
+	else if( f_x == NULL ) f_x = obs_mat[0];
 	ieval -= ( p->pd->nOptParam + compute_center );
 	time_start = time_end;
-	for( k = j = 0; j < ( compute_center + p->pd->nOptParam ) ; j++ )
+	for( k = 0, j = compute_center; j < ( compute_center + p->pd->nOptParam ); j++ )
 	{
 		if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 		else dx = p->cd->sindx;

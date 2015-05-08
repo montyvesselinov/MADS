@@ -252,6 +252,7 @@ int parse_cmd( char *buf, struct calc_data *cd )
 	cd->levy = NO_LEVY;
 	cd->objfunc_type = SSR;
 	cd->check_success = 0;
+	cd->compute_center = false;
 	cd->c_background = 0;
 	cd->debug = 0;
 	cd->fdebug = 0;

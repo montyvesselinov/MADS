@@ -253,34 +253,6 @@ int LEVMAR_DER2(
 	obs_best = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
 	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); }
 	else gsl_jacobian = NULL;
-	/* compute e=x - f(p) and its L2 norm */
-	maxnfev = op->cd->maxeval - op->cd->neval;
-	for( i = 0; i < nP; i++ )
-		par_lam_last[i] = par_jac_last[i] = par_init[i] = par_best[i] = par_update[i] = par_current[i];
-	( *func )( par_current, obs_current, nP, nO, adata ); nfev = 1;
-	for( i = 0; i < nP; i++ )
-		par_best[i] = par_current[i];
-	for( i = 0; i < nO; i++ )
-		obs_best[i] = obs_current[i];
-	if( op->cd->lm_num_parallel_lambda > 0 )
-	{
-		if( ( phi_vector = ( double * ) malloc( op->cd->lm_num_parallel_lambda * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-		if( ( param_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nP ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-		if( ( obs_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nO ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
-		for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
-		{
-			phi_vector[npl] = 0;
-			for( i = 0; i < nP; i++ )
-				param_matrix[npl][i] = par_current[i];
-			for( i = 0; i < nO; i++ )
-				obs_matrix[npl][i] = obs_current[i];
-		}
-	}
-	if( op->cd->check_success && op->success )
-	{
-		if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
-		stop = 8;
-	}
 #ifdef HAVE_LAPACK
 	/* 6 alternatives are available: LU, Cholesky, 2 variants of QR decomposition, SVD and LDLt.
 	 * Cholesky is the fastest but might be inaccurate; QR is slower but more accurate;
@@ -296,16 +268,6 @@ int LEVMAR_DER2(
 	/* use the LU included with levmar */
 	linsolver = AX_EQ_B_LU; if( op->cd->ldebug ) tprintf( "LM using LU decomposition\n" );
 #endif /* HAVE_LAPACK */
-	/* ### e=x-hx, p_eL2=||e|| */
-#if 0
-	phi_current = LEVMAR_L2NRMXMY( obs_error, obs_target, obs_current, nO );
-#else
-	for( i = 0, phi_current = 0.0; i < nO; i++ )
-	{
-		obs_error[i] = tmp = obs_target[i] - obs_current[i];
-		phi_current += tmp * tmp;
-	}
-#endif
 	if( op->cd->ldebug )
 	{
 		if( op->cd->lm_num_parallel_lambda )
@@ -327,13 +289,57 @@ int LEVMAR_DER2(
 		if( op->cd->lm_indir ) tprintf( "LM with indirect computation of lambda changes\n" );
 		else tprintf( "LM with direct computation of lambda changes\n" );
 	}
-	phi_init = phi_best = phi_jac_last = phi_current;
-	if( !LM_FINITE( phi_current ) ) stop = 7;
-	nu = 32; /* force computation of J */
-	if( op->cd->check_success ) success = 1; else success = 0;
 	if( op->cd->odebug ) odebug = 1; else odebug = 0;
-	computejac = 0;
-	phi_jac_count = phi_lam_count = 0;
+	if( op->cd->check_success ) success = 1; else success = 0;
+	maxnfev = op->cd->maxeval - op->cd->neval;
+	for( i = 0; i < nP; i++ )
+		par_lam_last[i] = par_jac_last[i] = par_init[i] = par_best[i] = par_update[i] = par_current[i];
+	bool compute_paralellel_init = false;
+	if( op->cd->lm_num_parallel_lambda > 0 ) // Parallel Lambda search
+	{
+		if( ( phi_vector = ( double * ) malloc( op->cd->lm_num_parallel_lambda * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( param_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nP ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( obs_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nO ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
+		{
+			phi_vector[npl] = 0;
+			for( i = 0; i < nP; i++ )
+				param_matrix[npl][i] = par_current[i];
+			// for( i = 0; i < nO; i++ )
+			// obs_matrix[npl][i] = obs_current[i];
+		}
+		compute_paralellel_init = true;
+		nfev = 0;
+	}
+	else
+	{
+		nfev = 1;
+		( *func )( par_current, obs_current, nP, nO, adata );
+		for( i = 0; i < nP; i++ )
+			par_best[i] = par_current[i];
+		for( i = 0; i < nO; i++ )
+			obs_best[i] = obs_current[i];
+		/* compute e=x - f(p) and its L2 norm */
+#if 0
+		phi_current = LEVMAR_L2NRMXMY( obs_error, obs_target, obs_current, nO );
+#else
+		for( i = 0, phi_current = 0.0; i < nO; i++ )
+		{
+			obs_error[i] = tmp = obs_target[i] - obs_current[i];
+			phi_current += tmp * tmp;
+		}
+#endif
+		if( op->cd->check_success && op->success )
+		{
+			if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
+			stop = 8;
+		}
+		/* ### e=x-hx, p_eL2=||e|| */
+		phi_init = phi_best = phi_jac_last = phi_current;
+		if( !LM_FINITE( phi_current ) ) stop = 7;
+		if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
+		else if( op->cd->lmstandalone ) tprintf( "OF %g -> ", phi_current );
+	}
 	if( op->cd->ldebug > 2 )
 	{
 		DeTransform( par_current, op, jac_min );
@@ -347,8 +353,9 @@ int LEVMAR_DER2(
 			tprintf( "\n" );
 		}
 	}
-	if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
-	else if( op->cd->lmstandalone ) tprintf( "OF %g -> ", phi_current );
+	nu = 32; /* force computation of J */
+	computejac = 0;
+	phi_jac_count = phi_lam_count = 0;
 	loop_count = -1;
 	while( !stop )
 	{
@@ -423,7 +430,48 @@ int LEVMAR_DER2(
 			if( using_ffdif ) /* use forward differences */
 			{
 				if( op->cd->ldebug > 5 ) tprintf( "Jacobian computed using forward differences\n" );
+				if( compute_paralellel_init )
+				{
+					if( op->cd->ldebug ) tprintf( "Initial state will be computer in parallel ...\n" );
+					op->cd->compute_center = true;
+				}
 				jacf( par_current, obs_current, jac, nP, nO, adata ); //TODO if parallel computer the initial run here!!!
+				if( compute_paralellel_init )
+				{
+					if( op->cd->ldebug ) tprintf( "Initial state will be computer in parallel ...\n" );
+					op->cd->compute_center = false;
+					compute_paralellel_init = false;
+					for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
+					{
+						for( i = 0; i < nO; i++ )
+							obs_matrix[npl][i] = obs_current[i];
+					}
+					for( i = 0; i < nP; i++ )
+						par_best[i] = par_current[i];
+					for( i = 0; i < nO; i++ )
+						obs_best[i] = obs_current[i];
+					/* compute e=x - f(p) and its L2 norm */
+#if 0
+					phi_current = LEVMAR_L2NRMXMY( obs_error, obs_target, obs_current, nO );
+#else
+					for( i = 0, phi_current = 0.0; i < nO; i++ )
+					{
+						obs_error[i] = tmp = obs_target[i] - obs_current[i];
+						phi_current += tmp * tmp;
+					}
+#endif
+					if( op->cd->check_success && op->success )
+					{
+						if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
+						stop = 8;
+					}
+					/* ### e=x-hx, p_eL2=||e|| */
+					phi_init = phi_best = phi_jac_last = phi_current;
+					if( !LM_FINITE( phi_current ) ) stop = 7;
+					if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
+					else if( op->cd->lmstandalone ) tprintf( "OF %g -> ", phi_current );
+					nfev += 1;
+				}
 				njac++; nfev += nP;
 			}
 			else /* use central differences */

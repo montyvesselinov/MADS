@@ -64,7 +64,7 @@ OUTPUT = > /dev/null
 # OUTPUT =
 
 # CFLAGS += -fsanitize=address -fno-omit-frame-pointer
-# LDLIBS += -fsanitize=address -fno-omit-frame-pointer
+LDLIBS += -fsanitize=address -fno-omit-frame-pointer
 DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
 DBG = gdb --args
 DBG =

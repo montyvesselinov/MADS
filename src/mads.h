@@ -121,6 +121,7 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	int neval; // current number of evaluations (can be applied as termination criteria)
 	int njac; // current number of jacobian evaluations
 	int maxeval; // maximum number of evaluations (termination criteria)
+	bool compute_center; // compute the central point for derivatives
 	int lmstandalone; // flag standalone LM run (yes/no)
 	int squads;
 	int seed; //random seed

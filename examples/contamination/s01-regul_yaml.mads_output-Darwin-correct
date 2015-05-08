@@ -1,11 +1,10 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.313c50b) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.9541023) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: ./examples/contamination/s01-regul_yaml.mads
 Problem root name: ./examples/contamination/s01-regul_yaml (YAML format expected)
 MADS input file in YAML format.
-YAML file parsing PT = 0 seconds
 Number of YAML classes 8
 YAML Classes:
  Problem -> 3 components
@@ -146,10 +145,10 @@ reg1        = (f*(49-t0)) = 2940
 reg2        = (137-ax) = 7
 reg3        = (W4_49-W14b_50) = 402
 Process Grid ... Number of grid components: 10
-Grid Time: 0
-Grid lines: 25 29 1
-Grid Minimums: 499000 538300 0
-Grid Maximums: 500200 539400 0.1
+Grid Time: 49
+Grid lines: 28 14 3
+Grid Minimums: 300 700 0
+Grid Maximums: 3000 2000 10
 Process Time ... Number of time components: 3
 Breakthrough-curve time window: start 0 end 0 step 1 number of time steps: 1
 
@@ -189,7 +188,7 @@ Number of regularization terms = 3
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070147
+Execution date & time stamp: 20150508-130213
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -937,11 +936,29 @@ Objective function: 50126.2 Success: 0 (0)
 
 Model predictions for not calibration targets:
 W-14c     (  50):          10 -      346.363 =     -336.363 success 0 range            0 -           20
-Simulation time = 1 seconds
+
+Compute spatial distribution of predictions at t = 49 ...
+ 4e-25  4e-23  2e-21  3e-20  2e-19  6e-19  7e-19  4e-19  1e-19  1e-20  4e-22  8e-24  6e-26  2e-28  3e-31 
+ 2e-17  2e-15  9e-14  2e-12  1e-11  4e-11  5e-11  3e-11  7e-12  7e-13  3e-14  6e-16  5e-18  2e-20  2e-23 
+ 2e-11  2e-09  8e-08  2e-06  1e-05  4e-05  6e-05  4e-05  8e-06  8e-07  4e-08  7e-10  5e-12  2e-14  3e-17 
+ 2e-07  3e-05  0.002   0.04    0.3      1      2    0.9    0.2   0.02 0.0008  1e-05  1e-07  4e-10  6e-13 
+ 6e-05  0.009    0.6  2e+01  2e+02  1e+03  1e+03  6e+02  1e+02      9    0.3  0.005  4e-05  1e-07  2e-10 
+0.0005   0.07      5  2e+02  4e+03  7e+04  4e+04  9e+03  1e+03  9e+01      3   0.05 0.0004  1e-06  2e-09 
+0.0006   0.09      7  2e+02  5e+03  8e+04  5e+04  1e+04  2e+03  1e+02      4   0.07 0.0006  2e-06  3e-09 
+0.0006   0.09      7  2e+02  5e+03  8e+04  5e+04  1e+04  2e+03  1e+02      4   0.07 0.0006  2e-06  3e-09 
+0.0006   0.09      7  2e+02  5e+03  8e+04  5e+04  1e+04  2e+03  1e+02      4   0.07 0.0005  2e-06  3e-09 
+0.0002   0.03      2  7e+01  1e+03  1e+04  1e+04  3e+03  5e+02  4e+01      2   0.03 0.0002  7e-07  1e-09 
+ 3e-06 0.0004   0.02    0.6      7  3e+01  5e+01  3e+01      7    0.7   0.03 0.0005  5e-06  2e-08  3e-11 
+ 7e-10  9e-08  5e-06 0.0001  0.001  0.006  0.009  0.006  0.002 0.0002  1e-05  2e-07  2e-09  9e-12  2e-14 
+ 3e-15  4e-13  2e-11  6e-10  6e-09  2e-08  4e-08  3e-08  1e-08  1e-09  7e-11  2e-12  2e-14  8e-17  2e-19 
+     0      0      0      0      0      0      0      0      0      0      0      0      0      0      0 
+     0      0      0      0      0      0      0      0      0      0      0      0      0      0      0 
+Max Conc = 85791.8 @ (1300,1500,0)
+Spatial concentration data saved in ./examples/contamination/s01-regul_yaml.vtk.
+Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 58
-Execution  started  on Thu Mar 26 07:01:47 2015
-Execution completed on Thu Mar 26 07:01:48 2015
-Execution date & time stamp: 20150326-070147
+Execution  started  on Fri May  8 13:02:13 2015
+Execution completed on Fri May  8 13:02:13 2015
+Execution date & time stamp: 20150508-130213

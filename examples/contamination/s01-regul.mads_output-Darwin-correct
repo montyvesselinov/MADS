@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.313c50b) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.9541023) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -187,13 +187,13 @@ reg3: 450 weight 1
 Number of predictions = 0
 
 Grid Time: 0
-Grid lines: 25 29 1
-Grid Minimums: 499000 538300 0
-Grid Maximums: 500200 539400 0.1
+Grid lines: 28 14 3
+Grid Minimums: 300 700 0
+Grid Maximums: 3000 2000 10
 Breakthrough-curve time window: 0 0 1 number of time steps: 1
 
 
-Execution date & time stamp: 20150326-070147
+Execution date & time stamp: 20150508-130213
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -945,6 +945,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Mar 26 07:01:47 2015
-Execution completed on Thu Mar 26 07:01:47 2015
-Execution date & time stamp: 20150326-070147
+Execution  started  on Fri May  8 13:02:13 2015
+Execution completed on Fri May  8 13:02:13 2015
+Execution date & time stamp: 20150508-130213
