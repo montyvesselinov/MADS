@@ -70,9 +70,9 @@ double point_source( double x, double y, double z, double t, void *params )
 	struct anal_data *p = ( struct anal_data * )params;
 	double result, error, time, dt, time_end;
 	if( t <= p->var[TIME_INIT] ) return( 0 );
-	p->xe = x;
-	p->ye = y;
-	p->ze = z;
+	p->xe = x; // coordinate x of the observation point
+	p->ye = y; // coordinate y of the observation point
+	p->ze = z; // coordinate z of the observation point
 	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
 		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
 	w = gsl_integration_workspace_alloc( NUMITER );
@@ -100,16 +100,16 @@ double int_point_source( double tau, void *params )
 {
 	struct anal_data *p = ( struct anal_data * )params;
 	double lambda = ( p->var[LAMBDA] );
-	double vx = ( p->var[VX] );
-	double ax = ( p->var[AX] );
-	double ay = ( p->var[AY] );
-	double az = ( p->var[AZ] );
-	double source_z = ( p->var[SOURCE_Z] );
+	double vx = ( p->var[VX] ); // ground water flow velocity
+	double ax = ( p->var[AX] ); // longitudinal dispersivity
+	double ay = ( p->var[AY] ); // transverse horizontal dispersivity
+	double az = ( p->var[AZ] ); // transverse vertical dispersivity
+	double source_z = ( p->var[SOURCE_Z] ); // source z coordinate
 	double rx, ry, rz, e1, ez, tau_d, tv, ts, tx, tz1, tz2;
 	double d, alpha, beta, xe, ye, ze, x0, y0;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
-	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
+	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180; // flow angle
 	alpha = cos( d );
 	beta = sin( d );
 	xe = x0 * alpha - y0 * beta;
