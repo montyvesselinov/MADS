@@ -94,7 +94,7 @@ int delete_mprun_dir( char *dir )
 		rmdir( buf );
 	}
 	else
-		tprintf( "Couldn't delete the directory %s\n", dir );
+		tprintf( "Couldn't delete the directory ../%s; it does not exist.\n", dir );
 	return ( 0 );
 }
 
