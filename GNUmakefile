@@ -59,7 +59,7 @@ WELLS = $(BIN)/wells
 CMP = ./scripts/compare-results # MADS testing
 # CMP = cp -f # Save current results for future testing DANGEROUS!
 
-OUTPUT = > /dev/null
+OUTPUT = &> /dev/null
 # OUTPUT = mads-debug-output
 # OUTPUT =
 
@@ -767,6 +767,13 @@ verify-forward: mads
 	@echo "$(ERROR_COLOR)"
 	@$(CMP) $(EXAMPLES)/forward/a01.mads_output $(EXAMPLES)/forward/a01.mads_output-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/forward/a01.results $(EXAMPLES)/forward/a01.results-$(OS)-correct
+	@echo "$(NO_COLOR)"
+	@echo "TEST 9.1a: Point source with triangular transients"
+	rm -f $(EXAMPLES)/forward/a10.mads_output $(EXAMPLES)/forward/a10.results $(EXAMPLES)/forward/a10.running
+	cd $(EXAMPLES)/forward; $(DBG) ../../$(MADS) a10 $(OUTPUT)
+	@echo "$(ERROR_COLOR)"
+	@$(CMP) $(EXAMPLES)/forward/a10.mads_output $(EXAMPLES)/forward/a10.mads_output-$(OS)-correct
+	@$(CMP) $(EXAMPLES)/forward/a10.results $(EXAMPLES)/forward/a10.results-$(OS)-correct
 	@echo "$(NO_COLOR)"
 	@echo "TEST 9.2: Rectangular source ... "
 	rm -f $(EXAMPLES)/forward/a02.mads_output $(EXAMPLES)/forward/a02.results $(EXAMPLES)/forward/a02.running
