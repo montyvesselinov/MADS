@@ -73,12 +73,10 @@ double point_source( double x, double y, double z, double t, void *params )
 	p->xe = x; // coordinate x of the observation point
 	p->ye = y; // coordinate y of the observation point
 	p->ze = z; // coordinate z of the observation point
-	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
-		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
-	w = gsl_integration_workspace_alloc( NUMITER );
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
+	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_point_source;
 	F.params = p;
 	gsl_set_error_handler_off();
@@ -87,7 +85,11 @@ double point_source( double x, double y, double z, double t, void *params )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
-	if( status != 0 ) result = 0;
+	if( status != 0 )
+	{
+		fprintf( stderr, "error: %s\n", gsl_strerror( status ) );
+		result = fabs( result );
+	}
 //	printf ("result			 = % .18f\n", result);
 //	printf ("estimated error = % .18f\n", error);
 //	printf ("intervals =  %d\n", (int) w->size);
@@ -115,9 +117,9 @@ double int_point_source( double tau, void *params )
 	xe = x0 * alpha - y0 * beta;
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - source_z );
-	tau = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
-	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
-	else { tau_d = tau; ts = pow( tau, -1.5 ); }
+	tau_d = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
+	if( p->scaling_dispersion ) { tau_d = pow( tau_d, p->var[TSCALE_DISP] ); ts = pow( tau_d, -1.5 * p->var[TSCALE_DISP] ); }
+	else { ts = pow( tau_d, -1.5 ); }
 	tv = ( double ) 4 * tau_d * vx;
 	rx = tv * ax;
 	ry = tv * ay;
@@ -145,12 +147,10 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 	p->ye = y;
 	p->ze = z;
 	p->te = t;
-	if( fabs( x - p->var[SOURCE_X] ) < DBL_EPSILON && fabs( y - p->var[SOURCE_Y] ) < DBL_EPSILON && fabs( z - p->var[SOURCE_Z] ) < DBL_EPSILON )
-		return( p->var[FLUX] * 1e6 / ( 8 * pow( M_PI, 1.5 ) * p->var[POROSITY] * sqrt( p->var[AX] * p->var[AY] * p->var[AZ] * p->var[VX] * p->var[VX] * p->var[VX] ) ) );
 	w = gsl_integration_workspace_alloc( NUMITER );
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
 	F.function = &int_point_source_triangle_time;
 	F.params = p;
 	gsl_set_error_handler_off();
@@ -159,8 +159,12 @@ double point_source_triangle_time( double x, double y, double z, double t, void 
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
-	if( status != 0 ) result = 0;
-//	printf ("result			 = % .18f\n", result);
+	if( status != 0 )
+	{
+		fprintf( stderr, "error: %s\n", gsl_strerror( status ) );
+		result = fabs( result );
+	}
+//    printf ("result			 = % .18f\n", result);
 //	printf ("estimated error = % .18f\n", error);
 //	printf ("intervals =  %d\n", (int) w->size);
 	gsl_integration_workspace_free( w );
@@ -181,8 +185,8 @@ double int_point_source_triangle_time( double tau, void *params )
 	double rx, ry, rz, e1, ez, tau_d, tv, ts, tx, tz1, tz2;
 	double d, alpha, beta, xe, ye, ze, x0, y0, gfunc;
 	double To = ( p->var[TIME_END] - p->var[TIME_INIT] ) / 2;
-	if( ( time - tau ) < To ) gfunc = ( time - tau ) / To ;
-	else                      gfunc = 2. - ( time - tau ) / To ;
+	if( ( time - tau ) < To ) gfunc = ( time - tau ) / To;
+	else                      gfunc = ( double ) 2 - ( time - tau ) / To;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
 	d = ( -p->var[FLOW_ANGLE] * M_PI ) / 180;
@@ -206,7 +210,6 @@ double int_point_source_triangle_time( double tau, void *params )
 	return( gfunc * e1 * ez * ts );
 }
 
-
 double box_source( double x, double y, double z, double t, void *params )
 {
 	gsl_integration_workspace *w;
@@ -220,7 +223,7 @@ double box_source( double x, double y, double z, double t, void *params )
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_box_source;
 	F.params = p;
@@ -233,7 +236,7 @@ double box_source( double x, double y, double z, double t, void *params )
 	if( status != 0 )
 	{
 		fprintf( stderr, "error: %s\n", gsl_strerror( status ) );
-		//result = 0;
+		result = fabs( result );
 	}
 	gsl_integration_workspace_free( w );
 	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
@@ -293,7 +296,7 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_rectangle_source;
 	F.params = p;
@@ -303,7 +306,11 @@ double rectangle_source( double x, double y, double z, double t, void *params )
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
-	if( status != 0 ) result = 0;
+	if( status != 0 )
+	{
+		fprintf( stderr, "error: %s\n", gsl_strerror( status ) );
+		result = fabs( result );
+	}
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
@@ -355,7 +362,7 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_rectangle_source_vz;
 	F.params = p;
@@ -365,7 +372,11 @@ double rectangle_source_vz( double x, double y, double z, double t, void *params
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
-	if( status != 0 ) result = 0;
+	if( status != 0 )
+	{
+		fprintf( stderr, "error: %s\n", gsl_strerror( status ) );
+		result = fabs( result );
+	}
 	gsl_integration_workspace_free( w );
 	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
 	return( p->var[FLUX] * 1e6 * p->var[VZ] / ( 4. * p->var[POROSITY] ) * result );
@@ -421,7 +432,7 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
 	w  = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_gaussian_source_2d;
 	F.params = p;
@@ -431,7 +442,11 @@ double gaussian_source_2d( double x, double y, double z, double t, void *params 
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
-	if( status != 0 ) result = 0;
+	if( status != 0 )
+	{
+		fprintf( stderr, "error: %s\n", gsl_strerror( status ) );
+		result = fabs( result );
+	}
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
@@ -485,7 +500,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_gaussian_source_3d;
 	F.params = p;
@@ -495,7 +510,11 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 		status = gsl_integration_qags( &F, 0, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
 	else
 		status = gsl_integration_qags( &F, time - dt, time, EPSABS, EPSREL, NUMITER, w, &result, &error );
-	if( status != 0 ) result = 0;
+	if( status != 0 )
+	{
+		fprintf( stderr, "error: %s\n", gsl_strerror( status ) );
+		result = fabs( result );
+	}
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
@@ -550,7 +569,7 @@ double box_source_levy_dispersion( double x, double y, double z, double t, void 
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_box_source_levy_dispersion;
 	F.params = p;
@@ -562,7 +581,7 @@ double box_source_levy_dispersion( double x, double y, double z, double t, void 
 	if( status != 0 )
 	{
 		fprintf( stderr, "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
-		//result = 0;
+		result = fabs( result );
 	}
 	gsl_integration_workspace_free( w );
 	/// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
@@ -635,7 +654,7 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 	p->ze = z;
 	time = t - p->var[TIME_INIT];
 	if( p->time_step ) { dt = p->var[TIME_END]; time_end = p->var[TIME_INIT] + p->var[TIME_END]; }
-	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end =  p->var[TIME_END]; }
+	else { dt = p->var[TIME_END] - p->var[TIME_INIT]; time_end = p->var[TIME_END]; }
 	w = gsl_integration_workspace_alloc( NUMITER );
 	F.function = &int_box_source_sym_levy_dispersion;
 	F.params = p;
@@ -647,7 +666,7 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 	if( status != 0 )
 	{
 		fprintf( stderr, "error: %s (a,b): (%g, %g)\n", gsl_strerror( status ), p->var[ALPHA], p->var[BETA] );
-		//result = 0;
+		result = fabs( result );
 	}
 	gsl_integration_workspace_free( w );
 	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
