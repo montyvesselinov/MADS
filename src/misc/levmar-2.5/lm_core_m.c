@@ -305,8 +305,6 @@ int LEVMAR_DER2(
 			phi_vector[npl] = 0;
 			for( i = 0; i < nP; i++ )
 				param_matrix[npl][i] = par_current[i];
-			// for( i = 0; i < nO; i++ )
-			// obs_matrix[npl][i] = obs_current[i];
 		}
 		compute_paralellel_init = true;
 		nfev = 0;
@@ -318,7 +316,7 @@ int LEVMAR_DER2(
 		for( i = 0; i < nP; i++ )
 			par_best[i] = par_current[i];
 		for( i = 0; i < nO; i++ )
-			obs_best[i] = obs_current[i];
+			op->od->obs_current[i] = obs_best[i] = obs_current[i];
 		/* compute e=x - f(p) and its L2 norm */
 #if 0
 		phi_current = LEVMAR_L2NRMXMY( obs_error, obs_target, obs_current, nO );
@@ -432,13 +430,13 @@ int LEVMAR_DER2(
 				if( op->cd->ldebug > 5 ) tprintf( "Jacobian computed using forward differences\n" );
 				if( compute_paralellel_init )
 				{
-					if( op->cd->ldebug ) tprintf( "Initial state will be computer in parallel ...\n" );
+					if( op->cd->ldebug ) tprintf( "Initial state will be computed in parallel ...\n" );
 					op->cd->compute_center = true;
 				}
-				jacf( par_current, obs_current, jac, nP, nO, adata ); //TODO if parallel computer the initial run here!!!
+				jacf( par_current, obs_current, jac, nP, nO, adata );
 				if( compute_paralellel_init )
 				{
-					if( op->cd->ldebug ) tprintf( "Initial state will be computer in parallel ...\n" );
+					if( op->cd->ldebug ) tprintf( "Initial state was computed in parallel ...\n" );
 					op->cd->compute_center = false;
 					compute_paralellel_init = false;
 					for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
@@ -660,17 +658,18 @@ int LEVMAR_DER2(
 			{
 				for( l = j = 0; j < op->od->nTObs; j++ )
 				{
-					op->od->obs_current[j] = obs_current[j];
 					for( i = 0; i < op->pd->nOptParam; i++ )
 						gsl_matrix_set( gsl_jacobian, j, i, jac[l++] ); // LEVMAR is using different jacobian order
 				}
+				for( j = 0; j < nO; j++ )
+					op->od->obs_current[j] = obs_current[j];
 				DeTransform( par_current, op, jac_min );
 				for( i = 0; i < op->pd->nOptParam; i++ )
 					op->pd->var[op->pd->var_index[i]] = jac_min[i];
-				op->cd->lm_eigen--;
 				op->phi = phi_current;
-				eigen( op, obs_current, gsl_jacobian, NULL );
 				save_results( 0, "", op, op->gd );
+				op->cd->lm_eigen--;
+				eigen( op, obs_current, gsl_jacobian, NULL );
 				op->cd->lm_eigen++;
 			}
 		}
@@ -847,7 +846,7 @@ int LEVMAR_DER2(
 			}
 			par_change_L2_norm_sq = sqrt( par_change_L2_norm );
 			for( i = 0 ; i < nO; i++ )
-				op->od->obs_current[i] = obs_update[i] = obs_matrix[npl_min][i];
+				obs_update[i] = obs_matrix[npl_min][i];
 			if( npl_min != 0 )
 			{
 				if( npl_min % 2 ) // even number
@@ -1026,14 +1025,14 @@ int LEVMAR_DER2(
 			for( i = 0; i < nP; i++ )
 				par_best[i] = par_update[i];
 			for( i = 0; i < nO; i++ )
-				obs_best[i] = obs_update[i];
+				op->od->obs_current[i] = obs_best[i] = obs_update[i];
 			if( op->cd->ldebug >= 1 ) tprintf( "New Best OF %g\n", phi_best );
+			DeTransform( par_update, op, jac_min );
+			for( i = 0; i < op->pd->nOptParam; i++ )
+				op->pd->var[op->pd->var_index[i]] = jac_min[i];
+			op->phi = phi_update;
+			save_results( 0, "", op, op->gd );
 		}
-		DeTransform( par_update, op, jac_min );
-		for( i = 0; i < op->pd->nOptParam; i++ )
-			op->pd->var[op->pd->var_index[i]] = jac_min[i];
-		op->phi = phi_update;
-		save_results( 0, "", op, op->gd );
 		if( op->cd->lm_num_parallel_lambda == 0 )
 			phi_lam_vector[phi_lam_count++] = phi_update;
 		if( phi_lam_count > op->cd->lm_nlamof )

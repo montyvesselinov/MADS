@@ -33,6 +33,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <gsl/gsl_math.h>
+#include <stdbool.h>
 #include "mads.h"
 #ifdef MATHEVAL
 #include <matheval.h>
@@ -438,10 +439,11 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	int i, success, success_all = 1, bad_data;
 	sprintf( dir, "%s_%08d", p->cd->mydir_hosts, ieval );
 	int *obs_count;
+	bool bin_read = false;
 	if( p->cd->restart && p->cd->bin_restart )
 	{
 		FILE *infileb;
-		sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval ); // Archive model output
+		sprintf( buf, "%s/%020d.obs", p->cd->restart_container, ieval ); // Archive model output
 		if( ( infileb = fopen( buf, "rb" ) ) != NULL )
 		{
 			int obj_read = fread( ( void * ) f, sizeof( f[0] ), p->od->nTObs, infileb );
@@ -454,58 +456,42 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 				if( p->cd->pardebug > 4 )
 					for( i = 0; i < p->od->nTObs; i++ )
 						tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], f[i] );
-				double lphi = 0;
-				for( i = 0; i < p->od->nTObs; i++ )
-					lphi += f[i] * f[i];
-				p->phi = lphi;
-				sprintf( buf, "%s/%020d.obs", p->cd->restart_container, ieval ); // Archive model output
-				if( ( infileb = fopen( buf, "rb" ) ) != NULL )
-				{
-					int obj_read = fread( ( void * ) p->od->obs_current, sizeof( p->od->obs_current[0] ), p->od->nTObs, infileb );
-					fclose( infileb );
-					if( obj_read != p->od->nTObs ) tprintf( "RESTART ERROR: Binary file %s cannot be applied to read model predictions; data mismatch!\n", buf );
-					else
-					{
-						if( p->cd->pardebug > 1 )
-							tprintf( "RESTART: Results (model residuals) from parallel run #%d are read from a file in directory %s!\n", ieval, p->cd->restart_container );
-						if( p->cd->pardebug > 4 )
-							for( i = 0; i < p->od->nTObs; i++ )
-								tprintf( "%-27s: binary observations %15.12g\n", p->od->obs_id[i], p->od->obs_current[i] );
-					}
-				}
 				delete_mprun_dir( dir );
-				return( GSL_SUCCESS );
+				bin_read = true;
 			}
 		}
 	}
-	obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
-	for( i = 0; i < p->od->nObs; i++ ) obs_count[i] = 0;
-	bad_data = 0;
-	for( i = 0; i < p->ed->nins; i++ )
+	if( !bin_read )
 	{
-		sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
-		if( ins_obs( p->od->nObs, p->od->obs_id, f, obs_count, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
-			bad_data = 1;
-	}
-	for( i = 0; i < p->od->nObs; i++ )
-	{
-		if( obs_count[i] == 0 )
+		obs_count = ( int * ) malloc( p->od->nObs * sizeof( int ) );
+		for( i = 0; i < p->od->nObs; i++ ) obs_count[i] = 0;
+		bad_data = 0;
+		for( i = 0; i < p->ed->nins; i++ )
 		{
-			tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
-			bad_data = 1;
+			sprintf( buf, "../%s/%s", dir, p->ed->fn_obs[i] );
+			if( ins_obs( p->od->nObs, p->od->obs_id, f, obs_count, p->ed->fn_ins[i], buf, p->cd->insdebug ) == -1 )
+				bad_data = 1;
 		}
-		else if( obs_count[i] > 1 )
+		for( i = 0; i < p->od->nObs; i++ )
 		{
-			if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug )
-				tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], obs_count[i] );
-			f[i] /= obs_count[i];
+			if( obs_count[i] == 0 )
+			{
+				tprintf( "ERROR: Observation '\%s\' is not assigned reading the model output files!\n", p->od->obs_id[i] );
+				bad_data = 1;
+			}
+			else if( obs_count[i] > 1 )
+			{
+				if( p->cd->debug || p->cd->tpldebug || p->cd->insdebug )
+					tprintf( "WARNING: Observation '\%s\' is defined more than once (%d) in the instruction files! Arithmetic average is computed!\n", p->od->obs_id[i], obs_count[i] );
+				f[i] /= obs_count[i];
+			}
 		}
+		free( obs_count );
+		if( bad_data ) return( bad_data );
 	}
-	free( obs_count );
-	if( bad_data ) return( bad_data );
 	if( p->cd->restart )
 	{
-		if( p->cd->bin_restart )
+		if( p->cd->bin_restart && !bin_read )
 		{
 			FILE *outfileb;
 			sprintf( buf, "%s/%020d.par", p->cd->restart_container, ieval ); // Archive model inputs
@@ -603,7 +589,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
-	if( p->cd->restart && p->cd->bin_restart )
+	if( p->cd->restart && p->cd->bin_restart && !bin_read )
 	{
 		FILE *outfileb;
 		sprintf( buf, "%s/%020d.res", p->cd->restart_container, ieval ); // Archive model output
