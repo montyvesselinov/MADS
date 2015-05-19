@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.91612a5) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -138,10 +138,10 @@ W14b_50: 30 weight 1
 
 WARNING: Regularization class not found!
 Process Grid ... Number of grid components: 10
-Grid Time: 0
-Grid lines: 25 29 1
-Grid Minimums: 499000 538300 0
-Grid Maximums: 500200 539400 0.1
+Grid Time: 49
+Grid lines: 28 14 3
+Grid Minimums: 300 700 0
+Grid Maximums: 3000 2000 10
 Process Time ... Number of time components: 3
 Breakthrough-curve time window: start 0 end 0 step 1 number of time steps: 1
 
@@ -181,7 +181,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070318
+Execution date & time stamp: 20150519-165423
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -194,6 +194,8 @@ Initial OF 63.7496
 Jacobian #1: Linear solves 0 Evaluations 12 OF 63.7496 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -318,8 +320,6 @@ Pore x velocity [L/T]      :            5 stddev      21.0373 (        0.01 -   
 Dispersivity x [L]         :           70 stddev      43.0358 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :           15 stddev      122.959 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :          0.3 stddev      111.801 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Computed initial lambda 10 (0.001, 10000)
 OF 0.869272 lambda 10
 New Best OF 0.869272
@@ -330,6 +330,8 @@ New Jacobian requested because: > OF estimate declined substantially (0.869272 <
 Jacobian #2: Linear solves 1 Evaluations 24 OF 0.869272 lambda 3.33333
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -454,8 +456,6 @@ Pore x velocity [L/T]      :      5.19632 stddev     0.870617 (        0.01 -   
 Dispersivity x [L]         :      66.1008 stddev      2.95687 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      15.4336 stddev      8.05284 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.290911 stddev      4.12562 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source y coordinate [L]        (5.00372)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (0)
 OF 0.0122956 lambda 3.33333
@@ -467,6 +467,8 @@ New Jacobian requested because: > OF estimate declined substantially (0.0122956 
 Jacobian #3: Linear solves 2 Evaluations 36 OF 0.0122956 lambda 1.11111
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -591,8 +593,6 @@ Pore x velocity [L/T]      :      5.21061 stddev     0.132596 (     1.19854 -   
 Dispersivity x [L]         :      65.2371 stddev     0.393627 (     20.9393 -      134.568)
 Dispersivity y [L]         :      15.4195 stddev     0.987184 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.288968 stddev     0.741008 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source x dimension [L]         (3.32055)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (0)
 OF 0.00888813 lambda 1.11111
@@ -608,6 +608,8 @@ New Jacobian requested because: > OF estimate declined substantially (0.00438246
 Jacobian #4: Linear solves 4 Evaluations 49 OF 0.00438246 lambda 1.16208
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -732,8 +734,6 @@ Pore x velocity [L/T]      :      5.15931 stddev     0.226886 (     0.41785 -   
 Dispersivity x [L]         :      65.1306 stddev     0.259265 (     30.6025 -      115.177)
 Dispersivity y [L]         :      15.3273 stddev      1.08051 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.288087 stddev      1.17116 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source x dimension [L]         (6.39)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (0)
 OF 0.00114406 lambda 1.16208
@@ -745,6 +745,8 @@ New Jacobian requested because: > OF estimate declined substantially (0.00114406
 Jacobian #5: Linear solves 5 Evaluations 61 OF 0.00114406 lambda 0.387359
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -869,8 +871,6 @@ Pore x velocity [L/T]      :      5.14865 stddev    0.0379137 (     3.40259 -   
 Dispersivity x [L]         :       65.134 stddev     0.135758 (     44.1923 -      91.1476)
 Dispersivity y [L]         :      15.3167 stddev     0.342573 (     4.42693 -      29.4584)
 Dispersivity z [L]         :     0.288001 stddev     0.147718 (    0.198703 -     0.421769)
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source x dimension [L]         (1.13541)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (0)
 OF 0.00110848 lambda 0.387359
@@ -886,13 +886,13 @@ New Best OF 0.00107841
 Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
 Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00108768 lambda 0.140341
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #6: Linear solves 9 Evaluations 76 OF 0.00107841 lambda 0.280682
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -1017,8 +1017,6 @@ Pore x velocity [L/T]      :       5.1277 stddev     0.061343 (     2.61422 -   
 Dispersivity x [L]         :      65.2359 stddev     0.120189 (     46.3507 -       88.142)
 Dispersivity y [L]         :      15.3753 stddev     0.368727 (     4.02706 -      29.8184)
 Dispersivity z [L]         :     0.288419 stddev     0.349865 (    0.131031 -     0.670551)
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source x dimension [L]         (1.60983)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (0)
 OF 0.0010751 lambda 0.280682
@@ -1026,20 +1024,18 @@ New Best OF 0.0010751
 Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
 Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00110255 lambda 0.0987961
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00107221 lambda 0.197592
 New Best OF 0.00107221
 Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
 Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00107279 lambda 0.186003
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #7: Linear solves 13 Evaluations 91 OF 0.00107221 lambda 0.372007
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -1164,8 +1160,6 @@ Pore x velocity [L/T]      :      5.11701 stddev    0.0673442 (     2.44016 -   
 Dispersivity x [L]         :      65.3478 stddev     0.131747 (     44.8803 -      90.5854)
 Dispersivity y [L]         :      15.4559 stddev     0.388195 (     3.76645 -      29.9658)
 Dispersivity z [L]         :      0.28902 stddev     0.341284 (    0.133135 -     0.660261)
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source y dimension [L]         (0.558948)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (0)
 OF 0.00106897 lambda 0.372007
@@ -1173,20 +1167,18 @@ New Best OF 0.00106897
 Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
 Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.0010766 lambda 0.124002
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00106627 lambda 0.248005
 New Best OF 0.00106627
 Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
 Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00106791 lambda 0.166284
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #8: Linear solves 17 Evaluations 106 OF 0.00106627 lambda 0.332568
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -1311,8 +1303,6 @@ Pore x velocity [L/T]      :      5.10891 stddev    0.0422941 (      3.2165 -   
 Dispersivity x [L]         :      65.4347 stddev     0.139758 (     43.8925 -      92.2927)
 Dispersivity y [L]         :      15.5189 stddev     0.347111 (     4.42283 -      29.5949)
 Dispersivity z [L]         :     0.289489 stddev     0.148795 (    0.199133 -     0.425036)
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source y dimension [L]         (0.439085)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (2.38698e-15)
 OF 0.00106364 lambda 0.332568
@@ -1320,15 +1310,11 @@ New Best OF 0.00106364
 Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
 Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00107789 lambda 0.110856
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00106082 lambda 0.221712
 New Best OF 0.00106082
 Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
 Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 OF 0.00106157 lambda 0.178963
-Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 
@@ -1497,11 +1483,30 @@ Objective function: 0.00106082 Success: 1 (1)
 
 Model predictions for not calibration targets:
 W-14c     (  50):          10 -      165.171 =     -155.171 success 0 range            0 -           20
+
+Compute spatial distribution of predictions at t = 49 ...
+ 5e-13  1e-10  8e-09  2e-07  3e-06  1e-05  3e-05  2e-05  8e-06  1e-06  7e-08  1e-09  1e-11  4e-14  4e-17 
+ 1e-10  2e-08  2e-06  5e-05 0.0006  0.003  0.005  0.004  0.001 0.0002  7e-06  1e-07  1e-09  3e-12  4e-15 
+ 9e-09  2e-06 0.0002  0.005   0.05    0.2    0.4    0.2   0.07  0.008 0.0003  6e-06  4e-08  1e-10  1e-13 
+ 3e-07  7e-05  0.006    0.2      2      8  1e+01      7      2    0.2  0.006 0.0001  6e-07  2e-09  1e-12 
+ 4e-06  0.001   0.09      3  4e+01  2e+02  2e+02  8e+01  2e+01      1   0.05 0.0007  4e-06  9e-09  8e-12 
+ 3e-05  0.006    0.6  3e+01  6e+02  2e+03  1e+03  4e+02  6e+01      5    0.2  0.002  1e-05  3e-08  2e-11 
+ 7e-05   0.01      2  1e+02  5e+03  9e+03  3e+03  8e+02  1e+02      8    0.3  0.003  2e-05  4e-08  3e-11 
+ 9e-05   0.02      2  1e+02  6e+03  1e+04  4e+03  9e+02  1e+02      9    0.3  0.004  2e-05  4e-08  3e-11 
+ 7e-05   0.02      2  9e+01  5e+03  9e+03  3e+03  6e+02  9e+01      6    0.2  0.002  1e-05  2e-08  2e-11 
+ 4e-05  0.007    0.7  3e+01  5e+02  1e+03  7e+02  2e+02  3e+01      2   0.06 0.0008  4e-06  8e-09  6e-12 
+ 9e-06  0.002    0.1      4  3e+01  9e+01  8e+01  3e+01      5    0.3  0.009 0.0001  5e-07  1e-09  8e-13 
+ 9e-07 0.0001  0.009    0.2      2      4      4      2    0.3   0.02 0.0006  7e-06  3e-08  6e-11  4e-14 
+ 4e-08  5e-06 0.0003  0.005   0.03   0.09   0.09   0.04  0.006 0.0005  1e-05  2e-07  7e-10  1e-12  9e-16 
+ 7e-10  8e-08  4e-06  6e-05 0.0004 0.0009 0.0009 0.0004  6e-05  5e-06  1e-07  1e-09  7e-12  1e-14  7e-18 
+ 5e-12  5e-10  2e-08  3e-07  2e-06  4e-06  4e-06  1e-06  3e-07  2e-08  5e-10  5e-12  2e-14  4e-17  2e-20 
+Max Conc = 10001.1 @ (1200,1400,0)
+Spatial concentration data saved in ./examples/contamination/s01_yaml.vtk.
 Simulation time = 1 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 111
-Execution  started  on Thu Mar 26 07:03:18 2015
-Execution completed on Thu Mar 26 07:03:19 2015
-Execution date & time stamp: 20150326-070318
+Execution  started  on Tue May 19 16:54:23 2015
+Execution completed on Tue May 19 16:54:24 2015
+Execution date & time stamp: 20150519-165423

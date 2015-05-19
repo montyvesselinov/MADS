@@ -59,7 +59,7 @@ WELLS = $(BIN)/wells
 CMP = ./scripts/compare-results # MADS testing
 # CMP = cp -f # Save current results for future testing DANGEROUS!
 
-OUTPUT = &> /dev/null
+OUTPUT = > /dev/null 2>&1
 # OUTPUT = mads-debug-output
 # OUTPUT =
 
