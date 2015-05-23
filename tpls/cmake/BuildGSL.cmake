@@ -1,5 +1,15 @@
 #  -*- mode: cmake -*-
 message(STATUS "Installing GSL (${GSL_VERSION})")
+if( EXISTS ${TPL_REPO_DIR}/${GSL_ARCHIVE_FILE} )
+	message(STATUS "GSL is available in the TPL's repository for MADS (${TPL_REPO_DIR}/${GSL_ARCHIVE_FILE})" )
+	set(GSL_URL ${TPL_REPO_DIR}/${GSL_ARCHIVE_FILE})
+elseif( EXISTS ${TPL_DOWNLOAD_DIR}/${GSL_ARCHIVE_FILE} )
+	message(STATUS "GSL already downloaded (${TPL_DOWNLOAD_DIR}/${GSL_ARCHIVE_FILE})" )
+	set(GSL_URL ${TPL_DOWNLOAD_DIR}/${GSL_ARCHIVE_FILE})
+else()
+	message(STATUS "GSL will be downloaded" )
+endif()
+
 ExternalProject_Add(
 	gsl
 	BUILD_IN_SOURCE   1

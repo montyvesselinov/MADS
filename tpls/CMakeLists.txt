@@ -24,6 +24,12 @@ if ( NOT CMAKE_BUILD_TYPE )
 endif()
 message(STATUS "TPL Build type: ${CMAKE_BUILD_TYPE}")
 
+set(TPL_REPO_DIR_DFLT ${TPL_BINARY_DIR}/repo)
+if ( NOT TPL_REPO_DIR )
+	set(TPL_REPO_DIR ${TPL_REPO_DIR_DFLT})
+endif()
+message(STATUS "TPL repository directory: ${TPL_REPO_DIR}") 
+
 set(TPL_DOWNLOAD_DIR_DFLT ${TPL_BINARY_DIR}/Downloads)
 if ( NOT TPL_DOWNLOAD_DIR )
   set(TPL_DOWNLOAD_DIR ${TPL_DOWNLOAD_DIR_DFLT})

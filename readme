@@ -38,6 +38,9 @@ Clone GIT repositories:
 	git clone git@github.com:montyvesselinov/MADS.git
 	git clone git@bitbucket.org:monty_vesselinov/mads.git
 
+Get TPL's repository (execute command below within the directory of cloned MADS repository):
+	git submodule update tpls/repo
+
 Required tools:
 	GIT:        http://git-scm.com (version 1.9 or later)
 	GNU C/C++:  http://gcc.gnu.org (version 4.8 or later)
