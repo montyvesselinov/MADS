@@ -25,7 +25,7 @@ endif()
 message(STATUS "TPL Build type: ${CMAKE_BUILD_TYPE}")
 
 set(TPL_DOWNLOAD_DIR_DFLT ${TPL_BINARY_DIR}/Downloads)
-if(NOT TPL_DOWNLOAD_DIR)
+if ( NOT TPL_DOWNLOAD_DIR )
   set(TPL_DOWNLOAD_DIR ${TPL_DOWNLOAD_DIR_DFLT})
 endif()
 message(STATUS "TPL Download directory: ${TPL_DOWNLOAD_DIR}") 

@@ -125,10 +125,14 @@ else ifeq ($(ND),well.lanl.gov)
 $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -L/usr/local/lib -Wl,--rpath,/home/monty/local/lib
+else ifeq ($(findstring hb-fe,$(ND)),hb-fe)
+$(info Machine -- turquoise)
+CFLAGS += -I/users/vvv/mads/repo-github-hobo/tpls/include
+LDLIBS += -L/users/vvv/mads/repo-github-hobo/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github-hobo/tpls/lib
 else ifeq ($(findstring -fe,$(ND)),-fe)
 $(info Machine -- turquoise)
 CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
-LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github/tpls/lib
+LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github-hobo/tpls/lib
 else
 CFLAGS += -I$(MADS_DIR)/tpls/include
 LDLIBS += -lgfortran -L$(MADS_DIR)/tpls/lib -Wl,--rpath,$(MADS_DIR)/tpls/lib

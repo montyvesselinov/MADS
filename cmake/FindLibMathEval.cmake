@@ -1,20 +1,20 @@
-find_path(LibMathEval_INCLUDE
-    NAMES matheval.h HINTS
-	$ENV{MATHEVALROOT}/src/
-	/opt/local/include
-	/usr/local/include
-	/usr/include
-    )
+FIND_PACKAGE(PkgConfig)
+PKG_CHECK_MODULES(PC_LibMathEval matheval)
+SET(LibMathEval_DEFINITIONS ${PC_LibMathEval_CFLAGS_OTHER})
 
-find_library( LibMathEval_LIB
-    NAMES matheval HINTS
-	/opt/local/lib
-	/usr/local/lib
-	/usr/lib
-    ${Matheval_LIBDIR}
-    ${Matheval_LIBRARY_DIRS}
-    )
+FIND_PATH(LibMathEval_INCLUDE_DIR NAMES matheval.h
+   HINTS
+   ${PC_LibMathEval_INCLUDEDIR}
+   ${PC_LibMathEval_INCLUDE_DIRS}
+   PATH_SUFFIXES matheval
+   )
 
-include( FindPackageHandleStandardArgs )
-find_package_handle_standard_args( LibMathEval DEFAULT_MSG LibMathEval_LIB LibMathEval_INCLUDE)
-MARK_AS_ADVANCED( LibMathEval_INCLUDE_DIR LibMathEval_LIBRARIES )
+FIND_LIBRARY(LibMathEval_LIBRARIES NAMES matheval
+   HINTS
+   ${PC_LibMathEval_LIBDIR}
+   ${PC_LibMathEval_LIBRARY_DIRS}
+   )
+
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(LibMathEval DEFAULT_MSG LibMathEval_LIBRARIES)
+MARK_AS_ADVANCED(LibMathEval_INCLUDE_DIR LibMathEval_LIBRARIES LibMathEval_XMLLINT_EXECUTABLE)
