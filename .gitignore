@@ -11,11 +11,11 @@ tpls/share
 tpls/include
 tpls/lib
 tpls/lapack*
-tpls/glib2*
+tpls/glib*
 tpls/gsl*
 tpls/libmatheval*
 tpls/libyaml*
-tpls/libxml2*
+tpls/libxml*
 tpls/yaml*
 latex/*
 html/*

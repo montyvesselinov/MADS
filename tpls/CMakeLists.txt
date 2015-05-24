@@ -3,6 +3,7 @@
 cmake_minimum_required (VERSION 3.0 FATAL_ERROR)
 
 project(TPL)
+include(SetURL)
 
 # Adjust CMake's module path.
 set(CMAKE_MODULE_PATH 
@@ -44,6 +45,12 @@ message(STATUS "TPL Install directory: ${TPL_INSTALL_PREFIX}")
 
 include(ExternalProject)
 
+#include(BuildGLIB2)
+#include(BuildGSL) 
+#include(BuildLAPACK)
+#include(BuildLibMathEval) 
+#include(BuildLibXML2)
+#include(BuildLibYAML)
 if(NOT (LAPACK_FOUND) AND USE_LAPACK)
 	include(BuildLAPACK)
 endif()
@@ -51,7 +58,7 @@ if(NOT (GLIB2_FOUND) AND USE_GLIB2)
 	include(BuildGLIB2)
 endif()
 if(NOT (GSL_FOUND) AND USE_GSL)
-   include(BuildGSL) 
+	include(BuildGSL) 
 endif()
 if(NOT (LIBYAML_FOUND) AND USE_YAML)
 	include(BuildLibYAML)

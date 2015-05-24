@@ -5,10 +5,10 @@ FIND_PATH(LibMathEval_INCLUDE_DIR NAMES matheval.h
    HINTS
    ${PC_LibMathEval_INCLUDEDIR}
    ${PC_LibMathEval_INCLUDE_DIRS}
-   PATH_SUFFIXES libmatheval
+   PATH_SUFFIXES matheval
    )
 
-FIND_LIBRARY(LibMathEval_LIBRARIES NAMES libmatheval
+FIND_LIBRARY(LibMathEval_LIBRARIES NAMES matheval
    HINTS
    ${PC_LibMathEval_LIBDIR}
    ${PC_LibMathEval_LIBRARY_DIRS}

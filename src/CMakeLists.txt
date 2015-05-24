@@ -23,4 +23,4 @@ set( sources ${src_mads} ${src_pso} ${src_sa} ${src_ds} ${src_mpun} ${src_kdtree
 
 add_executable ( mads ${sources} )
 add_dependencies( mads gitversion )
-target_link_libraries( mads ${MADS_LIBS} lapack )
+target_link_libraries( mads ${MADS_LIBS} lapack blas )

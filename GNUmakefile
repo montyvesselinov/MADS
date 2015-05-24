@@ -321,6 +321,9 @@ clean-lib:
 clean-wells:
 	rm -f $(WELLS) $(OBJ_WELLS)
 
+clean-tpls:
+	rm -fR tpls/libyaml* tpls/libxml* tpls/libmatheval* tpls/lapack* tpls/gsl* tpls/glib*
+
 clean-old-mads-setup:
 	rm -f *.o
 	rm -fR bayes ds sa misc lhs lm example pso mprun
