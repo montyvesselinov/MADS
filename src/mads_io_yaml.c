@@ -183,6 +183,8 @@ int parse_gnode_classes( GNode *gnode_data, int argn, char *argv[], struct opt_d
 	struct calc_data *cd;
 	struct obs_data *od;
 	struct aquifer_data *qd;
+	char **expvar_names;
+	int expvar_count;
 	qd = op->qd;
 	cd = op->cd;
 	od = op->od;
@@ -294,22 +296,32 @@ int parse_gnode_classes( GNode *gnode_data, int argn, char *argv[], struct opt_d
 			if( num_keys && keyindex != NULL ) free( keyindex );
 		}
 		else ier = parse_gnode_class_params( key_pointer, op, 0, NULL, NULL );
-		if( cd->debug )
+		if( cd->debug && op->pd->nExpParam > 0 ) tprintf( "\nNumber of parameters with computational expressions (coupled or tied parameters) = %d\n", op->pd->nExpParam );
+		for( i = 0; i < op->pd->nExpParam; i++ )
 		{
-			if( op->pd->nExpParam > 0 ) tprintf( "\nNumber of parameters with computational expressions (coupled or tied parameters) = %d\n", op->pd->nExpParam );
-			for( i = 0; i < op->pd->nExpParam; i++ )
-			{
-				k = op->pd->param_expressions_index[i];
-				tprintf( "%-27s= ", op->pd->var_name[k] );
+			k = op->pd->param_expressions_index[i];
+			if( cd->debug ) tprintf( "%-27s= ", op->pd->var_name[k] );
 #ifdef MATHEVAL
-				tprintf( "%s", evaluator_get_string( op->pd->param_expression[i] ) );
-				op->pd->var[k] = cd->var[k] = evaluator_evaluate( op->pd->param_expression[i], op->pd->nParam, op->pd->var_id, cd->var );
-				tprintf( " = %g\n", op->pd->var[k] );
-#else
-				tprintf( "MathEval is not installed; provided expression cannot be evaluated.\n" );
-#endif
+			if( cd->debug ) tprintf( "%s", evaluator_get_string( op->pd->param_expression[i] ) );
+			op->pd->var[k] = cd->var[k] = evaluator_evaluate( op->pd->param_expression[i], op->pd->nParam, op->pd->var_id, cd->var );
+			if( cd->debug ) tprintf( " = %g\n", op->pd->var[k] );
+			evaluator_get_variables( op->pd->param_expression[i], &expvar_names, &expvar_count );
+			int j, status, l1;
+			for( j = 0; j < expvar_count; j++ )
+			{
+				l1 = strlen( expvar_names[j] );
+				status = 0;
+				for( k = 0; k < op->pd->nParam; k++ )
+					if( !strncmp( expvar_names[j], op->pd->var_id[k], l1 ) ) { op->pd->var_exp[k] = 1; status = 1; break; }
+				if( status == 0 )
+				{
+					tprintf( "ERROR: parameter name \'%s\' in expression term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( op->pd->param_expression[i] ) );
+					bad_data = 1;
+				}
 			}
-			if( op->pd->nExpParam > 0 ) tprintf( "\n" );
+#else
+			if( cd->debug ) tprintf( "MathEval is not installed; provided expression cannot be evaluated.\n" );
+#endif
 		}
 	}
 	else tprintf( "WARNING: Parameter class not found!\n" );
@@ -556,12 +568,11 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	cd = op->cd;
 	pd->var_name = char_matrix( num_param, 50 );
 	pd->var_id = char_matrix( num_param, 20 );
-	for( i = 0; i < num_param; i++ )
-		pd->var_name[i][0] = pd->var_id[i][0] = 0;
 	pd->var = ( double * ) malloc( num_param * sizeof( double ) );
 	cd->var = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->var_opt = ( int * ) malloc( num_param * sizeof( int ) );
 	pd->var_log = ( int * ) malloc( num_param * sizeof( int ) );
+	pd->var_exp = ( int * ) malloc( num_param * sizeof( int ) );
 	pd->var_dx = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->var_min = ( double * ) malloc( num_param * sizeof( double ) );
 	pd->var_max = ( double * ) malloc( num_param * sizeof( double ) );
@@ -571,6 +582,8 @@ void set_param_arrays( int num_param, struct opt_data *op )
 	pd->param_expressions_index = ( int * ) malloc( num_param * sizeof( int ) );
 	pd->param_expression = ( void ** ) malloc( num_param * sizeof( void * ) );
 	pd->nOptParam = pd->nFlgParam = pd->nExpParam = 0;
+	for( i = 0; i < num_param; i++ )
+		pd->var_name[i][0] = pd->var_id[i][0] = pd->var_exp[i] = 0;
 }
 
 int parse_gnode_class_sources( GNode *node, gpointer data )
@@ -730,7 +743,7 @@ int parse_gnode_class_params( GNode *node, gpointer data, int num_keys, char **k
 				}
 				else
 				{
-					pd->var[index] = cd->var[index] = evaluator_evaluate_x( pd->param_expression[pd->nExpParam], 0 );
+					pd->var[index] = cd->var[index] = evaluator_evaluate_x( pd->param_expression[pd->nExpParam - 1], 0 );
 					tprintf( " = %g (NO variables; fixed parameter)\n", pd->var[index] );
 				}
 #endif
@@ -887,7 +900,7 @@ int parse_gnode_class_regularizations( GNode *node, gpointer data )
 #ifdef MATHEVAL
 				if( status == 0 )
 				{
-					tprintf( "ERROR: parameter name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) );
+					tprintf( "ERROR: parameter/observation name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) );
 					bad_data = 1;
 				}
 #endif

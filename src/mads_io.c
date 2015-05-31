@@ -229,6 +229,8 @@ int parse_cmd_init( int argn, char *argv[], struct calc_data *cd )
 		if( !strncasecmp( argv[i], "f", 1 ) && strlen( argv[i] ) == 1 ) { r = 1; } // Force running
 		if( !strncasecmp( argv[i], "test", 4 ) ) { cd->test_func = 1; cd->solution_type[0] = TEST; }
 	}
+	if( quiet ) strcpy( quiet_string, QUIET );
+	else strcpy( quiet_string, "" );
 	return( r );
 }
 
@@ -790,12 +792,11 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		}
 		pd->var_id = char_matrix( pd->nAnalParam , 20 );
 		pd->var_name = char_matrix( pd->nAnalParam , 50 );
-		for( i = 0; i < pd->nAnalParam ; i++ )
-			pd->var_id[i][0] = pd->var_name[i][0] = 0;
 		pd->var = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		cd->var = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->var_opt = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
 		pd->var_log = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
+		pd->var_exp = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
 		pd->var_dx = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->var_min = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->var_max = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
@@ -804,6 +805,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		pd->var_range = ( double * ) malloc( pd->nAnalParam  * sizeof( double ) );
 		pd->param_expressions_index = ( int * ) malloc( pd->nAnalParam  * sizeof( int ) );
 		pd->param_expression = ( void ** ) malloc( pd->nAnalParam  * sizeof( void * ) );
+		for( i = 0; i < pd->nAnalParam; i++ )
+			pd->var_id[i][0] = pd->var_name[i][0] = pd->var_exp[i] = 0;
 		init_params( op );
 	}
 	else
@@ -814,6 +817,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		cd->var = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		pd->var_opt = ( int * ) malloc( pd->nParam * sizeof( int ) );
 		pd->var_log = ( int * ) malloc( pd->nParam * sizeof( int ) );
+		pd->var_exp = ( int * ) malloc( pd->nParam * sizeof( int ) );
 		pd->var_dx = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		pd->var_min = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		pd->var_max = ( double * ) malloc( pd->nParam * sizeof( double ) );
@@ -822,6 +826,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 		pd->var_range = ( double * ) malloc( pd->nParam * sizeof( double ) );
 		pd->param_expressions_index = ( int * ) malloc( pd->nParam * sizeof( int ) );
 		pd->param_expression = ( void ** ) malloc( pd->nParam * sizeof( void * ) );
+		for( i = 0; i < pd->nParam; i++ )
+			pd->var_exp[i] = 0;
 	}
 	pd->nOptParam = pd->nFlgParam = 0;
 	for( i = 0; i < pd->nParam; i++ )
@@ -910,6 +916,8 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 #endif
 			if( expvar_count > 0 )
 			{
+				pd->var_opt[i] = -1;
+				pd->nExpParam++;
 				if( cd->debug )
 				{
 					tprintf( " -> variables:" );
@@ -917,8 +925,6 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 						tprintf( " %s", expvar_names[j] );
 					tprintf( "\n" );
 				}
-				pd->var_opt[i] = -1;
-				pd->nExpParam++;
 			}
 			else
 			{
@@ -1041,7 +1047,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 				{
 					word = pd->var_id[k];
 					l2 = strlen( word );
-					if( l1 == l2 && strcmp( expvar_names[j], word ) == 0 ) { status = 1; break; }
+					if( l1 == l2 && strcmp( expvar_names[j], word ) == 0 ) { pd->var_exp[k] = 1; status = 1; break; }
 				}
 #ifdef MATHEVAL
 				if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in expression \'%s\' for parameter \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( pd->param_expression[i] ), pd->var_name[pd->param_expressions_index[i]] ); bad_data = 1; }
@@ -1306,7 +1312,7 @@ int load_problem_text( char *filename, int argn, char *argv[], struct opt_data *
 					for( k = 0; k < od->nObs; k++ )
 						if( !strncasecmp( expvar_names[j], od->obs_id[k], l1 ) ) { status = 1; break; }
 #ifdef MATHEVAL
-					if( status == 0 ) { tprintf( "ERROR: parameter name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) ); bad_data = 1; }
+					if( status == 0 ) { tprintf( "ERROR: parameter/observation name \'%s\' in regularization term \'%s\' is not defined!\n", expvar_names[j], evaluator_get_string( rd->regul_expression[i] ) ); bad_data = 1; }
 #endif
 				}
 			}

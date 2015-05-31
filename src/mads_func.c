@@ -157,7 +157,7 @@ int func_extrn( double *x, void *data, double *f )
 			remove( p->ed->fn_obs[i] );
 	}
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
-	sprintf( buf, "%s \"%s\"", BASH, p->ed->cmdline );
+	sprintf( buf, "%s \"%s %s\"", BASH, p->ed->cmdline, quiet_string );
 	system( buf );
 	if( p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	int *obs_count;
@@ -335,8 +335,8 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		for( i = 0; i < p->ed->ntpl; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_out[i] );
 		// strcat( buf, "; E=$?; echo ERROR=$E; if [[ $E -eq 0 || $E -eq 12 ]]; then break; fi; sleep $(( WAIT_TIME++ )); done" );
-		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " &> /dev/null\'" );
-		else strcat( buf, "\'" );
+		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, QUIET );
+		strcat( buf, "\'" );
 		if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
 		system( buf );
 		if( p->cd->pardebug > 3 ) tprintf( "Input files for parallel run #%d are archived!\n", ieval );
@@ -358,8 +358,8 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		sprintf( buf, "%s \"unzip -u -: %s ", BASH, p->cd->restart_container ); // Archive input files
 		for( i = 0; i < p->ed->nins; i++ )
 			sprintf( &buf[( int ) strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
-		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " &> /dev/null\"" );
-		else strcat( buf, "\"" );
+		if( p->cd->pardebug <= 3 || quiet ) strcat( buf, QUIET );
+		strcat( buf, "\"" );
 		if( p->cd->pardebug > 2 ) tprintf( "Extract the expected output files before execution (\'%s\')\n", buf );
 		system( buf );
 	}
@@ -379,7 +379,7 @@ int func_extrn_exec_serial( int ieval, void *data ) // Execute a series of exter
 		system( buf );
 	}
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "Execute external model \'%s\' ... ", p->ed->cmdline );
-	sprintf( buf, "%s \"cd ../%s; %s\"", BASH, dir, p->ed->cmdline );
+	sprintf( buf, "%s \" ( cd ../%s; %s ) %s \"", BASH, dir, p->ed->cmdline, quiet_string );
 	system( buf );
 	if( p->cd->pardebug || p->cd->tpldebug || p->cd->insdebug ) tprintf( "done!\n" );
 	return GSL_SUCCESS;
@@ -517,8 +517,8 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 			for( i = 0; i < p->ed->nins; i++ )
 				sprintf( &buf[strlen( buf )], "../%s/%s ", dir, p->ed->fn_obs[i] );
 			// strcat( buf, "; E=$?; echo ERROR=$E; if [[ $E -eq 0 || $E -eq 12 ]]; then break; fi; sleep $(( WAIT_TIME++ )); done" );
-			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, " &> /dev/null\'" );
-			else strcat( buf, "\'" );
+			if( p->cd->pardebug <= 3 || quiet ) strcat( buf, QUIET );
+			strcat( buf, "\'" );
 			if( p->cd->pardebug > 4 ) tprintf( "Execute: %s", buf );
 			system( buf );
 			if( p->cd->pardebug > 3 ) tprintf( "RESTART: Results from parallel run #%d are archived in zip file %s!\n", ieval, p->cd->restart_container );

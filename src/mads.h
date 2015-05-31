@@ -56,11 +56,13 @@ enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, RF, LAMBDA, FLOW_AN
 
 #define TCSH "/usr/bin/env tcsh -f -c"
 #define BASH "/usr/bin/env bash -c"
+#define QUIET " > /dev/null 2>&1"
 
 int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
 char version_id[80];
 extern const char *gitversion;
+char quiet_string[80];
 #ifdef MAIN
 FILE *mads_output = NULL;
 int quiet = 0;
@@ -227,6 +229,7 @@ struct param_data // data structure for model parameters
 	double *var; // parameter value (initial/final)
 	int *var_opt; // parameter flag
 	int *var_log; // flag for log transformation
+	int *var_exp; // flag for parameters in expressions
 	double *var_dx; // parameter increase/decrease step (discretization/derivatives)
 	double *var_min; // parameter min value
 	double *var_max; // parameter max value
