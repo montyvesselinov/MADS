@@ -284,7 +284,6 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		k = p->pd->var_index[i];
 		if( p->pd->var_log[k] ) cur_params[k] = pow( 10, opt_params[i] );
 		else cur_params[k] = opt_params[i];
-		tprintf( "%s %.12g log %d\n", p->pd->var_name[k], cur_params[k], p->pd->var_log[k] );
 		if( p->cd->fdebug >= 3 )
 			tprintf( "%s %.12g log %d\n", p->pd->var_name[k], cur_params[k], p->pd->var_log[k] );
 	}
@@ -296,7 +295,6 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		{
 			k = p->pd->param_expressions_index[i];
 			cur_params[k] = evaluator_evaluate( p->pd->param_expression[i], p->pd->nParam, p->pd->var_name, cur_params );
-			tprintf( "%s = %s = %.12g\n", p->pd->var_name[k], evaluator_get_string( p->pd->param_expression[i] ), cur_params[k] );
 			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_name[k], evaluator_get_string( p->pd->param_expression[i] ), cur_params[k] );
 		}
 #else
@@ -1456,7 +1454,7 @@ int func_dx_set( double *x, double *f_x, void *data, double *jacobian ) /* Compu
 	}
 	*/
 	time_start = time( NULL );
-	func_set( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, mads_output, p );
+	func_set( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, NULL, p );
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
 	if( p->cd->tdebug ) tprintf( "Parallel jacobian execution PT = %ld seconds\n", time_elapsed );
