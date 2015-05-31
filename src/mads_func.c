@@ -267,7 +267,7 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
 	int i, k, bad_data = 0;
-	double *opt_params;
+	double *opt_params, *cur_params;
 	if( p->cd->sintrans )
 	{
 		if( ( opt_params = ( double * ) malloc( p->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" ); // needed for parallel runs
@@ -275,14 +275,18 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	}
 	else
 		opt_params = x;
+	if( ( cur_params = ( double * ) malloc( p->pd->nParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" ); // needed for parallel runs
 	if( p->cd->fdebug >= 3 ) tprintf( "Optimized model parameters (%d; model run = %d):\n", p->pd->nOptParam, ieval );
+	for( i = 0; i < p->pd->nParam; i++ )
+		cur_params[i] = p->cd->var[i];
 	for( i = 0; i < p->pd->nOptParam; i++ )
 	{
 		k = p->pd->var_index[i];
-		if( p->pd->var_log[k] ) p->cd->var[k] = pow( 10, opt_params[i] );
-		else p->cd->var[k] = opt_params[i];
+		if( p->pd->var_log[k] ) cur_params[k] = pow( 10, opt_params[i] );
+		else cur_params[k] = opt_params[i];
+		tprintf( "%s %.12g log %d\n", p->pd->var_name[k], cur_params[k], p->pd->var_log[k] );
 		if( p->cd->fdebug >= 3 )
-			tprintf( "%s %.12g log %d\n", p->pd->var_name[k], p->cd->var[k], p->pd->var_log[k] );
+			tprintf( "%s %.12g log %d\n", p->pd->var_name[k], cur_params[k], p->pd->var_log[k] );
 	}
 	if( p->pd->nExpParam > 0 )
 	{
@@ -291,8 +295,9 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 		for( i = 0; i < p->pd->nExpParam; i++ )
 		{
 			k = p->pd->param_expressions_index[i];
-			p->cd->var[k] = evaluator_evaluate( p->pd->param_expression[i], p->pd->nParam, p->pd->var_name, p->cd->var );
-			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_name[k], evaluator_get_string( p->pd->param_expression[i] ), p->cd->var[k] );
+			cur_params[k] = evaluator_evaluate( p->pd->param_expression[i], p->pd->nParam, p->pd->var_name, cur_params );
+			tprintf( "%s = %s = %.12g\n", p->pd->var_name[k], evaluator_get_string( p->pd->param_expression[i] ), cur_params[k] );
+			if( p->cd->fdebug >= 3 ) tprintf( "%s = %s = %.12g\n", p->pd->var_name[k], evaluator_get_string( p->pd->param_expression[i] ), cur_params[k] );
 		}
 #else
 		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
@@ -322,11 +327,12 @@ int func_extrn_write( int ieval, double *x, void *data ) // Create a series of i
 	for( i = 0; i < p->ed->ntpl; i++ ) // Create all the model input files
 	{
 		sprintf( buf, "../%s/%s", dir, p->ed->fn_out[i] );
-		if( par_tpl( p->pd->nParam, p->pd->var_id, opt_params, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
+		if( par_tpl( p->pd->nParam, p->pd->var_id, cur_params, p->ed->fn_tpl[i], buf, p->cd->tpldebug ) == -1 )
 			bad_data = 1;
 	}
 	if( p->cd->sintrans )
 		free( opt_params );
+	free( cur_params );
 	if( bad_data ) return( 0 );
 	if( p->cd->restart && !p->cd->bin_restart ) // Update model input files in zip restart files
 	{
@@ -999,7 +1005,7 @@ void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data
 
 int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
-	int i, j, k, count, debug_level = 0;
+	int count;
 	time_t time_start, time_end, time_elapsed;
 	int ieval = op->cd->neval;
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->posix ) // POSIX/MPRUN Parallel job
@@ -1029,6 +1035,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 				if( f != NULL )
 				{
 					double lphi = 0;
+					int j;
 					for( j = 0; j < op->od->nTObs; j++ )
 					{
 						f[count][j] = opt_res[j];
@@ -1061,11 +1068,13 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 			if( op->cd->debug > 1 || op->cd->mdebug )  tprintf( "Set #%d (%d): ", count + 1, omp_get_thread_num() );
 			double *opt_params;
 			if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) printf( "Not enough memory!\n" );
+			int i, k;
 			for( i = 0; i < op->pd->nOptParam; i++ )
 			{
 				k = op->pd->var_index[i];
 				opt_params[i] = op->pd->var[k] = var_mat[count][i];
 			}
+			int debug_level = 0;
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 			func_extrn_write( ieval + count + 1, opt_params, op );
 			free( opt_params );
@@ -1132,6 +1141,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 			if( out != NULL )
 			{
 				fprintf( out, "%d :\n", ieval + count + 1 ); // counter
+				int i, k;
 				for( i = 0; i < op->pd->nOptParam; i++ ) // re
 				{
 					k = op->pd->var_index[i];
@@ -1147,6 +1157,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 				if( f != NULL )
 				{
 					double lphi = 0;
+					int j;
 					for( j = 0; j < op->od->nTObs; j++ )
 					{
 						f[count][j] = opt_res[j];
@@ -1163,6 +1174,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 	}
 	else // Serial job
 	{
+		int i, j, k;
 		if( op->cd->pardebug ) tprintf( "Serial jobs ...\n" );
 		double *opt_params;
 		if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
@@ -1173,6 +1185,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 				k = op->pd->var_index[i];
 				opt_params[i] = op->pd->var[k] = var_mat[count][i];
 			}
+			int debug_level = 0;
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 			func_global( opt_params, op, op->od->res );
 			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
@@ -1199,7 +1212,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 
 int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
-	int i, j, k, count, bad_data = 0, debug_level = 0;
+	int count, bad_data = 0;
 	time_t time_start, time_end, time_elapsed;
 	int ieval = op->cd->neval;
 	tprintf( "OpenMP Parallel execution of external jobs ...\n" );
@@ -1207,6 +1220,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 	#pragma omp parallel for private(count)
 	for( count = 0; count < n_sub; count++ ) // Write all the files
 	{
+		int i, j, k;
 		int rank = omp_get_thread_num();
 		int done = 0;
 		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
@@ -1247,6 +1261,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 				k = op->pd->var_index[i];
 				opt_params[i] = op->pd->var[k] = var_mat[count][i];
 			}
+			int debug_level = 0;
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 			func_extrn_write( ieval + count + 1, opt_params, op );
 			free( opt_params );
