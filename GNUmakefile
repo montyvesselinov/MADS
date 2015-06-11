@@ -113,8 +113,8 @@ DYNAMICLIB = -shared -Wl,-soname,libmads.so.1 -Wl,--no-as-needed -ldl
 MADS_LIB = $(BIN)/Lib/libmads.so
 ifeq ($(ND),aquifer.lanl.gov)
 $(info Machine -- AQUIFER)
-CFLAGS += -I/home/monty/local/include-aquifer
-LDLIBS = -lgfortran -lgsl -llapack -lstdc++ -L/home/monty/local/lib -lgslcblas -lgfortran -Wl,--rpath,/home/monty/local/lib 
+CFLAGS += -I/home/vvv/local/include-aquifer
+LDLIBS = -lgfortran -lgsl -llapack -lstdc++ -L/home/vvv/local/lib -lgslcblas -lgfortran -Wl,--rpath,/home/vvv/local/lib 
 else ifeq ($(ND),madsmax)
 $(info Machine -- MadsMax)
 CFLAGS += -Wno-unused-result
@@ -132,7 +132,7 @@ LDLIBS += -L/users/vvv/mads/repo-github-hobo/tpls/lib -Wl,--rpath,/users/vvv/mad
 else ifeq ($(findstring -fe,$(ND)),-fe)
 $(info Machine -- turquoise)
 CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
-LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github-hobo/tpls/lib
+LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github/tpls/lib
 else
 CFLAGS += -I$(MADS_DIR)/tpls/include
 LDLIBS += -lgfortran -L$(MADS_DIR)/tpls/lib -Wl,--rpath,$(MADS_DIR)/tpls/lib
