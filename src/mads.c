@@ -126,7 +126,7 @@ time_t Fdatetime_t( char *filename, int debug );
 int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2 );
 // External IO
 int check_ins_obs( int nobs, char **obs_id, int *obs, char *fn_in_t, int debug );
-int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
+int check_par_tpl( int npar, char **par_id, int *par, char *fn_in_t, int debug );
 // Random sampling
 double epsilon();
 void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x[] );
@@ -609,13 +609,14 @@ int main( int argn, char *argv[] )
 		else tprintf( "Checking the template files for errors ...\n" );
 		if( bad_data ) mads_quits( op.root );
 		bad_data = 0;
-		for( i = 0; i < pd.nParam; i++ ) pd.var_current[i] = ( double ) - 1;
+		int *var_count = ( int * ) malloc( pd.nParam * sizeof( int ) );
+		for( i = 0; i < pd.nParam; i++ ) var_count[i] = 0;
 		for( i = 0; i < ed.ntpl; i++ ) // Check template files ...
-			if( check_par_tpl( pd.nParam, pd.var_id, pd.var_current, ed.fn_tpl[i], cd.tpldebug ) == -1 )
+			if( check_par_tpl( pd.nParam, pd.var_id, var_count, ed.fn_tpl[i], cd.tpldebug ) == -1 )
 				bad_data = 1;
 		for( i = 0; i < pd.nParam; i++ )
 		{
-			if( pd.var_current[i] < 0 )
+			if( var_count[i] == 0 )
 			{
 				if( pd.var_exp[i] == 0 )
 				{
@@ -625,9 +626,10 @@ int main( int argn, char *argv[] )
 				else
 					tprintf( "WARNING: Model parameter \'%s\' is not represented in the template file(s) but is used in an expression!\n", pd.var_name[i] );
 			}
-			else if( pd.var_current[i] > 1.5 )
-				tprintf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_name[i], ( int ) pd.var_current[i] );
+			else if( var_count[i] > 1 )
+				tprintf( "WARNING: Model parameter \'%s\' is represented more than once (%d times) in the template file(s)!\n", pd.var_name[i], var_count[i] );
 		}
+		free( var_count );
 		if( !bad_data ) tprintf( "Template files are ok.\n\n" );
 		if( ed.nins <= 0 ) { tprintf( "ERROR: No instruction file(s)!\n" ); bad_data = 1; }
 		else tprintf( "Checking the instruction files for errors ...\n" );
@@ -3400,9 +3402,8 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 #else
 	if( op->pd->nExpParam > 0 )
 	{
-		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		fprintf( out, "ERROR: MathEval is not installed; expressions cannot be evaluated. MADS Quits!\n" );
-		mads_quits( op->root );
+		tprintf( "ERROR: MathEval is not installed; expressions cannot be evaluated.\n" );
+		fprintf( out, "ERROR: MathEval is not installed; expressions cannot be evaluated.\n" );
 	}
 #endif
 	if( op->cd->solution_type[0] != TEST && op->od->nTObs > 0 )
