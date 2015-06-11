@@ -427,7 +427,7 @@ void compute_btc( char *filename, struct opt_data *op );
 int load_pst( char *filename, struct opt_data *op );
 int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_t, int debug );
 int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_t, char *fn_in_d, int debug );
-int check_par_tpl( int npar, char **par_id, double *par, char *fn_in_t, int debug );
+int check_par_tpl( int npar, char **par_id, int *par, char *fn_in_t, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 //io.c
 int Ftest( char *filename );
