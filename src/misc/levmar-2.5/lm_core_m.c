@@ -337,6 +337,13 @@ int LEVMAR_DER2(
 		if( !LM_FINITE( phi_current ) ) stop = 7;
 		if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
 		else if( op->cd->lmstandalone ) tprintf( "OF %g -> ", phi_current );
+		// saving the intermediate results
+		DeTransform( par_current, op, jac_min );
+		for( i = 0; i < op->pd->nOptParam; i++ )
+			op->pd->var[op->pd->var_index[i]] = jac_min[i];
+		op->phi = phi_current;
+		save_results( 0, "", op, op->gd );
+		if( maxnfev <= nfev ) stop = 32;
 	}
 	if( op->cd->ldebug > 2 )
 	{
