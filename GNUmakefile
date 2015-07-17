@@ -150,8 +150,8 @@ CFLAGS += -I/opt/local/include
 LDLIBS += -lgfortran -lblas -L/opt/local/lib
 DYNAMICLIB = -dynamiclib -undefined suppress -flat_namespace -shared
 MADS_LIB = $(BIN)/Lib/libmads.dylib
-ifeq ($(ND),bored.lanl.gov)
-LDLIBS += 
+ifeq ($(ND),bored)
+LDLIBS += -latlas
 else ifeq ($(ND),pn1246281)
 LDLIBS += -latlas
 else ifeq ($(ND),macmonty.lanl.gov)
