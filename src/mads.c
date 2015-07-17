@@ -93,11 +93,12 @@ void set_obs_alpha( struct opt_data *od, double alpha );
 int pso_tribes( struct opt_data *op );
 int pso_std( struct opt_data *op );
 int mopso( struct opt_data *op );
-int lm_opt( int func( double x[], void *data, double f[] ), int func_dx( double *x, double *f_x, void *data, double *jacobian ), void *data,
+int lm_opt( int func( double *x, void *data, double *f, double *o ),
+		    int func_dx( double *x, double *f, double *o, void *data, double *jacobian ), void *data,
 			int nObs, int nParam, int nsig, double eps, double delta, int max_eval, int max_iter,
 			int iopt, double parm[], double x[], double *phi, double f[],
 			double jacobian[], int nian, double jacTjac[], int *infer );
-int zxssqch( int func( double x[], void *, double f[] ), void *func_data,
+int zxssqch( int func( double x, void *data, double *f ), void *func_data,
 			 int m, int n, int nsig, double eps, double delta, int maxfn,
 			 int iopt, double parm[], double x[], double *phi, double f[],
 			 double xjac[], int ixjac, double xjtj[], int *infer );
@@ -125,8 +126,8 @@ char *Fdatetime( char *filename, int debug );
 time_t Fdatetime_t( char *filename, int debug );
 int save_residuals( struct opt_data *op, int *success_all, FILE *out, FILE *out2 );
 // External IO
-int check_ins_obs( int nobs, char **obs_id, int *obs, char *fn_in_t, int debug );
-int check_par_tpl( int npar, char **par_id, int *par, char *fn_in_t, int debug );
+int check_ins_obs( int nobs, char **obs_id, int *obs_count, char *fn_in_t, int debug );
+int check_par_tpl( int npar, char **par_id, int *par_count, char *fn_in_t, int debug );
 // Random sampling
 double epsilon();
 void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x[] );
@@ -144,18 +145,6 @@ int load_xml_problem( char *filename, int argn, char *argv[], struct opt_data *o
 // Memory
 char *white_trim( char *x );
 char **char_matrix( int maxCols, int maxRows );
-// Func
-int func_extrn( double *x, void *data, double *f );
-int func_intrn( double *x, void *data, double *f );
-void func_levmar( double *x, double *f, int m, int n, void *data );
-void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data );
-int func_dx( double *x, double *f_x, void *data, double *jacobian );
-double func_solver( double x, double y, double z1, double z2, double t, void *data );
-int func_extrn_write( int ieval, double *x, void *data );
-int func_extrn_exec_serial( int ieval, void *data );
-int func_extrn_read( int ieval, void *data, double *f );
-void Transform( double *v, void *data, double *vt );
-void DeTransform( double *v, void *data, double *vt );
 // Parallel
 int mprun( int nJob, void *data );
 char *dir_hosts( void *data, char *timedate_stamp );
@@ -999,9 +988,10 @@ int main( int argn, char *argv[] )
 			int caseid;
 			bad_data = 0;
 			infile2 = Fread( cd.resultsfile );
-			double *res;
+			double *res, *obs;
 			if( ( opt_params = ( double * ) malloc( pd.nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			if( ( res = ( double * ) malloc( od.nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+			if( ( obs = ( double * ) malloc( od.nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 			sprintf( filename, "%s.phi", op.root );
 			outfile2 = Fwrite( filename );
 			for( j = 0; j < cases; j++ )
@@ -1114,7 +1104,7 @@ int main( int argn, char *argv[] )
 				// for( i = 0; i < pd.nOptParam; i++ )
 				// tprintf( "%s %g\n", pd.var_id[pd.var_index[i]], opt_params[i] );
 				Transform( opt_params, &op, opt_params );
-				func_global( opt_params, &op, res );
+				func_global( opt_params, &op, res, obs );
 				tprintf( "Rerun results:\n" );
 				tprintf( "Objective function = %g\n", op.phi );
 				tprintf( "Success = %d\n", op.success );
@@ -1148,6 +1138,7 @@ int main( int argn, char *argv[] )
 			}
 			free( opt_params );
 			free( res );
+			free( obs );
 			fclose( infile2 );
 			fclose( outfile2 );
 			predict = 0;
@@ -1209,7 +1200,7 @@ int main( int argn, char *argv[] )
 			for( i = 0; i < pd.nOptParam; i++ )
 				opt_params[i] = pd.var[pd.var_index[i]];
 			Transform( opt_params, &op, opt_params );
-			func_extrn( opt_params, &op, res );
+			func_extrn( opt_params, &op, res, NULL );
 			free( opt_params );
 			free( res );
 			for( i = 0; i < od.nTObs; i++ )
@@ -1436,7 +1427,7 @@ int optimize_pso( struct opt_data *op )
 int optimize_lm( struct opt_data *op )
 {
 	double phi, phi_min;
-	double *opt_params, *opt_params_best, *res, *x_c;
+	double *opt_params, *opt_params_best, *res, *obs, *x_c;
 	int   nsig, maxfn, maxiter, maxiter_levmar, iopt, infer, ier, debug, standalone;
 	int   i, j, k, debug_level = 0, count, count_set, nParam;
 	double opt_parm[4], *jacobian, *jacTjac, *covar, *work, eps, delta, *var_lhs;
@@ -1458,14 +1449,11 @@ int optimize_lm( struct opt_data *op )
 	gsl_matrix *gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam );
 	gsl_matrix *gsl_covar = gsl_matrix_alloc( op->pd->nOptParam, op->pd->nOptParam );
 	gsl_vector *gsl_opt_params = gsl_vector_alloc( op->pd->nOptParam );
-	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( opt_params_best = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( x_c = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
-	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL )
-	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( opt_params = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( opt_params_best = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( x_c = ( double * ) malloc( op->pd->nOptParam * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( obs = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( op->cd->lm_niter <= 0 )
 	{
 		if( op->cd->squads ) maxiter = 8;
@@ -1561,7 +1549,7 @@ int optimize_lm( struct opt_data *op )
 			tprintf( "\n-------------------- Initial state:\n" );
 			op->cd->pderiv = op->cd->oderiv = -1;
 			debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-			func_global( opt_params, op, res );
+			func_global( opt_params, op, res, obs );
 			op->cd->fdebug = debug_level;
 		}
 		// LM optimization ...
@@ -1670,13 +1658,13 @@ int optimize_lm( struct opt_data *op )
 				tprintf( "\n------------------------- Final state:\n" );
 				op->cd->pderiv = op->cd->oderiv = -1;
 				debug_level = op->cd->fdebug; op->cd->fdebug = 3;
-				func_global( opt_params, op, op->od->res ); // opt_params are already transformed
+				func_global( opt_params, op, op->od->res, op->od->obs_current ); // opt_params are already transformed
 				op->cd->fdebug = debug_level;
 			}
 			else
 			{
 				// Make a Forward run with the best results
-				func_global( opt_params, op, op->od->res ); // opt_params are already transformed
+				func_global( opt_params, op, op->od->res, op->od->obs_current ); // opt_params are already transformed
 			}
 			DeTransform( opt_params, op, x_c );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1727,7 +1715,7 @@ int optimize_lm( struct opt_data *op )
 		if( debug > 5 )
 		{
 			Transform( opt_params_best, op, opt_params );
-			func_global( opt_params, op, op->od->res );
+			func_global( opt_params, op, op->od->res, op->od->obs_current );
 		}
 		else
 			for( i = 0; i < op->od->nTObs; i++ )
@@ -1738,7 +1726,7 @@ int optimize_lm( struct opt_data *op )
 			return( 0 );
 	if( !debug && standalone && op->cd->analysis_type == SIMPLE ) tprintf( "\n" );
 	if( op->cd->paranoid ) free( var_lhs );
-	free( opt_params ); free( opt_params_best ); free( x_c ); free( res );
+	free( opt_params ); free( opt_params_best ); free( x_c ); free( res ); free( obs );
 	gsl_matrix_free( gsl_jacobian ); gsl_matrix_free( gsl_covar ); gsl_vector_free( gsl_opt_params );
 	return( 1 );
 }
@@ -1788,7 +1776,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 			tprintf( "Analyzed state:\n" );
 			debug_level = op->cd->fdebug; op->cd->fdebug = 3;
 		}
-		func_global( opt_params, op, op->od->res );
+		func_global( opt_params, op, op->od->res, op->od->obs_current );
 		for( j = 0; j < op->od->nTObs; j++ )
 			f_x[j] = op->od->res[j];
 		phi = op->phi;
@@ -1808,7 +1796,7 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		gsl_vector_free( op->od->obs_current_gsl );
 		gsl_vector_free( op->pd->var_current_gsl ); */
 		// func_gsl_dx( gsl_opt_params, op, gsl_jacobian ); // Compute Jacobian using forward difference
-		func_dx( opt_params, f_x, op, jacobian ); // Compute Jacobian using forward difference
+		func_dx( opt_params, f_x, NULL, op, jacobian ); // Compute Jacobian using forward difference
 		for( k = i = 0; i < op->pd->nOptParam; i++ )
 			for( j = 0; j < op->od->nTObs; j++, k++ )
 				gsl_matrix_set( gsl_jacobian, j, i, jacobian[k] );
@@ -2324,7 +2312,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 			for( i = 0; i < op->pd->nParam; i++ )
 				op->pd->var[i] = var_lhs[i + count * npar] * ( op->pd->var_init_max[i] - op->pd->var_init_min[i] ) + op->pd->var_init_min[i];
 			if( op->cd->mdebug ) { tprintf( "Forward run ... \n" ); debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-			func_global( op->pd->var, op, op->od->res ); // op->pd->var is a dummy variable because op->pd->nOptParam == 0
+			func_global( op->pd->var, op, op->od->res, op->od->obs_current ); // op->pd->var is a dummy variable because op->pd->nOptParam == 0
 			if( op->cd->mdebug ) op->cd->fdebug = debug_level;
 		}
 		if( op->cd->debug > 1 )
@@ -2408,7 +2396,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 		tprintf( "Repeat the run producing the best results ...\n" );
 		if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 1; }
 		Transform( opt_params, op, opt_params );
-		func_global( opt_params, op, op->od->res );
+		func_global( opt_params, op, op->od->res, op->od->obs_current );
 		if( op->cd->debug ) op->cd->fdebug = debug_level;
 	}
 	else
@@ -2575,7 +2563,7 @@ int igpd( struct opt_data *op )
 			{
 				tprintf( "Forward run ... \n" );
 				if( op->cd->debug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-				func_global( op->pd->var, op, op->od->res ); // op->pd->var is dummy because op->pd->nOptParam == 0
+				func_global( op->pd->var, op, op->od->res, op->od->obs_current ); // op->pd->var is dummy because op->pd->nOptParam == 0
 				if( op->cd->debug > 1 ) op->cd->fdebug = debug_level;
 			}
 			neval_total += op->cd->neval;
@@ -2635,7 +2623,7 @@ int igpd( struct opt_data *op )
 	tprintf( "Repeat the run producing the best results ...\n" );
 	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 	Transform( opt_params, op, opt_params );
-	func_global( opt_params, op, op->od->res );
+	func_global( opt_params, op, op->od->res, op->od->obs_current );
 	if( op->cd->debug ) op->cd->fdebug = debug_level;
 	print_results( op, 1 );
 	fprintf( out, "Minimum objective function: %g\n", phi_min );
@@ -2789,7 +2777,7 @@ int ppsd( struct opt_data *op )
 			{
 				tprintf( "Forward run ... \n" );
 				if( op->cd->debug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-				func_global( op->pd->var, op, op->od->res ); // op->pd->var is dummy because op->pd->nOptParam == 0
+				func_global( op->pd->var, op, op->od->res, op->od->obs_current ); // op->pd->var is dummy because op->pd->nOptParam == 0
 				if( op->cd->debug > 1 ) op->cd->fdebug = debug_level;
 			}
 			if( op->phi < op->cd->phi_cutoff ) phi_global++;
@@ -2991,7 +2979,7 @@ int montecarlo( struct opt_data *op )
 			if( op->cd->mdebug ) tprintf( "\n" );
 			tprintf( "Model results #%d: ", op->counter );
 			bad_data = 0;
-			bad_data = func_extrn_read( count + 1, op, op->od->res );
+			bad_data = func_extrn_read( count + 1, op, op->od->res, NULL );
 			if( bad_data ) return( 0 );
 			if( ( op->cd->check_success && op->success ) || op->phi < op->cd->phi_cutoff ) success_all = 1;
 			else success_all = 0;
@@ -3041,7 +3029,7 @@ int montecarlo( struct opt_data *op )
 			}
 			if( op->cd->mdebug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 			Transform( opt_params, op, opt_params );
-			func_global( opt_params, op, op->od->res );
+			func_global( opt_params, op, op->od->res, op->od->obs_current );
 			if( ( op->cd->check_success && op->success ) || op->phi < op->cd->phi_cutoff ) success_all = 1;
 			else success_all = 0;
 			if( op->cd->mdebug ) op->cd->fdebug = debug_level;
@@ -3097,7 +3085,7 @@ int montecarlo( struct opt_data *op )
 	tprintf( "Repeat the run producing the best results ...\n" );
 	if( op->cd->debug ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
 	Transform( opt_params, op, opt_params );
-	func_global( opt_params, op, op->od->res );
+	func_global( opt_params, op, op->od->res, op->od->obs_current );
 	if( op->cd->debug ) op->cd->fdebug = debug_level;
 	print_results( op, 1 );
 	tprintf( "Results are saved in %s.mcrnd.results\n", op->root );

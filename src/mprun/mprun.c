@@ -52,7 +52,7 @@ void free_matrix( void **matrix, int maxCols );
 char *timestamp();
 int func_extrn_check_read( int ieval, void *data );
 
-int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] )
+int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[], double *o[] ) // Write and execute all the files in parallel; Reading does not work
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	struct sigaction act;

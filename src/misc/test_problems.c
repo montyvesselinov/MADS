@@ -467,7 +467,7 @@ double test_problems( int D, int function, double *x, int nObs, double *o )
 		{
 			float a, b;
 			f = 1;
-			for( d = 0; d < D; d++ )
+			for( d = 0; d < 8; d++ )
 			{
 				a = ( d < 2 ? 0 : 3 );
 				b = ( fabs( 4 * ( x[d] + .5 ) - 2 ) + a ) / ( 1 + a );

@@ -41,21 +41,20 @@
 #define MAX(X,Y) ( ((X) > (Y)) ? (X) : (Y) )
 
 /* Functions here */
-int func_extrn( double *x, void *data, double *f );
+int func_extrn( double *x, void *data, double *f, double *o );
 int func_extrn_write( int ieval, double *x, void *data );
-int func_extrn_read( int ieval, void *data, double *f );
+int func_extrn_read( int ieval, void *data, double *f, double *o );
 int func_extrn_check_read( int ieval, void *data );
-int func_intrn( double *x, void *data, double *f );
-void func_levmar( double *x, double *f, int m, int n, void *data );
-void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data ); // Jacobian order: obs / param
-int func_dx( double *x, double *f_x, void *data, double *jacobian ); // Jacobian order: param / obs
-int func_dx_set( double *x, double *f_x, void *data, double *jacobian );
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
-int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
+int func_intrn( double *x, void *data, double *f, double *o );
+void func_levmar( double *x, double *f, double *o, int m, int n, void *data );
+void func_dx_levmar( double *x, double *f, double *o, double *jacobian, int m, int n, void *data ); // Jacobian order: obs / param
+int func_dx( double *x, double *f, double *o, void *data, double *jacobian ); // Jacobian order: param / obs
+int func_dx_set( double *x, double *f, double *o, void *data, double *jacobian );
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], double *o[], FILE *out, struct opt_data *op );
+int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], double *o[], FILE *out, struct opt_data *op );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
-void Transform( double *v, void *data, double *vt );
-void DeTransform( double *v, void *data, double *vt );
+
 /* Functions elsewhere */
 void Transform( double *v, void *data, double *vt );
 void DeTransform( double *v, void *data, double *vt );
@@ -74,11 +73,11 @@ double box_source_sym_levy_dispersion( double x, double y, double z, double t, v
 int create_mprun_dir( char *dir );
 int delete_mprun_dir( char *dir );
 int mprun( int nJob, void *data );
-int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[] );
+int mprunall( int nJob, void *data, double *var_mat[], double *phi, double *f[], double *o[] ); // Write and execute all the files in parallel; Reading does not work
 int Ftestread( char *filename );
 time_t Fdatetime_t( char *filename, int debug );
 
-int func_extrn( double *x, void *data, double *f )
+int func_extrn( double *x, void *data, double *f, double *o )
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000];
@@ -92,7 +91,7 @@ int func_extrn( double *x, void *data, double *f )
 			tprintf( "ERROR: there is a problem with the parallel execution!\n" );
 			mads_quits( p->root );
 		}
-		bad_data = func_extrn_read( p->cd->neval, data, f ); // p->cd->eval was already incremented in mprun
+		bad_data = func_extrn_read( p->cd->neval, data, f, o ); // p->cd->eval was already incremented in mprun
 		if( bad_data ) mads_quits( p->root );
 		return GSL_SUCCESS; // DONE
 	}
@@ -196,7 +195,8 @@ int func_extrn( double *x, void *data, double *f )
 	if( p->cd->fdebug >= 2 ) tprintf( "\nModel predictions:\n" );
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
-		c = p->od->obs_current[i];
+		c  = p->od->obs_current[i];
+		if( o != NULL ) o[i] = c;
 		t = p->od->obs_target[i];
 		w = p->od->obs_weight[i];
 		min = p->od->obs_min[i];
@@ -435,7 +435,7 @@ int func_extrn_check_read( int ieval, void *data ) // Check a series of output f
 	return( 1 );
 }
 
-int func_extrn_read( int ieval, void *data, double *f ) // Read a series of output files after parallel execution
+int func_extrn_read( int ieval, void *data, double *f, double *o ) // Read a series of output files after parallel execution
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	char buf[1000], dir[500];
@@ -543,6 +543,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	for( i = 0; i < p->od->nTObs; i++ )
 	{
 		c = f[i];
+		if( o != NULL ) o[i] = c;
 		p->od->obs_current[i] = c;
 		t = p->od->obs_target[i];
 		w = p->od->obs_weight[i];
@@ -621,7 +622,7 @@ int func_extrn_read( int ieval, void *data, double *f ) // Read a series of outp
 	return GSL_SUCCESS;
 }
 
-int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
+int func_intrn( double *x, void *data, double *f, double *o ) /* forward run for LM */
 {
 	int i, j, k, p1, p2, l, s, success, success_all = 1;
 	double c = 0, t, w, min, max, c1, c2, err, phi, dx, dy, dz, x1, y1, z1, dist;
@@ -897,6 +898,7 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 				else c = ( c1 + c2 ) / 2;
 			}
 			p->od->obs_current[k] = c;
+			if( o != NULL ) o[k] = c;
 			t = p->od->obs_target[k];
 			w = p->od->obs_weight[k];
 			min = p->od->obs_min[k];
@@ -980,28 +982,28 @@ int func_intrn( double *x, void *data, double *f ) /* forward run for LM */
 	return GSL_SUCCESS;
 }
 
-void func_levmar( double *x, double *f, int m, int n, void *data ) /* forward run for LevMar */
+void func_levmar( double *x, double *f, double *o, int m, int n, void *data ) /* forward run for LevMar */
 {
-	func_global( x, data, f );
+	func_global( x, data, f, o );
 }
 
-void func_dx_levmar( double *x, double *f, double *jac, int m, int n, void *data ) /* forward run for LevMar */
+void func_dx_levmar( double *x, double *f, double *o, double *jac, int m, int n, void *data ) /* forward run for LevMar */
 {
 	struct opt_data *p = ( struct opt_data * ) data;
 	double *jacobian;
 	int i, j, k;
 	if( ( jacobian = ( double * ) malloc( sizeof( double ) * p->pd->nOptParam * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); mads_quits( p->root ); }
 	if( p->cd->omp || p->cd->posix )
-		func_dx_set( x, f, data, jacobian );
+		func_dx_set( x, f, o, data, jacobian );
 	else
-		func_dx( x, f, data, jacobian );
+		func_dx( x, f, o, data, jacobian );
 	for( k = j = 0; j < p->pd->nOptParam; j++ ) // LEVMAR is using different jacobian order
 		for( i = 0; i < p->od->nTObs; i++, k++ )
 			jac[i * p->pd->nOptParam + j] = jacobian[k]; // order: obs / param
 	free( jacobian );
 }
 
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], double *o[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
 	int count;
 	time_t time_start, time_end, time_elapsed;
@@ -1010,7 +1012,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 	{
 		tprintf( "POSIX/MPRUN Parallel writing and execution of all external jobs ...\n" );
 		time_start = time( NULL );
-		if( mprunall( n_sub, op, var_mat, phi, f ) < 0 ) // Read all the files in parallel
+		if( mprunall( n_sub, op, var_mat, phi, f, o ) < 0 ) // Write and execute all the files in parallel; Reading does not work
 		{
 			tprintf( "ERROR: there is a problem with the MPRUNALL parallel execution!\n" );
 			return( 0 );
@@ -1023,10 +1025,11 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Read all the files in serial
 		{
-			double *opt_res;
+			double *opt_res, *opt_o;
 			if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
+			if( ( opt_o = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 			if( op->cd->pardebug ) tprintf( "OpenMP reading the model output files for case %d ...\n", ieval + count + 1 );
-			if( func_extrn_read( ieval + count + 1, op, opt_res ) )
+			if( func_extrn_read( ieval + count + 1, op, opt_res, opt_o ) )
 				read_error = 1;
 			else
 			{
@@ -1036,12 +1039,15 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 					int j;
 					for( j = 0; j < op->od->nTObs; j++ )
 					{
+						o[count][j] = opt_o[j];
 						f[count][j] = opt_res[j];
 						lphi += opt_res[j] * opt_res[j];
 					}
 					if( phi != NULL ) phi[count] = lphi;
 				}
 			}
+			free( opt_res );
+			free( opt_o );
 		}
 		if( read_error == 1 ) return( 0 );
 		time_end = time( NULL );
@@ -1050,7 +1056,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		return( 1 );
 	}
 	if( op->cd->solution_type[0] == EXTERNAL && !op->cd->posix && op->cd->omp ) // Pure OpenMP Parallel job
-		return( func_set_omp( n_sub, var_mat, phi, f, out, op ) );
+		return( func_set_omp( n_sub, var_mat, phi, f, o, out, op ) );
 	if( op->cd->solution_type[0] == EXTERNAL && op->cd->parallel_type ) // Parallel job; potentially mix of OpenMP and POSIX threads
 	{
 		tprintf( "MPRUN Parallel execution of external jobs ...\n" );
@@ -1133,8 +1139,9 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 		#pragma omp parallel for private(count)
 		for( count = 0; count < n_sub; count++ ) // Read all the files in serial
 		{
-			double *opt_res;
+			double *opt_res, *opt_o;
 			if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
+			if( ( opt_o = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 			if( op->cd->debug > 1 || op->cd->mdebug ) tprintf( "Reading all the model output files ...\n" );
 			if( out != NULL )
 			{
@@ -1148,7 +1155,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 				}
 				fflush( out );
 			}
-			if( func_extrn_read( ieval + count + 1, op, opt_res ) )
+			if( func_extrn_read( ieval + count + 1, op, opt_res, opt_o ) )
 				read_error = 1;
 			else
 			{
@@ -1158,12 +1165,15 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 					int j;
 					for( j = 0; j < op->od->nTObs; j++ )
 					{
+						o[count][j] = opt_o[j];
 						f[count][j] = opt_res[j];
 						lphi += opt_res[j] * opt_res[j];
 					}
 					if( phi != NULL ) phi[count] = lphi;
 				}
 			}
+			free( opt_res );
+			free( opt_o );
 		}
 		if( read_error == 1 ) return( 0 );
 		time_end = time( NULL );
@@ -1185,12 +1195,15 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 			}
 			int debug_level = 0;
 			if( op->cd->mdebug > 1 ) { debug_level = op->cd->fdebug; op->cd->fdebug = 3; }
-			func_global( opt_params, op, op->od->res );
+			func_global( opt_params, op, op->od->res, op->od->obs_current );
 			if( op->cd->mdebug > 1 ) op->cd->fdebug = debug_level;
 			if( phi != NULL ) phi[count] = op->phi;
 			if( f != NULL )
 				for( j = 0; j < op->od->nTObs; j++ )
+				{
 					f[count][j] = op->od->res[j];
+					o[count][j] = op->od->obs_current[j];
+				}
 			if( op->cd->mdebug > 1 && out != NULL )
 			{
 				// save to results file
@@ -1208,7 +1221,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 	return( 1 );
 }
 
-int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
+int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], double *o[], FILE *out, struct opt_data *op ) // TODO use this function for executions in general
 {
 	int count, bad_data = 0;
 	time_t time_start, time_end, time_elapsed;
@@ -1223,8 +1236,9 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 		int done = 0;
 		if( out != NULL ) fprintf( out, "%d : ", count + 1 ); // counter
 		if( op->cd->mdebug ) tprintf( "\nSet #%d: ", count + 1 );
-		double *opt_res;
+		double *opt_res, *opt_o;
 		if( ( opt_res = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
+		if( ( opt_o = ( double * ) malloc( op->od->nTObs * sizeof( double ) ) ) == NULL ) tprintf( "Not enough memory!\n" );
 		if( op->cd->restart ) // Check for already computed jobs (smart restart)
 		{
 			done = func_extrn_check_read( ieval + count + 1, op );
@@ -1296,7 +1310,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 		}
 		if( done != 2 )
 		{
-			if( func_extrn_read( ieval + count + 1, op, opt_res ) )
+			if( func_extrn_read( ieval + count + 1, op, opt_res, opt_o ) )
 				bad_data = 1;
 		}
 		if( bad_data == 0 && f != NULL )
@@ -1304,12 +1318,14 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 			double lphi = 0;
 			for( j = 0; j < op->od->nTObs; j++ )
 			{
+				o[count][j] = opt_o[j];
 				f[count][j] = opt_res[j];
 				lphi += opt_res[j] * opt_res[j];
 			}
 			if( phi != NULL ) phi[count] = lphi;
 		}
 		free( opt_res );
+		free( opt_o );
 	}
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
@@ -1320,7 +1336,7 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], FILE *
 }
 
 
-int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
+int func_dx( double *x, double *f, double *o, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
 {
 	struct opt_data *p = ( struct opt_data * )data;
 	double *f_xpdx;
@@ -1333,10 +1349,11 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	{
 		time_start = time( NULL );
 		ieval = p->cd->neval;
-		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
+		if( f == NULL ) // Model predictions for x are not provided; need to compute
 		{
 			compute_center = 1;
-			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
+			if( ( f = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
+			if( ( o = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 			func_extrn_write( ++ieval, x, data );
 		}
 		else if( p->cd->compute_center ) // Model predictions have to be compute
@@ -1369,15 +1386,15 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 		system( "sleep 0" ); // TODO investigate how much sleep is needed
 		ieval -= ( p->pd->nOptParam + compute_center );
 		time_start = time_end;
-		if( compute_center ) func_extrn_read( ++ieval, data, f_x );
+		if( compute_center ) func_extrn_read( ++ieval, data, f, o );
 		if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
 		{
-			bad_data = func_extrn_read( ++ieval, data, f_xpdx );
+			bad_data = func_extrn_read( ++ieval, data, f_xpdx, NULL );
 			if( bad_data ) mads_quits( p->root );
 			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
-			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
+			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f[i] ) / dx;
 		}
 		free( f_xpdx );
 		time_end = time( NULL );
@@ -1386,17 +1403,17 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 	}
 	else
 	{
-		if( f_x == NULL ) // Model predictions for x are not provided; need to compute
+		if( f == NULL ) // Model predictions for x are not provided; need to compute
 		{
 			compute_center = 1;
-			if( ( f_x = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL )
-			{ tprintf( "Not enough memory!\n" ); return( 1 ); }
-			func_global( x, data, f_x );
+			if( ( f = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
+			if( ( o = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
+			func_global( x, data, f, o );
 		}
 		else if( p->cd->compute_center )
 		{
 			compute_center = 2;
-			func_global( x, data, f_x );
+			func_global( x, data, f, o );
 		}
 		if( ( f_xpdx = ( double * ) malloc( sizeof( double ) * p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 1 ); }
 		for( k = j = 0; j < p->pd->nOptParam; j++ )
@@ -1405,21 +1422,21 @@ int func_dx( double *x, double *f_x, void *data, double *jacobian ) /* Compute J
 			if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 			else dx = p->cd->sindx;
 			x[j] += dx;
-			func_global( x, data, f_xpdx );
+			func_global( x, data, f_xpdx, o );
 			x[j] = x_old;
-			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f_x[i] ) / dx;
+			for( i = 0; i < p->od->nTObs; i++, k++ ) jacobian[k] = ( f_xpdx[i] - f[i] ) / dx;
 		}
 		free( f_xpdx );
+		if( compute_center && !p->cd->compute_center ) { free( f ); free( o ); }
 	}
-	if( compute_center && !p->cd->compute_center ) free( f_x );
 	p->cd->compute_phi = old_phi;
 	return GSL_SUCCESS;
 }
 
-int func_dx_set( double *x, double *f_x, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
+int func_dx_set( double *x, double *f, double *o, void *data, double *jacobian ) /* Compute Jacobian using forward numerical derivatives */
 {
 	struct opt_data *p = ( struct opt_data * )data;
-	double **par_mat, **obs_mat;
+	double **par_mat, **obs_mat, **o_mat;
 	double x_old, dx;
 	time_t time_start, time_end, time_elapsed;
 	int i, j, k, old_phi, compute_center = 0, ieval;
@@ -1427,9 +1444,10 @@ int func_dx_set( double *x, double *f_x, void *data, double *jacobian ) /* Compu
 	old_phi = p->cd->compute_phi;
 	p->cd->compute_phi = 0;
 	ieval = p->cd->neval;
-	if( f_x == NULL || p->cd->compute_center ) compute_center = 1; // Model predictions for x are not provided; need to compute
+	if( f == NULL || p->cd->compute_center ) compute_center = 1; // Model predictions for x are not provided; need to compute
 	if( ( par_mat = double_matrix( p->pd->nOptParam + compute_center, p->pd->nOptParam ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( ( obs_mat = double_matrix( p->pd->nOptParam + compute_center, p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+	if( ( o_mat = double_matrix( p->pd->nOptParam + compute_center, p->od->nTObs ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 	if( compute_center )
 	{
 		for( k = 0; k < p->pd->nOptParam; k++ )
@@ -1454,14 +1472,17 @@ int func_dx_set( double *x, double *f_x, void *data, double *jacobian ) /* Compu
 	}
 	*/
 	time_start = time( NULL );
-	func_set( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, NULL, p );
+	func_set( p->pd->nOptParam + compute_center, par_mat, NULL, obs_mat, o_mat, NULL, p );
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
 	if( p->cd->tdebug ) tprintf( "Parallel jacobian execution PT = %ld seconds\n", time_elapsed );
 	if( p->cd->compute_center )
 		for( i = 0; i < p->od->nTObs; i++ )
-			f_x[i] = obs_mat[0][i];
-	else if( f_x == NULL ) f_x = obs_mat[0];
+		{
+			f[i] = obs_mat[0][i];
+			o[i] = o_mat[0][i];
+		}
+	else if( f == NULL ) f = obs_mat[0];
 	ieval -= ( p->pd->nOptParam + compute_center );
 	time_start = time_end;
 	for( k = 0, j = compute_center; j < ( compute_center + p->pd->nOptParam ); j++ )
@@ -1469,13 +1490,14 @@ int func_dx_set( double *x, double *f_x, void *data, double *jacobian ) /* Compu
 		if( p->cd->sintrans == 0 ) { if( p->pd->var_dx[j] > DBL_EPSILON ) dx = p->pd->var_dx[j]; else dx = p->cd->lindx; }
 		else dx = p->cd->sindx;
 		for( i = 0; i < p->od->nTObs; i++, k++ )
-			jacobian[k] = ( obs_mat[j][i] - f_x[i] ) / dx;
+			jacobian[k] = ( obs_mat[j][i] - f[i] ) / dx;
 	}
 	time_end = time( NULL );
 	time_elapsed = time_end - time_start;
 	if( p->cd->tdebug ) tprintf( "Parallel jacobian reading PT = %ld seconds\n", time_elapsed );
 	free_matrix( ( void ** ) par_mat, compute_center + p->pd->nOptParam );
 	free_matrix( ( void ** ) obs_mat, compute_center + p->pd->nOptParam );
+	free_matrix( ( void ** ) o_mat, compute_center + p->pd->nOptParam );
 	p->cd->compute_phi = old_phi;
 	return GSL_SUCCESS;
 }

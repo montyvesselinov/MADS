@@ -58,7 +58,7 @@ enum AQUIFER_PARAM_TAGS { POROSITY = NUM_ANAL_PARAMS_SOURCE, RF, LAMBDA, FLOW_AN
 #define BASH "/usr/bin/env bash -c"
 #define QUIET " > /dev/null 2>&1"
 
-int (*func_global)( double *x, void *data, double *f ); // global pointer to the model evaluation func (external or internal)
+int (*func_global)( double *x, void *data, double *f, double *o ); // global pointer to the model evaluation func (external or internal)
 void tprintf( char const *fmt, ... );
 char version_id[80];
 extern const char *gitversion;
@@ -394,19 +394,20 @@ char *timestamp(); // create time stamp
 char *datestamp(); // create date stamp
 void mads_quits( char *root );
 // mads_func.c
-int func_extrn( double *x, void *data, double *f );
+int func_extrn( double *x, void *data, double *f, double *o );
 int func_extrn_write( int ieval, double *x, void *data );
-int func_extrn_read( int ieval, void *data, double *f );
+int func_extrn_read( int ieval, void *data, double *f, double *o );
 int func_extrn_check_read( int ieval, void *data );
-int func_extrn_r( double *x, void *data, double *f );
-int func_intrn( double *x, void *data, double *f );
-void func_levmar( double *x, double *f, int m, int n, void *data );
-void func_dx_levmar( double *x, double *f, double *jacobian, int m, int n, void *data );
-int func_dx( double *x, double *f_x, void *data, double *jacobian );
+int func_extrn_r( double *x, void *data, double *f, double *o );
+int func_intrn( double *x, void *data, double *f, double *o );
+void func_levmar( double *x, double *f, double *o, int m, int n, void *data );
+void func_dx_levmar( double *x, double *f, double *o, double *jacobian, int m, int n, void *data );
+int func_dx( double *x, double *f, double *o, void *data, double *jacobian );
 double func_solver( double x, double y, double z1, double z2, double t, void *data );
 double func_solver1( double x, double y, double z, double t, void *data );
 void Transform( double *v, void *data, double *vt );
 void DeTransform( double *v, void *data, double *vt );
+int func_extrn_exec_serial( int ieval, void *data );
 // mads_mem.c
 char **char_matrix( int maxCols, int maxRows );
 float **float_matrix( int maxCols, int maxRows );
@@ -425,9 +426,9 @@ void compute_btc2( char *filename, char *filename2, struct opt_data *op );
 void compute_btc( char *filename, struct opt_data *op );
 // mads_io_external.c
 int load_pst( char *filename, struct opt_data *op );
-int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_t, int debug );
+int check_ins_obs( int nobs, char **obs_id, int *obs_count, char *fn_in_t, int debug );
 int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_t, char *fn_in_d, int debug );
-int check_par_tpl( int npar, char **par_id, int *par, char *fn_in_t, int debug );
+int check_par_tpl( int npar, char **par_id, int *par_count, char *fn_in_t, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 //io.c
 int Ftest( char *filename );

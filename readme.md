@@ -265,6 +265,7 @@ Examples:
 *  mads a01 test=2 opt=squads igrnd real=1
 *  mads a01 test=2 abagus cutoff=0.1 eval=100000 (collect solutions of Griewank function below phi cutoff)
 *  mads a01 test=3 abagus cutoff=20 eval=100000  (collect solutions of Rosenbrock function below phi cutoff)
+*  mads a01 test=111 gsens dim=8 real=10000 smp=lhs pardomain=0.5 seed=15176048200 (Sobol's global sensitivity analysis)
 *  mads examples/contamination/s01 ldebug lmeigen (file s01.mads is located in examples/contamination)
 *  mads examples/contamination/s01 ldebug lmeigen igrnd real=1
 *  mads examples/contamination/s01 seed=1549170842 obsrange igrnd real=1
