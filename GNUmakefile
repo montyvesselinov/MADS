@@ -88,7 +88,7 @@ endif
 # OS type
 OS = $(shell uname -s)
 # MACHINE name
-ND = $(shell uname -n)
+ND = $(shell echo $$HOSTNAME)
 
 # Compilation setup
 $(info MADS computationlal framework)
@@ -118,7 +118,7 @@ LDLIBS = -lgfortran -lgsl -llapack -lstdc++ -L/home/vvv/local/lib -lgslcblas -lg
 else ifeq ($(ND),madsmax)
 $(info Machine -- MadsMax)
 CFLAGS += -Wno-unused-result
-else ifeq ($(ND),sumdsy-madsmen)
+else ifeq ($(ND),madsmen)
 $(info Machine -- MadsMen)
 CFLAGS += -Wno-unused-result
 else ifeq ($(ND),well.lanl.gov)
@@ -134,8 +134,8 @@ $(info Machine -- turquoise)
 CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
 LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github/tpls/lib
 else
-CFLAGS += -I$(MADS_DIR)/tpls/include
-LDLIBS += -lgfortran -L$(MADS_DIR)/tpls/lib -Wl,--rpath,$(MADS_DIR)/tpls/lib
+#CFLAGS += -I$(MADS_DIR)/tpls/include
+#LDLIBS += -lgfortran -L$(MADS_DIR)/tpls/lib -Wl,--rpath,$(MADS_DIR)/tpls/lib
 endif
 else #----------------------------------------------------
 ifeq ($(OS),Cygwin)
