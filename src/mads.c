@@ -94,7 +94,7 @@ int pso_tribes( struct opt_data *op );
 int pso_std( struct opt_data *op );
 int mopso( struct opt_data *op );
 int lm_opt( int func( double *x, void *data, double *f, double *o ),
-		    int func_dx( double *x, double *f, double *o, void *data, double *jacobian ), void *data,
+			int func_dx( double *x, double *f, double *o, void *data, double *jacobian ), void *data,
 			int nObs, int nParam, int nsig, double eps, double delta, int max_eval, int max_iter,
 			int iopt, double parm[], double x[], double *phi, double f[],
 			double jacobian[], int nian, double jacTjac[], int *infer );
@@ -2028,13 +2028,13 @@ int eigen( struct opt_data *op, double *f_x, gsl_matrix *gsl_jacobian, gsl_matri
 		{
 			tprintf( "Determinant of observation weight matrix               : %-15g ( ln(det W) = %g )\n", exp( ln_det_weight ) , ln_det_weight );
 			tprintf( "Determinant of covariance matrix of measurement errors : %-15g ( ln(det V) = %g )\n", exp( ln_det_v ), ln_det_v );
-			tprintf( "\nLog likelihood function             : %g\n", -sml / 2 );
-			tprintf( "Maximum likelihood                  : %g\n", sml );
-			tprintf( "AIC (Akaike information criterion)  : %g\n", aic );
-			tprintf( "BIC                                 : %g\n", bic );
-			tprintf( "CIC                                 : %g\n", cic );
+			tprintf( "\nLog likelihood function                          : %g\n", -sml / 2 );
+			tprintf( "Maximum likelihood                               : %g\n", sml );
+			tprintf( "AIC  (Akaike Information Criterion)              : %g\n", aic );
+			tprintf( "AICc (Akaike Information Criterion + correction) : %g\n", cic );
+			tprintf( "BIC  (Bayesian Information Criterion)            : %g\n", bic );
 			if( error_stddev == 0 )
-				tprintf( "KIC (Kashyap Information Criterion) : %g\n", kic );
+				tprintf( "KIC  (Kashyap Information Criterion)             : %g\n", kic );
 		}
 	}
 	if( dof <= 0 ) tt = 1;

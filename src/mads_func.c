@@ -1039,9 +1039,9 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], double *o[
 					int j;
 					for( j = 0; j < op->od->nTObs; j++ )
 					{
-						o[count][j] = opt_o[j];
 						f[count][j] = opt_res[j];
 						lphi += opt_res[j] * opt_res[j];
+						if( o != NULL ) o[count][j] = opt_o[j];
 					}
 					if( phi != NULL ) phi[count] = lphi;
 				}
@@ -1165,9 +1165,9 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], double *o[
 					int j;
 					for( j = 0; j < op->od->nTObs; j++ )
 					{
-						o[count][j] = opt_o[j];
 						f[count][j] = opt_res[j];
 						lphi += opt_res[j] * opt_res[j];
+						if( o != NULL ) o[count][j] = opt_o[j];
 					}
 					if( phi != NULL ) phi[count] = lphi;
 				}
@@ -1202,7 +1202,7 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], double *o[
 				for( j = 0; j < op->od->nTObs; j++ )
 				{
 					f[count][j] = op->od->res[j];
-					o[count][j] = op->od->obs_current[j];
+					if( o != NULL ) o[count][j] = op->od->obs_current[j];
 				}
 			if( op->cd->mdebug > 1 && out != NULL )
 			{
@@ -1318,9 +1318,9 @@ int func_set_omp( int n_sub, double *var_mat[], double *phi, double *f[], double
 			double lphi = 0;
 			for( j = 0; j < op->od->nTObs; j++ )
 			{
-				o[count][j] = opt_o[j];
 				f[count][j] = opt_res[j];
 				lphi += opt_res[j] * opt_res[j];
+				if( o != NULL ) o[count][j] = opt_o[j];
 			}
 			if( phi != NULL ) phi[count] = lphi;
 		}
@@ -1480,7 +1480,7 @@ int func_dx_set( double *x, double *f, double *o, void *data, double *jacobian )
 		for( i = 0; i < p->od->nTObs; i++ )
 		{
 			f[i] = obs_mat[0][i];
-			o[i] = o_mat[0][i];
+			if( o != NULL ) o[i] = o_mat[0][i];
 		}
 	else if( f == NULL ) f = obs_mat[0];
 	ieval -= ( p->pd->nOptParam + compute_center );

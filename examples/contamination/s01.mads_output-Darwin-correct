@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.313c50b) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.fab1bdd) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -40,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070147
+Execution date & time stamp: 20150718-102844
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -387,12 +387,12 @@ Determinant of covariance matrix of observation errors : 4.13453e-11     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 6.10077e-44     ( ln(det V) = -99.5053 )
 
-Log likelihood function             : 26.8739
-Maximum likelihood                  : -53.7478
-AIC (Akaike information criterion)  : -31.7478
-BIC                                 : -20.7947
-CIC                                 : -29.6096
-KIC (Kashyap Information Criterion) : -17.1023
+Log likelihood function                          : 26.8739
+Maximum likelihood                               : -53.7478
+AIC  (Akaike Information Criterion)              : -31.7478
+AICc (Akaike Information Criterion + correction) : -29.6096
+BIC  (Bayesian Information Criterion)            : -20.7947
+KIC  (Kashyap Information Criterion)             : -17.1023
 
 Obtained fit is relatively good (chi^2/dof = 0.000117869 < 200)
 Optimized model parameters:
@@ -459,10 +459,11 @@ Objective function: 0.00106082 Success: 1 (1)
 
 Model predictions for not calibration targets:
 W-14c     (  50):          10 -      165.171 =     -155.171 success 0 range            0 -           20
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Mar 26 07:01:47 2015
-Execution completed on Thu Mar 26 07:01:47 2015
-Execution date & time stamp: 20150326-070147
+Functional evaluations per second = 111
+Execution  started  on Sat Jul 18 10:28:44 2015
+Execution completed on Sat Jul 18 10:28:45 2015
+Execution date & time stamp: 20150718-102844

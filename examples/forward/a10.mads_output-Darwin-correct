@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.3b99c9e+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.fab1bdd) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -54,7 +54,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150515-133941
+Execution date & time stamp: 20150718-102620
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -219,12 +219,12 @@ Determinant of covariance matrix of observation errors : 8.1363e-55      ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 1.04145e-29     ( ln(det V) = -66.7344 )
 
-Log likelihood function             : -2872.96
-Maximum likelihood                  : 5745.91
-AIC (Akaike information criterion)  : 5755.91
-BIC                                 : 5784.04
-CIC                                 : 5766.23
-KIC (Kashyap Information Criterion) : 5899.4
+Log likelihood function                          : -2872.96
+Maximum likelihood                               : 5745.91
+AIC  (Akaike Information Criterion)              : 5755.91
+AICc (Akaike Information Criterion + correction) : 5766.23
+BIC  (Bayesian Information Criterion)            : 5784.04
+KIC  (Kashyap Information Criterion)             : 5899.4
 
 Obtained fit is relatively good (chi^2/dof = 1.59782e-06 < 200)
 Optimized model parameters:
@@ -2367,11 +2367,11 @@ Compute spatial distribution of predictions at t = 50 ...
   0.02   0.06    0.1    0.3    0.6      1      2      3      5      8  1e+01  1e+01  2e+01  2e+01  2e+01 
 Max Conc = 151.162 @ (2200,1450,0)
 Spatial concentration data saved in a10.vtk.
-Simulation time = 2 seconds
+Simulation time = 1 seconds
 Functional evaluations = 39
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Functional evaluations per second = 19.5
-Execution  started  on Fri May 15 13:39:41 2015
-Execution completed on Fri May 15 13:39:43 2015
-Execution date & time stamp: 20150515-133941
+Functional evaluations per second = 39
+Execution  started  on Sat Jul 18 10:26:20 2015
+Execution completed on Sat Jul 18 10:26:21 2015
+Execution date & time stamp: 20150718-102620

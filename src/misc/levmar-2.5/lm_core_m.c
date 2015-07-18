@@ -316,9 +316,8 @@ int LEVMAR_DER2(
 		compute_paralellel_init = true;
 		nfev = 0;
 	}
-	else
+	if( !compute_paralellel_init )
 	{
-		nfev = 1;
 		for( i = 0; i < nP; i++ )
 			par_best[i] = par_current[i];
 		( *func )( par_best, res_current, obs_current, nP, nO, adata );
@@ -334,18 +333,18 @@ int LEVMAR_DER2(
 			if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
 			stop = 8;
 		}
-		/* ### e=x-hx, p_eL2=||e|| */
 		phi_init = phi_best = phi_jac_last = phi_current;
-		if( !LM_FINITE( phi_current ) ) stop = 7;
 		if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
 		else if( op->cd->lmstandalone ) tprintf( "OF %g -> ", phi_current );
+		if( !LM_FINITE( phi_current ) ) stop = 7;
 		// saving the intermediate results
 		DeTransform( par_current, op, jac_min );
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			op->pd->var[op->pd->var_index[i]] = jac_min[i];
 		op->phi = phi_current;
 		save_results( 0, "", op, op->gd );
-		if( maxnfev <= nfev ) stop = 32;
+		nfev = 1;
+		// if( maxnfev <= nfev ) stop = 32;
 	}
 	if( op->cd->ldebug > 2 )
 	{
@@ -462,8 +461,8 @@ int LEVMAR_DER2(
 					for( i = 0; i < nO; i++ )
 					{
 						obs_best[i] = obs_current[i];
-						tmp = obs_error[i] = res_best[i] = res_current[i];
-						res_update[i] = -res_current[i];
+						res_best[i] = res_current[i];
+						tmp = obs_error[i] = -res_current[i];
 						phi_current += tmp * tmp;
 					}
 					if( op->cd->check_success && op->success )
@@ -471,7 +470,6 @@ int LEVMAR_DER2(
 						if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
 						stop = 8;
 					}
-					/* ### e=x-hx, p_eL2=||e|| */
 					phi_init = phi_best = phi_jac_last = phi_current;
 					if( !LM_FINITE( phi_current ) ) stop = 7;
 					if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
@@ -855,10 +853,8 @@ int LEVMAR_DER2(
 			par_change_L2_norm_sq = sqrt( par_change_L2_norm );
 			for( i = 0 ; i < nO; i++ )
 			{
-				res_current[i] = res_matrix[npl_min][i];
-				res_update[i] = -res_current[i];
-				obs_current[i] = obs_matrix[npl_min][i];
-				obs_update[i] = obs_current[i];
+				res_update[i] = res_matrix[npl_min][i];
+				obs_update[i] = obs_matrix[npl_min][i];
 			}
 			if( npl_min != 0 )
 			{
@@ -893,11 +889,11 @@ int LEVMAR_DER2(
 					if( op->cd->compute_phi ) { op->cd->compute_phi = 0; change = 1; }
 					( *func )( phDp_plus, hx1, NULL, nP, nO, adata ); nfev++;
 					// for( i = 0; i < nO; i++ )
-						// ephdp_plus[i] = hx1[i]; // obs_target[i] removed
+					// ephdp_plus[i] = hx1[i]; // obs_target[i] removed
 					( *func )( phDp_minus, hx2, NULL, nP, nO, adata ); nfev++;
 					if( change ) op->cd->compute_phi = 1;
 					// for( i = 0; i < nO; i++ )
-						// ephdp_minus[i] = hx2[i]; // obs_target[i] removed
+					// ephdp_minus[i] = hx2[i]; // obs_target[i] removed
 					for( i = 0; i < nO; i++ )
 						vvddr[i] = ( -hx1[i] - 2.0 * obs_error[i] - hx2[i] ) / ( acc_h * acc_h );
 					for( j = nO; j-- > 0; )
@@ -1213,7 +1209,7 @@ int LEVMAR_DER2(
 			{
 				obs_error[i] = obs_error_update[i]; // x[i]-wrk[i];
 				obs_current[i] = obs_update[i];
-				res_current[i] = -res_update[i];
+				res_current[i] = res_update[i];
 			}
 			phi_current = phi_update; // Update OF
 		}
