@@ -124,8 +124,8 @@ CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -L/usr/local/lib -Wl,--rpath,/home/monty/local/lib
 else ifeq ($(findstring hb-fe,$(ND)),hb-fe)
 $(info Machine -- turquoise)
-CFLAGS += -I/users/vvv/mads/repo-github-hobo/tpls/include
-LDLIBS += -L/users/vvv/mads/repo-github-hobo/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github-hobo/tpls/lib
+CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
+LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github/tpls/lib
 else ifeq ($(findstring -fe,$(ND)),-fe)
 $(info Machine -- turquoise)
 CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
