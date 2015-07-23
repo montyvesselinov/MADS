@@ -253,7 +253,7 @@ int pso_tribes( struct opt_data *op )
 			if( op->cd->pdebug > 1 )
 			{
 				debug = op->cd->fdebug; op->cd->fdebug = 3;
-				func_global( S.best.x, op, res ); // evaluate the best result
+				func_global( S.best.x, op, res, NULL ); // evaluate the best result
 				op->cd->fdebug = debug;
 				objfunc_print( &S.best.f );
 				tprintf( " current position %d: ", r ); position_print( &S.best );
@@ -279,7 +279,7 @@ int pso_tribes( struct opt_data *op )
 		if( op->cd->fdebug < 3 ) { debug = op->cd->fdebug; op->cd->fdebug = 3; }
 		else debug = 0;
 	}
-	func_global( bestBest.x, op, res ); // evaluate the best BEST result
+	func_global( bestBest.x, op, res, NULL ); // evaluate the best BEST result
 	if( op->cd->pdebug > 1 && debug ) op->cd->fdebug = debug;
 	for( n = 0; n < pb.nPhi; n++ )
 	{
@@ -446,7 +446,7 @@ void position_eval( struct problem *pb, struct position *pos )
 		f = HUGE_VAL;
 	else
 	{
-		func_global( ( *pos ).x, gop, res ); // evaluation ... either internal of external
+		func_global( ( *pos ).x, gop, res, NULL ); // evaluation ... either internal of external
 		f = gop->phi;
 		eval++;
 	}
@@ -492,7 +492,7 @@ void problem_init( struct opt_data *op, struct problem *pb )
 	if( ( pb->code = ( int * ) malloc( MAXPHI * sizeof( int ) ) ) == NULL ) { tprintf( "No memory!\n" ); mads_quits( op->root ); }
 	pb->val = double_matrix( ( *pb ).D, MAXVALUES );
 	set_objfunc( pb, &pb->maxError );
-	// op->cd->fdebug = 10; func_global( tr_var, op, op->od->res ); op->cd->fdebug = 0;
+	// op->cd->fdebug = 10; func_global( tr_var, op, op->od->res, NULL ); op->cd->fdebug = 0;
 	if( op->cd->sintrans == 0 ) // typically used for test problems
 		for( d = 0; d < ( *pb ).D; d++ )
 		{

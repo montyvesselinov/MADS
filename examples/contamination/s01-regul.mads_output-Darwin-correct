@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.9541023) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.fab1bdd) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -193,7 +193,7 @@ Grid Maximums: 3000 2000 10
 Breakthrough-curve time window: 0 0 1 number of time steps: 1
 
 
-Execution date & time stamp: 20150508-130213
+Execution date & time stamp: 20150718-102547
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -203,9 +203,13 @@ LM without parallel lambda search
 LM without acceleration
 LM with indirect computation of lambda changes
 Initial OF 2.02993e+07
+Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Jacobian #1: Linear solves 0 Evaluations 12 OF 2.02993e+07 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 1 observation has zero sensitivities!
+Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -297,12 +301,12 @@ Determinant of covariance matrix of observation errors : 1.93948e-42     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 7.68452e+69     ( ln(det V) = 160.918 )
 
-Log likelihood function             : -103.338
-Maximum likelihood                  : 206.675
-AIC (Akaike information criterion)  : 228.675
-BIC                                 : 239.628
-CIC                                 : 230.813
-KIC (Kashyap Information Criterion) : 315.458
+Log likelihood function                          : -103.338
+Maximum likelihood                               : 206.675
+AIC  (Akaike Information Criterion)              : 228.675
+AICc (Akaike Information Criterion + correction) : 230.813
+BIC  (Bayesian Information Criterion)            : 239.628
+KIC  (Kashyap Information Criterion)             : 315.458
 
 Obtained fit is not very good (chi^2/dof = 2.25547e+06 > 200)
 Optimized model parameters:
@@ -330,8 +334,6 @@ Pore x velocity [L/T]      :            5 stddev      23.3272 (        0.01 -   
 Dispersivity x [L]         :          130 stddev      26.1518 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :           15 stddev      35.4092 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :          0.3 stddev      44.3308 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Computed initial lambda 10 (0.001, 10000)
 OF 594807 lambda 10
 New Best OF 594807
@@ -342,6 +344,8 @@ New Jacobian requested because: > OF estimate declined substantially (594807 << 
 Jacobian #2: Linear solves 1 Evaluations 24 OF 594807 lambda 3.33333
 Jacobian matrix analysis ...
 WARNING: 8 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -433,12 +437,12 @@ Determinant of covariance matrix of observation errors : 6.36199e-21     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 1.05067e+53     ( ln(det V) = 122.086 )
 
-Log likelihood function             : -83.922
-Maximum likelihood                  : 167.844
-AIC (Akaike information criterion)  : 189.844
-BIC                                 : 200.797
-CIC                                 : 191.982
-KIC (Kashyap Information Criterion) : 227.084
+Log likelihood function                          : -83.922
+Maximum likelihood                               : 167.844
+AIC  (Akaike Information Criterion)              : 189.844
+AICc (Akaike Information Criterion + correction) : 191.982
+BIC  (Bayesian Information Criterion)            : 200.797
+KIC  (Kashyap Information Criterion)             : 227.084
 
 Obtained fit is not very good (chi^2/dof = 66089.6 > 200)
 Optimized model parameters:
@@ -466,27 +470,19 @@ Pore x velocity [L/T]      :       1.8855 stddev       573233 (        0.01 -   
 Dispersivity x [L]         :      132.666 stddev      5.19544 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      6.39132 stddev       661153 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.113896 stddev  5.27685e+06 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source x dimension [L]         (213.218)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (8.80113e-10)
 OF 2.08698e+07 lambda 3.33333
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 OF 2.69797e+07 lambda 6.66667
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 OF 3.18539e+07 lambda 26.6667
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 OF 3.07769e+07 lambda 213.333
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 New Jacobian requested because: > Linear solve OF estimates do not change substantially
 
 Jacobian #3: Linear solves 5 Evaluations 39 OF 594807 lambda 3413.33
 Jacobian matrix analysis ...
 WARNING: 8 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -578,12 +574,12 @@ Determinant of covariance matrix of observation errors : 6.36199e-21     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 1.05067e+53     ( ln(det V) = 122.086 )
 
-Log likelihood function             : -83.922
-Maximum likelihood                  : 167.844
-AIC (Akaike information criterion)  : 189.844
-BIC                                 : 200.797
-CIC                                 : 191.982
-KIC (Kashyap Information Criterion) : 227.084
+Log likelihood function                          : -83.922
+Maximum likelihood                               : 167.844
+AIC  (Akaike Information Criterion)              : 189.844
+AICc (Akaike Information Criterion + correction) : 191.982
+BIC  (Bayesian Information Criterion)            : 200.797
+KIC  (Kashyap Information Criterion)             : 227.084
 
 Obtained fit is not very good (chi^2/dof = 66089.6 > 200)
 Optimized model parameters:
@@ -611,21 +607,11 @@ Pore x velocity [L/T]      :       1.8855 stddev       573233 (        0.01 -   
 Dispersivity x [L]         :      132.666 stddev      5.19544 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      6.39132 stddev       661153 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :     0.113896 stddev  5.27685e+06 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Parameters did not change between last two jacobian iterations.
 OF 1.69122e+06 lambda 3413.33
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 OF 914985 lambda 6826.67
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 OF 2.38328e+06 lambda 27306.7
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 OF 3.33453e+06 lambda 218453
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 OF 514835 lambda 3.49525e+06
 New Best OF 514835
 Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
@@ -639,6 +625,8 @@ New Jacobian requested because: > OF estimate declined substantially (139792 << 
 Jacobian #4: Linear solves 11 Evaluations 56 OF 139792 lambda 1.52654e+06
 Jacobian matrix analysis ...
 WARNING: 5 observations have zero sensitivities!
+Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Eigen analysis ...
 Analyzed state provided externally.
 
@@ -730,12 +718,12 @@ Determinant of covariance matrix of observation errors : 1.35567e-31     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 1.26953e+46     ( ln(det V) = 106.158 )
 
-Log likelihood function             : -75.9575
-Maximum likelihood                  : 151.915
-AIC (Akaike information criterion)  : 173.915
-BIC                                 : 184.868
-CIC                                 : 176.053
-KIC (Kashyap Information Criterion) : 235.727
+Log likelihood function                          : -75.9575
+Maximum likelihood                               : 151.915
+AIC  (Akaike Information Criterion)              : 173.915
+AICc (Akaike Information Criterion + correction) : 176.053
+BIC  (Bayesian Information Criterion)            : 184.868
+KIC  (Kashyap Information Criterion)             : 235.727
 
 Obtained fit is not very good (chi^2/dof = 15532.5 > 200)
 Optimized model parameters:
@@ -763,8 +751,6 @@ Pore x velocity [L/T]      :      2.69402 stddev      12933.1 (        0.01 -   
 Dispersivity x [L]         :       132.64 stddev      2.51476 (          10 -          140) Uncertainty ranges constrained by prior bounds
 Dispersivity y [L]         :      6.34105 stddev      17073.4 (           1 -           30) Uncertainty ranges constrained by prior bounds
 Dispersivity z [L]         :      0.11469 stddev       111432 (         0.1 -            1) Uncertainty ranges constrained by prior bounds
-Intermediate results stored (./examples/contamination/s01-regul.intermediate_results)
-Intermediate residuals stored (./examples/contamination/s01-regul.intermediate_residuals)
 Parameter with maximum absolute estimate change between last two jacobian iterations: Source x coordinate [L]        (17.2802)
 Parameter with minimum absolute estimate change between last two jacobian iterations: Start Time [T]                 (1.6241e-11)
 OF 50126.2 lambda 1.52654e+06
@@ -866,12 +852,12 @@ Determinant of covariance matrix of observation errors : 1.33364e-32     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 1.59973e+41     ( ln(det V) = 94.8758 )
 
-Log likelihood function             : -70.3167
-Maximum likelihood                  : 140.633
-AIC (Akaike information criterion)  : 162.633
-BIC                                 : 173.586
-CIC                                 : 164.772
-KIC (Kashyap Information Criterion) : 226.765
+Log likelihood function                          : -70.3167
+Maximum likelihood                               : 140.633
+AIC  (Akaike Information Criterion)              : 162.633
+AICc (Akaike Information Criterion + correction) : 164.772
+BIC  (Bayesian Information Criterion)            : 173.586
+KIC  (Kashyap Information Criterion)             : 226.765
 
 Obtained fit is not very good (chi^2/dof = 5569.58 > 200)
 Optimized model parameters:
@@ -945,6 +931,6 @@ Simulation time = 0 seconds
 Functional evaluations = 58
 Jacobian evaluations = 4
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Fri May  8 13:02:13 2015
-Execution completed on Fri May  8 13:02:13 2015
-Execution date & time stamp: 20150508-130213
+Execution  started  on Sat Jul 18 10:25:47 2015
+Execution completed on Sat Jul 18 10:25:47 2015
+Execution date & time stamp: 20150718-102547

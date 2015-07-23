@@ -876,7 +876,7 @@ void comp_likelihood( double **x, struct MCMC *MCMCPar, Measure Measurement, str
 	{
 		log_p[ii] = 0;
 		// Call model to generate simulated data
-		func_global( x[ii], od, ModPred );
+		func_global( x[ii], od, ModPred, NULL );
 		//Note that after calling func_intrn, ModPred does not contain the model predictions.
 		//ModPred contains the errors times the weights
 		//The model predictions are contained in od->od->obs_current[k]

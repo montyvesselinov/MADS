@@ -111,31 +111,30 @@ LIB_DIR = /usr/local/lib
 LDLIBS += -lgslcblas -lm -lblas
 DYNAMICLIB = -shared -Wl,-soname,libmads.so.1 -Wl,--no-as-needed -ldl
 MADS_LIB = $(BIN)/Lib/libmads.so
-ifeq ($(ND),aquifer.lanl.gov)
+ifeq ($(findstring aquifer,$(ND)),aquifer)
 $(info Machine -- AQUIFER)
 CFLAGS += -I/home/vvv/local/include-aquifer
 LDLIBS = -lgfortran -lgsl -llapack -lstdc++ -L/home/vvv/local/lib -lgslcblas -lgfortran -Wl,--rpath,/home/vvv/local/lib 
-else ifeq ($(ND),madsmax)
-$(info Machine -- MadsMax)
-CFLAGS += -Wno-unused-result
-else ifeq ($(ND),sumdsy-madsmen)
+else ifeq ($(findstring mads,$(ND)),mads)
 $(info Machine -- MadsMen)
 CFLAGS += -Wno-unused-result
-else ifeq ($(ND),well.lanl.gov)
+else ifeq ($(findstring well,$(ND)),well)
 $(info Machine -- WELL)
 CFLAGS += -I/home/monty/local/include
 LDLIBS += -L/home/monty/local/lib -L/usr/local/lib -Wl,--rpath,/home/monty/local/lib
 else ifeq ($(findstring hb-fe,$(ND)),hb-fe)
 $(info Machine -- turquoise)
-CFLAGS += -I/users/vvv/mads/repo-github-hobo/tpls/include
-LDLIBS += -L/users/vvv/mads/repo-github-hobo/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github-hobo/tpls/lib
+CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
+LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github/tpls/lib
 else ifeq ($(findstring -fe,$(ND)),-fe)
 $(info Machine -- turquoise)
 CFLAGS += -I/users/vvv/mads/repo-github/tpls/include
 LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/repo-github/tpls/lib
 else
-CFLAGS += -I$(MADS_DIR)/tpls/include
-LDLIBS += -lgfortran -L$(MADS_DIR)/tpls/lib -Wl,--rpath,$(MADS_DIR)/tpls/lib
+$(info Machine -- Generic Linux)
+CFLAGS += -Wno-unused-result
+#CFLAGS += -I$(MADS_DIR)/tpls/include
+#LDLIBS += -lgfortran -L$(MADS_DIR)/tpls/lib -Wl,--rpath,$(MADS_DIR)/tpls/lib
 endif
 else #----------------------------------------------------
 ifeq ($(OS),Cygwin)
@@ -150,16 +149,13 @@ CFLAGS += -I/opt/local/include
 LDLIBS += -latlas -lgfortran -lblas -L/opt/local/lib
 DYNAMICLIB = -dynamiclib -undefined suppress -flat_namespace -shared
 MADS_LIB = $(BIN)/Lib/libmads.dylib
-ifeq ($(ND),bored.lanl.gov)
-LDLIBS += 
-else ifeq ($(ND),pn1246281)
-LDLIBS += -latlas
-else ifeq ($(ND),macmonty.lanl.gov)
-LDLIBS += -latlas
-else ifeq ($(ND),dazed.local)
+ifeq ($(ND),dazed.local)
 $(info Machine -- Dazed)
 CFLAGS += -I/Users/monty/include
 LDLIBS += -lrefblas -lcblas -L/Users/monty/lib -Wl,--rpath,/Users/monty/lib
+else
+$(info Machine -- Generic Mac)
+LDLIBS += -latlas
 endif
 else #----------------------------------------------------
 $(error UNKNOWN OS type -- $(OS)!)

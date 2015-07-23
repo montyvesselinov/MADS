@@ -44,8 +44,8 @@
 
 /* Functions here */
 int load_pst( char *filename, struct opt_data *op );
-int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_t, int debug );
-int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_t, char *fn_in_d, int debug );
+int check_ins_obs( int nobs, char **obs_id, int *obs_count, char *fn_in_t, int debug );
+int ins_obs( int nobs, char **obs_id, double *obs, int *obs_count, char *fn_in_t, char *fn_in_d, int debug );
 int check_par_tpl( int npar, char **par_id, int *par_count, char *fn_in_t, int debug );
 int par_tpl( int npar, char **par_id, double *par, char *fn_in_t, char *fn_out, int debug );
 /* Functions elsewhere */
@@ -209,7 +209,7 @@ int load_pst( char *filename, struct opt_data *op )
 	return( 1 );
 }
 
-int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_i, int debug )
+int check_ins_obs( int nobs, char **obs_id, int *obs_count, char *fn_in_i, int debug )
 {
 	FILE *infile_inst;
 	char *separator = " \t\n";
@@ -346,8 +346,8 @@ int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_i, int debug
 					{
 						if( strcmp( word_inst, obs_id[i] ) == 0 )
 						{
-							check[i]++;
-							if( debug ) tprintf( "\'%s\' detected %d times\n", obs_id[i], check[i] );
+							obs_count[i]++;
+							if( debug ) tprintf( "\'%s\' detected %d times\n", obs_id[i], obs_count[i] );
 							break;
 						}
 					}
@@ -378,7 +378,7 @@ int check_ins_obs( int nobs, char **obs_id, int *check, char *fn_in_i, int debug
 	else return( 0 );
 }
 
-int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_i, char *fn_in_d, int debug )
+int ins_obs( int nobs, char **obs_id, double *obs, int *obs_count, char *fn_in_i, char *fn_in_d, int debug )
 {
 	FILE *infile_inst, *infile_data;
 	char *separator = " \t\n";
@@ -584,8 +584,8 @@ int ins_obs( int nobs, char **obs_id, double *obs, int *check, char *fn_in_i, ch
 						if( strcmp( word_inst, obs_id[i] ) == 0 )
 						{
 							sscanf( word_data, "%lf", &v );
-							if( check[i] == 0 ) { obs[i] = v; check[i] = 1; }
-							else { obs[i] += v; check[i]++; }
+							if( obs_count[i] == 0 ) { obs[i] = v; obs_count[i] = 1; }
+							else { obs[i] += v; obs_count[i]++; }
 							if( debug ) tprintf( "\'%s\'=%d\n", obs_id[i], obs[i] );
 							break;
 						}

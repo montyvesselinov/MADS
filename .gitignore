@@ -1,5 +1,5 @@
 syntax: glob
-# MkADS files
+# MADS files
 mads
 obj
 bin
@@ -20,6 +20,7 @@ tpls/yaml*
 latex/*
 html/*
 Debug/*
+.project
 .cproject
 *.exe
 *.results

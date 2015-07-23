@@ -173,7 +173,7 @@ int lm_gsl( gsl_vector *opt_params, struct opt_data *op, gsl_matrix *jacobian, g
 
 int func_gsl( const gsl_vector *x, void *data, gsl_vector *f ) /* forward run for GSL */
 {
-	func_global( x->data, data, f->data );
+	func_global( x->data, data, f->data, NULL );
 	return GSL_SUCCESS;
 }
 

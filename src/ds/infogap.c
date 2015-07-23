@@ -205,7 +205,7 @@ int infogap( struct opt_data *op )
 			gsl_matrix_set( ig_mat, i, col, opt_params[j] ); // Place after of
 		}
 		fscanf( fl, " \n" );
-		func_global( opt_params, op, op->preds->res );
+		func_global( opt_params, op, op->preds->res, NULL );
 		for( j = 0; j < *nPreds; j++ )
 		{
 			gsl_matrix_set( ig_mat, i, j, op->preds->obs_current[j] ); // Place in first columns

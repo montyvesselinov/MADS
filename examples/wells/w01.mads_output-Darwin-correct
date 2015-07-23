@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.9541023) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.fab1bdd) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -51,7 +51,7 @@ Template files are ok.
 Checking the instruction files for errors ...
 Instruction files are ok.
 
-Execution date & time stamp: 20150502-101704
+Execution date & time stamp: 20150718-102549
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -263,12 +263,12 @@ Determinant of covariance matrix of observation errors : 1.84173e-12     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 3.9077          ( ln(det V) = 1.36295 )
 
-Log likelihood function             : -2044.37
-Maximum likelihood                  : 4088.74
-AIC (Akaike information criterion)  : 4092.74
-BIC                                 : 4103.29
-CIC                                 : 4096.68
-KIC (Kashyap Information Criterion) : 4126.63
+Log likelihood function                          : -2044.37
+Maximum likelihood                               : 4088.74
+AIC  (Akaike Information Criterion)              : 4092.74
+AICc (Akaike Information Criterion + correction) : 4096.68
+BIC  (Bayesian Information Criterion)            : 4103.29
+KIC  (Kashyap Information Criterion)             : 4126.63
 
 Obtained fit is relatively good (chi^2/dof = 1.97679 < 200)
 Optimized model parameters:
@@ -372,6 +372,6 @@ Functional evaluations = 43
 Jacobian evaluations = 7
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 10.75
-Execution  started  on Sat May  2 10:17:04 2015
-Execution completed on Sat May  2 10:17:08 2015
-Execution date & time stamp: 20150502-101704
+Execution  started  on Sat Jul 18 10:25:49 2015
+Execution completed on Sat Jul 18 10:25:53 2015
+Execution date & time stamp: 20150718-102549

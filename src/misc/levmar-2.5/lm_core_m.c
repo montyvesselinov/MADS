@@ -73,7 +73,7 @@
 #define AX_EQ_B_LU LM_ADD_PREFIX(Ax_eq_b_LU_noLapack)
 #endif /* HAVE_LAPACK */
 
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op ); // parallel lambda search
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], double *o[], FILE *out, struct opt_data *op ); // parallel lambda search
 /*
  * This function seeks the parameter vector p that best describes the measurements vector x.
  * More precisely, given a vector function  func : R^m --> R^n with n>=m,
@@ -92,8 +92,8 @@ int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out,
 // MADS calls LEVMAR_DER by DEFAULT
 
 int LEVMAR_DER2(
-	void ( *func )( LM_REAL *par_current, LM_REAL *obs_current, int nP, int nO, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
-	void ( *jacf )( LM_REAL *par_current, LM_REAL *f, LM_REAL *j, int nP, int nO, void *adata ), /* function to evaluate the Jacobian \part x / \part p */
+	void ( *func )( LM_REAL *par_current, LM_REAL *f, LM_REAL *o, int nP, int nO, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
+	void ( *jacf )( LM_REAL *par_current, LM_REAL *f, LM_REAL *o, LM_REAL *j, int nP, int nO, void *adata ), /* function to evaluate the Jacobian \part x / \part p */
 	LM_REAL *par_current,         /* I/O: initial parameter estimates. On output has the estimated solution */
 	LM_REAL *obs_target,         /* I: measurement vector. NULL implies a zero vector */
 	int nP,              /* I: parameter vector dimension (i.e. #unknowns) */
@@ -128,31 +128,33 @@ int LEVMAR_DER2(
 	char filename[255];
 	time_t time_start, time_end, time_elapsed, time_jacobian = 0, time_lambda = 0;
 	int parallel_lambda_count = 0;
-	/* temp work arrays */
-	LM_REAL *obs_error,          /* nx1 */
-			*obs_current,         /* \hat{x}_i, nx1 */
-			*hx1,        /* used in acceleration comp (nx1) */
-			*hx2,        /* used in acceleration comp (nx1) */
+	LM_REAL *obs_error,         /* nx1 */
+			*obs_current,       /* \hat{x}_i, nx1 */
+			*hx1,               /* used in acceleration comp (nx1) */
+			*hx2,               /* used in acceleration comp (nx1) */
 			*jac_min,
 			*jac_max,
-			*par_lam_last, *par_jac_last, *par_init,     /* old parameter set */
-			*par_best, /* best parameter set */
-			*obs_best, /* best observation set */
-			*JTe,      /* J^T e_i mx1 */
-			*jac,        /* nxm */
-			*JTJ,    /* mxm */
-			*par_change,         /* mx1 (=v) */
-			*ephdp_plus,     /* residual used in acceleration computation (nx1) */
-			*ephdp_minus,     /* residual used in acceleration computation (nx1) */
-			*vvddr,      /* used to compute acceleration (nx1) */
-			*jacTvv,     /* jacT*vvddr, mx1 */
-			*acceleration,          /* acceleration (mx1) */
-			*JTJ_diag,   /* diagonal of J^T J, mx1 */
+			*par_lam_last, *par_jac_last, *par_init,     /* old parameter sets */
+			*par_best,          /* best parameter set */
+			*obs_best,          /* best observation set */
+			*res_best,          /* best residual set */
+			*res_current,       /* current residual set */
+			*JTe,               /* J^T e_i mx1 */
+			*jac,               /* nxm */
+			*JTJ,               /* mxm */
+			*par_change,        /* mx1 (=v) */
+//			*ephdp_plus,        /* residual used in acceleration computation (nx1) */
+//			*ephdp_minus,       /* residual used in acceleration computation (nx1) */
+			*vvddr,             /* used to compute acceleration (nx1) */
+			*jacTvv,            /* jacT*vvddr, mx1 */
+			*acceleration,      /* acceleration (mx1) */
+			*JTJ_diag,          /* diagonal of J^T J, mx1 */
 			*par_update,        /* p + Dp, mx1 */
-			*phDp_plus,       /* p + hDp, mx1 */
-			*phDp_minus,      /* p - hDp, mx1 */
+			*phDp_plus,         /* p + hDp, mx1 */
+			*phDp_minus,        /* p - hDp, mx1 */
+			*res_update,        /* nx1 */
 			*obs_update,        /* nx1 */
-			*obs_error_update;       /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
+			*obs_error_update;  /* nx1, used only for holding a temporary e vector and when differentiating with central differences */
 	int *jac_zero, *jac_zero_obs;
 	int skipped, first, allzero;
 	gsl_matrix *gsl_jacobian;
@@ -178,7 +180,7 @@ int LEVMAR_DER2(
 	double max_change, min_change, p_diff, fj;
 	int imax, imin, omax, omin, ok;
 	double max = 0, min = HUGE_VAL;
-	double *phi_vector, **param_matrix, **obs_matrix;
+	double *phi_vector, **param_matrix, **obs_matrix, **res_matrix;
 	const int nm = nO * nP;
 	int ( *linsolver )( LM_REAL * A, LM_REAL * B, LM_REAL * obs_target, int nP ) = NULL;
 	lambda = JTe_inf_norm = par_L2_norm = 0.0; /* -Wall */
@@ -237,8 +239,8 @@ int LEVMAR_DER2(
 	hx2 = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
 	phDp_plus = ( LM_REAL * )malloc( nP * sizeof( LM_REAL ) );
 	phDp_minus = ( LM_REAL * )malloc( nP * sizeof( LM_REAL ) );
-	ephdp_plus = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
-	ephdp_minus = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
+//	ephdp_plus = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
+//	ephdp_minus = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
 	vvddr = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
 	jacTvv = ( LM_REAL * )malloc( nP * sizeof( LM_REAL ) );
 	acceleration = ( LM_REAL * )malloc( nP * sizeof( LM_REAL ) );
@@ -251,6 +253,9 @@ int LEVMAR_DER2(
 	par_best = ( LM_REAL * )malloc( nP * sizeof( LM_REAL ) );
 	par_init = ( LM_REAL * )malloc( nP * sizeof( LM_REAL ) );
 	obs_best = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
+	res_best = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
+	res_current = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
+	res_update = ( LM_REAL * )malloc( nO * sizeof( LM_REAL ) );
 	if( op->cd->lm_eigen ) { gsl_jacobian = gsl_matrix_alloc( op->od->nTObs, op->pd->nOptParam ); }
 	else gsl_jacobian = NULL;
 #ifdef HAVE_LAPACK
@@ -295,11 +300,13 @@ int LEVMAR_DER2(
 	for( i = 0; i < nP; i++ )
 		par_lam_last[i] = par_jac_last[i] = par_init[i] = par_best[i] = par_update[i] = par_current[i];
 	bool compute_paralellel_init = false;
+	// phi_current = phi_best = phi_jac_last = phi_init = 0.0;
 	if( op->cd->lm_num_parallel_lambda > 0 ) // Parallel Lambda search
 	{
 		if( ( phi_vector = ( double * ) malloc( op->cd->lm_num_parallel_lambda * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		if( ( param_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nP ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		if( ( obs_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nO ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
+		if( ( res_matrix = double_matrix( op->cd->lm_num_parallel_lambda, nO ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 		{
 			phi_vector[npl] = 0;
@@ -309,34 +316,35 @@ int LEVMAR_DER2(
 		compute_paralellel_init = true;
 		nfev = 0;
 	}
-	else
+	if( !compute_paralellel_init )
 	{
-		nfev = 1;
-		( *func )( par_current, obs_current, nP, nO, adata );
 		for( i = 0; i < nP; i++ )
 			par_best[i] = par_current[i];
+		( *func )( par_best, res_current, obs_current, nP, nO, adata );
 		for( i = 0; i < nO; i++ )
-			op->od->obs_current[i] = obs_best[i] = obs_current[i];
-		/* compute e=x - f(p) and its L2 norm */
-#if 0
-		phi_current = LEVMAR_L2NRMXMY( obs_error, obs_target, obs_current, nO );
-#else
-		for( i = 0, phi_current = 0.0; i < nO; i++ )
 		{
-			obs_error[i] = tmp = obs_target[i] - obs_current[i];
+			obs_best[i] = obs_current[i];
+			res_best[i] = res_current[i];
+			tmp = obs_error[i] = -res_current[i]; // obs_target[i] removed
 			phi_current += tmp * tmp;
 		}
-#endif
 		if( op->cd->check_success && op->success )
 		{
 			if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
 			stop = 8;
 		}
-		/* ### e=x-hx, p_eL2=||e|| */
 		phi_init = phi_best = phi_jac_last = phi_current;
-		if( !LM_FINITE( phi_current ) ) stop = 7;
 		if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
 		else if( op->cd->lmstandalone ) tprintf( "OF %g -> ", phi_current );
+		if( !LM_FINITE( phi_current ) ) stop = 7;
+		// saving the intermediate results
+		DeTransform( par_current, op, jac_min );
+		for( i = 0; i < op->pd->nOptParam; i++ )
+			op->pd->var[op->pd->var_index[i]] = jac_min[i];
+		op->phi = phi_current;
+		save_results( 0, "", op, op->gd );
+		nfev = 1;
+		// if( maxnfev <= nfev ) stop = 32;
 	}
 	if( op->cd->ldebug > 2 )
 	{
@@ -433,7 +441,7 @@ int LEVMAR_DER2(
 					if( op->cd->ldebug ) tprintf( "Initial state will be computed in parallel ...\n" );
 					op->cd->compute_center = true;
 				}
-				jacf( par_current, obs_current, jac, nP, nO, adata );
+				jacf( par_current, res_current, obs_current, jac, nP, nO, adata );
 				if( compute_paralellel_init )
 				{
 					if( op->cd->ldebug ) tprintf( "Initial state was computed in parallel ...\n" );
@@ -442,28 +450,26 @@ int LEVMAR_DER2(
 					for( npl = 0; npl < op->cd->lm_num_parallel_lambda; npl++ )
 					{
 						for( i = 0; i < nO; i++ )
+						{
 							obs_matrix[npl][i] = obs_current[i];
+							res_matrix[npl][i] = res_current[i];
+						}
 					}
 					for( i = 0; i < nP; i++ )
 						par_best[i] = par_current[i];
+					phi_current = 0.0;
 					for( i = 0; i < nO; i++ )
-						obs_best[i] = obs_current[i];
-					/* compute e=x - f(p) and its L2 norm */
-#if 0
-					phi_current = LEVMAR_L2NRMXMY( obs_error, obs_target, obs_current, nO );
-#else
-					for( i = 0, phi_current = 0.0; i < nO; i++ )
 					{
-						obs_error[i] = tmp = obs_target[i] - obs_current[i];
+						obs_best[i] = obs_current[i];
+						res_best[i] = res_current[i];
+						tmp = obs_error[i] = -res_current[i];
 						phi_current += tmp * tmp;
 					}
-#endif
 					if( op->cd->check_success && op->success )
 					{
 						if( op->cd->ldebug ) tprintf( "SUCCESS: Model predictions are within predefined calibration ranges\n" );
 						stop = 8;
 					}
-					/* ### e=x-hx, p_eL2=||e|| */
 					phi_init = phi_best = phi_jac_last = phi_current;
 					if( !LM_FINITE( phi_current ) ) stop = 7;
 					if( op->cd->ldebug ) tprintf( "Initial OF %g\n", phi_current );
@@ -475,7 +481,7 @@ int LEVMAR_DER2(
 			else /* use central differences */
 			{
 				if( op->cd->ldebug > 5 ) tprintf( "Jacobian computed using central differences\n" );
-				LEVMAR_FDIF_CENT_JAC_APPROX( func, par_current, obs_update, obs_error_update, delta, jac, nP, nO, adata );
+				// LEVMAR_FDIF_CENT_JAC_APPROX( func, par_current, res_update, obs_error_update, delta, jac, nP, nO, adata );
 				njac++; nfev += 2 * nP;
 			}
 			time_end = time( NULL );
@@ -669,7 +675,7 @@ int LEVMAR_DER2(
 				op->phi = phi_current;
 				save_results( 0, "", op, op->gd );
 				op->cd->lm_eigen--;
-				eigen( op, obs_current, gsl_jacobian, NULL );
+				eigen( op, res_current, gsl_jacobian, NULL );
 				op->cd->lm_eigen++;
 			}
 		}
@@ -688,7 +694,7 @@ int LEVMAR_DER2(
 				 * A similar scheme applies to the computation of J^T e.
 				 * However, for large minimization problems (i.e., involving a large number
 				 * of unknowns and measurements) for which J/J^T J rows are too large to
-				 * fit in the L1 cache, even this scheme incures many cache misses. In
+				 * fit in the L1 cache, even this scheme incurs many cache misses. In
 				 * such cases, a cache-efficient blocking scheme is preferable.
 				 *
 				 * Thanks to John Nitao of Lawrence Livermore Lab for pointing out this
@@ -709,9 +715,9 @@ int LEVMAR_DER2(
 					for( i = nP; i-- > 0; )
 					{
 						im = i * nP;
-						alpha = jaclm[i]; //jac[l*nP+i];
+						alpha = jaclm[i]; // jac[l*nP+i];
 						for( j = i + 1; j-- > 0; ) /* j<=i computes lower triangular part only */
-							JTJ[im + j] += jaclm[j] * alpha; //jac[l*nP+j]
+							JTJ[im + j] += jaclm[j] * alpha; // jac[l*nP+j]
 						JTe[i] += alpha * obs_error[l]; /* J^T e */
 					}
 				}
@@ -812,7 +818,7 @@ int LEVMAR_DER2(
 			}
 			tprintf( "Parallel execution of %d lambda searches ...\n", op->cd->lm_num_parallel_lambda );
 			time_start = time( NULL );
-			func_set( op->cd->lm_num_parallel_lambda, param_matrix, phi_vector, obs_matrix, ( FILE * ) mads_output, adata );
+			func_set( op->cd->lm_num_parallel_lambda, param_matrix, phi_vector, res_matrix, obs_matrix, ( FILE * ) mads_output, adata );
 			time_end = time( NULL );
 			tprintf( "Done.\n" );
 			time_elapsed = time_end - time_start;
@@ -846,7 +852,10 @@ int LEVMAR_DER2(
 			}
 			par_change_L2_norm_sq = sqrt( par_change_L2_norm );
 			for( i = 0 ; i < nO; i++ )
+			{
+				res_update[i] = res_matrix[npl_min][i];
 				obs_update[i] = obs_matrix[npl_min][i];
+			}
 			if( npl_min != 0 )
 			{
 				if( npl_min % 2 ) // even number
@@ -878,15 +887,15 @@ int LEVMAR_DER2(
 					}
 					change = 0;
 					if( op->cd->compute_phi ) { op->cd->compute_phi = 0; change = 1; }
-					( *func )( phDp_plus, hx1, nP, nO, adata ); nfev++;
-					for( i = 0; i < nO; i++ )
-						ephdp_plus[i] = obs_target[i] - hx1[i];
-					( *func )( phDp_minus, hx2, nP, nO, adata ); nfev++;
+					( *func )( phDp_plus, hx1, NULL, nP, nO, adata ); nfev++;
+					// for( i = 0; i < nO; i++ )
+					// ephdp_plus[i] = hx1[i]; // obs_target[i] removed
+					( *func )( phDp_minus, hx2, NULL, nP, nO, adata ); nfev++;
 					if( change ) op->cd->compute_phi = 1;
+					// for( i = 0; i < nO; i++ )
+					// ephdp_minus[i] = hx2[i]; // obs_target[i] removed
 					for( i = 0; i < nO; i++ )
-						ephdp_minus[i] = obs_target[i] - hx2[i];
-					for( i = 0; i < nO; i++ )
-						vvddr[i] = ( ephdp_plus[i] - 2.0 * obs_error[i] + ephdp_minus[i] ) / ( acc_h * acc_h );
+						vvddr[i] = ( -hx1[i] - 2.0 * obs_error[i] - hx2[i] ) / ( acc_h * acc_h );
 					for( j = nO; j-- > 0; )
 					{
 						jacT = jac + j * nP;
@@ -941,31 +950,20 @@ int LEVMAR_DER2(
 		}
 		if( op->cd->lm_num_parallel_lambda == 0 ) // if parallel this is already executed
 		{
-			( *func )( par_update, obs_update, nP, nO, adata ); ++nfev; /* evaluate function at p + Dp */
+			( *func )( par_update, res_update, obs_update, nP, nO, adata ); ++nfev; /* evaluate function at p + Dp */
 		}
 #if 0
 		if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
 			for( i = 0; i < nO; i++ )
-				obs_update[i] = sqrt( obs_update[i] );
+				res_update[i] = sqrt( res_update[i] );
 #endif
 		/* compute ||e(pDp)||_2 */
 		/* ### wrk2=x-wrk, pDp_eL2=||wrk2|| */
-#if 0
-		phi_update = LEVMAR_L2NRMXMY( obs_error_update, obs_target, obs_update, nO );
-#else
 		for( i = 0, phi_update = 0.0; i < nO; i++ )
 		{
-			obs_error_update[i] = tmp = obs_target[i] - obs_update[i];
-#if 1
+			tmp = obs_error_update[i] = -res_update[i]; // obs_target[i] removed
 			phi_update += tmp * tmp;
-#else
-			if( op->cd->solution_type[0] == TEST ) // this is a test; not needed in general
-				phi_update += obs_update[i];
-			else
-				phi_update += tmp * tmp;
-#endif
 		}
-#endif
 		if( op->cd->ldebug == 1 ) tprintf( "OF %g lambda %g\n", phi_update, lambda );
 		else if( op->cd->ldebug > 1 )
 		{
@@ -1025,7 +1023,10 @@ int LEVMAR_DER2(
 			for( i = 0; i < nP; i++ )
 				par_best[i] = par_update[i];
 			for( i = 0; i < nO; i++ )
-				op->od->obs_current[i] = obs_best[i] = obs_update[i];
+			{
+				op->od->obs_current[i] = obs_best[i] = obs_current[i];
+				res_best[i] = res_current[i];
+			}
 			if( op->cd->ldebug >= 1 ) tprintf( "New Best OF %g\n", phi_best );
 			DeTransform( par_update, op, jac_min );
 			for( i = 0; i < op->pd->nOptParam; i++ )
@@ -1107,7 +1108,7 @@ int LEVMAR_DER2(
 			{
 				for( l = 0, tmp = 0.0; l < nP; ++l )
 					tmp += jac[i * nP + l] * par_change[l]; /* (J * Dp)[i] */
-				tmp = ( obs_update[i] - obs_current[i] - tmp ) / par_change_L2_norm; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
+				tmp = ( res_update[i] - res_current[i] - tmp ) / par_change_L2_norm; /* (f(p+dp)[i] - f(p)[i] - (J * Dp)[i])/(dp^T*dp) */
 				for( j = 0; j < nP; ++j )
 					jac[i * nP + j] += tmp * par_change[j];
 			}
@@ -1155,8 +1156,9 @@ int LEVMAR_DER2(
 				par_current[i] = par_update[i];
 			for( i = 0; i < nO; i++ ) /* update e, hx and ||e||_2 */
 			{
-				obs_error[i] = obs_error_update[i]; //x[i]-wrk[i];
+				obs_error[i] = obs_error_update[i]; // x[i]-wrk[i];
 				obs_current[i] = obs_update[i];
+				res_current[i] = res_update[i];
 			}
 			phi_current = phi_update; // Update OF
 			par_update_accepted = 1;
@@ -1201,12 +1203,13 @@ int LEVMAR_DER2(
 			JTJ[i * nP + i] = JTJ_diag[i];
 		if( op->cd->lm_num_parallel_lambda > 0 && op->cd->lm_num_parallel_lambda + phi_lam_count >= max_num_of_lambda_searches )
 		{
-			for( i = 0 ; i < nP; i++ ) /* update parameter estimates */
+			for( i = 0; i < nP; i++ ) /* update parameter estimates */
 				par_current[i] = par_update[i];
 			for( i = 0; i < nO; i++ ) /* update e, hx and ||e||_2 */
 			{
-				obs_error[i] = obs_error_update[i]; //x[i]-wrk[i];
+				obs_error[i] = obs_error_update[i]; // x[i]-wrk[i];
 				obs_current[i] = obs_update[i];
+				res_current[i] = res_update[i];
 			}
 			phi_current = phi_update; // Update OF
 		}
@@ -1216,7 +1219,10 @@ int LEVMAR_DER2(
 	for( i = 0; i < nP; i++ )
 		par_current[i] = par_best[i];
 	for( i = 0; i < nO; i++ )
-		op->od->obs_current[i] = op->od->res[i] = obs_best[i];
+	{
+		op->od->obs_current[i] = obs_best[i];
+		op->od->res[i] = res_best[i];
+	}
 	if( op->cd->ldebug > 3 )
 	{
 		DeTransform( par_best, op, jac_min );
@@ -1291,15 +1297,18 @@ int LEVMAR_DER2(
 		LEVMAR_COVAR( JTJ, covar, phi_current, nP, nO );
 	}
 	if( freework ) free( work );
-	free( hx1 ); free( hx2 ); free( phDp_plus ); free( phDp_minus ); free( ephdp_plus ); free( ephdp_minus );
+	free( hx1 ); free( hx2 ); free( phDp_plus ); free( phDp_minus );
+	// free( ephdp_plus ); free( ephdp_minus );
 	free( vvddr ); free( jacTvv ); free( acceleration ); free( jac_min ); free( jac_max ); free( jac_zero ); free( jac_zero_obs );
 	free( par_lam_last ); free( par_jac_last ); free( par_best ); free( par_init );
+	free( obs_best ); free( res_best ); free( res_current ); free( res_update );
 	if( op->cd->lm_eigen ) gsl_matrix_free( gsl_jacobian );
 	if( op->cd->lm_num_parallel_lambda > 0 )
 	{
 		free( phi_vector );
 		free_matrix( ( void ** ) param_matrix, op->cd->lm_num_parallel_lambda );
 		free_matrix( ( void ** ) obs_matrix, op->cd->lm_num_parallel_lambda );
+		free_matrix( ( void ** ) res_matrix, op->cd->lm_num_parallel_lambda );
 	}
 #ifdef LINSOLVERS_RETAIN_MEMORY
 	if( linsolver )( *linsolver )( NULL, NULL, NULL, 0 );
@@ -1348,7 +1357,7 @@ int LEVMAR_DER(
  * the aid of finite differences (forward or central, see the comment for the opts argument)
  */
 int LEVMAR_DIF(
-	void ( *func )( LM_REAL *p, LM_REAL *hx, int m, int n, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
+	void ( *func )( LM_REAL *p, LM_REAL *hx, LM_REAL *o, int m, int n, void *adata ), /* functional relation describing measurements. A p \in R^m yields a \hat{x} \in  R^n */
 	LM_REAL *p,         /* I/O: initial parameter estimates. On output has the estimated solution */
 	LM_REAL *x,         /* I: measurement vector. NULL implies a zero vector */
 	int m,              /* I: parameter vector dimension (i.e. #unknowns) */

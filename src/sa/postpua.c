@@ -88,7 +88,7 @@ int postpua( struct opt_data *op )
 		for( i = 0; i < op->pd->nOptParam; i++ )
 			fscanf( in, "%lf", &opt_params[i] );
 		fscanf( in, " \n" );
-		func_global( opt_params, op, op->od->res );
+		func_global( opt_params, op, op->od->res, NULL );
 		for( i = 0; i < op->od->nTObs; i++ )
 			fprintf( out, " %-12g", op->od->obs_current[i] );
 		fprintf( out, "\n" );

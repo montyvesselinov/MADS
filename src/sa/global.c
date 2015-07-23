@@ -61,7 +61,7 @@
 
 /* Functions here */
 int sa_sobol( struct opt_data *op );
-int func_set( int n_sub, double *var_mat[], double *phi, double *f[], FILE *out, struct opt_data *op );
+int func_set( int n_sub, double *var_mat[], double *phi, double *f[], double *o[], FILE *out, struct opt_data *op );
 int sa_saltelli( struct opt_data *op );
 int sa_moat( struct opt_data *op );
 void var_sorted( double data[], double datb[], int n, double ave, double ep, double *var );
@@ -165,7 +165,7 @@ int sa_sobol( struct opt_data *op )
 	for( j = 0; j < n_obs1; j++ )
 		fhat[j] = fhat2[j] = 0;
 	// Compute sample a phis
-	func_set( n_sub, var_a_lhs, phis_full, f_a, out, op );
+	func_set( n_sub, var_a_lhs, phis_full, f_a, NULL, out, op );
 	for( count = 0; count < n_sub; count++ )
 	{
 		op->phi = phis_full[count];
@@ -188,7 +188,7 @@ int sa_sobol( struct opt_data *op )
 	tprintf( "Computing model outputs to calculate total output mean and variance ... Sample B ... \n" );
 	for( j = 0; j < n_obs1; j++ )
 		fhat[j] = fhat2[j] = 0;
-	func_set( n_sub, var_b_lhs, &phis_full[n_sub], f_b, out, op );
+	func_set( n_sub, var_b_lhs, &phis_full[n_sub], f_b, NULL, out, op );
 	for( count = 0; count < n_sub; count++ )
 	{
 		op->phi = phis_full[n_sub + count];
@@ -264,7 +264,7 @@ int sa_sobol( struct opt_data *op )
 				else         var_c_lhs[count][j] = var_a_lhs[count][j]; // else select from sample a
 			}
 		}
-		func_set( n_sub, var_c_lhs, phis_full, f_c, out, op );
+		func_set( n_sub, var_c_lhs, phis_full, f_c, NULL, out, op );
 		for( count = 0; count < n_sub; count++ )
 		{
 			t1[n_phi] += pow( f_b[count][n_phi] - phis_full[count], 2 ); // t1 = sum in eq. 18
