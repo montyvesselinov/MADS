@@ -147,7 +147,7 @@ ifeq ($(OS),Darwin)
 $(info MAC OS X)
 LIB_DIR = /opt/local/lib
 CFLAGS += -I/opt/local/include
-LDLIBS += -lgfortran -lblas -L/opt/local/lib
+LDLIBS += -latlas -lgfortran -lblas -L/opt/local/lib
 DYNAMICLIB = -dynamiclib -undefined suppress -flat_namespace -shared
 MADS_LIB = $(BIN)/Lib/libmads.dylib
 ifeq ($(ND),bored.lanl.gov)
