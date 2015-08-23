@@ -868,6 +868,16 @@ int LEVMAR_DER2(
 		}
 		else
 		{
+			/*
+			for( i = 0; i < nP; i++ )
+				printf( "JTe[%d] %g\n", i, JTe[i]);
+			for( i = 0; i < nP; i++ )
+			{
+				for( j = 0; j < nP; j++ )
+					printf( "%g ", JTJ[j * nP + i] );
+				printf( "\n" );
+			}
+			*/
 			/* determine increment using adaptive damping augment normal equations */
 			for( i = 0; i < nP; i++ )
 				JTJ[i * nP + i] += lambda;  // Add lambda to the matrix diagonal
@@ -875,6 +885,10 @@ int LEVMAR_DER2(
 			issolved = linsolver( JTJ, JTe, par_change, nP ); ++nlss;
 			if( issolved )
 			{
+				/*
+				for( i = 0; i < nP; i++ )
+					printf( "par_change[%d] %g\n", i, par_change[i] );
+				*/
 				if( op->cd->lm_acc ) // Acceleration
 				{
 					register LM_REAL beta, *jacT;
