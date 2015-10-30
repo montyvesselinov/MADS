@@ -1049,7 +1049,6 @@ int main( int argn, char *argv[] )
 					}
 				}
 				strcpy( bigbuffer, bigbufferorig );
-				start = strstr( bigbuffer, ": OF " );
 				if( start == NULL ) tprintf( "WARNING Objective function value is missing in %s (case %d)\n", cd.resultsfile, j + 1 );
 				else
 				{
@@ -1081,13 +1080,14 @@ int main( int argn, char *argv[] )
 					tprintf( "ERROR Final model parameters cannot be located in %s (case %d)\n", cd.resultsfile, j + 1 );
 					break;
 				}
-				// tprintf( "%s\n", start );
-				strcpy( bigbuffer, start );
+				// tprintf( "s %s\n", start );
+				// strcpy( bigbuffer, start );
+				// tprintf( "b %s\n", bigbuffer );
 				// c = -2 final var
 				// c - word count
 				// k - number of processed variables
 				// i - variable index
-				for( i = 0, k = 0, c = -2, word = strtok( bigbuffer, separator ); word; c++, word = strtok( NULL, separator ) )
+				for( i = 0, k = 0, c = -2, word = strtok( start, separator ); word; c++, word = strtok( NULL, separator ) )
 				{
 					if( c > -1 )
 					{
