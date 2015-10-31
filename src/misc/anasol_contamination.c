@@ -518,7 +518,7 @@ double gaussian_source_3d( double x, double y, double z, double t, void *params 
 	//	printf("result %g ", result, var[C0], p );
 	gsl_integration_workspace_free( w );
 	// Concentrations are in M (kg) / 10^3 L^3 (m^3) (ppt; part per thousand); Concentrations are multiplied by 1e6 to convert in ppb (ppt; part per billion)!!!!!!!
-	return p->var[FLUX] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * ( 2 * ( 2 * p->var[AX] * p->var[VX] + p->var[SOURCE_DX] * p->var[SOURCE_DX] ) ) * ( 2 * ( 2 * p->var[AY] * p->var[VX] + p->var[SOURCE_DY] * p->var[SOURCE_DY] ) ) * 2 * ( 2 * p->var[AZ] * p->var[VX] + p->var[SOURCE_DZ] * p->var[SOURCE_DZ] ) ) );
+	return p->var[FLUX] * 1e6 * result / ( p->var[POROSITY] * sqrt( M_PI * M_PI * M_PI * 8 ) );
 }
 
 double int_gaussian_source_3d( double tau, void *params )
@@ -533,7 +533,7 @@ double int_gaussian_source_3d( double tau, void *params )
 	double source_sizey = ( p->var[SOURCE_DY] );
 	double source_sizez = ( p->var[SOURCE_DZ] );
 	double d, alpha, beta, xe, ye, ze, x0, y0;
-	double sx, sy, ez, tau_d, tv, ts;
+	double sx, sy, ez1, ez2, ez3, tau_d, tv;
 	double varx, vary, varz;
 	x0 = ( p->xe - p->var[SOURCE_X] );
 	y0 = ( p->ye - p->var[SOURCE_Y] );
@@ -544,16 +544,18 @@ double int_gaussian_source_3d( double tau, void *params )
 	ye = x0 * beta  + y0 * alpha;
 	ze = ( p->ze - p->var[SOURCE_Z] );
 	tau = tau + p->var[NLC0] * p->var[NLC1] * sin( tau / p->var[NLC1] );
-	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); ts = pow( tau, -1.5 * p->var[TSCALE_DISP] ); }
-	else { tau_d = tau; ts = pow( tau, -1.5 ); }
+	if( p->scaling_dispersion ) { tau_d = pow( tau, p->var[TSCALE_DISP] ); }
+	else { tau_d = tau; }
 	tv = ( double ) 2 * tau_d * vx;
 	varx = tv * ax + source_sizex * source_sizex;
 	vary = tv * ay + source_sizey * source_sizey;
 	varz = tv * az + source_sizez * source_sizez;
 	sx = -( xe - vx * tau ) * ( xe - vx * tau ) / ( 2 * varx );
 	sy = -ye * ye / ( 2 * vary );
-	ez =  exp( sx + sy - tau * lambda - ze * ze / ( 2 * varz ) ) + exp( sx + sy - tau * lambda - ( ze + 2 * p->var[SOURCE_Z] ) * ( ze + 2 * p->var[SOURCE_Z] ) / ( 2 * varz ) ) ;
-	return ez * ts;
+	ez1 = exp( sx ) / sqrt( varx );
+	ez2 = exp( sy ) / sqrt( vary );
+	ez3 = ( exp( - ze * ze / ( 2 * varz ) ) + exp( - ( ze + 2 * p->var[SOURCE_Z] ) * ( ze + 2 * p->var[SOURCE_Z] ) / ( 2 * varz ) ) ) / sqrt( varz );
+	return ez1 * ez2 * ez3 * exp( -tau * lambda );
 }
 
 double box_source_levy_dispersion( double x, double y, double z, double t, void *params )
