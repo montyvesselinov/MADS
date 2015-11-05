@@ -29,18 +29,20 @@
 // RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR USEFULNESS OF ANY INFORMATION, APPARATUS, PRODUCT, OR
 // PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 
-#include<math.h>
-#include<stdlib.h>
+#include <math.h>
+#include <stdlib.h>
 #include <string.h>
-#include<stdio.h>
-#include<time.h>
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 
 void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x[] );
 void lhs_center( int nvar, int npoint, int *seed, double x[] );
 void lhs_edge( int nvar, int npoint, int *seed, double x[] );
 void lhs_random( int nvar, int npoint, int *seed, double x[] );
 void smp_random( int nvar, int npoint, int *seed, double x[] );
-int get_seed( );
+int get_seed();
+int get_seed_old();
 int nint( float x );
 int int_max( int i1, int i2 );
 int int_min( int i1, int i2 );
@@ -220,7 +222,16 @@ int int_uniform( int a, int b, int *seed )
 	return( value );
 }
 
-int get_seed( )
+int get_seed()
+{
+	struct timeval time;
+	gettimeofday(&time, NULL);
+	unsigned pid = getpid();
+	unsigned int seed = ( time.tv_sec + pid ) * 1000 + time.tv_usec / 1000;
+	return seed;
+}
+
+int get_seed_old()
 {
 	time_t clock;
 	struct tm *lt;

@@ -126,8 +126,8 @@ struct calc_data // calculation parameters; TODO some of the flags can be boolea
 	bool compute_center; // compute the central point for derivatives
 	int lmstandalone; // flag standalone LM run (yes/no)
 	int squads;
-	int seed; //random seed
-	int seed_init; //random seed
+	unsigned seed; //random seed
+	unsigned seed_init; //random seed
 	int test_func; // test function id
 	int test_func_dim; // test function dimensionality
 	int test_func_npar; // test function number of parameters

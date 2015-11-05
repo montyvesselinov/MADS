@@ -132,7 +132,7 @@ double epsilon();
 void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x[] );
 void lhs_random( int nvar, int npoint, int *seed, double x[] );
 void smp_random( int nvar, int npoint, int *seed, double x[] );
-int get_seed( );
+int get_seed();
 // YAML
 #ifdef MADS_YAML
 int load_yaml_problem( char *filename, int argn, char *argv[], struct opt_data *op );
