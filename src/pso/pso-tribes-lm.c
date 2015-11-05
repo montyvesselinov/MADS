@@ -156,7 +156,7 @@ static unsigned int kiss_carry = 0;
 static unsigned int kiss_k;
 static unsigned int kiss_m;
 //--------Internal random generator
-int *irand_seed;
+unsigned *irand_seed;
 
 int pso_tribes( struct opt_data *op )
 {
@@ -2261,7 +2261,6 @@ unsigned int rand_kiss()
 double irand()
 {
 	int k;
-	if( *irand_seed <= 0 ) { tprintf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *irand_seed / 127773;
 	*irand_seed = 16807 * ( *irand_seed - k * 127773 ) - k * 2836;
 	if( *irand_seed < 0 ) *irand_seed += 2147483647;

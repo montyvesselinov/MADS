@@ -193,22 +193,20 @@ int nint( float x )
 	return value;
 }
 
-double float_uniform( int *seed )
+double float_uniform( unsigned *seed )
 {
 	int k;
-	if( *seed <= 0 ) { tprintf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *seed / 127773;
 	*seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
 	if( *seed < 0 ) *seed += 2147483647;
 	return( ( double )( *seed ) * 4.656612875E-10 );
 }
 
-int int_uniform( int a, int b, int *seed )
+int int_uniform( int a, int b, unsigned *seed )
 {
 	int k;
 	float r;
 	int value;
-	if( *seed <= 0 ) { tprintf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *seed / 127773;
 	*seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
 	if( *seed < 0 ) *seed += 2147483647;
