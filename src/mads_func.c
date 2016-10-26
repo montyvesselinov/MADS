@@ -246,6 +246,7 @@ int func_extrn( double *x, void *data, double *f, double *o )
 		}
 		if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 	}
+	if( isnan( phi) ) success_all = 0;
 	p->success = success_all; // Just in case
 	if( p->cd->fdebug >= 2 ) tprintf( "Objective function %g\n", phi );
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = success_all; }
@@ -606,6 +607,7 @@ int func_extrn_read( int ieval, void *data, double *f, double *o ) // Read a ser
 		}
 		if( p->cd->pardebug > 3 ) tprintf( "RESTART: Results (model residuals) from parallel run #%d are archived in directory %s!\n", ieval, p->cd->restart_container );
 	}
+	if( isnan( phi) ) success_all = 0;
 	p->success = success_all; // Just in case
 	if( p->cd->fdebug >= 2 ) tprintf( "Objective function %g\n", phi );
 	if( p->cd->compute_phi ) { p->phi = phi; p->success = success_all; }
@@ -949,6 +951,7 @@ int func_intrn( double *x, void *data, double *f, double *o ) /* forward run for
 			if( p->cd->oderiv != -1 ) { return GSL_SUCCESS; }
 		}
 	}
+	if( isnan( phi) ) success_all = 0;
 	p->success = success_all; // Just in case
 	if( fabs( p->cd->obsstep ) > DBL_EPSILON && p->success ) // INFOGAP analysis
 	{

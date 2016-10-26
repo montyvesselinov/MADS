@@ -1125,6 +1125,11 @@ int main( int argn, char *argv[] )
 					tprintf( "\n" );
 					print_results( &op, 1 );
 				}
+				if( isnan( op.phi ) )
+				{
+					tprintf( "Case skipped: phi is nan\n" );
+					continue;
+				}
 				if( cd.phi_cutoff > DBL_EPSILON && op.phi > cd.phi_cutoff )
 				{
 					tprintf( "Case skipped: phi %g > cutoff %g\n", op.phi, cd.phi_cutoff );
