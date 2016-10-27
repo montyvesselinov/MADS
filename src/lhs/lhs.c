@@ -225,7 +225,7 @@ int get_seed()
 	struct timeval time;
 	gettimeofday( &time, NULL );
 	unsigned pid = getpid();
-	unsigned int seed = ( time.tv_sec + pid ) * 1000 + time.tv_usec / 1000;
+	int seed = ( time.tv_sec + pid ) * 1000 + time.tv_usec / 1000;
 	return seed;
 }
 

@@ -110,7 +110,7 @@ int sa_sobol( struct opt_data *op )
 	tprintf( "Number of analyzed observations %d\n", n_obs );
 	// Create samples
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
+	else if( op->cd->seed == 0 ) { op->cd->seed_init = op->cd->seed = get_seed(); tprintf( "New seed: %d\n", op->cd->seed ); }
 	else tprintf( "Current seed: %d\n", op->cd->seed );
 	// Create samples
 	// Sample A

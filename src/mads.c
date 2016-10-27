@@ -1492,7 +1492,7 @@ int optimize_lm( struct opt_data *op )
 		if( debug ) tprintf( "\nRandom sampling for MSLM optimization (variables %d; realizations %d) using ", nParam, op->cd->nretries );
 		if( ( var_lhs = ( double * ) malloc( nParam * op->cd->nretries * sizeof( double ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( 0 ); }
 		if( op->cd->seed < 0 ) { op->cd->seed *= -1; if( debug ) tprintf( "Imported seed: %d\n", op->cd->seed ); }
-		else if( op->cd->seed == 0 ) { if( debug ) tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
+		else if( op->cd->seed == 0 ) { op->cd->seed_init = op->cd->seed = get_seed(); if( debug ) tprintf( "New seed: %d\n", op->cd->seed ); }
 		else if( debug ) tprintf( "Current seed: %d\n", op->cd->seed );
 		if( op->cd->paran_method[0] != 0 ) { strcpy( buf, op->cd->smp_method ); strcpy( op->cd->smp_method, op->cd->paran_method ); }
 		sampling( nParam, op->cd->nretries, &op->cd->seed, var_lhs, op, debug );
@@ -2213,7 +2213,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 		return( 0 );
 	}
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
+	else if( op->cd->seed == 0 ) { op->cd->seed_init = op->cd->seed = get_seed(); tprintf( "New seed: %d\n", op->cd->seed ); }
 	else tprintf( "Current seed: %d\n", op->cd->seed );
 	tprintf( "Random sampling (variables %d; realizations %d) using ", npar, op->cd->nreal );
 	sampling( npar, op->cd->nreal, &op->cd->seed, var_lhs, op, 1 );
@@ -2888,7 +2888,7 @@ int montecarlo( struct opt_data *op )
 	{ tprintf( "Not enough memory!\n" ); return( 0 ); }
 	tprintf( "\nMonte Carlo analysis using latin-hyper cube sampling:\n" );
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); }
+	else if( op->cd->seed == 0 ) { op->cd->seed_init = op->cd->seed = get_seed(); tprintf( "New seed: %d\n", op->cd->seed ); }
 	else tprintf( "Current seed: %d\n", op->cd->seed );
 	tprintf( "Random sampling (variables %d; realizations %d) using ", npar, op->cd->nreal );
 	sampling( npar, op->cd->nreal, &op->cd->seed, var_lhs, op, 1 );

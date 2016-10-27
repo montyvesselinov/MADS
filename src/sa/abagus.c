@@ -247,7 +247,7 @@ int abagus( struct opt_data *op )
 	{ tprintf( "Not enough memory!\n" ); mads_quits( op->root ); }
 	irand_seed = &op->cd->seed;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); tprintf( "New seed: %d\n", op->cd->seed ); }
 	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed ); }
 	E = exp( 1 );
 	pi = acos( -1 );
