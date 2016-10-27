@@ -1349,7 +1349,7 @@ int main( int argn, char *argv[] )
 		else if( c < ( ( double ) 1 / 60 ) ) tprintf( "Functional evaluations per minute = %g\n", c * 60 );
 		else tprintf( "Functional evaluations per second = %g\n", c );
 	}
-	if( op.cd->seed_init > 0 ) tprintf( "Seed = %d\n", op.cd->seed_init );
+	if( op.cd->seed_init > 0 ) tprintf( "Initial seed = %d\n", op.cd->seed_init );
 	ptr_ts = localtime( &time_start );
 	tprintf( "Execution  started  on %s", asctime( ptr_ts ) );
 	ptr_ts = localtime( &time_end );
@@ -2217,6 +2217,7 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 	else tprintf( "Current seed: %d\n", op->cd->seed );
 	tprintf( "Random sampling (variables %d; realizations %d) using ", npar, op->cd->nreal );
 	sampling( npar, op->cd->nreal, &op->cd->seed, var_lhs, op, 1 );
+	printf( "Current seed: %d\n", op->cd->seed );
 	tprintf( "done.\n" );
 	if( op->cd->mdebug )
 	{
@@ -2273,14 +2274,14 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 	//Dump out a seed the initial seed
 	sprintf( filename, "%s.seed0", op->root );
 	seedfile = fopen( filename, "w" );
-	fprintf( seedfile, "%d\n", op->cd->seed_init - 1 );
+	fprintf( seedfile, "%d\n", op->cd->seed_init );
 	fclose( seedfile );
 	for( count = k; count < op->cd->nreal; count++ )
 	{
 		//Dump out a seed that can be used by external programs
 		sprintf( filename, "%s.seed", op->root );
 		seedfile = fopen( filename, "w" );
-		fprintf( seedfile, "%d\n", op->cd->seed_init + count );
+		fprintf( seedfile, "%d\n", op->cd->seed );
 		fclose( seedfile );
 		op->cd->neval = op->cd->njac = 0;
 		fprintf( out, "%d : init var", count + 1 );
@@ -3463,7 +3464,7 @@ void save_results( int final, char *label, struct opt_data *op, struct grid_data
 	if( op->cd->phi_cutoff > DBL_EPSILON && op->phi < op->cd->phi_cutoff )
 		fprintf( out, "SUCCESS: Objective function is below the predefined cutoff value (%g < %g)!\n", op->phi, op->cd->phi_cutoff );
 	fprintf( out, "Number of function evaluations = %d\n", op->cd->neval );
-	if( op->cd->seed > 0 ) fprintf( out, "Seed = %d\n", op->cd->seed_init );
+	if( op->cd->seed > 0 ) fprintf( out, "Initial seed = %d\n", op->cd->seed_init );
 	fclose( out );
 	if( final )
 	{

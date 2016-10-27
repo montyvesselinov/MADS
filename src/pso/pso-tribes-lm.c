@@ -81,8 +81,8 @@ void tribe_init( struct problem *pb, int nPart, int compare_type, struct swarm *
 int  tribe_varmin_dimension( struct tribe *T );
 void modify_weights( int nPhi, int run );
 void swarm_lm( struct problem *pb, struct swarm *S );
-void seed_rand_kiss( unsigned int seed );
-unsigned int rand_kiss();
+void seed_rand_kiss( int seed );
+int rand_kiss();
 static int compare_crowding_dist( void const *a, void const *b ); // For qsort
 static int compare_dist_rank( void const *a, void const *b );
 static int compare_fit( void const *a, void const *b );
@@ -170,9 +170,9 @@ int pso_tribes( struct opt_data *op )
 	char filename[255];
 	pb.nPhi = 1;
 	gop = op;
-	irand_seed = &op->cd->seed;
+	irand_seed = &gop->cd->seed;
 	if( op->cd->seed < 0 ) { op->cd->seed *= -1; tprintf( "Imported seed: %d\n", op->cd->seed ); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
-	else if( op->cd->seed == 0 ) { tprintf( "New " ); op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); }
+	else if( op->cd->seed == 0 ) { op->cd->seed_init = op->cd->seed = get_seed(); seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); tprintf( "New seed: %d\n", op->cd->seed ); }
 	else { seed_rand_kiss( op->cd->seed ); srand( op->cd->seed ); if( op->cd->pdebug ) tprintf( "Current seed: %d\n", op->cd->seed ); }
 	nExceedSizeSwarm = nExceedSizeTribe = 0;
 	pb.lm_factor = op->cd->lm_factor;
@@ -2235,7 +2235,7 @@ The z's are a simple multiply-with-carry sequence with period
 2^63+2^32-1.  The period of KISS is thus
 2^32*(2^32-1)*(2^63+2^32-1) > 2^127*/
 
-void seed_rand_kiss( unsigned int seed )
+void seed_rand_kiss( int seed )
 {
 	kiss_x = seed | 1;
 	kiss_y = seed | 2;
@@ -2244,7 +2244,7 @@ void seed_rand_kiss( unsigned int seed )
 	kiss_carry = 0;
 }
 
-unsigned int rand_kiss()
+int rand_kiss()
 {
 	kiss_x = kiss_x * 69069 + 1;
 	kiss_y ^= kiss_y << 13;
@@ -2261,9 +2261,13 @@ unsigned int rand_kiss()
 double irand()
 {
 	int k;
+	double d;
 	if( *irand_seed <= 0 ) { tprintf( "ERROR: the seed for random generator is improperly set!\n" ); exit( 1 ); }
 	k = *irand_seed / 127773;
 	*irand_seed = 16807 * ( *irand_seed - k * 127773 ) - k * 2836;
 	if( *irand_seed < 0 ) *irand_seed += 2147483647;
-	return( ( double )( *irand_seed ) * 4.656612875E-10 );
+	d = ( double )( *irand_seed ) * 4.656612875E-10;
+	if( d > 1.0 ) d = 1.0;
+	// printf("%g\n", d);
+	return( d );
 }

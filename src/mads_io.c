@@ -446,8 +446,8 @@ int parse_cmd( char *buf, struct calc_data *cd )
 		if( strcasestr( word, "_ms" ) ) { w = 1; cd->paranoid = 1; } // legacy
 		if( w == 0 ) { tprintf( "\nERROR: Unknown keyword \'%s\'!\n", word ); return( -1 ); }
 	}
-	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is imported
-	if( cd->seed_init != 0 ) cd->seed_init *= -1; // Modify the seed to show that is imported
+	if( cd->seed != 0 ) cd->seed *= -1; // Modify the seed to show that is externally specified
+	// if( cd->seed_init != 0 ) cd->seed_init *= -1; // Modify the seed to show that is imported
 	if( cd->problem_type == UNKNOWN ) { cd->problem_type = CALIBRATE; cd->analysis_type = SIMPLE; }
 	if( cd->nreal == 0 && ( cd->problem_type == MONTECARLO || cd->analysis_type == IGRND || cd->problem_type == GLOBALSENS || cd->problem_type == ABAGUS ) ) cd->nreal = 100;
 	if( cd->nretries > 0 && strncasecmp( cd->opt_method, "lm", 2 ) == 0 ) cd->paranoid = 1;
