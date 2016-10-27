@@ -232,7 +232,7 @@ struct distRank { double dist; int rank; };
 //----------------------------------------- Subroutines
 int mopso( struct opt_data *op );
 // static unsigned long rand_kiss();
-static void seed_rand_kiss( unsigned int seed );
+static void seed_rand_kiss( unsigned long seed );
 static double random_double( double a, double b );
 static double random_gaussian( double mean, double std_dev );
 static int random_int( int a, int b );
@@ -1981,7 +1981,7 @@ static void modify_weights( int fNb, int run )
  2^32*(2^32-1)*(2^63+2^32-1) > 2^127
  */
 
-static void seed_rand_kiss( unsigned int seed )
+static void seed_rand_kiss( unsigned long seed )
 {
 	kiss_x = seed | 1;
 	kiss_y = seed | 2;
