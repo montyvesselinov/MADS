@@ -81,7 +81,7 @@ int igpd( struct opt_data *op );
 int ppsd( struct opt_data *op );
 int montecarlo( struct opt_data *op );
 //
-void sampling( int npar, int nreal, unsigned *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
+void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug ); // Random sampling
 void print_results( struct opt_data *op, int verbosity ); // Print final results
 int sort_int( const void *x, const void *y );
 double sort_double( const void *a, const void *b );
@@ -129,9 +129,9 @@ int check_ins_obs( int nobs, char **obs_id, int *obs_count, char *fn_in_t, int d
 int check_par_tpl( int npar, char **par_id, int *par_count, char *fn_in_t, int debug );
 // Random sampling
 double epsilon();
-void lhs_imp_dist( int nvar, int npoint, int d, unsigned *seed, double x[] );
-void lhs_random( int nvar, int npoint, unsigned *seed, double x[] );
-void smp_random( int nvar, int npoint, unsigned *seed, double x[] );
+void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x[] );
+void lhs_random( int nvar, int npoint, int *seed, double x[] );
+void smp_random( int nvar, int npoint, int *seed, double x[] );
 int get_seed();
 // YAML
 #ifdef MADS_YAML
@@ -3118,7 +3118,7 @@ int montecarlo( struct opt_data *op )
 	return( 1 );
 }
 
-void sampling( int npar, int nreal, unsigned *seed, double var_lhs[], struct opt_data *op, int debug )
+void sampling( int npar, int nreal, int *seed, double var_lhs[], struct opt_data *op, int debug )
 {
 	if( debug ) tprintf( "%s\n", op->cd->smp_method );
 	if( nreal == 1 || strncasecmp( op->cd->smp_method, "random", 6 ) == 0 )

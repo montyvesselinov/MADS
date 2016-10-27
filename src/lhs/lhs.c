@@ -36,23 +36,23 @@
 #include <time.h>
 #include <unistd.h>
 
-void lhs_imp_dist( int nvar, int npoint, int d, unsigned *seed, double x[] );
-void lhs_center( int nvar, int npoint, unsigned *seed, double x[] );
-void lhs_edge( int nvar, int npoint, unsigned *seed, double x[] );
-void lhs_random( int nvar, int npoint, unsigned *seed, double x[] );
-void smp_random( int nvar, int npoint, unsigned *seed, double x[] );
+void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x[] );
+void lhs_center( int nvar, int npoint, int *seed, double x[] );
+void lhs_edge( int nvar, int npoint, int *seed, double x[] );
+void lhs_random( int nvar, int npoint, int *seed, double x[] );
+void smp_random( int nvar, int npoint, int *seed, double x[] );
 int get_seed();
 int get_seed_old();
 int nint( float x );
 int int_max( int i1, int i2 );
 int int_min( int i1, int i2 );
-double float_uniform( unsigned *seed );
-int *perm_uniform( int n, int base, unsigned *seed );
-int int_uniform( int ilo, int ihi, unsigned *seed );
+double float_uniform( int *seed );
+int *perm_uniform( int n, int base, int *seed );
+int int_uniform( int ilo, int ihi, int *seed );
 // Elsewhere ...
 void tprintf( char const *fmt, ... );
 
-void lhs_imp_dist( int nvar, int npoint, int d, unsigned *seed, double x_int[] )
+void lhs_imp_dist( int nvar, int npoint, int d, int *seed, double x_int[] )
 {
 	int *avail, best, count, i, j, k, *list, *point, point_index;
 	double dist, min_all, min_can, opt;
@@ -117,7 +117,7 @@ void lhs_imp_dist( int nvar, int npoint, int d, unsigned *seed, double x_int[] )
 	free( avail ); free( list ); free( point );
 }
 
-void lhs_center( int nvar, int npoint, unsigned *seed, double x[] )
+void lhs_center( int nvar, int npoint, int *seed, double x[] )
 {
 	int base = 0, i, j, k, *perm;
 	for( k = i = 0; i < nvar; i++ )
@@ -129,7 +129,7 @@ void lhs_center( int nvar, int npoint, unsigned *seed, double x[] )
 	}
 }
 
-void smp_random( int nvar, int npoint, unsigned *seed, double x[] )
+void smp_random( int nvar, int npoint, int *seed, double x[] )
 {
 	int i, j, k;
 	for( k = i = 0; i < nvar; i++ )
@@ -137,7 +137,7 @@ void smp_random( int nvar, int npoint, unsigned *seed, double x[] )
 			x[k++] = float_uniform( seed );
 }
 
-void lhs_random( int nvar, int npoint, unsigned *seed, double x[] )
+void lhs_random( int nvar, int npoint, int *seed, double x[] )
 {
 	int base = 0, i, j, k, *perm;
 	double r;
@@ -153,7 +153,7 @@ void lhs_random( int nvar, int npoint, unsigned *seed, double x[] )
 	}
 }
 
-void lhs_edge( int nvar, int npoint, unsigned *seed, double x[] )
+void lhs_edge( int nvar, int npoint, int *seed, double x[] )
 {
 	int base = 0, i, j, k, *perm;
 	if( npoint == 1 )
@@ -169,7 +169,7 @@ void lhs_edge( int nvar, int npoint, unsigned *seed, double x[] )
 		}
 }
 
-int *perm_uniform( int n, int base, unsigned *seed )
+int *perm_uniform( int n, int base, int *seed )
 {
 	int i, j, k, *p;
 	if( ( p = ( int * ) malloc( n * sizeof( int ) ) ) == NULL ) { tprintf( "Not enough memory!\n" ); return( NULL ); }
@@ -193,7 +193,7 @@ int nint( float x )
 	return value;
 }
 
-double float_uniform( unsigned *seed )
+double float_uniform( int *seed )
 {
 	int k;
 	k = *seed / 127773;
@@ -202,7 +202,7 @@ double float_uniform( unsigned *seed )
 	return( ( double )( *seed ) * 4.656612875E-10 );
 }
 
-int int_uniform( int a, int b, unsigned *seed )
+int int_uniform( int a, int b, int *seed )
 {
 	int k;
 	float r;
