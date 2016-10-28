@@ -67,8 +67,8 @@ OUTPUT = > /dev/null 2>&1
 # CFLAGS += -fsanitize=address -fno-omit-frame-pointer
 # LDLIBS += -fsanitize=address -fno-omit-frame-pointer
 DBG = valgrind -v --read-var-info=yes --tool=memcheck --leak-check=yes --leak-check=full --show-reachable=yes --track-origins=yes
-DBG = gdb --args
-DBG =
+# DBG = gdb --args
+# DBG =
 
 VER = $(shell git rev-parse --short HEAD)
 GIT_STATUS = $(shell scripts/check_git_status)

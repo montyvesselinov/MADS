@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.fab1bdd) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.7d84f50) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -40,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150718-102844
+Execution date & time stamp: 20161028-082942
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -464,6 +464,6 @@ Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 111
-Execution  started  on Sat Jul 18 10:28:44 2015
-Execution completed on Sat Jul 18 10:28:45 2015
-Execution date & time stamp: 20150718-102844
+Execution  started  on Fri Oct 28 08:29:42 2016
+Execution completed on Fri Oct 28 08:29:43 2016
+Execution date & time stamp: 20161028-082942

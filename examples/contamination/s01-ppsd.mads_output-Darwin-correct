@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.313c50b) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.7d84f50) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -40,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070148
+Execution date & time stamp: 20161028-083210
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -103,10 +103,12 @@ Total number of evaluations = 121
 Total number of jacobians = 9
 None of the 9 sequential calibration runs produced predictions within calibration ranges!
 Results are saved in ./examples/contamination/s01-ppsd.ppsd.results
-Simulation time = 0 seconds
+Simulation time = 11 seconds
 Functional evaluations = 121
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
-Execution  started  on Thu Mar 26 07:01:48 2015
-Execution completed on Thu Mar 26 07:01:48 2015
-Execution date & time stamp: 20150326-070148
+Functional evaluations per second = 11
+Initial seed = 2096575428
+Execution  started  on Fri Oct 28 08:32:10 2016
+Execution completed on Fri Oct 28 08:32:21 2016
+Execution date & time stamp: 20161028-083210
