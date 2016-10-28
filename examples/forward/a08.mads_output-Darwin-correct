@@ -1,11 +1,10 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.313c50b) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.7d84f50) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a08.mads
 Problem root name: a08
 MADS input file in YAML format.
-YAML file parsing PT = 0 seconds
 Number of YAML classes 7
 YAML Classes:
  Problem -> 3 components
@@ -53,7 +52,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070228
+Execution date & time stamp: 20161028-090243
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -107,8 +106,9 @@ W-14b     (  50):          30 -      37.9497 =     -7.94972 (    -7.94972) succe
 W-14c     (  50):          10 -      190.529 =     -180.529 (          -0) success 1 range            0 -           20
 Objective function: 63.7497 Success: 1
 All the predictions are within acceptable ranges!
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 1
-Execution  started  on Thu Mar 26 07:02:28 2015
-Execution completed on Thu Mar 26 07:02:28 2015
-Execution date & time stamp: 20150326-070228
+Functional evaluations per second = 1
+Execution  started  on Fri Oct 28 09:02:43 2016
+Execution completed on Fri Oct 28 09:02:44 2016
+Execution date & time stamp: 20161028-090243

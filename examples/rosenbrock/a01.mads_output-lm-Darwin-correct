@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.40edfc2+uncommitted) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.7d84f50) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -30,7 +30,7 @@ Global debug (verbosity) level: debug=0
 Model: internal test optimization problem #3: Rosenbrock - parameters 2 observations 2
 
 
-Execution date & time stamp: 20161026-224908
+Execution date & time stamp: 20161028-082915
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
 No flagged parameters; all optimizable parameters are randomized
@@ -126,10 +126,12 @@ Optimized model parameters:
 Parameter #1 1
 Parameter #2 0.999999
 Objective function: 2.57807e-12 Success: 1 (0)
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 44
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Wed Oct 26 22:49:08 2016
-Execution completed on Wed Oct 26 22:49:08 2016
-Execution date & time stamp: 20161026-224908
+Functional evaluations per second = 44
+Initial seed = 2096575428
+Execution  started  on Fri Oct 28 08:29:15 2016
+Execution completed on Fri Oct 28 08:29:16 2016
+Execution date & time stamp: 20161028-082915

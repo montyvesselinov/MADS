@@ -1,11 +1,10 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.313c50b) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.7d84f50) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
 Input file name: a06_yaml.mads
 Problem root name: a06_yaml (YAML format expected)
 MADS input file in YAML format.
-YAML file parsing PT = 0 seconds
 Number of YAML classes 7
 YAML Classes:
  Problem -> 3 components
@@ -53,7 +52,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070205
+Execution date & time stamp: 20161028-084254
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -107,9 +106,9 @@ W-14b     (  50):          30 -      124.862 =     -94.8624 (    -94.8624) succe
 W-14c     (  50):          10 -      348.239 =     -338.239 (          -0) success 1 range            0 -           20
 Objective function: 52697.7 Success: 0
 At least one of the predictions is outside acceptable ranges!
-Simulation time = 1 seconds
+Simulation time = 24 seconds
 Functional evaluations = 1
-Functional evaluations per second = 1
-Execution  started  on Thu Mar 26 07:02:05 2015
-Execution completed on Thu Mar 26 07:02:06 2015
-Execution date & time stamp: 20150326-070205
+Functional evaluations per second = 0.0416667
+Execution  started  on Fri Oct 28 08:42:54 2016
+Execution completed on Fri Oct 28 08:43:18 2016
+Execution date & time stamp: 20161028-084254

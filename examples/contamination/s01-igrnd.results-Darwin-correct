@@ -35,4 +35,4 @@ W-14b     (  50):          30 -  1.29033e-06 =           30 (          30) succe
 W-14c     (  50):          10 -  9.04237e-06 =      9.99999 (           0) success 1 range            0 -           20
 Objective function: 1.27827e+06 Success: 0 (0)
 Number of function evaluations = 35
-Seed = -2096575428
+Initial seed = 2096575428
