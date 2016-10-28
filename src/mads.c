@@ -2217,7 +2217,6 @@ int igrnd( struct opt_data *op ) // Initial guesses -- random
 	else tprintf( "Current seed: %d\n", op->cd->seed );
 	tprintf( "Random sampling (variables %d; realizations %d) using ", npar, op->cd->nreal );
 	sampling( npar, op->cd->nreal, &op->cd->seed, var_lhs, op, 1 );
-	printf( "Current seed: %d\n", op->cd->seed );
 	tprintf( "done.\n" );
 	if( op->cd->mdebug )
 	{
