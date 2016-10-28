@@ -54,6 +54,7 @@ endif
 EXAMPLES = ./examples
 MADS = $(BIN)/Release/mads
 MADS_DEBUG = $(BIN)/Debug/mads
+# MADS = $(BIN)/Debug/mads
 WELLS = $(BIN)/wells
 
 CMP = ./scripts/compare-results # MADS testing
@@ -133,8 +134,8 @@ LDLIBS += -L/users/vvv/mads/repo-github/tpls/lib -Wl,--rpath,/users/vvv/mads/rep
 else
 $(info Machine -- Generic Linux)
 CFLAGS += -Wno-unused-result
-#CFLAGS += -I$(MADS_DIR)/tpls/include
-#LDLIBS += -lgfortran -L$(MADS_DIR)/tpls/lib -Wl,--rpath,$(MADS_DIR)/tpls/lib
+CFLAGS += -I/home/vvv/mads/repo/tpls/include
+LDLIBS += -lgfortran -L/home/vvv/mads/repo/tpls/lib -Wl,--rpath,/home/vvv/mads/repo/tpls/lib
 endif
 else #----------------------------------------------------
 ifeq ($(OS),Cygwin)
@@ -906,6 +907,8 @@ verify-parallel-sa: mads wells
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_index-$(OS)-correct
 	@$(CMP) $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.sobol_sens_total-$(OS)-correct
 	@echo "$(NO_COLOR)"
+
+verify-parallel-sa2: mads wells
 	@echo "TEST 10.8: POSIX/OpenMP parallel execution of Sobol external analysis with restart ..."
 	rm -fR $(EXAMPLES)/wells-short/w01.sobol_sens_index $(EXAMPLES)/wells-short/w01.sobol_sens_total $(EXAMPLES)/wells-short/w01.running
 	cd $(EXAMPLES)/wells-short; $(DBG) ../../$(MADS) w01 gsens real=100 seed=1066732675 omp=2 posix=2 $(OUTPUT)

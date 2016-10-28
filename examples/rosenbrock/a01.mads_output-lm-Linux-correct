@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.b1d4caf) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -27,10 +27,10 @@ Sin transformation of the model parameters: applied (ADD keyword 'nosin' to remo
 
 Global debug (verbosity) level: debug=0
 
-Model: internal test optimization problem #3: 
+Model: internal test optimization problem #3: Rosenbrock - parameters 2 observations 2
 
 
-Execution date & time stamp: 20150326-070313
+Execution date & time stamp: 20161028-083840
 
 SEQUENTIAL RUNS using random initial guesses for model parameters (realizations = 1):
 No flagged parameters; all optimizable parameters are randomized
@@ -126,10 +126,12 @@ Optimized model parameters:
 Parameter #1 1
 Parameter #2 0.999999
 Objective function: 2.57807e-12 Success: 1 (0)
-Simulation time = 0 seconds
+Simulation time = 1 seconds
 Functional evaluations = 44
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 1
-Execution  started  on Thu Mar 26 07:03:13 2015
-Execution completed on Thu Mar 26 07:03:13 2015
-Execution date & time stamp: 20150326-070313
+Functional evaluations per second = 44
+Initial seed = 2096575428
+Execution  started  on Fri Oct 28 08:38:40 2016
+Execution completed on Fri Oct 28 08:38:41 2016
+Execution date & time stamp: 20161028-083840

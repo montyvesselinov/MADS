@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.b1d4caf) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -52,7 +52,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070603
+Execution date & time stamp: 20161028-084417
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -108,6 +108,6 @@ Objective function: 63.7497 Success: 1
 All the predictions are within acceptable ranges!
 Simulation time = 0 seconds
 Functional evaluations = 1
-Execution  started  on Thu Mar 26 07:06:03 2015
-Execution completed on Thu Mar 26 07:06:03 2015
-Execution date & time stamp: 20150326-070603
+Execution  started  on Fri Oct 28 08:44:17 2016
+Execution completed on Fri Oct 28 08:44:17 2016
+Execution date & time stamp: 20161028-084417

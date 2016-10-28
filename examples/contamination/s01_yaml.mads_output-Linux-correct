@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.91612a5) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.b1d4caf) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -181,7 +181,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150519-165423
+Execution date & time stamp: 20161028-083843
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -191,6 +191,8 @@ LM without parallel lambda search
 LM without acceleration
 LM with indirect computation of lambda changes
 Initial OF 63.7496
+Intermediate results stored (./examples/contamination/s01_yaml.intermediate_results)
+Intermediate residuals stored (./examples/contamination/s01_yaml.intermediate_residuals)
 Jacobian #1: Linear solves 0 Evaluations 12 OF 63.7496 lambda 0.001
 Jacobian matrix analysis ...
 WARNING: 3 observations have zero sensitivities!
@@ -287,12 +289,12 @@ Determinant of covariance matrix of observation errors : 6.86515e-11     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 2.2521e+09      ( ln(det V) = 21.5351 )
 
-Log likelihood function             : -33.6463
-Maximum likelihood                  : 67.2927
-AIC (Akaike information criterion)  : 89.2927
-BIC                                 : 100.246
-CIC                                 : 91.4308
-KIC (Kashyap Information Criterion) : 103.431
+Log likelihood function                          : -33.6463
+Maximum likelihood                               : 67.2927
+AIC  (Akaike Information Criterion)              : 89.2927
+AICc (Akaike Information Criterion + correction) : 91.4308
+BIC  (Bayesian Information Criterion)            : 100.246
+KIC  (Kashyap Information Criterion)             : 103.431
 
 Obtained fit is relatively good (chi^2/dof = 7.08329 < 200)
 Optimized model parameters:
@@ -423,12 +425,12 @@ Determinant of covariance matrix of observation errors : 8.21839e-15     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 6.82409e-12     ( ln(det V) = -25.7106 )
 
-Log likelihood function             : -10.0235
-Maximum likelihood                  : 20.047
-AIC (Akaike information criterion)  : 42.047
-BIC                                 : 53
-CIC                                 : 44.1851
-KIC (Kashyap Information Criterion) : 65.2158
+Log likelihood function                          : -10.0235
+Maximum likelihood                               : 20.047
+AIC  (Akaike Information Criterion)              : 42.047
+AICc (Akaike Information Criterion + correction) : 44.1851
+BIC  (Bayesian Information Criterion)            : 53
+KIC  (Kashyap Information Criterion)             : 65.2158
 
 Obtained fit is relatively good (chi^2/dof = 0.0965858 < 200)
 Optimized model parameters:
@@ -560,12 +562,12 @@ Determinant of covariance matrix of observation errors : 2.97784e-11     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 3.09441e-32     ( ln(det V) = -72.5531 )
 
-Log likelihood function             : 13.3978
-Maximum likelihood                  : -26.7956
-AIC (Akaike information criterion)  : -4.79558
-BIC                                 : 6.15747
-CIC                                 : -2.65743
-KIC (Kashyap Information Criterion) : 10.1781
+Log likelihood function                          : 13.3978
+Maximum likelihood                               : -26.7956
+AIC  (Akaike Information Criterion)              : -4.79558
+AICc (Akaike Information Criterion + correction) : -2.65743
+BIC  (Bayesian Information Criterion)            : 6.15747
+KIC  (Kashyap Information Criterion)             : 10.1781
 
 Obtained fit is relatively good (chi^2/dof = 0.00136618 < 200)
 Optimized model parameters:
@@ -701,12 +703,12 @@ Determinant of covariance matrix of observation errors : 1.36695e-10     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 3.64946e-37     ( ln(det V) = -83.9011 )
 
-Log likelihood function             : 19.0718
-Maximum likelihood                  : -38.1435
-AIC (Akaike information criterion)  : -16.1435
-BIC                                 : -5.19047
-CIC                                 : -14.0054
-KIC (Kashyap Information Criterion) : -2.69385
+Log likelihood function                          : 19.0718
+Maximum likelihood                               : -38.1435
+AIC  (Akaike Information Criterion)              : -16.1435
+AICc (Akaike Information Criterion + correction) : -14.0054
+BIC  (Bayesian Information Criterion)            : -5.19047
+KIC  (Kashyap Information Criterion)             : -2.69385
 
 Obtained fit is relatively good (chi^2/dof = 0.00048694 < 200)
 Optimized model parameters:
@@ -838,12 +840,12 @@ Determinant of covariance matrix of observation errors : 2.58548e-11     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 1.40046e-43     ( ln(det V) = -98.6744 )
 
-Log likelihood function             : 26.4584
-Maximum likelihood                  : -52.9168
-AIC (Akaike information criterion)  : -30.9168
-BIC                                 : -19.9638
-CIC                                 : -28.7787
-KIC (Kashyap Information Criterion) : -15.8019
+Log likelihood function                          : 26.4584
+Maximum likelihood                               : -52.9168
+AIC  (Akaike Information Criterion)              : -30.9168
+AICc (Akaike Information Criterion + correction) : -28.7787
+BIC  (Bayesian Information Criterion)            : -19.9638
+KIC  (Kashyap Information Criterion)             : -15.8019
 
 Obtained fit is relatively good (chi^2/dof = 0.000127118 < 200)
 Optimized model parameters:
@@ -984,12 +986,12 @@ Determinant of covariance matrix of observation errors : 1.47826e-10     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 7.31055e-44     ( ln(det V) = -99.3244 )
 
-Log likelihood function             : 26.7834
-Maximum likelihood                  : -53.5669
-AIC (Akaike information criterion)  : -31.5669
-BIC                                 : -20.6138
-CIC                                 : -29.4287
-KIC (Kashyap Information Criterion) : -18.1955
+Log likelihood function                          : 26.7834
+Maximum likelihood                               : -53.5669
+AIC  (Akaike Information Criterion)              : -31.5669
+AICc (Akaike Information Criterion + correction) : -29.4287
+BIC  (Bayesian Information Criterion)            : -20.6138
+KIC  (Kashyap Information Criterion)             : -18.1955
 
 Obtained fit is relatively good (chi^2/dof = 0.000119823 < 200)
 Optimized model parameters:
@@ -1127,12 +1129,12 @@ Determinant of covariance matrix of observation errors : 2.89377e-11     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 6.86147e-44     ( ln(det V) = -99.3878 )
 
-Log likelihood function             : 26.8151
-Maximum likelihood                  : -53.6303
-AIC (Akaike information criterion)  : -31.6303
-BIC                                 : -20.6772
-CIC                                 : -29.4921
-KIC (Kashyap Information Criterion) : -16.628
+Log likelihood function                          : 26.8151
+Maximum likelihood                               : -53.6303
+AIC  (Akaike Information Criterion)              : -31.6303
+AICc (Akaike Information Criterion + correction) : -29.4921
+BIC  (Bayesian Information Criterion)            : -20.6772
+KIC  (Kashyap Information Criterion)             : -16.628
 
 Obtained fit is relatively good (chi^2/dof = 0.000119135 < 200)
 Optimized model parameters:
@@ -1270,12 +1272,12 @@ Determinant of covariance matrix of observation errors : 2.43144e-14     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 6.4547e-44      ( ln(det V) = -99.4489 )
 
-Log likelihood function             : 26.8457
-Maximum likelihood                  : -53.6914
-AIC (Akaike information criterion)  : -31.6914
-BIC                                 : -20.7383
-CIC                                 : -29.5532
-KIC (Kashyap Information Criterion) : -9.60728
+Log likelihood function                          : 26.8457
+Maximum likelihood                               : -53.6914
+AIC  (Akaike Information Criterion)              : -31.6914
+AICc (Akaike Information Criterion + correction) : -29.5532
+BIC  (Bayesian Information Criterion)            : -20.7383
+KIC  (Kashyap Information Criterion)             : -9.60728
 
 Obtained fit is relatively good (chi^2/dof = 0.000118475 < 200)
 Optimized model parameters:
@@ -1412,12 +1414,12 @@ Determinant of covariance matrix of observation errors : 2.46203e-14     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 6.10077e-44     ( ln(det V) = -99.5053 )
 
-Log likelihood function             : 26.8739
-Maximum likelihood                  : -53.7478
-AIC (Akaike information criterion)  : -31.7478
-BIC                                 : -20.7947
-CIC                                 : -29.6096
-KIC (Kashyap Information Criterion) : -9.67617
+Log likelihood function                          : 26.8739
+Maximum likelihood                               : -53.7478
+AIC  (Akaike Information Criterion)              : -31.7478
+AICc (Akaike Information Criterion + correction) : -29.6096
+BIC  (Bayesian Information Criterion)            : -20.7947
+KIC  (Kashyap Information Criterion)             : -9.67617
 
 Obtained fit is relatively good (chi^2/dof = 0.000117869 < 200)
 Optimized model parameters:
@@ -1507,6 +1509,6 @@ Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 111
-Execution  started  on Tue May 19 16:54:23 2015
-Execution completed on Tue May 19 16:54:24 2015
-Execution date & time stamp: 20150519-165423
+Execution  started  on Fri Oct 28 08:38:43 2016
+Execution completed on Fri Oct 28 08:38:44 2016
+Execution date & time stamp: 20161028-083843

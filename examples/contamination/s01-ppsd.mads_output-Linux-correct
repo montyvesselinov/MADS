@@ -1,9 +1,9 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.b1d4caf) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
-Input file name: ./examples/contamination/s01-ppsd.mads
-Problem root name: ./examples/contamination/s01-ppsd
+Input file name: examples/contamination/s01-ppsd.mads
+Problem root name: examples/contamination/s01-ppsd Extension: mads
 MADS input file in Plain TEXT format.
 
 Problem type: calibration
@@ -40,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070326
+Execution date & time stamp: 20161028-101035
 
 SEQUENTIAL RUNS using partial parameter-space discretization (PPSD):
 Total number of sequential runs will be 9
@@ -102,12 +102,13 @@ Multi-Start Levenberg-Marquardt (MSLM) Optimization ... OF 1.07241e+07 -> 1.2782
 Total number of evaluations = 121
 Total number of jacobians = 9
 None of the 9 sequential calibration runs produced predictions within calibration ranges!
-Results are saved in ./examples/contamination/s01-ppsd.ppsd.results
+Results are saved in examples/contamination/s01-ppsd.ppsd.results
 Simulation time = 1 seconds
 Functional evaluations = 121
 Jacobian evaluations = 9
 Levenberg-Marquardt optimizations = 9
 Functional evaluations per second = 121
-Execution  started  on Thu Mar 26 07:03:26 2015
-Execution completed on Thu Mar 26 07:03:27 2015
-Execution date & time stamp: 20150326-070326
+Initial seed = 254171554
+Execution  started  on Fri Oct 28 10:10:35 2016
+Execution completed on Fri Oct 28 10:10:36 2016
+Execution date & time stamp: 20161028-101035

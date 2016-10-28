@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.b1d4caf) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -40,7 +40,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070317
+Execution date & time stamp: 20161028-083842
 
 SINGLE CALIBRATION: single optimization based on initial guesses provided in the input file:
 Number of Levenberg-Marquardt iterations = 50
@@ -387,12 +387,12 @@ Determinant of covariance matrix of observation errors : 2.46203e-14     ( ln(de
 Determinant of observation weight matrix               : 1               ( ln(det W) = 0 )
 Determinant of covariance matrix of measurement errors : 6.10077e-44     ( ln(det V) = -99.5053 )
 
-Log likelihood function             : 26.8739
-Maximum likelihood                  : -53.7478
-AIC (Akaike information criterion)  : -31.7478
-BIC                                 : -20.7947
-CIC                                 : -29.6096
-KIC (Kashyap Information Criterion) : -9.67617
+Log likelihood function                          : 26.8739
+Maximum likelihood                               : -53.7478
+AIC  (Akaike Information Criterion)              : -31.7478
+AICc (Akaike Information Criterion + correction) : -29.6096
+BIC  (Bayesian Information Criterion)            : -20.7947
+KIC  (Kashyap Information Criterion)             : -9.67617
 
 Obtained fit is relatively good (chi^2/dof = 0.000117869 < 200)
 Optimized model parameters:
@@ -464,6 +464,6 @@ Functional evaluations = 111
 Jacobian evaluations = 8
 Levenberg-Marquardt optimizations = 1
 Functional evaluations per second = 111
-Execution  started  on Thu Mar 26 07:03:17 2015
-Execution completed on Thu Mar 26 07:03:18 2015
-Execution date & time stamp: 20150326-070317
+Execution  started  on Fri Oct 28 08:38:42 2016
+Execution completed on Fri Oct 28 08:38:43 2016
+Execution date & time stamp: 20161028-083842

@@ -1,4 +1,4 @@
-MADS: Model Analyses & Decision Support (v.1.1.14.) 2013
+MADS: Model Analyses & Decision Support (v.1.1.14.b1d4caf) 2013
 ---------------------------------------------------
 http://mads.lanl.gov -:- http://www.ees.lanl.gov/staff/monty/codes/mads
 
@@ -52,7 +52,7 @@ Number of regularization terms = 0
 Number of predictions = 0
 
 
-Execution date & time stamp: 20150326-070459
+Execution date & time stamp: 20161028-084245
 
 Model parameter values:
 Source x coordinate [L] 1124
@@ -106,9 +106,9 @@ W-14b     (  50):          30 -      124.862 =     -94.8624 (    -94.8624) succe
 W-14c     (  50):          10 -      348.239 =     -338.239 (          -0) success 1 range            0 -           20
 Objective function: 52697.7 Success: 0
 At least one of the predictions is outside acceptable ranges!
-Simulation time = 1 seconds
+Simulation time = 2 seconds
 Functional evaluations = 1
-Functional evaluations per second = 1
-Execution  started  on Thu Mar 26 07:04:59 2015
-Execution completed on Thu Mar 26 07:05:00 2015
-Execution date & time stamp: 20150326-070459
+Functional evaluations per second = 0.5
+Execution  started  on Fri Oct 28 08:42:45 2016
+Execution completed on Fri Oct 28 08:42:47 2016
+Execution date & time stamp: 20161028-084245

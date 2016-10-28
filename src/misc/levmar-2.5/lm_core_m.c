@@ -299,6 +299,8 @@ int LEVMAR_DER2(
 	maxnfev = op->cd->maxeval - op->cd->neval;
 	for( i = 0; i < nP; i++ )
 		par_lam_last[i] = par_jac_last[i] = par_init[i] = par_best[i] = par_update[i] = par_current[i];
+	for( i = 0; i < nP; i++ )
+		sprintf( filename, "%g\n", par_current[i] ); //TODO memory leak; this dummy operation is need to make it work
 	bool compute_paralellel_init = false;
 	// phi_current = phi_best = phi_jac_last = phi_init = 0.0;
 	if( op->cd->lm_num_parallel_lambda > 0 ) // Parallel Lambda search
